@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-toolbar color="danger">
+    <ion-title>SINE MDRRMO</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div style="text-align: center; margin-top: 2rem; margin-bottom: 2rem;">
+    <h2 style="font-weight: bold; color: #d32f2f;">Emergency Response App</h2>
+    <p>San Isidro, Nueva Ecija</p>
+  </div>
+
+  <ion-list style="background: transparent;">
+    <ion-item lines="full">
+      <ion-input label="Email" labelPlacement="floating" type="email" placeholder="Enter your email" [(ngModel)]="email"></ion-input>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-input label="Password" labelPlacement="floating" type="password" placeholder="Enter your password" [(ngModel)]="password"></ion-input>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="block" color="danger" class="ion-margin-top" (click)="login()">
+    Log In
+  </ion-button>
+
+  <div style="text-align: center; margin-top: 1.5rem;">
+    <p>Don't have an account?</p>
+    <ion-button fill="clear" color="dark" routerLink="/register">
+      Register as Citizen
+    </ion-button>
+  </div>
+</ion-content>

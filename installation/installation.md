@@ -1,5 +1,6 @@
 import the database into your mysql or mariadb server
 that is in the database folder.
+by going into the mysql/mariadb shell and use the command "source emergencydb.sql" while still on the database folder
 
 For the frontend,
 go to the frontend folder and delete the node_modules, and then perform "npm install" on the command line of where the project is.

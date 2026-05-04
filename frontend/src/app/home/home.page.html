@@ -1,20 +1,35 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+<ion-header class="ion-no-border">
+  <ion-toolbar color="danger">
+    <ion-title>Citizen Dashboard</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+<ion-content class="ion-padding ion-text-center">
+  
+  <div class="ion-margin-vertical" style="padding-top: 2rem; padding-bottom: 2rem;">
+    <ion-button 
+      routerLink="/sos" 
+      color="danger" 
+      style="height: 220px; width: 220px; --border-radius: 50%; font-size: 1.8rem; font-weight: bold; box-shadow: 0 8px 16px rgba(255,0,0,0.4);">
+      EMERGENCY<br>SOS
+    </ion-button>
   </div>
+
+  <ion-list class="ion-margin-top ion-text-left">
+    <ion-list-header>
+      <ion-label>Recent Requests</ion-label>
+    </ion-list-header>
+    
+    @for (req of recentRequests; track req.request_id) {
+      <ion-item>
+        <ion-label>
+          <h2>{{ req.incident_type }} Emergency</h2>
+          <p>{{ req.date }}</p>
+        </ion-label>
+        <ion-badge [color]="req.status === 'Pending' ? 'warning' : 'success'" slot="end">
+          {{ req.status }}
+        </ion-badge>
+      </ion-item>
+    }
+  </ion-list>
 </ion-content>

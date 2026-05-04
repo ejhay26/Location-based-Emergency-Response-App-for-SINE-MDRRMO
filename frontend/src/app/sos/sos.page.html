@@ -1,13 +1,46 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Emergency SOS</ion-title>
+<ion-header class="ion-no-border">
+  <ion-toolbar color="danger">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Send SOS</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
+  <div class="ion-text-center ion-margin-bottom">
+    <h2>What is your emergency?</h2>
+    <p>Please provide details to dispatch the correct team.</p>
+  </div>
 
-  <ion-button expand="block" color="danger" (click)="sendSOS()">
-    🚨 SEND SOS ALERT
-  </ion-button>
+  <ion-card>
+    <ion-card-content>
+      <form [formGroup]="sosForm" (ngSubmit)="submitEmergency()">
+        
+        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
+          <ion-select label="Incident Type" labelPlacement="floating" formControlName="incident_type_id" interface="action-sheet">
+            @for (type of incidentTypes; track type.id) {
+              <ion-select-option [value]="type.id">{{ type.name }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
 
+        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
+          <ion-input label="Latitude" labelPlacement="floating" formControlName="latitude" readonly="true" placeholder="Press button below..."></ion-input>
+        </ion-item>
+
+        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
+          <ion-input label="Longitude" labelPlacement="floating" formControlName="longitude" readonly="true" placeholder="Press button below..."></ion-input>
+        </ion-item>
+
+        <ion-button expand="block" fill="outline" color="dark" shape="round" class="ion-margin-bottom" (click)="getCurrentLocation()">
+          Get Current Location
+        </ion-button>
+
+        <ion-button type="submit" expand="block" color="danger" shape="round" size="large" [disabled]="!sosForm.valid" class="ion-margin-top">
+          SUBMIT EMERGENCY
+        </ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
 </ion-content>

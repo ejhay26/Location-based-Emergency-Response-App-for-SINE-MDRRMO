@@ -1,0 +1,27 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Emergency Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-card *ngFor="let a of alerts">
+    <ion-card-header>
+      <ion-card-title>🚨 Emergency Alert</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p><b>User ID:</b> {{a.user_id}}</p>
+      <p><b>Incident:</b> {{a.incident_type_id}}</p>
+      <p><b>Latitude:</b> {{a.latitude}}</p>
+      <p><b>Longitude:</b> {{a.longitude}}</p>
+      <p><b>Status:</b> {{a.status}}</p>
+    </ion-card-content>
+
+  </ion-card>
+
+  <ion-button color="success" size="small">
+    Dispatch Responder
+  </ion-button>
+</ion-content>

@@ -1,27 +1,26 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Emergency Dashboard</ion-title>
+<ion-header class="ion-no-border">
+  <ion-toolbar color="danger">
+    <ion-title>MDRRMO Dispatch Center</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-
-  <ion-card *ngFor="let a of alerts">
-    <ion-card-header>
-      <ion-card-title>🚨 Emergency Alert</ion-card-title>
-    </ion-card-header>
-
-    <ion-card-content>
-      <p><b>User ID:</b> {{a.user_id}}</p>
-      <p><b>Incident:</b> {{a.incident_type_id}}</p>
-      <p><b>Latitude:</b> {{a.latitude}}</p>
-      <p><b>Longitude:</b> {{a.longitude}}</p>
-      <p><b>Status:</b> {{a.status}}</p>
-    </ion-card-content>
-
-  </ion-card>
-
-  <ion-button color="success" size="small">
-    Dispatch Responder
-  </ion-button>
+<ion-content class="ion-padding">
+  <h2>Incoming Emergencies</h2>
+  
+  <ion-list>
+    @for (req of incomingRequests; track req.request_id) {
+      <ion-item class="ion-margin-bottom" lines="none" style="border: 1px solid #e0e0e0; --border-radius: 8px;">
+        <ion-label class="ion-text-wrap">
+          <h2><strong>{{ req.incident_type }}</strong> - {{ req.barangay }}</h2>
+          <h3>{{ req.first_name }} {{ req.last_name }} ({{ req.phone }})</h3>
+          <p>Reported: {{ req.time }}</p>
+        </ion-label>
+        <div slot="end" class="ion-text-right">
+          <ion-badge [color]="req.status === 'Pending' ? 'danger' : 'primary'" class="ion-margin-bottom">{{ req.status }}</ion-badge>
+          <br>
+          <ion-button size="small" color="dark" fill="outline">View</ion-button>
+        </div>
+      </ion-item>
+    }
+  </ion-list>
 </ion-content>

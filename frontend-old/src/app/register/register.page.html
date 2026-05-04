@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Register</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-input placeholder="First Name" [(ngModel)]="first"></ion-input>
+  <ion-input placeholder="Last Name" [(ngModel)]="last"></ion-input>
+  <ion-input placeholder="Phone" [(ngModel)]="phone"></ion-input>
+  <ion-input placeholder="Email" [(ngModel)]="email"></ion-input>
+  <ion-input type="password" placeholder="Password" [(ngModel)]="password"></ion-input>
+
+  <ion-button expand="block" (click)="register()">
+    Register
+  </ion-button>
+
+  <ion-button fill="clear" routerLink="/login">
+    Go to Login
+  </ion-button>
+
+</ion-content>

@@ -1,23 +1,104 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Register</ion-title>
+<ion-header class="ion-no-border">
+  <ion-toolbar color="danger">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Create Account</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
+  <div class="ion-text-center ion-margin-bottom">
+    <ion-text color="danger">
+      <h2>SINE MDRRMO</h2>
+    </ion-text>
+    <p>Citizen Registration</p>
+  </div>
 
-  <ion-input placeholder="First Name" [(ngModel)]="first"></ion-input>
-  <ion-input placeholder="Last Name" [(ngModel)]="last"></ion-input>
-  <ion-input placeholder="Phone" [(ngModel)]="phone"></ion-input>
-  <ion-input placeholder="Email" [(ngModel)]="email"></ion-input>
-  <ion-input type="password" placeholder="Password" [(ngModel)]="password"></ion-input>
+  <ion-card>
+    <ion-card-content>
+      <form [formGroup]="registerForm" (ngSubmit)="register()">
+        
+        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
+          <ion-input 
+            label="First Name" 
+            labelPlacement="floating" 
+            type="text" 
+            formControlName="first_name" 
+            placeholder="Enter first name">
+          </ion-input>
+        </ion-item>
 
-  <ion-button expand="block" (click)="register()">
-    Register
-  </ion-button>
+        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
+          <ion-input 
+            label="Last Name" 
+            labelPlacement="floating" 
+            type="text" 
+            formControlName="last_name" 
+            placeholder="Enter last name">
+          </ion-input>
+        </ion-item>
 
-  <ion-button fill="clear" routerLink="/login">
-    Go to Login
-  </ion-button>
+        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
+          <ion-input 
+            label="Phone Number" 
+            labelPlacement="floating" 
+            type="tel" 
+            formControlName="phone" 
+            placeholder="e.g. 09123456789">
+          </ion-input>
+        </ion-item>
 
+        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
+          <ion-input 
+            label="Email Address" 
+            labelPlacement="floating" 
+            type="email" 
+            formControlName="email" 
+            placeholder="Enter email address">
+          </ion-input>
+        </ion-item>
+
+        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
+          <ion-input 
+            label="Password" 
+            labelPlacement="floating" 
+            type="password" 
+            formControlName="password" 
+            placeholder="Create a password">
+            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+          </ion-input>
+        </ion-item>
+
+        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
+          <ion-select 
+            label="Select Barangay" 
+            labelPlacement="floating" 
+            formControlName="barangay_id" 
+            interface="action-sheet">
+            <!-- Utilizing Angular 17's new @for control flow syntax -->
+            @for (barangay of barangays; track barangay.id) {
+              <ion-select-option [value]="barangay.id">{{ barangay.name }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+
+        <ion-button 
+          type="submit" 
+          expand="block" 
+          color="danger" 
+          shape="round" 
+          [disabled]="!registerForm.valid"
+          class="ion-margin-top">
+          Register
+        </ion-button>
+      </form>
+
+      <div class="ion-text-center ion-margin-top">
+        <ion-text color="medium">
+          <p>Already have an account? <a routerLink="/login">Login here</a></p>
+        </ion-text>
+      </div>
+    </ion-card-content>
+  </ion-card>
 </ion-content>
