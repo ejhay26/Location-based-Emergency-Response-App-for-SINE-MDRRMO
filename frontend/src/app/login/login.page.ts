@@ -1,41 +1,72 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { 
-  IonHeader, IonToolbar, IonTitle, IonContent, IonCard, 
-  IonCardHeader, IonCardTitle, IonCardContent, IonItem, 
-  IonInput, IonButton, IonText, IonInputPasswordToggle 
-} from '@ionic/angular/standalone';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { ApiService } from '../services/api';
+import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    RouterLink,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonCard, 
-    IonCardHeader, IonCardTitle, IonCardContent, IonItem, 
-    IonInput, IonButton, IonText, IonInputPasswordToggle
-  ]
+  // Notice we use ReactiveFormsModule here instead of FormsModule
+  imports: [IonicModule, CommonModule, ReactiveFormsModule, RouterModule], 
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class LoginPage {
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
+  loginForm: FormGroup;
 
-  loginForm: FormGroup = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]]
-  });
+  constructor(
+    private formBuilder: FormBuilder,
+    private apiService: ApiService, 
+    private router: Router,
+    private toastController: ToastController
+  ) {
+    // This initializes the form that your HTML is looking for
+    this.loginForm = this.formBuilder.group({
+      email: ['', [Validators.required]],
+      password: ['', [Validators.required]]
+    });
+  }
 
   login() {
-    if (this.loginForm.valid) {
-      console.log('Login credentials:', this.loginForm.value);
-      // TODO: Connect to api.service.ts
-      // this.apiService.login(this.loginForm.value).subscribe(...)
-      
-      // Navigate to the Citizen Dashboard on success
-      this.router.navigate(['/home']);
+    // Stop if the form is empty or invalid
+    if (this.loginForm.invalid) {
+      this.showToast('Please enter a valid email/username and password.', 'warning');
+      return;
     }
+
+    // this.loginForm.value automatically packages the email and password
+    this.apiService.login(this.loginForm.value).subscribe({
+      next: (response) => {
+        console.log('Login Success:', response);
+        this.showToast('Login successful!', 'success');
+        
+        localStorage.setItem('user', JSON.stringify(response.user));
+        localStorage.setItem('role', response.role);
+        
+        // Route them based on their role!
+        if (response.role === 'admin') {
+          this.router.navigate(['/admin-dashboard']);
+        } else {
+          this.router.navigate(['/home']); 
+        }
+      },
+      error: (error) => {
+        console.error('Login Failed:', error);
+        this.showToast('Invalid credentials. Please try again.', 'danger');
+      }
+    });
+  }
+
+  async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      color: color,
+      position: 'top'
+    });
+    toast.present();
   }
 }

@@ -1,53 +1,58 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { 
-  IonHeader, IonToolbar, IonTitle, IonContent, IonCard, 
-  IonCardHeader, IonCardTitle, IonCardContent, IonItem, 
-  IonInput, IonButton, IonText, IonSelect, IonSelectOption, 
-  IonBackButton, IonButtons, IonInputPasswordToggle 
-} from '@ionic/angular/standalone';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { ApiService } from '../services/api';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    RouterLink,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonItem, IonInput, IonButton, IonText,
-    IonSelect, IonSelectOption, IonBackButton, IonButtons, IonInputPasswordToggle
-  ]
+  imports: [IonicModule, CommonModule, ReactiveFormsModule, RouterModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class RegisterPage {
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
+  registerForm: FormGroup;
 
-  // This will eventually be fetched from your Laravel backend via API
-  barangays = [
-    { id: 1, name: 'Barangay San Isidro' },
-    { id: 2, name: 'Barangay Poblacion' },
-    { id: 3, name: 'Barangay San Jose' }
-  ];
-
-  registerForm: FormGroup = this.fb.group({
-    first_name: ['', [Validators.required]],
-    last_name: ['', [Validators.required]],
-    phone: ['', [Validators.required, Validators.pattern('^(09|\\+639)\\d{9}$')]],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
-    barangay_id: ['', [Validators.required]]
-  });
+  constructor(
+    private formBuilder: FormBuilder,
+    private apiService: ApiService,
+    private router: Router,
+    private toastController: ToastController
+  ) {
+    this.registerForm = this.formBuilder.group({
+      first_name: ['', Validators.required],
+      last_name: ['', Validators.required],
+      phone: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      barangay_id: ['1', Validators.required]
+    });
+  }
 
   register() {
     if (this.registerForm.valid) {
-      console.log('Registration data:', this.registerForm.value);
-      // TODO: Connect to api.service.ts
-      // this.apiService.register(this.registerForm.value).subscribe(...)
-      
-      // Navigate back to login upon successful registration
-      this.router.navigate(['/login']);
+      this.apiService.register(this.registerForm.value).subscribe({
+        next: (response) => {
+          this.showToast('Registration successful! Please log in.', 'success');
+          this.router.navigate(['/login']);
+        },
+        error: (error) => {
+          console.error('Registration Error:', error);
+          this.showToast('Error creating account. Email might be taken.', 'danger');
+        }
+      });
     }
+  }
+
+  async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2500,
+      color: color,
+      position: 'top'
+    });
+    toast.present();
   }
 }
