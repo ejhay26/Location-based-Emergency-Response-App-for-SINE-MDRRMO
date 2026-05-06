@@ -24,4 +24,8 @@ export class HomePage {
     // Send them back to the login screen
     this.router.navigate(['/login']);
   }
+
+  goToSos(){
+    this.router.navigate(['/sos']);
+  }
 }
