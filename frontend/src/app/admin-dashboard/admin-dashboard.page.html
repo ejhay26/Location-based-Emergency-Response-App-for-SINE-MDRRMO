@@ -1,26 +1,35 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar color="danger">
-    <ion-title>MDRRMO Dispatch Center</ion-title>
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>MDRRMO Dispatch</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <h2>Incoming Emergencies</h2>
+  <h2>Active Emergencies</h2>
   
-  <ion-list>
-    @for (req of incomingRequests; track req.request_id) {
-      <ion-item class="ion-margin-bottom" lines="none" style="border: 1px solid #e0e0e0; --border-radius: 8px;">
-        <ion-label class="ion-text-wrap">
-          <h2><strong>{{ req.incident_type }}</strong> - {{ req.barangay }}</h2>
-          <h3>{{ req.first_name }} {{ req.last_name }} ({{ req.phone }})</h3>
-          <p>Reported: {{ req.time }}</p>
-        </ion-label>
-        <div slot="end" class="ion-text-right">
-          <ion-badge [color]="req.status === 'Pending' ? 'danger' : 'primary'" class="ion-margin-bottom">{{ req.status }}</ion-badge>
-          <br>
-          <ion-button size="small" color="dark" fill="outline">View</ion-button>
-        </div>
-      </ion-item>
-    }
+  <!-- This will be empty until we connect the Laravel API -->
+  <div *ngIf="activeRequests.length === 0" class="empty-state">
+    <p>No active emergency requests in San Isidro at this time.</p>
+  </div>
+
+  <ion-list *ngIf="activeRequests.length > 0">
+    <ion-card *ngFor="let request of activeRequests">
+      <ion-card-header>
+        <ion-card-subtitle>{{ request.request_time | date:'short' }}</ion-card-subtitle>
+        <ion-card-title color="danger">{{ request.incident_type }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p><strong>Victim:</strong> {{ request.user_name }}</p>
+        <p><strong>Location:</strong> {{ request.barangay_name }}</p>
+        <ion-button expand="block" color="warning" class="ion-margin-top">
+          Dispatch Responders
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
   </ion-list>
 </ion-content>

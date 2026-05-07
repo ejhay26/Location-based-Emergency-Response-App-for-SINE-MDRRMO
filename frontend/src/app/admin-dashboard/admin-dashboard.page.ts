@@ -1,21 +1,34 @@
-import { Component } from '@angular/core';
-import { 
-  IonHeader, IonToolbar, IonTitle, IonContent, IonList, 
-  IonItem, IonLabel, IonBadge, IonButton 
-} from '@ionic/angular/standalone';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
+import { Router } from '@angular/router';
+import { addIcons } from 'ionicons';
+import { logOutOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-admin-dashboard',
-  templateUrl: 'admin-dashboard.page.html',
+  templateUrl: './admin-dashboard.page.html',
   standalone: true,
-  imports: [
-    IonHeader, IonToolbar, IonTitle, IonContent, IonList, 
-    IonItem, IonLabel, IonBadge, IonButton
-  ]
+  imports: [IonicModule, CommonModule, FormsModule]
 })
-export class AdminDashboardPage {
-  incomingRequests = [
-    { request_id: 101, first_name: 'Juan', last_name: 'Dela Cruz', phone: '09123456789', incident_type: 'Medical', barangay: 'San Isidro', status: 'Pending', time: 'Just now' },
-    { request_id: 102, first_name: 'Maria', last_name: 'Santos', phone: '09987654321', incident_type: 'Fire', barangay: 'Poblacion', status: 'Dispatched', time: '15 mins ago' }
-  ];
+export class AdminDashboardPage implements OnInit {
+  
+  // Empty array waiting for the real database data
+  activeRequests: any[] = [];
+
+  constructor(private router: Router) {
+    addIcons({ logOutOutline });
+  }
+
+  ngOnInit() {
+    // We will build the fetch logic here later to grab real DB records
+    // this.fetchActiveEmergencies();
+  }
+
+  logout() {
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    this.router.navigate(['/login']);
+  }
 }
