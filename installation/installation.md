@@ -1,6 +1,18 @@
 # Local Environment Installation Guide
 
-Follow this continuous, step-by-step guide to run the SINE MDRRMO Emergency Response App on your local machine. Ensure you have PHP, Composer, Node.js, and MariaDB installed before proceeding.
+Follow this continuous, step-by-step guide to run the SINE MDRRMO Emergency Response App on your local machine. Ensure you have Composer, Node.js, PHP, and MariaDB (PHP and MariaDB is usually provided by Xampp) installed before proceeding.
+
+This works on both Windows and Linux Environment.
+- Note that on Linux, You will have to install MariaDB/MySQL server and PHP separately.
+- Installing Xampp on Windows already provides the needed MariaDB/Server and PHP server.
+- Additionally, you will need to install several PHP extensions on linux or configure the php.ini on your Xampp config to uncomment these extensions:
+* php-mbstring
+* php-curl
+* php-zip
+* php-intl
+* php-xml
+- It is recommended that you install xampp before installing composer on Windows, as the Composer installer will detect and point into xampp php folder.
+- After configuring your php extensions on your Linux or Windows Computer, you can then install Composer.
 
 ### Complete System Setup
 
@@ -20,8 +32,21 @@ DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=emergencydb
-DB_USERNAME=root
+DB_USERNAME=your_username_here 
 DB_PASSWORD=your_password_here
+```
+It is recommended that you don't use the root account, and instead, create a new user account on your MariaDB/mysql server that is only able to access the database of this project.
+- How to create new user?:
+```bash
+CREATE USER 'new_user'@'localhost' IDENTIFIED BY 'secure_password';
+```
+- Then add privilege to emergencydb:
+```bash
+GRANT ALL PRIVILEGES ON emergency.* TO 'new_user'@'localhost';
+```
+- Finally, we have to reload the GRANT Table so the privileges take effect immediately:
+```bash
+FLUSH PRIVILEGES;
 ```
 5. **Generate the App Key**: While still in the backend folder terminal, generate Laravel's encryption key:
 
@@ -37,7 +62,13 @@ php artisan serve
 ```Bash
 npm install
 ```
-8. **Start the Ionic Frontend**: Once dependencies are installed, boot up the mobile/web interface:
+8. **Install Ionic**: Install ionic/cli on your computer using npm:
+```bash
+npm install -g @ionic/cli
+```
+the "-g" flag is for installing it globally.
+
+9. **Start the Ionic Frontend**: Once dependencies are installed, boot up the mobile/web interface:
 
 ```Bash
 ionic serve
