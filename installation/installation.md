@@ -3,14 +3,24 @@
 Follow this continuous, step-by-step guide to run the SINE MDRRMO Emergency Response App on your local machine. Ensure you have Composer, Node.js, PHP, and MariaDB (PHP and MariaDB is usually provided by Xampp) installed before proceeding.
 
 This works on both Windows and Linux Environment.
-- Note that on Linux, You will have to install MariaDB/MySQL server and PHP separately.
-- Installing Xampp on Windows already provides the needed MariaDB/Server and PHP server.
-- Additionally, you will need to install several PHP extensions on linux or configure the php.ini on your Xampp config to uncomment these extensions:
+Note that on Linux, You will have to install MariaDB/MySQL server and PHP separately.
+Installing Xampp on Windows already provides the needed MariaDB/Server and PHP server.
+Additionally, you will need to install several PHP extensions on **Linux** with the installation process depends on what distribution you are using:
 * php-mbstring
 * php-curl
 * php-zip
 * php-intl
 * php-xml
+
+On **Windows**, these can be configured by going into xampp's php folder and edit the php.ini.
+Locate the Dynamic Extensions and scroll down a bit until you find the list of extensions.
+uncomment some of the extensions by removing the ";" semi-colon before them.
+make sure these extensions are uncommented:
+* extension=mbstring
+* extension=curl
+* extension=zip
+* extension=intl
+
 - It is recommended that you install xampp before installing composer on Windows, as the Composer installer will detect and point into xampp php folder.
 - After configuring your php extensions on your Linux or Windows Computer, you can then install Composer.
 
@@ -73,3 +83,7 @@ the "-g" flag is for installing it globally.
 ```Bash
 ionic serve
 ```
+
+**Check if both Laravel and Ionic is accessible**:
+Laravel/Backend : localhost:8000
+Ionic/Frontend : localhost:8100
