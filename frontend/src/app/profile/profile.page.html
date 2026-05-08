@@ -1,0 +1,73 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="danger">
+    <ion-buttons slot="start"><ion-back-button defaultHref="/home" style="color: white;"></ion-back-button></ion-buttons>
+    <ion-title style="color: white;">My Account</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  
+  <div class="ion-text-center ion-margin-vertical">
+    <ion-avatar style="width: 120px; height: 120px; margin: 0 auto; border: 4px solid var(--ion-color-danger);">
+      <img [src]="userData.profile_picture" alt="Profile Picture" />
+    </ion-avatar>
+    <ion-button fill="clear" color="danger" size="small" class="ion-margin-top" (click)="changePhoto()">
+      Change Photo
+    </ion-button>
+  </div>
+
+  <ion-list>
+    <ion-list-header><ion-label color="danger">Personal Information</ion-label></ion-list-header>
+
+    <ion-item>
+      <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
+      <ion-label><h3>Full Name</h3><p>{{ userData.first_name }} {{ userData.last_name }}</p></ion-label>
+    </ion-item>
+
+    <ion-item>
+      <ion-icon name="calendar-outline" slot="start" color="medium"></ion-icon>
+      <ion-label><h3>Birthdate & Age</h3><p>{{ userData.birthdate ? userData.birthdate : 'Not set' }} ({{ calculatedAge }} years old)</p></ion-label>
+    </ion-item>
+
+    <ion-list-header><ion-label color="danger">Contact & Location (Locked)</ion-label></ion-list-header>
+
+    <ion-item>
+      <ion-icon name="call-outline" slot="start" color="medium"></ion-icon>
+      <ion-label><h3>Phone Number</h3><p>{{ userData.phone }}</p></ion-label>
+    </ion-item>
+
+    <ion-item>
+      <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
+      <ion-label><h3>Email Address</h3><p>{{ userData.email }}</p></ion-label>
+    </ion-item>
+
+    <ion-item>
+      <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
+      <ion-label><h3>Barangay ID</h3><p>Barangay #{{ userData.barangay_id }}</p></ion-label>
+    </ion-item>
+
+    <ion-list-header class="ion-margin-top"><ion-label color="danger">Security</ion-label></ion-list-header>
+    <ion-card color="light">
+      <ion-card-content>
+        <p style="margin-bottom:15px;">Password must contain at least 8 characters, an uppercase letter, a number, and a special symbol.</p>
+        
+        <ion-item class="ion-margin-bottom" fill="outline">
+          <ion-input label="Current Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.current"></ion-input>
+        </ion-item>
+        
+        <ion-item class="ion-margin-bottom" fill="outline">
+          <ion-input label="New Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.new"></ion-input>
+        </ion-item>
+        
+        <ion-item class="ion-margin-bottom" fill="outline">
+          <ion-input label="Confirm New Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.confirm"></ion-input>
+        </ion-item>
+
+        <ion-button expand="block" color="danger" (click)="updatePassword()">
+          <ion-icon slot="start" name="lock-closed-outline"></ion-icon> Update Password
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+  </ion-list>
+</ion-content> 

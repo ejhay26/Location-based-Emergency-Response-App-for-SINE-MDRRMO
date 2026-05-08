@@ -8,53 +8,73 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form [formGroup]="registerForm" (ngSubmit)="register()">
-    <ion-list style="background: transparent;">
-      <ion-item lines="full">
-        <ion-input label="First Name" labelPlacement="floating" type="text" formControlName="first_name"></ion-input>
-      </ion-item>
+  
+  <div class="ion-text-center ion-margin-bottom">
+    <ion-text color="medium">Step {{ currentStep }} of 3</ion-text>
+    <ion-progress-bar [value]="currentStep / 3" color="danger"></ion-progress-bar>
+  </div>
 
-      <ion-item lines="full">
-        <ion-input label="Last Name" labelPlacement="floating" type="text" formControlName="last_name"></ion-input>
+  <div *ngIf="currentStep === 1">
+    <ion-list>
+      <ion-item>
+        <ion-input label="First Name" labelPlacement="floating" [(ngModel)]="userData.first_name" required></ion-input>
       </ion-item>
-
-      <ion-item lines="full">
-        <ion-input label="Phone Number" labelPlacement="floating" type="tel" formControlName="phone"></ion-input>
+      <ion-item>
+        <ion-input label="Last Name" labelPlacement="floating" [(ngModel)]="userData.last_name" required></ion-input>
       </ion-item>
-
-      <ion-item lines="full">
-        <ion-input label="Email Address" labelPlacement="floating" type="email" formControlName="email"></ion-input>
+      <ion-item>
+        <ion-input label="Phone Number" labelPlacement="floating" type="tel" [(ngModel)]="userData.phone" required></ion-input>
       </ion-item>
-
-      <ion-item lines="full">
-        <ion-input label="Password" labelPlacement="floating" type="password" formControlName="password"></ion-input>
-      </ion-item>
-
-      <ion-item lines="full">
-        <ion-item lines="full">
-        <ion-select label="Barangay" labelPlacement="floating" formControlName="barangay_id">
-          <ion-select-option value="1">Alua</ion-select-option>
-          <ion-select-option value="2">Calaba</ion-select-option>
-          <ion-select-option value="3">Malapit</ion-select-option>
-          <ion-select-option value="4">Mangga</ion-select-option>
-          <ion-select-option value="5">Poblacion</ion-select-option>
-          <ion-select-option value="6">Pulo</ion-select-option>
-          <ion-select-option value="7">San Roque</ion-select-option>
-          <ion-select-option value="8">Santo Cristo</ion-select-option>
-          <ion-select-option value="9">Tabon</ion-select-option>
-        </ion-select>
-      </ion-item>
+      <ion-item>
+        <ion-input label="Birthdate" labelPlacement="floating" type="date" [(ngModel)]="userData.birthdate" required></ion-input>
       </ion-item>
     </ion-list>
+    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="nextStep()">Next</ion-button>
+  </div>
 
-    <ion-button expand="block" color="danger" class="ion-margin-top" type="submit" [disabled]="!registerForm.valid">
-      Create Account
-    </ion-button>
-  </form>
+  <div *ngIf="currentStep === 2">
+    <ion-list>
+      <ion-item>
+        <ion-select label="Barangay" labelPlacement="floating" [(ngModel)]="userData.barangay_id" required>
+          <ion-select-option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Username" labelPlacement="floating" type="text" [(ngModel)]="userData.username" required></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Email Address" labelPlacement="floating" type="email" [(ngModel)]="userData.email" required></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Password" labelPlacement="floating" type="password" [(ngModel)]="userData.password" required>
+          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+        </ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Confirm Password" labelPlacement="floating" type="password" [(ngModel)]="userData.confirm_password" required>
+          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+        </ion-input>
+      </ion-item>
+    </ion-list>
+    <p style="font-size: 12px; color: gray; text-align: center;">Password must be 8+ chars with uppercase, lowercase, number, & symbol.</p>
+    
+    <ion-row class="ion-margin-top">
+      <ion-col><ion-button expand="block" fill="outline" color="danger" (click)="prevStep()">Back</ion-button></ion-col>
+      <ion-col><ion-button expand="block" color="danger" (click)="nextStep()">Send Verification</ion-button></ion-col>
+    </ion-row>
+  </div>
 
- <div class="ion-text-center ion-margin-top">
-        <ion-text color="medium">
-          <p>Already have an account? <a routerLink="/login">Log in here</a></p>
-        </ion-text>
-      </div>
+  <div *ngIf="currentStep === 3" class="ion-text-center">
+    <ion-icon name="mail-unread-outline" style="font-size: 64px; color: var(--ion-color-danger)"></ion-icon>
+    <h2>Check Your Email</h2>
+    <p>We sent a 4-digit verification code to <br><strong>{{ userData.email }}</strong></p>
+    
+    <ion-item class="ion-margin-top">
+      <ion-input class="ion-text-center" style="font-size: 24px; letter-spacing: 10px;" 
+                 type="number" placeholder="0000" [(ngModel)]="otpCode"></ion-input>
+    </ion-item>
+    
+    <ion-button expand="block" color="success" class="ion-margin-top" (click)="verifyOtp()">Verify & Login</ion-button>
+  </div>
+
 </ion-content>

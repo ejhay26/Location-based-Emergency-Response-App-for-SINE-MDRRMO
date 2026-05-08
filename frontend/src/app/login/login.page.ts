@@ -1,72 +1,61 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { IonicModule, ToastController } from '@ionic/angular';
-import { ApiService } from '../services/api';
+import { FormsModule } from '@angular/forms';
+import { IonicModule, ToastController, MenuController} from '@ionic/angular';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   standalone: true,
-  // Notice we use ReactiveFormsModule here instead of FormsModule
-  imports: [IonicModule, CommonModule, ReactiveFormsModule, RouterModule], 
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [IonicModule, CommonModule, FormsModule, HttpClientModule, RouterModule]
 })
 export class LoginPage {
-  loginForm: FormGroup;
+  
+  credentials = { login: '', password: '' };
+  apiUrl = 'http://127.0.0.1:8000/api';
 
   constructor(
-    private formBuilder: FormBuilder,
-    private apiService: ApiService, 
-    private router: Router,
-    private toastController: ToastController
-  ) {
-    // This initializes the form that your HTML is looking for
-    this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required]],
-      password: ['', [Validators.required]]
-    });
+    private router: Router, 
+    private http: HttpClient,
+    private toastController: ToastController,
+    private menuCtrl: MenuController // Injected MenuController
+  ) {}
+
+  // THE LOCK: Completely disables the menu on the login screen
+  ionViewWillEnter() {
+    this.menuCtrl.enable(false);
   }
 
   login() {
-    // Stop if the form is empty or invalid
-    if (this.loginForm.invalid) {
-      this.showToast('Please enter a valid email/username and password.', 'warning');
+    if (!this.credentials.login || !this.credentials.password) {
+      this.showToast('Please enter both email and password.');
       return;
     }
 
-    // this.loginForm.value automatically packages the email and password
-    this.apiService.login(this.loginForm.value).subscribe({
-      next: (response) => {
-        console.log('Login Success:', response);
-        this.showToast('Login successful!', 'success');
-        
-        localStorage.setItem('user', JSON.stringify(response.user));
-        localStorage.setItem('role', response.role);
-        
-        // Route them based on their role!
-        if (response.role === 'admin') {
+    this.http.post(`${this.apiUrl}/login`, this.credentials).subscribe({
+      next: (res: any) => {
+        localStorage.setItem('user', JSON.stringify(res.user));
+        localStorage.setItem('role', res.role);
+
+        if (res.role === 'admin' || res.role === 'dispatcher') {
           this.router.navigate(['/admin-dashboard']);
         } else {
-          this.router.navigate(['/home']); 
+          this.router.navigate(['/home']);
         }
       },
-      error: (error) => {
-        console.error('Login Failed:', error);
-        this.showToast('Invalid credentials. Please try again.', 'danger');
+      error: (err) => {
+        this.showToast('Invalid email or password.');
       }
     });
   }
 
-  async showToast(message: string, color: string) {
+  async showToast(msg: string) {
     const toast = await this.toastController.create({
-      message: message,
-      duration: 2000,
-      color: color,
-      position: 'top'
+      message: msg, duration: 3000, position: 'bottom', color: 'danger'
     });
-    toast.present();
+    await toast.present();
   }
 }

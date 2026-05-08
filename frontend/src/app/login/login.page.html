@@ -1,62 +1,52 @@
-<ion-header class="ion-no-border">
+<ion-header>
   <ion-toolbar color="danger">
-    <ion-title>SINE MDRRMO</ion-title>
+    <ion-title>SAN ISIDRO N.E. MDRRMO</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <div class="ion-margin-top ion-text-center">
-    <ion-text color="danger">
-      <h1>Emergency Response</h1>
-    </ion-text>
-    <p>Citizen Portal</p>
+<ion-content class="ion-padding ion-text-center">
+  
+  <div class="ion-margin-vertical">
+    <img src="assets/icon/logo.jpg" alt="MDRRMO Logo" style="max-width: 120px; border-radius: 50%;">
+    <h2>Emergency Portal</h2>
+    <p class="ion-color-medium">San Isidro, Nueva Ecija</p>
   </div>
 
-  <ion-card class="ion-margin-top">
-    <ion-card-header>
-      <ion-card-title class="ion-text-center">Welcome Back</ion-card-title>
-    </ion-card-header>
+  <form (ngSubmit)="login()">
+    <ion-list>
+      <ion-item>
+        <ion-input 
+          label="Email or Username" 
+          labelPlacement="floating" 
+          type="text" 
+          name="loginField"
+          [(ngModel)]="credentials.login" 
+          required>
+        </ion-input>
+      </ion-item>
 
-    <ion-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="login()">
-        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
-          <ion-input 
-            label="Email" 
-            labelPlacement="floating" 
-            type="text" 
-            formControlName="email" 
-            placeholder="Enter your email"
-            errorText="Please enter a valid email">
-          </ion-input>
-        </ion-item>
+      <ion-item>
+        <ion-input 
+          label="Password" 
+          labelPlacement="floating" 
+          type="password" 
+          name="passwordField"
+          [(ngModel)]="credentials.password" 
+          required>
+          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+        </ion-input>
+      </ion-item>
+    </ion-list>
 
-        <ion-item class="ion-margin-bottom" fill="outline" shape="round">
-          <ion-input 
-            label="Password" 
-            labelPlacement="floating" 
-            type="password" 
-            formControlName="password" 
-            placeholder="Enter your password">
-            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-          </ion-input>
-        </ion-item>
+    <ion-button type="submit" expand="block" color="danger" class="ion-margin-top">
+      Login
+    </ion-button>
+  </form>
 
-        <ion-button 
-          type="submit" 
-          expand="block" 
-          color="danger" 
-          shape="round" 
-          [disabled]="!loginForm.valid"
-          class="ion-margin-top">
-          Login
-        </ion-button>
-      </form>
+  <div class="ion-margin-top">
+    <ion-button fill="clear" color="medium" routerLink="/register" style="text-transform: none;">
+      Don't have an account? <span style="color: var(--ion-color-danger); margin-left: 4px;">Register here</span>
+    </ion-button>
+  </div>
 
-      <div class="ion-text-center ion-margin-top">
-        <ion-text color="medium">
-          <p>Don't have an account? <a routerLink="/register">Register here</a></p>
-        </ion-text>
-      </div>
-    </ion-card-content>
-  </ion-card>
 </ion-content>

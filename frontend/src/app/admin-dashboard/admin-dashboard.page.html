@@ -1,35 +1,182 @@
 <ion-header>
   <ion-toolbar color="danger">
-    <ion-title>MDRRMO Dispatch</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="logout()">
-        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
-      </ion-button>
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
     </ion-buttons>
+
+    <ion-title style="color: white;">
+      <ion-icon name="shield-checkmark-outline" *ngIf="currentRole === 'admin'"></ion-icon>
+      {{ currentRole === 'admin' ? 'Master Admin' : 'MDRRMO Dispatch' }}
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <h2>Active Emergencies</h2>
   
-  <!-- This will be empty until we connect the Laravel API -->
-  <div *ngIf="activeRequests.length === 0" class="empty-state">
-    <p>No active emergency requests in San Isidro at this time.</p>
-  </div>
-
-  <ion-list *ngIf="activeRequests.length > 0">
-    <ion-card *ngFor="let request of activeRequests">
+  <div *ngIf="currentRole === 'admin'" class="ion-margin-bottom">
+    <ion-card color="light">
       <ion-card-header>
-        <ion-card-subtitle>{{ request.request_time | date:'short' }}</ion-card-subtitle>
-        <ion-card-title color="danger">{{ request.incident_type }}</ion-card-title>
+        <ion-card-title>Admin Controls</ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        <p><strong>Victim:</strong> {{ request.user_name }}</p>
-        <p><strong>Location:</strong> {{ request.barangay_name }}</p>
-        <ion-button expand="block" color="warning" class="ion-margin-top">
-          Dispatch Responders
+        <ion-button expand="block" color="danger" (click)="isModalOpen = true">
+          <ion-icon slot="start" name="person-add-outline"></ion-icon>
+          Register New Dispatcher
         </ion-button>
       </ion-card-content>
     </ion-card>
-  </ion-list>
+  </div>
+
+  <ion-grid>
+    <ion-row>
+      
+      <ion-col size="12" size-md="7">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>San Isidro Live Map</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div id="dispatch-map" style="height: 600px; background-color: #e5e5e5; border-radius: 8px;"></div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="5">
+        
+        <ion-segment [(ngModel)]="viewMode" color="danger" class="ion-margin-bottom">
+          <ion-segment-button value="active">
+            <ion-icon name="map-outline"></ion-icon>
+            <ion-label>Active</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="archive">
+            <ion-icon name="archive-outline"></ion-icon>
+            <ion-label>Archive</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+
+        <div *ngIf="viewMode === 'active'">
+          <div *ngIf="activeRequests.length === 0" class="ion-text-center ion-padding ion-color-medium">
+            <p>No active emergencies.</p>
+          </div>
+        
+          <ion-list *ngIf="activeRequests.length > 0" style="max-height: 550px; overflow-y: auto;">
+            <ion-card *ngFor="let request of activeRequests" [id]="'request-card-' + request.request_id"
+              [ngStyle]="{'border': selectedRequestId === request.request_id ? '3px solid var(--ion-color-danger)' : 'none'}">
+              <ion-card-header>
+                <ion-card-subtitle>{{ request.request_time | date:'short' }}</ion-card-subtitle>
+                <ion-card-title color="danger">{{ request.incident_name }}</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <p><strong>Victim:</strong> {{ request.first_name }} {{ request.last_name }}</p>
+                <p><strong>Contact:</strong> {{ request.phone }}</p>
+                <p><strong>Status:</strong> <ion-badge [color]="request.status === 'Pending' ? 'warning' : 'primary'">{{ request.status }}</ion-badge></p>
+                
+                <ion-row class="ion-margin-top">
+                  <ion-col *ngIf="request.status === 'Pending'">
+                    <ion-button expand="block" color="warning" size="small" (click)="openDispatchModal(request.request_id)">
+                      <ion-icon name="car-outline" slot="start"></ion-icon> Dispatch
+                    </ion-button>
+                  </ion-col>
+                  <ion-col>
+                    <ion-button expand="block" color="success" size="small" (click)="resolveEmergency(request.request_id)">
+                      <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon> Resolve
+                    </ion-button>
+                  </ion-col>
+                </ion-row>
+              </ion-card-content>
+            </ion-card>
+          </ion-list>
+        </div>
+
+        <div *ngIf="viewMode === 'archive'">
+          <div *ngIf="archivedRequests.length === 0" class="ion-text-center ion-padding ion-color-medium">
+            <p>No archived requests.</p>
+          </div>
+
+          <ion-list *ngIf="archivedRequests.length > 0" style="max-height: 550px; overflow-y: auto;">
+            <ion-card *ngFor="let req of archivedRequests">
+              <ion-item lines="none">
+                <ion-label>
+                  <h2>{{ req.incident_name }} Emergency</h2>
+                  <p>{{ req.first_name }} {{ req.last_name }}</p>
+                  <p>{{ req.request_time | date:'medium' }}</p>
+                </ion-label>
+                <ion-badge [color]="req.status === 'Resolved' ? 'success' : 'medium'" slot="end">
+                  {{ req.status }}
+                </ion-badge>
+              </ion-item>
+            </ion-card>
+          </ion-list>
+        </div>
+
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-modal [isOpen]="isDispatchModalOpen" (didDismiss)="isDispatchModalOpen = false" initialBreakpoint="0.65" [breakpoints]="[0, 0.65, 1]">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="warning">
+          <ion-title>Dispatch Units</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="isDispatchModalOpen = false">Close</ion-button></ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <ion-list>
+          
+          <ion-item>
+            <ion-select label="Select Responder Unit" labelPlacement="floating" [(ngModel)]="dispatchForm.responder_id" (ionChange)="onResponderChange()">
+              <ion-select-option *ngFor="let r of availableResponders" [value]="r.responder_id">{{ r.name }} ({{ r.role }})</ion-select-option>
+            </ion-select>
+          </ion-item>
+          
+          <ion-item class="ion-margin-top">
+            <ion-select label="Select Vehicle" labelPlacement="floating" [(ngModel)]="dispatchForm.vehicle_id" [disabled]="!dispatchForm.responder_id">
+              <ion-select-option *ngFor="let v of filteredVehicles" [value]="v.vehicle_id">{{ v.name }} [{{ v.plate }}]</ion-select-option>
+            </ion-select>
+          </ion-item>
+          
+        </ion-list>
+        <ion-button expand="block" color="warning" class="ion-margin-top" (click)="submitDispatch()">
+          CONFIRM DISPATCH
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="isModalOpen = false">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="danger">
+          <ion-title>New Dispatcher</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="isModalOpen = false">Close</ion-button></ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <ion-list>
+          <ion-item><ion-input label="First Name" labelPlacement="floating" [(ngModel)]="newDispatcher.first_name"></ion-input></ion-item>
+          <ion-item><ion-input label="Last Name" labelPlacement="floating" [(ngModel)]="newDispatcher.last_name"></ion-input></ion-item>
+          <ion-item><ion-input label="Phone Number" labelPlacement="floating" type="tel" [(ngModel)]="newDispatcher.phone"></ion-input></ion-item>
+          <ion-item><ion-input label="Username" labelPlacement="floating" type="text" [(ngModel)]="newDispatcher.username"></ion-input></ion-item>
+          <ion-item>
+            <ion-select label="Assigned Barangay" labelPlacement="floating" [(ngModel)]="newDispatcher.barangay_id">
+              <ion-select-option [value]="1">Alua</ion-select-option>
+              <ion-select-option [value]="2">Calaba</ion-select-option>
+              <ion-select-option [value]="3">Malapit</ion-select-option>
+              <ion-select-option [value]="4">Mangga</ion-select-option>
+              <ion-select-option [value]="5">Poblacion</ion-select-option>
+              <ion-select-option [value]="6">Pulo</ion-select-option>
+              <ion-select-option [value]="7">San Roque</ion-select-option>
+              <ion-select-option [value]="8">Santo Cristo</ion-select-option>
+              <ion-select-option [value]="9">Tabon</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item><ion-input label="Work Email" labelPlacement="floating" type="email" [(ngModel)]="newDispatcher.email"></ion-input></ion-item>
+          <ion-item><ion-input label="Temporary Password" labelPlacement="floating" type="password" [(ngModel)]="newDispatcher.password"></ion-input></ion-item>
+        </ion-list>
+        <ion-button expand="block" color="danger" class="ion-margin-top" (click)="saveDispatcher()">Create Account</ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
 </ion-content>

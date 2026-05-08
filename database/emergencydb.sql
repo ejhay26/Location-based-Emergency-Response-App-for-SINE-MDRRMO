@@ -1,284 +1,325 @@
-/*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.19-11.4.9-MariaDB, for Linux (x86_64)
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
 --
--- Host: localhost    Database: emergencydb
--- ------------------------------------------------------
--- Server version	11.4.9-MariaDB
+-- Host: 127.0.0.1
+-- Generation Time: May 08, 2026 at 05:53 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
 
 --
--- Table structure for table `admins`
+-- Database: `emergencydb`
 --
 
-DROP TABLE IF EXISTS `admins`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `admins` (
-  `admin_id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(100) DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL,
-  `role` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`admin_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `admins`
---
-
-LOCK TABLES `admins` WRITE;
-/*!40000 ALTER TABLE `admins` DISABLE KEYS */;
-INSERT INTO `admins` VALUES
-(1,'admin_user','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','superadmin');
-/*!40000 ALTER TABLE `admins` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `barangays`
 --
 
-DROP TABLE IF EXISTS `barangays`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `barangays` (
-  `barangay_id` int(11) NOT NULL AUTO_INCREMENT,
-  `barangay_name` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`barangay_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `barangay_id` int(11) NOT NULL,
+  `barangay_name` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `barangays`
 --
 
-LOCK TABLES `barangays` WRITE;
-/*!40000 ALTER TABLE `barangays` DISABLE KEYS */;
-INSERT INTO `barangays` VALUES
-(1,'Alua'),
-(2,'Calaba'),
-(3,'Malapit'),
-(4,'Mangga'),
-(5,'Poblacion'),
-(6,'Pulo'),
-(7,'San Roque'),
-(8,'Santo Cristo'),
-(9,'Tabon');
-/*!40000 ALTER TABLE `barangays` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `barangays` (`barangay_id`, `barangay_name`) VALUES
+(1, 'Alua'),
+(2, 'Calaba'),
+(3, 'Malapit'),
+(4, 'Mangga'),
+(5, 'Poblacion'),
+(6, 'Pulo'),
+(7, 'San Roque'),
+(8, 'Santo Cristo'),
+(9, 'Tabon');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `dispatch`
 --
 
-DROP TABLE IF EXISTS `dispatch`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `dispatch` (
-  `dispatch_id` int(11) NOT NULL AUTO_INCREMENT,
+  `dispatch_id` int(11) NOT NULL,
   `request_id` int(11) DEFAULT NULL,
   `responder_id` int(11) DEFAULT NULL,
   `vehicle_id` int(11) DEFAULT NULL,
   `dispatch_time` datetime DEFAULT NULL,
   `arrival_time` datetime DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`dispatch_id`)
+  `status` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `dispatch`
---
-
-LOCK TABLES `dispatch` WRITE;
-/*!40000 ALTER TABLE `dispatch` DISABLE KEYS */;
-/*!40000 ALTER TABLE `dispatch` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `emergency_requests`
 --
 
-DROP TABLE IF EXISTS `emergency_requests`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `emergency_requests` (
-  `request_id` int(11) NOT NULL AUTO_INCREMENT,
+  `request_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `incident_type_id` int(11) DEFAULT NULL,
+  `image_proof` varchar(255) DEFAULT NULL,
+  `latitude` decimal(10,8) DEFAULT NULL,
+  `longitude` decimal(11,8) DEFAULT NULL,
   `location_id` int(11) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `request_time` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`request_id`),
-  KEY `user_id` (`user_id`),
-  KEY `incident_type_id` (`incident_type_id`),
-  KEY `location_id` (`location_id`),
-  CONSTRAINT `emergency_requests_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  CONSTRAINT `emergency_requests_ibfk_2` FOREIGN KEY (`incident_type_id`) REFERENCES `incident_types` (`incident_type_id`),
-  CONSTRAINT `emergency_requests_ibfk_3` FOREIGN KEY (`location_id`) REFERENCES `locations` (`location_id`)
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `emergency_requests`
 --
 
-LOCK TABLES `emergency_requests` WRITE;
-/*!40000 ALTER TABLE `emergency_requests` DISABLE KEYS */;
-/*!40000 ALTER TABLE `emergency_requests` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `image_proof`, `latitude`, `longitude`, `location_id`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(3, 1, 3, NULL, 15.30542100, 120.91368200, NULL, 'Cancelled', '2026-05-08 02:46:44', '2026-05-08 02:46:44', '2026-05-08 07:18:13', NULL);
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `incident_types`
 --
 
-DROP TABLE IF EXISTS `incident_types`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `incident_types` (
-  `incident_type_id` int(11) NOT NULL AUTO_INCREMENT,
-  `incident_name` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`incident_type_id`)
+  `incident_type_id` int(11) NOT NULL,
+  `incident_name` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `incident_types`
 --
 
-LOCK TABLES `incident_types` WRITE;
-/*!40000 ALTER TABLE `incident_types` DISABLE KEYS */;
-/*!40000 ALTER TABLE `incident_types` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `incident_types` (`incident_type_id`, `incident_name`) VALUES
+(1, 'Fire'),
+(2, 'Flood'),
+(3, 'Medical'),
+(4, 'Crime');
 
---
--- Table structure for table `locations`
---
-
-DROP TABLE IF EXISTS `locations`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `locations` (
-  `location_id` int(11) NOT NULL AUTO_INCREMENT,
-  `latitude` decimal(10,7) DEFAULT NULL,
-  `longitude` decimal(10,7) DEFAULT NULL,
-  `barangay_id` int(11) DEFAULT NULL,
-  `details` text DEFAULT NULL,
-  PRIMARY KEY (`location_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `locations`
---
-
-LOCK TABLES `locations` WRITE;
-/*!40000 ALTER TABLE `locations` DISABLE KEYS */;
-/*!40000 ALTER TABLE `locations` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `responders`
 --
 
-DROP TABLE IF EXISTS `responders`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `responders` (
-  `responder_id` int(11) NOT NULL AUTO_INCREMENT,
+  `responder_id` int(11) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `role` varchar(50) DEFAULT NULL,
   `contact` varchar(20) DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`responder_id`)
+  `status` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `responders`
 --
 
-LOCK TABLES `responders` WRITE;
-/*!40000 ALTER TABLE `responders` DISABLE KEYS */;
-/*!40000 ALTER TABLE `responders` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `responders` (`responder_id`, `name`, `role`, `contact`, `status`) VALUES
+(1, 'San Isidro BFP', 'Firefighter', '09111111111', 'Available'),
+(2, 'San Isidro PNP', 'Police', '09222222222', 'Available'),
+(3, 'MDRRMO Rescue Team', 'Rescue', '09333333333', 'Available'),
+(4, 'Rural Health Unit (RHU)', 'Medical', '09444444444', 'Available');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
-  `user_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
   `first_name` varchar(100) DEFAULT NULL,
   `last_name` varchar(100) DEFAULT NULL,
+  `username` varchar(50) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
+  `birthdate` date DEFAULT NULL,
+  `profile_picture` varchar(255) DEFAULT 'https://ionicframework.com/docs/img/demos/avatar.svg',
   `email` varchar(100) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
+  `role` enum('citizen','dispatcher','admin') NOT NULL DEFAULT 'citizen',
+  `account_status` enum('active','banned') NOT NULL DEFAULT 'active',
   `barangay_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `email` (`email`),
-  KEY `barangay_id` (`barangay_id`),
-  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES
-(1,'Emmanuel John','Perez','09123456789','ejperez623@gmail.com','$2y$12$MNajtoT1vSxVNOw6I2pt.e7ipmAOb4Cy3HOAPsyxLwg/IZoxd/Eni',9),
-(3,'Emmanuel','Perezzz','09123456789','ejperez634@gmail.com','$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe',1);
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `phone`, `birthdate`, `profile_picture`, `email`, `password`, `role`, `account_status`, `barangay_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'Emmanuel John', 'Perez', 'user1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez623@gmail.com', '$2y$12$MNajtoT1vSxVNOw6I2pt.e7ipmAOb4Cy3HOAPsyxLwg/IZoxd/Eni', 'citizen', 'active', 9, '2026-05-07 05:45:17', '2026-05-07 17:33:12', NULL),
+(3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 1, '2026-05-07 05:45:17', '2026-05-07 17:33:20', NULL),
+(4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 1, '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL),
+(8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', 3, '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL),
+(9, 'dispatcher', '2', 'dispatcher2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis2@mail.com', '$2y$12$WuAbG0j2AFQjlMC/RttG4OF5qv2k372lv6qeIOfjJue5FnBJ8Eml.', 'dispatcher', 'active', 4, '2026-05-08 09:28:54', '2026-05-08 09:28:54', NULL);
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `vehicles`
 --
 
-DROP TABLE IF EXISTS `vehicles`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `vehicles` (
-  `vehicle_id` int(11) NOT NULL AUTO_INCREMENT,
+  `vehicle_id` int(11) NOT NULL,
+  `responder_id` int(11) DEFAULT NULL,
   `name` varchar(100) DEFAULT NULL,
   `type` varchar(50) DEFAULT NULL,
   `plate` varchar(50) DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`vehicle_id`)
+  `status` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `vehicles`
 --
 
-LOCK TABLES `vehicles` WRITE;
-/*!40000 ALTER TABLE `vehicles` DISABLE KEYS */;
-/*!40000 ALTER TABLE `vehicles` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+INSERT INTO `vehicles` (`vehicle_id`, `responder_id`, `name`, `type`, `plate`, `status`) VALUES
+(1, 1, 'Firetruck 01', 'Truck', 'SFP-123', 'Available'),
+(2, 2, 'Police Patrol Alpha', 'Car', 'PNP-456', 'Available'),
+(3, 4, 'Rescue Ambulance A', 'Ambulance', 'MDR-789', 'Available'),
+(4, 3, 'Rescue Boat 1', 'Boat', 'MDR-001', 'Available');
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `barangays`
+--
+ALTER TABLE `barangays`
+  ADD PRIMARY KEY (`barangay_id`);
+
+--
+-- Indexes for table `dispatch`
+--
+ALTER TABLE `dispatch`
+  ADD PRIMARY KEY (`dispatch_id`);
+
+--
+-- Indexes for table `emergency_requests`
+--
+ALTER TABLE `emergency_requests`
+  ADD PRIMARY KEY (`request_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `incident_type_id` (`incident_type_id`),
+  ADD KEY `location_id` (`location_id`);
+
+--
+-- Indexes for table `incident_types`
+--
+ALTER TABLE `incident_types`
+  ADD PRIMARY KEY (`incident_type_id`);
+
+--
+-- Indexes for table `responders`
+--
+ALTER TABLE `responders`
+  ADD PRIMARY KEY (`responder_id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`user_id`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD KEY `barangay_id` (`barangay_id`);
+
+--
+-- Indexes for table `vehicles`
+--
+ALTER TABLE `vehicles`
+  ADD PRIMARY KEY (`vehicle_id`),
+  ADD KEY `fk_vehicle_responder` (`responder_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `barangays`
+--
+ALTER TABLE `barangays`
+  MODIFY `barangay_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `dispatch`
+--
+ALTER TABLE `dispatch`
+  MODIFY `dispatch_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `emergency_requests`
+--
+ALTER TABLE `emergency_requests`
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `incident_types`
+--
+ALTER TABLE `incident_types`
+  MODIFY `incident_type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `responders`
+--
+ALTER TABLE `responders`
+  MODIFY `responder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `vehicles`
+--
+ALTER TABLE `vehicles`
+  MODIFY `vehicle_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `emergency_requests`
+--
+ALTER TABLE `emergency_requests`
+  ADD CONSTRAINT `emergency_requests_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `emergency_requests_ibfk_2` FOREIGN KEY (`incident_type_id`) REFERENCES `incident_types` (`incident_type_id`),
+  ADD CONSTRAINT `emergency_requests_ibfk_3` FOREIGN KEY (`location_id`) REFERENCES `locations` (`location_id`);
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`);
+
+--
+-- Constraints for table `vehicles`
+--
+ALTER TABLE `vehicles`
+  ADD CONSTRAINT `fk_vehicle_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`);
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
-
--- Dump completed on 2026-05-05 12:22:14

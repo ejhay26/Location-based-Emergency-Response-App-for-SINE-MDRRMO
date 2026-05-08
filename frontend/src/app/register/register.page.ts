@@ -1,58 +1,116 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController } from '@ionic/angular';
-import { ApiService } from '../services/api';
-import { Router, RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { addIcons } from 'ionicons';
+import { mailUnreadOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule, RouterModule],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [IonicModule, CommonModule, FormsModule, HttpClientModule]
 })
 export class RegisterPage {
-  registerForm: FormGroup;
+  
+  currentStep = 1;
+  otpCode = '';
+  
+  barangays = [
+    { id: 1, name: 'Alua' }, { id: 2, name: 'Calaba' }, { id: 3, name: 'Malapit' },
+    { id: 4, name: 'Mangga' }, { id: 5, name: 'Poblacion' }, { id: 6, name: 'Pulo' },
+    { id: 7, name: 'San Roque' }, { id: 8, name: 'Santo Cristo' }, { id: 9, name: 'Tabon' }
+  ];
+
+  userData = {
+    first_name: '', last_name: '', phone: '', birthdate: '', username: '',
+    email: '', password: '', confirm_password: '', barangay_id: null
+  };
+
+  apiUrl = 'http://127.0.0.1:8000/api'; 
 
   constructor(
-    private formBuilder: FormBuilder,
-    private apiService: ApiService,
-    private router: Router,
+    private router: Router, 
+    private http: HttpClient,
     private toastController: ToastController
   ) {
-    this.registerForm = this.formBuilder.group({
-      first_name: ['', Validators.required],
-      last_name: ['', Validators.required],
-      phone: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      barangay_id: ['1', Validators.required]
-    });
+    addIcons({ mailUnreadOutline });
   }
 
-  register() {
-    if (this.registerForm.valid) {
-      this.apiService.register(this.registerForm.value).subscribe({
-        next: (response) => {
-          this.showToast('Registration successful! Please log in.', 'success');
-          this.router.navigate(['/login']);
-        },
-        error: (error) => {
-          console.error('Registration Error:', error);
-          this.showToast('Error creating account. Email might be taken.', 'danger');
-        }
-      });
+  nextStep() {
+    if (this.currentStep === 1) {
+      if (!this.userData.first_name || !this.userData.last_name || !this.userData.phone || !this.userData.birthdate) {
+        this.showToast('Please fill out all personal details.');
+        return;
+      }
     }
+    if (this.currentStep === 2) {
+      if (!this.userData.username || !this.userData.email || !this.userData.barangay_id) {
+        this.showToast('Please fill out all account details.');
+        return;
+      }
+      
+      // Strict Password Validation Check (Regex)
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+      if (!passwordRegex.test(this.userData.password)) {
+        this.showToast('Password must be 8+ chars with uppercase, lowercase, number, & symbol.');
+        return;
+      }
+
+      if (this.userData.password !== this.userData.confirm_password) {
+        this.showToast('Passwords do not match.');
+        return;
+      }
+      
+      this.submitRegistration();
+      return; // Stop here, the HTTP request will advance to step 3
+    }
+    
+    this.currentStep++;
   }
 
-  async showToast(message: string, color: string) {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 2500,
-      color: color,
-      position: 'top'
+  prevStep() {
+    if (this.currentStep > 1) this.currentStep--;
+  }
+
+  async submitRegistration() {
+    this.http.post(`${this.apiUrl}/register`, this.userData).subscribe({
+      next: (res: any) => {
+        this.showToast('Verification code sent to your email!');
+        this.currentStep = 3; 
+      },
+      error: (err) => {
+        // Automatically show the backend validation errors (like "Username taken")
+        const errorMsg = err.error.message || 'Registration failed.';
+        this.showToast(errorMsg);
+      }
     });
-    toast.present();
+  }
+
+  async verifyOtp() {
+    const payload = { email: this.userData.email, otp: this.otpCode };
+    this.http.post(`${this.apiUrl}/verify-otp`, payload).subscribe({
+      next: (res: any) => {
+        localStorage.setItem('user', JSON.stringify(res.user));
+        localStorage.setItem('role', res.role);
+        this.showToast('Welcome to SINE MDRRMO!');
+        this.router.navigate(['/home']);
+      },
+      error: () => {
+        this.showToast('Invalid OTP code.');
+      }
+    });
+  }
+
+  async showToast(msg: string) {
+    const toast = await this.toastController.create({
+      message: msg,
+      duration: 3000,
+      position: 'bottom',
+      color: 'danger' // Applied global theme color
+    });
+    await toast.present();
   }
 }

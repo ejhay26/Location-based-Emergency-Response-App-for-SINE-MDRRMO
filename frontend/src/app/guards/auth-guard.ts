@@ -12,18 +12,18 @@ export class AuthGuard implements CanActivate {
     const currentRole = localStorage.getItem('role');
     
     // 1. If not logged in at all, kick to login
-    if (!user) {
+    if (!user || !currentRole) {
       this.router.navigate(['/login']);
       return false;
     }
 
-    // 2. Check if the page requires a specific role
-    const expectedRole = route.data?.['role']; 
+    // 2. Check if the page requires specific roles (Now uses an Array!)
+    const expectedRoles = route.data?.['roles'] as Array<string>; 
     
-    if (expectedRole && currentRole !== expectedRole) {
-      // They are logged in, but don't have permission for this specific page.
-      // Send them to their correct dashboard safely.
-      if (currentRole === 'admin') {
+    if (expectedRoles && !expectedRoles.includes(currentRole)) {
+      // They are logged in, but don't have permission for this page.
+      // Safely bounce them to their correct dashboard.
+      if (currentRole === 'admin' || currentRole === 'dispatcher') {
         this.router.navigate(['/admin-dashboard']);
       } else {
         this.router.navigate(['/home']);
@@ -31,6 +31,6 @@ export class AuthGuard implements CanActivate {
       return false;
     }
 
-    return true; // They are logged in AND have the right role. Let them in!
+    return true; // They have the right role! Let them in.
   }
 }

@@ -80,11 +80,15 @@
               "buildTarget": "app:build:production"
             },
             "development": {
-              "buildTarget": "app:build:development"
+              "buildTarget": "app:build:development",
+              "allowedHosts": [
+      "interbranchial-angella-nonteleologically.ngrok-free.dev"
+    ]
             },
             "ci": {
               "progress": false
             }
+            
           },
           "defaultConfiguration": "development"
         },

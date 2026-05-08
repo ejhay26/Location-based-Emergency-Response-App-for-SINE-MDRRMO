@@ -1,9 +1,7 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="danger">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Send SOS</ion-title>
+    <ion-buttons slot="start"><ion-back-button defaultHref="/home" style="color: white;"></ion-back-button></ion-buttons>
+    <ion-title style="color: white;">Send SOS</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -25,19 +23,35 @@
           </ion-select>
         </ion-item>
 
+        <ion-button expand="block" color="dark" shape="round" class="ion-margin-bottom" (click)="takePhoto()">
+          <ion-icon name="camera-outline" slot="start"></ion-icon>
+          {{ photoPreview ? 'Retake Photo Evidence' : 'Take Photo Evidence' }}
+        </ion-button>
+
+        <div *ngIf="photoPreview" class="ion-margin-bottom ion-text-center">
+          <img [src]="photoPreview" style="max-height: 150px; border-radius: 8px; border: 2px solid var(--ion-color-danger);" />
+        </div>
+
+        <div class="ion-margin-bottom" style="position: relative;">
+          <div id="sos-map" style="height: 250px; background-color: #e5e5e5; border-radius: 12px; z-index: 1;"></div>
+          <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png"
+               style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); z-index: 1000; pointer-events: none; width: 25px; height: 41px;" />
+        </div>
+
         <ion-item class="ion-margin-bottom" fill="outline" shape="round">
-          <ion-input label="Latitude" labelPlacement="floating" formControlName="latitude" readonly="true" placeholder="Press button below..."></ion-input>
+          <ion-input label="Latitude" labelPlacement="floating" formControlName="latitude" readonly="true"></ion-input>
         </ion-item>
 
         <ion-item class="ion-margin-bottom" fill="outline" shape="round">
-          <ion-input label="Longitude" labelPlacement="floating" formControlName="longitude" readonly="true" placeholder="Press button below..."></ion-input>
+          <ion-input label="Longitude" labelPlacement="floating" formControlName="longitude" readonly="true"></ion-input>
         </ion-item>
 
         <ion-button expand="block" fill="outline" color="dark" shape="round" class="ion-margin-bottom" (click)="getCurrentLocation()">
+          <ion-icon name="locate-outline" slot="start"></ion-icon>
           Get Current Location
         </ion-button>
 
-        <ion-button type="submit" expand="block" color="danger" shape="round" size="large" [disabled]="!sosForm.valid" class="ion-margin-top">
+        <ion-button type="submit" expand="block" color="danger" shape="round" size="large" [disabled]="!sosForm.valid || !photoPreview" class="ion-margin-top">
           SUBMIT EMERGENCY
         </ion-button>
       </form>

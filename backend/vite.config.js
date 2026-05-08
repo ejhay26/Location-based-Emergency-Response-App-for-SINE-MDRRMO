@@ -11,6 +11,9 @@ export default defineConfig({
         tailwindcss(),
     ],
     server: {
+        allowedHosts: [
+            'interbranchial-angella-nonteleologically.ngrok-free.dev'
+        ],
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

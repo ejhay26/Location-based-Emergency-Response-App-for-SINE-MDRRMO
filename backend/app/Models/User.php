@@ -21,9 +21,13 @@ class User extends Authenticatable
         'first_name',
         'last_name',
         'phone',
+        'username', // Added
+        'birthdate', // Added
         'email',
         'password',
         'barangay_id',
+        'role', // Added so dispatchers save correctly!
+        'profile_picture' // Added
     ];
 
     // Hide the password when sending data back to Ionic
