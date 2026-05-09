@@ -1,75 +1,45 @@
-/*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
- */
-
 @import "leaflet/dist/leaflet.css";
-
-/* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
-
-/* Optional CSS utils that can be commented out */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
-
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
-/* Input Polish: Turns text green when valid and touched */
-ion-input.ion-touched.ion-valid {
-  --color: var(--ion-color-success);
+/* 1. STRICT GLOBAL UI ROUNDING */
+ion-card, ion-item, ion-list, ion-button, ion-input, ion-select, ion-avatar {
+  --border-radius: 16px !important;
+  border-radius: 16px !important;
 }
 
-/* Input Polish: Turns text red when invalid and touched */
-ion-input.ion-touched.ion-invalid {
-  --color: var(--ion-color-danger);
+/* Force rounding on physical HTML elements like Maps and Charts */
+.leaflet-container, canvas, #dispatch-map, #sos-map, #citizen-map {
+  border-radius: 16px !important;
+  overflow: hidden !important;
 }
 
-/* Global Button Rounding */
-ion-button, ion-item, ion-card, ion-input {
-  --border-radius: 12px;
-}
+/* 2. INPUT POLISH */
+ion-input.ion-touched.ion-valid { --color: var(--ion-color-success); }
+ion-input.ion-touched.ion-invalid { --color: var(--ion-color-danger); }
+ion-input-password-toggle { --color: var(--ion-color-danger); }
 
-/* Force the eye icon toggle to be red */
-ion-input-password-toggle {
-  --color: var(--ion-color-danger);
-}
-
-/* The Beautiful SOS Button */
+/* 3. SOS BUTTON */
 .sos-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 40px;
+  margin-top: 30px;
 }
 
 .sos-button {
   width: 200px;
   height: 200px;
-  border-radius: 50%;
+  border-radius: 50% !important;
   background-color: var(--ion-color-danger);
   color: white;
   font-size: 24px;
@@ -82,4 +52,30 @@ ion-input-password-toggle {
 .sos-button:active {
   transform: scale(0.95);
   box-shadow: 0 4px 12px rgba(255, 0, 0, 0.6);
+}
+
+/* 4. PUBLIC BROADCAST MARQUEE ANIMATION */
+.broadcast-banner {
+  background-color: var(--ion-color-danger);
+  color: white;
+  padding: 12px;
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  border-radius: 16px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+}
+
+.marquee-text {
+  display: inline-block;
+  padding-left: 100%;
+  animation: marquee 15s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-100%, 0); }
 }
