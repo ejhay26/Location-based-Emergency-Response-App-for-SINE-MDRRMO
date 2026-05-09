@@ -11,6 +11,7 @@ The system provides a seamless bridge between citizens experiencing emergencies 
 * **Backend API:** Laravel 11 (PHP)
 * **Database:** MariaDB / MySQL
 * **Mapping Engine:** Leaflet.js with custom GeoJSON Boundary Masking
+* **Data Visualization:** Chart.js
 * **Styling:** Ionic Native UI Components, SCSS
 
 ## System Architecture
@@ -31,7 +32,7 @@ The platform is divided into robust, role-based interfaces:
 * **Public Broadcast System:** Enables the MDRRMO Master Admin to push critical, real-time alert marquees directly to the top of all citizen dashboards (e.g., severe weather warnings).
 * **Stateless Account Recovery:** Highly secure, OTP-based email verification flow allowing citizens to reset forgotten passwords without requiring persistent server sessions.
 
-## Future Scope & Recommendations (Version 2.0)
+## Future Scope and Recommendations
 While the core emergency dispatch engine is fully operational, the following features are slated for future development:
 1. **Offline Resiliency (Typhoon-Proofing):** Utilizing Ionic Local Storage to queue SOS requests during internet outages, automatically firing them to the server when mobile data is restored.
 2. **Push Notifications:** Integrating Firebase Cloud Messaging (FCM) to push free, real-time alert banners to citizens when responders are en route.
