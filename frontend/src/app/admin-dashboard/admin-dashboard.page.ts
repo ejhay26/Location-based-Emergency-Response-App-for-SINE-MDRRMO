@@ -5,8 +5,9 @@ import { IonicModule, ToastController, MenuController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { addIcons } from 'ionicons';
-import { logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline } from 'ionicons/icons';
+import { logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline } from 'ionicons/icons';
 import * as L from 'leaflet'; 
+import Chart from 'chart.js/auto';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -19,13 +20,15 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   currentRole: string | null = '';
   apiUrl = 'http://127.0.0.1:8000/api';
   
+  // Lists
   activeRequests: any[] = [];
   archivedRequests: any[] = [];
   availableResponders: any[] = [];
   availableVehicles: any[] = [];
   filteredVehicles: any[] = []; 
   
-  viewMode: 'active' | 'archive' = 'active';
+  // UI States
+  viewMode: 'active' | 'archive' | 'analytics' = 'active'; 
   isModalOpen = false;
   isDispatchModalOpen = false;
   selectedRequestId: number | null = null; 
@@ -33,9 +36,19 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   newDispatcher = { first_name: '', last_name: '', phone: '', username: '', email: '', password: '', barangay_id: null };
   dispatchForm = { request_id: null as number | null, responder_id: null, vehicle_id: null };
 
+  // Map & Polling
   map: any;
   mapMarkers: any[] = [];
-  pollingInterval: any; // The background timer
+  pollingInterval: any; 
+
+  // Analytics Variables
+  analyticsData: any = { daily_stats: [], type_stats: [], recent_records: [] };
+  filteredAnalyticsRecords: any[] = [];
+  trendChartInstance: any;
+  typeChartInstance: any;
+  trendChartType: 'bar' | 'line' = 'bar'; 
+  chartRange = 7; 
+  currentFilterLabel: string = 'All Records';
 
   sosIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -49,7 +62,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private menuCtrl: MenuController
   ) {
-    addIcons({ logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline });
+    addIcons({ logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline });
   }
 
   ngOnInit() {}
@@ -58,24 +71,143 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.currentRole = localStorage.getItem('role');
     this.menuCtrl.enable(true);
     this.loadData();
+    this.loadAnalytics(); 
 
-    // START POLLING: Checks DB every 5 seconds
     this.pollingInterval = setInterval(() => {
       this.pollActiveEmergencies();
     }, 5000);
   }
 
   ionViewWillLeave() {
-    // Stop polling if they leave the page to save battery/memory!
-    if (this.pollingInterval) {
-      clearInterval(this.pollingInterval);
-    }
+    if (this.pollingInterval) clearInterval(this.pollingInterval);
   }
 
   ngOnDestroy() {
     if (this.pollingInterval) clearInterval(this.pollingInterval);
+    if (this.trendChartInstance) this.trendChartInstance.destroy();
+    if (this.typeChartInstance) this.typeChartInstance.destroy();
   }
 
+  // --- TAB NAVIGATION ---
+  segmentChanged() {
+    if (this.viewMode === 'analytics') {
+      setTimeout(() => this.renderCharts(), 200); 
+    } else if (this.viewMode === 'active') {
+      setTimeout(() => {
+        // Because we hid the map instead of deleting it, invalidateSize perfectly redraws it!
+        if (this.map) {
+          this.map.invalidateSize();
+        } else {
+          this.initMap();
+        }
+      }, 250);
+    }
+  }
+
+  // --- ANALYTICS & CHARTS ENGINE ---
+  changeDateRange(event: any) {
+    this.chartRange = event.detail.value;
+    this.loadAnalytics();
+  }
+
+  loadAnalytics() {
+    this.http.get(`${this.apiUrl}/analytics?days=${this.chartRange}`).subscribe((res: any) => {
+      this.analyticsData = res;
+      this.filteredAnalyticsRecords = res.recent_records; 
+      if (this.viewMode === 'analytics') this.renderCharts();
+    });
+  }
+
+  toggleChartType() {
+    this.trendChartType = this.trendChartType === 'bar' ? 'line' : 'bar';
+    this.renderCharts();
+  }
+
+  clearFilter() {
+    this.filteredAnalyticsRecords = this.analyticsData.recent_records;
+    this.currentFilterLabel = 'All Records';
+  }
+
+  renderCharts() {
+    const trendCanvas = document.getElementById('trendChart') as HTMLCanvasElement;
+    const typeCanvas = document.getElementById('typeChart') as HTMLCanvasElement;
+    
+    if (!trendCanvas || !typeCanvas) return;
+
+    if (this.trendChartInstance) this.trendChartInstance.destroy();
+    if (this.typeChartInstance) this.typeChartInstance.destroy();
+
+    const dates = this.analyticsData.daily_stats.map((d: any) => d.date);
+    const totals = this.analyticsData.daily_stats.map((d: any) => d.total);
+
+    this.trendChartInstance = new Chart(trendCanvas, {
+      type: this.trendChartType,
+      data: {
+        labels: dates,
+        datasets: [{
+          label: 'Emergencies',
+          data: totals,
+          backgroundColor: 'rgba(235, 68, 90, 0.7)', 
+          borderColor: '#eb445a',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3 
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: {
+          duration: 1200,          // NEW: Smooth entry animation
+          easing: 'easeOutQuart'
+        },
+        onClick: (event, elements) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            const clickedDate = dates[index];
+            this.currentFilterLabel = `Date: ${clickedDate}`;
+            this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter(
+              (req: any) => req.request_time.startsWith(clickedDate)
+            );
+          }
+        }
+      }
+    });
+
+    const types = this.analyticsData.type_stats.map((t: any) => t.incident_name);
+    const typeCounts = this.analyticsData.type_stats.map((t: any) => t.total);
+
+    this.typeChartInstance = new Chart(typeCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: types,
+        datasets: [{
+          data: typeCounts,
+          backgroundColor: ['#eb445a', '#ffc409', '#2dd36f', '#222428'], 
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: {
+          animateScale: true,      // NEW: Scales out from the center
+          animateRotate: true,     // NEW: Spins beautifully into place
+          duration: 1200
+        },
+        onClick: (event, elements) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            const clickedType = types[index];
+            this.currentFilterLabel = `Category: ${clickedType}`;
+            this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter(
+              (req: any) => req.incident_name === clickedType
+            );
+          }
+        }
+      }
+    });
+  }
+
+  // --- CORE SYSTEM DATA ---
   loadData() {
     this.http.get(`${this.apiUrl}/active-emergencies`).subscribe((res: any) => {
       this.activeRequests = res;
@@ -88,22 +220,19 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     });
   }
 
-  // The Silent Poller
   pollActiveEmergencies() {
     this.http.get(`${this.apiUrl}/active-emergencies`).subscribe((res: any) => {
-      // Only rebuild the map if the amount of emergencies CHANGED. 
-      // This stops open popups from closing randomly!
       if (res.length !== this.activeRequests.length) {
         this.activeRequests = res;
         this.plotMarkers();
+        this.loadAnalytics(); 
       } else {
-        this.activeRequests = res; // Silently update the list data
+        this.activeRequests = res; 
       }
     });
   }
 
   initMap() {
-    // ... exact same initMap code ...
     this.map = L.map('dispatch-map', { minZoom: 12 }).setView([15.3014, 120.9274], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(this.map);
 
@@ -142,6 +271,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     });
   }
 
+  // --- DISPATCH & UI ACTIONS ---
   openDispatchModal(requestId: number) {
     this.dispatchForm.request_id = requestId;
     this.dispatchForm.responder_id = null;
