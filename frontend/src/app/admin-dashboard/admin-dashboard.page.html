@@ -3,7 +3,6 @@
     <ion-buttons slot="start">
       <ion-menu-button style="color: white;"></ion-menu-button>
     </ion-buttons>
-
     <ion-title style="color: white;">
       <ion-icon name="shield-checkmark-outline" *ngIf="currentRole === 'admin'"></ion-icon>
       {{ currentRole === 'admin' ? 'Master Admin' : 'MDRRMO Dispatch' }}
@@ -15,13 +14,10 @@
   
   <div *ngIf="currentRole === 'admin'" class="ion-margin-bottom">
     <ion-card color="light">
-      <ion-card-header>
-        <ion-card-title>Admin Controls</ion-card-title>
-      </ion-card-header>
+      <ion-card-header><ion-card-title>Admin Controls</ion-card-title></ion-card-header>
       <ion-card-content>
         <ion-button expand="block" color="danger" (click)="isModalOpen = true">
-          <ion-icon slot="start" name="person-add-outline"></ion-icon>
-          Register New Dispatcher
+          <ion-icon slot="start" name="person-add-outline"></ion-icon> Register New Dispatcher
         </ion-button>
       </ion-card-content>
     </ion-card>
@@ -31,13 +27,10 @@
     <ion-row>
       
       <ion-col size="12" size-md="7">
-        
         <ion-card [class.ion-hide]="viewMode === 'analytics'">
-          <ion-card-header>
-            <ion-card-title>San Isidro Live Map</ion-card-title>
-          </ion-card-header>
+          <ion-card-header><ion-card-title>San Isidro Live Map</ion-card-title></ion-card-header>
           <ion-card-content>
-            <div id="dispatch-map" style="height: 600px; background-color: #e5e5e5; border-radius: 8px;"></div>
+            <div id="dispatch-map" style="height: 600px; background-color: #e5e5e5; border-radius: 12px;"></div>
           </ion-card-content>
         </ion-card>
 
@@ -45,61 +38,56 @@
           <ion-card>
             <ion-card-header style="display: flex; justify-content: space-between; align-items: center;">
               <ion-card-title>Emergency Trend</ion-card-title>
-              
               <div style="display: flex; align-items: center;">
-                <ion-select [(ngModel)]="chartRange" (ionChange)="changeDateRange($event)" interface="popover" style="min-width: 110px; margin-right: 10px; background: var(--ion-color-light); border-radius: 4px; padding: 4px 8px;">
+                <ion-select [(ngModel)]="chartRange" (ionChange)="changeDateRange($event)" interface="popover" style="min-width: 110px; margin-right: 10px; background: var(--ion-color-light); padding: 4px 8px;">
                   <ion-select-option [value]="7">Last 7 Days</ion-select-option>
                   <ion-select-option [value]="30">Last 30 Days</ion-select-option>
                   <ion-select-option [value]="90">Last 3 Months</ion-select-option>
                 </ion-select>
-                
                 <ion-button fill="clear" color="danger" size="small" (click)="toggleChartType()">
                   <ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon>
                 </ion-button>
               </div>
             </ion-card-header>
-            
-            <ion-card-content>
-              <canvas id="trendChart" style="height: 250px; width: 100%; cursor: pointer;"></canvas>
-            </ion-card-content>
+            <ion-card-content><canvas id="trendChart" style="height: 250px; width: 100%; cursor: pointer;"></canvas></ion-card-content>
           </ion-card>
-
           <ion-card class="ion-margin-top">
-            <ion-card-header>
-              <ion-card-title>Incident Breakdown</ion-card-title>
-            </ion-card-header>
-            <ion-card-content style="display: flex; justify-content: center;">
-              <canvas id="typeChart" style="max-height: 250px; cursor: pointer;"></canvas>
-            </ion-card-content>
+            <ion-card-header><ion-card-title>Incident Breakdown</ion-card-title></ion-card-header>
+            <ion-card-content style="display: flex; justify-content: center;"><canvas id="typeChart" style="max-height: 250px; cursor: pointer;"></canvas></ion-card-content>
           </ion-card>
         </div>
-
       </ion-col>
 
       <ion-col size="12" size-md="5">
         
         <ion-segment [(ngModel)]="viewMode" (ionChange)="segmentChanged()" color="danger" class="ion-margin-bottom">
-          <ion-segment-button value="active">
-            <ion-icon name="map-outline"></ion-icon>
-            <ion-label>Active</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="archive">
-            <ion-icon name="archive-outline"></ion-icon>
-            <ion-label>Archive</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="analytics">
-            <ion-icon name="bar-chart-outline"></ion-icon>
-            <ion-label>Analytics</ion-label>
-          </ion-segment-button>
+          <ion-segment-button value="active"><ion-icon name="map-outline"></ion-icon></ion-segment-button>
+          <ion-segment-button value="archive"><ion-icon name="archive-outline"></ion-icon></ion-segment-button>
+          <ion-segment-button value="analytics"><ion-icon name="bar-chart-outline"></ion-icon></ion-segment-button>
+          <ion-segment-button value="broadcast" *ngIf="currentRole === 'admin'"><ion-icon name="megaphone-outline"></ion-icon></ion-segment-button>
         </ion-segment>
 
+        <div *ngIf="viewMode === 'broadcast'">
+          <ion-card color="light">
+            <ion-card-header>
+              <ion-card-title>Public Broadcast System</ion-card-title>
+              <ion-card-subtitle>Push a critical alert banner to all citizen devices.</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item fill="outline" class="ion-margin-bottom ion-margin-top">
+                <ion-input label="Warning Message" labelPlacement="floating" [(ngModel)]="broadcastForm.message" placeholder="e.g. Evacuate due to severe flooding..."></ion-input>
+              </ion-item>
+              <ion-button expand="block" color="danger" (click)="submitBroadcast()">
+                <ion-icon name="megaphone-outline" slot="start"></ion-icon> PUSH BROADCAST
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
         <div *ngIf="viewMode === 'active'">
-          <div *ngIf="activeRequests.length === 0" class="ion-text-center ion-padding ion-color-medium">
-            <p>No active emergencies.</p>
-          </div>
+          <div *ngIf="activeRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active emergencies.</p></div>
           <ion-list *ngIf="activeRequests.length > 0" style="max-height: 550px; overflow-y: auto;">
-            <ion-card *ngFor="let request of activeRequests" [id]="'request-card-' + request.request_id"
-              [ngStyle]="{'border': selectedRequestId === request.request_id ? '3px solid var(--ion-color-danger)' : 'none'}">
+            <ion-card *ngFor="let request of activeRequests" [id]="'request-card-' + request.request_id" [ngStyle]="{'border': selectedRequestId === request.request_id ? '3px solid var(--ion-color-danger)' : 'none'}">
               <ion-card-header>
                 <ion-card-subtitle>{{ request.request_time | date:'short' }}</ion-card-subtitle>
                 <ion-card-title color="danger">{{ request.incident_name }}</ion-card-title>
@@ -109,16 +97,8 @@
                 <p><strong>Contact:</strong> {{ request.phone }}</p>
                 <p><strong>Status:</strong> <ion-badge [color]="request.status === 'Pending' ? 'warning' : 'primary'">{{ request.status }}</ion-badge></p>
                 <ion-row class="ion-margin-top">
-                  <ion-col *ngIf="request.status === 'Pending'">
-                    <ion-button expand="block" color="warning" size="small" (click)="openDispatchModal(request.request_id)">
-                      <ion-icon name="car-outline" slot="start"></ion-icon> Dispatch
-                    </ion-button>
-                  </ion-col>
-                  <ion-col>
-                    <ion-button expand="block" color="success" size="small" (click)="resolveEmergency(request.request_id)">
-                      <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon> Resolve
-                    </ion-button>
-                  </ion-col>
+                  <ion-col *ngIf="request.status === 'Pending'"><ion-button expand="block" color="warning" size="small" (click)="openDispatchModal(request.request_id)"><ion-icon name="car-outline" slot="start"></ion-icon> Dispatch</ion-button></ion-col>
+                  <ion-col><ion-button expand="block" color="success" size="small" (click)="resolveEmergency(request.request_id)"><ion-icon name="checkmark-circle-outline" slot="start"></ion-icon> Resolve</ion-button></ion-col>
                 </ion-row>
               </ion-card-content>
             </ion-card>
@@ -126,9 +106,7 @@
         </div>
 
         <div *ngIf="viewMode === 'archive'">
-          <div *ngIf="archivedRequests.length === 0" class="ion-text-center ion-padding ion-color-medium">
-            <p>No archived requests.</p>
-          </div>
+          <div *ngIf="archivedRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No archived requests.</p></div>
           <ion-list *ngIf="archivedRequests.length > 0" style="max-height: 550px; overflow-y: auto;">
             <ion-card *ngFor="let req of archivedRequests">
               <ion-item lines="none">
@@ -137,9 +115,7 @@
                   <p>{{ req.first_name }} {{ req.last_name }}</p>
                   <p>{{ req.request_time | date:'medium' }}</p>
                 </ion-label>
-                <ion-badge [color]="req.status === 'Resolved' ? 'success' : 'medium'" slot="end">
-                  {{ req.status }}
-                </ion-badge>
+                <ion-badge [color]="req.status === 'Resolved' ? 'success' : 'medium'" slot="end">{{ req.status }}</ion-badge>
               </ion-item>
             </ion-card>
           </ion-list>
@@ -148,15 +124,9 @@
         <div *ngIf="viewMode === 'analytics'">
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
             <h3 style="color: var(--ion-color-danger); font-weight: bold;">{{ currentFilterLabel }}</h3>
-            <ion-button *ngIf="currentFilterLabel !== 'All Records'" fill="clear" color="medium" size="small" (click)="clearFilter()">
-              Clear Filter
-            </ion-button>
+            <ion-button *ngIf="currentFilterLabel !== 'All Records'" fill="clear" color="medium" size="small" (click)="clearFilter()">Clear Filter</ion-button>
           </div>
-          
-          <div *ngIf="filteredAnalyticsRecords.length === 0" class="ion-text-center ion-padding ion-color-medium">
-            <p>No records match this filter.</p>
-          </div>
-
+          <div *ngIf="filteredAnalyticsRecords.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No records match this filter.</p></div>
           <ion-list *ngIf="filteredAnalyticsRecords.length > 0" style="max-height: 500px; overflow-y: auto;">
             <ion-card *ngFor="let req of filteredAnalyticsRecords" color="light">
               <ion-item lines="none" color="light">
@@ -165,9 +135,7 @@
                   <p>{{ req.first_name }} {{ req.last_name }}</p>
                   <p>{{ req.request_time | date:'medium' }}</p>
                 </ion-label>
-                <ion-badge [color]="req.status === 'Resolved' ? 'success' : (req.status === 'Pending' ? 'warning' : 'medium')" slot="end">
-                  {{ req.status }}
-                </ion-badge>
+                <ion-badge [color]="req.status === 'Resolved' ? 'success' : (req.status === 'Pending' ? 'warning' : 'medium')" slot="end">{{ req.status }}</ion-badge>
               </ion-item>
             </ion-card>
           </ion-list>
@@ -180,27 +148,14 @@
   <ion-modal [isOpen]="isDispatchModalOpen" (didDismiss)="isDispatchModalOpen = false" initialBreakpoint="0.65" [breakpoints]="[0, 0.65, 1]">
     <ng-template>
       <ion-header>
-        <ion-toolbar color="warning">
-          <ion-title>Dispatch Units</ion-title>
-          <ion-buttons slot="end"><ion-button (click)="isDispatchModalOpen = false">Close</ion-button></ion-buttons>
-        </ion-toolbar>
+        <ion-toolbar color="warning"><ion-title>Dispatch Units</ion-title><ion-buttons slot="end"><ion-button (click)="isDispatchModalOpen = false">Close</ion-button></ion-buttons></ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
         <ion-list>
-          <ion-item>
-            <ion-select label="Select Responder Unit" labelPlacement="floating" [(ngModel)]="dispatchForm.responder_id" (ionChange)="onResponderChange()">
-              <ion-select-option *ngFor="let r of availableResponders" [value]="r.responder_id">{{ r.name }} ({{ r.role }})</ion-select-option>
-            </ion-select>
-          </ion-item>
-          <ion-item class="ion-margin-top">
-            <ion-select label="Select Vehicle" labelPlacement="floating" [(ngModel)]="dispatchForm.vehicle_id" [disabled]="!dispatchForm.responder_id">
-              <ion-select-option *ngFor="let v of filteredVehicles" [value]="v.vehicle_id">{{ v.name }} [{{ v.plate }}]</ion-select-option>
-            </ion-select>
-          </ion-item>
+          <ion-item><ion-select label="Select Responder Unit" labelPlacement="floating" [(ngModel)]="dispatchForm.responder_id" (ionChange)="onResponderChange()"><ion-select-option *ngFor="let r of availableResponders" [value]="r.responder_id">{{ r.name }} ({{ r.role }})</ion-select-option></ion-select></ion-item>
+          <ion-item class="ion-margin-top"><ion-select label="Select Vehicle" labelPlacement="floating" [(ngModel)]="dispatchForm.vehicle_id" [disabled]="!dispatchForm.responder_id"><ion-select-option *ngFor="let v of filteredVehicles" [value]="v.vehicle_id">{{ v.name }} [{{ v.plate }}]</ion-select-option></ion-select></ion-item>
         </ion-list>
-        <ion-button expand="block" color="warning" class="ion-margin-top" (click)="submitDispatch()">
-          CONFIRM DISPATCH
-        </ion-button>
+        <ion-button expand="block" color="warning" class="ion-margin-top" (click)="submitDispatch()">CONFIRM DISPATCH</ion-button>
       </ion-content>
     </ng-template>
   </ion-modal>
@@ -208,10 +163,7 @@
   <ion-modal [isOpen]="isModalOpen" (didDismiss)="isModalOpen = false">
     <ng-template>
       <ion-header>
-        <ion-toolbar color="danger">
-          <ion-title>New Dispatcher</ion-title>
-          <ion-buttons slot="end"><ion-button (click)="isModalOpen = false">Close</ion-button></ion-buttons>
-        </ion-toolbar>
+        <ion-toolbar color="danger"><ion-title>New Dispatcher</ion-title><ion-buttons slot="end"><ion-button (click)="isModalOpen = false">Close</ion-button></ion-buttons></ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
         <ion-list>
@@ -221,15 +173,7 @@
           <ion-item><ion-input label="Username" labelPlacement="floating" type="text" [(ngModel)]="newDispatcher.username"></ion-input></ion-item>
           <ion-item>
             <ion-select label="Assigned Barangay" labelPlacement="floating" [(ngModel)]="newDispatcher.barangay_id">
-              <ion-select-option [value]="1">Alua</ion-select-option>
-              <ion-select-option [value]="2">Calaba</ion-select-option>
-              <ion-select-option [value]="3">Malapit</ion-select-option>
-              <ion-select-option [value]="4">Mangga</ion-select-option>
-              <ion-select-option [value]="5">Poblacion</ion-select-option>
-              <ion-select-option [value]="6">Pulo</ion-select-option>
-              <ion-select-option [value]="7">San Roque</ion-select-option>
-              <ion-select-option [value]="8">Santo Cristo</ion-select-option>
-              <ion-select-option [value]="9">Tabon</ion-select-option>
+              <ion-select-option [value]="1">Alua</ion-select-option><ion-select-option [value]="2">Calaba</ion-select-option><ion-select-option [value]="3">Malapit</ion-select-option><ion-select-option [value]="4">Mangga</ion-select-option><ion-select-option [value]="5">Poblacion</ion-select-option><ion-select-option [value]="6">Pulo</ion-select-option><ion-select-option [value]="7">San Roque</ion-select-option><ion-select-option [value]="8">Santo Cristo</ion-select-option><ion-select-option [value]="9">Tabon</ion-select-option>
             </ion-select>
           </ion-item>
           <ion-item><ion-input label="Work Email" labelPlacement="floating" type="email" [(ngModel)]="newDispatcher.email"></ion-input></ion-item>

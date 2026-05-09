@@ -5,7 +5,7 @@ import { IonicModule, ToastController, MenuController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { addIcons } from 'ionicons';
-import { logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline } from 'ionicons/icons';
+import { logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline } from 'ionicons/icons';
 import * as L from 'leaflet'; 
 import Chart from 'chart.js/auto';
 
@@ -20,28 +20,26 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   currentRole: string | null = '';
   apiUrl = 'http://127.0.0.1:8000/api';
   
-  // Lists
   activeRequests: any[] = [];
   archivedRequests: any[] = [];
+  activeHazards: any[] = [];
   availableResponders: any[] = [];
   availableVehicles: any[] = [];
   filteredVehicles: any[] = []; 
   
-  // UI States
-  viewMode: 'active' | 'archive' | 'analytics' = 'active'; 
+  viewMode: 'active' | 'archive' | 'analytics' | 'broadcast' = 'active'; 
   isModalOpen = false;
   isDispatchModalOpen = false;
   selectedRequestId: number | null = null; 
   
   newDispatcher = { first_name: '', last_name: '', phone: '', username: '', email: '', password: '', barangay_id: null };
   dispatchForm = { request_id: null as number | null, responder_id: null, vehicle_id: null };
+  broadcastForm = { message: '' };
 
-  // Map & Polling
   map: any;
   mapMarkers: any[] = [];
   pollingInterval: any; 
 
-  // Analytics Variables
   analyticsData: any = { daily_stats: [], type_stats: [], recent_records: [] };
   filteredAnalyticsRecords: any[] = [];
   trendChartInstance: any;
@@ -62,7 +60,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private menuCtrl: MenuController
   ) {
-    addIcons({ logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline });
+    addIcons({ logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline });
   }
 
   ngOnInit() {}
@@ -78,38 +76,27 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     }, 5000);
   }
 
-  ionViewWillLeave() {
-    if (this.pollingInterval) clearInterval(this.pollingInterval);
-  }
-
+  ionViewWillLeave() { if (this.pollingInterval) clearInterval(this.pollingInterval); }
   ngOnDestroy() {
     if (this.pollingInterval) clearInterval(this.pollingInterval);
     if (this.trendChartInstance) this.trendChartInstance.destroy();
     if (this.typeChartInstance) this.typeChartInstance.destroy();
   }
 
-  // --- TAB NAVIGATION ---
   segmentChanged() {
     if (this.viewMode === 'analytics') {
       setTimeout(() => this.renderCharts(), 200); 
-    } else if (this.viewMode === 'active') {
+    } else if (this.viewMode === 'active' || this.viewMode === 'broadcast') {
       setTimeout(() => {
-        // Because we hid the map instead of deleting it, invalidateSize perfectly redraws it!
-        if (this.map) {
-          this.map.invalidateSize();
-        } else {
-          this.initMap();
-        }
+        if (this.map) this.map.invalidateSize();
+        else this.initMap();
       }, 250);
     }
   }
 
-  // --- ANALYTICS & CHARTS ENGINE ---
-  changeDateRange(event: any) {
-    this.chartRange = event.detail.value;
-    this.loadAnalytics();
-  }
-
+  // --- ANALYTICS ---
+  changeDateRange(event: any) { this.chartRange = event.detail.value; this.loadAnalytics(); }
+  
   loadAnalytics() {
     this.http.get(`${this.apiUrl}/analytics?days=${this.chartRange}`).subscribe((res: any) => {
       this.analyticsData = res;
@@ -131,9 +118,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   renderCharts() {
     const trendCanvas = document.getElementById('trendChart') as HTMLCanvasElement;
     const typeCanvas = document.getElementById('typeChart') as HTMLCanvasElement;
-    
     if (!trendCanvas || !typeCanvas) return;
-
     if (this.trendChartInstance) this.trendChartInstance.destroy();
     if (this.typeChartInstance) this.typeChartInstance.destroy();
 
@@ -154,23 +139,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
           tension: 0.3 
         }]
       },
-      options: {
-        responsive: true,
-        animation: {
-          duration: 1200,          // NEW: Smooth entry animation
-          easing: 'easeOutQuart'
-        },
-        onClick: (event, elements) => {
-          if (elements.length > 0) {
-            const index = elements[0].index;
-            const clickedDate = dates[index];
-            this.currentFilterLabel = `Date: ${clickedDate}`;
-            this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter(
-              (req: any) => req.request_time.startsWith(clickedDate)
-            );
-          }
-        }
-      }
+      options: { responsive: true, animation: { duration: 1200, easing: 'easeOutQuart' } }
     });
 
     const types = this.analyticsData.type_stats.map((t: any) => t.incident_name);
@@ -180,38 +149,21 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       type: 'doughnut',
       data: {
         labels: types,
-        datasets: [{
-          data: typeCounts,
-          backgroundColor: ['#eb445a', '#ffc409', '#2dd36f', '#222428'], 
-          hoverOffset: 10
-        }]
+        datasets: [{ data: typeCounts, backgroundColor: ['#eb445a', '#ffc409', '#2dd36f', '#222428'], hoverOffset: 10 }]
       },
-      options: {
-        responsive: true,
-        animation: {
-          animateScale: true,      // NEW: Scales out from the center
-          animateRotate: true,     // NEW: Spins beautifully into place
-          duration: 1200
-        },
-        onClick: (event, elements) => {
-          if (elements.length > 0) {
-            const index = elements[0].index;
-            const clickedType = types[index];
-            this.currentFilterLabel = `Category: ${clickedType}`;
-            this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter(
-              (req: any) => req.incident_name === clickedType
-            );
-          }
-        }
-      }
+      options: { responsive: true, animation: { animateScale: true, animateRotate: true, duration: 1200 } }
     });
   }
 
-  // --- CORE SYSTEM DATA ---
+  // --- MAP & CORE DATA ---
   loadData() {
     this.http.get(`${this.apiUrl}/active-emergencies`).subscribe((res: any) => {
       this.activeRequests = res;
       this.plotMarkers();
+    });
+    this.http.get(`${this.apiUrl}/active-hazards`).subscribe((res: any) => {
+      this.activeHazards = res;
+      this.plotMarkers(); // Replot to include hazards
     });
     this.http.get(`${this.apiUrl}/archived-emergencies`).subscribe((res: any) => this.archivedRequests = res);
     this.http.get(`${this.apiUrl}/dispatch-assets`).subscribe((res: any) => {
@@ -224,7 +176,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.http.get(`${this.apiUrl}/active-emergencies`).subscribe((res: any) => {
       if (res.length !== this.activeRequests.length) {
         this.activeRequests = res;
-        this.plotMarkers();
+        this.loadData(); // Re-syncs everything including hazards
         this.loadAnalytics(); 
       } else {
         this.activeRequests = res; 
@@ -254,13 +206,13 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.mapMarkers.forEach(marker => this.map.removeLayer(marker));
     this.mapMarkers = [];
 
+    // Plot SOS Emergencies
     this.activeRequests.forEach(req => {
       const marker = L.marker([req.latitude, req.longitude], { icon: this.sosIcon })
         .bindPopup(`
           <b>${req.incident_name}</b><br>${req.first_name} ${req.last_name}
           <br><img src="http://127.0.0.1:8000/${req.image_proof}" style="max-width:100px; margin-top:5px; border-radius:4px;">
-        `)
-        .addTo(this.map);
+        `).addTo(this.map);
       
       marker.on('click', () => {
         this.selectedRequestId = req.request_id;
@@ -269,9 +221,30 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       });
       this.mapMarkers.push(marker);
     });
+
+    // Plot Hazards (Same color icon, different popup)
+    this.activeHazards.forEach(haz => {
+      const hazardMarker = L.marker([haz.latitude, haz.longitude], { icon: this.sosIcon })
+        .bindPopup(`
+          <b style="color:var(--ion-color-danger)">⚠️ HAZARD REPORT</b><br>${haz.description}
+          <br>By: ${haz.first_name} ${haz.last_name}
+          <br><img src="http://127.0.0.1:8000/${haz.image_proof}" style="max-width:100px; margin-top:5px; border-radius:4px;">
+        `).addTo(this.map);
+      this.mapMarkers.push(hazardMarker);
+    });
   }
 
-  // --- DISPATCH & UI ACTIONS ---
+  // --- ACTIONS ---
+  submitBroadcast() {
+    if (!this.broadcastForm.message) return;
+    this.http.post(`${this.apiUrl}/create-broadcast`, this.broadcastForm).subscribe({
+      next: () => {
+        this.showToast('Broadcast Pushed to all Citizens!', 'success');
+        this.broadcastForm.message = '';
+      }
+    });
+  }
+
   openDispatchModal(requestId: number) {
     this.dispatchForm.request_id = requestId;
     this.dispatchForm.responder_id = null;
