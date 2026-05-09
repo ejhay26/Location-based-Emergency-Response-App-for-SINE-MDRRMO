@@ -13,6 +13,45 @@ import { addIcons } from 'ionicons';
 import { locateOutline, cameraOutline } from 'ionicons/icons';
 import * as L from 'leaflet';
 
+// NEW: Dynamic Offline Tile Caching System
+// @ts-ignore
+const CachedTileLayer = L.TileLayer.extend({
+  createTile: function (coords: any, done: any) {
+    const tile = document.createElement('img');
+    const url = this.getTileUrl(coords);
+    tile.crossOrigin = 'Anonymous';
+
+    if ('caches' in window) {
+      caches.open('mdrrmo-offline-map').then(cache => {
+        cache.match(url).then(response => {
+          if (response) {
+            response.blob().then(blob => {
+              tile.src = URL.createObjectURL(blob);
+              done(null, tile);
+            });
+          } else {
+            fetch(url, { mode: 'cors' }).then(networkResponse => {
+              if (networkResponse.ok) {
+                cache.put(url, networkResponse.clone());
+              }
+              networkResponse.blob().then(blob => {
+                tile.src = URL.createObjectURL(blob);
+                done(null, tile);
+              });
+            }).catch(err => {
+              done(err, tile);
+            });
+          }
+        });
+      });
+    } else {
+      tile.src = url;
+      done(null, tile);
+    }
+    return tile;
+  }
+});
+
 @Component({
   selector: 'app-hazard',
   templateUrl: './hazard.page.html',
@@ -60,7 +99,10 @@ export class HazardPage {
 
   initMap() {
     this.map = L.map('hazard-map', { minZoom: 13, zoomControl: false }).setView([15.3014, 120.9274], 14); 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(this.map);
+    
+    // UPDATED: Use the CachedTileLayer instead of standard L.tileLayer
+    // @ts-ignore
+    new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(this.map);
 
     this.http.get('assets/data/san-isidro.geojson').subscribe((json: any) => {
       const boundaryLayer = L.geoJSON(json, { filter: (feature) => feature.geometry.type !== 'Point', style: { color: '#eb445a', weight: 3, fillOpacity: 0 } }).addTo(this.map);

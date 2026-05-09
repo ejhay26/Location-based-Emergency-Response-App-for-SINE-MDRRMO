@@ -9,6 +9,47 @@ import { logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, ch
 import * as L from 'leaflet'; 
 import Chart from 'chart.js/auto';
 
+// NEW: Dynamic Offline Tile Caching System
+// @ts-ignore
+const CachedTileLayer = L.TileLayer.extend({
+  createTile: function (coords: any, done: any) {
+    const tile = document.createElement('img');
+    const url = this.getTileUrl(coords);
+    tile.crossOrigin = 'Anonymous';
+
+    if ('caches' in window) {
+      caches.open('mdrrmo-offline-map').then(cache => {
+        cache.match(url).then(response => {
+          if (response) {
+            // Load instantly from local cache (Works Offline)
+            response.blob().then(blob => {
+              tile.src = URL.createObjectURL(blob);
+              done(null, tile);
+            });
+          } else {
+            // Fetch from internet and save to cache for next time
+            fetch(url, { mode: 'cors' }).then(networkResponse => {
+              if (networkResponse.ok) {
+                cache.put(url, networkResponse.clone());
+              }
+              networkResponse.blob().then(blob => {
+                tile.src = URL.createObjectURL(blob);
+                done(null, tile);
+              });
+            }).catch(err => {
+              done(err, tile);
+            });
+          }
+        });
+      });
+    } else {
+      tile.src = url;
+      done(null, tile);
+    }
+    return tile;
+  }
+});
+
 @Component({
   selector: 'app-admin-dashboard',
   templateUrl: './admin-dashboard.page.html',
@@ -76,7 +117,6 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     }, 5000);
   }
 
-  // FIXED: Added back the missing DidEnter hook to boot the map on initial load!
   ionViewDidEnter() {
     setTimeout(() => {
       const mapContainer = document.getElementById('dispatch-map');
@@ -108,7 +148,6 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     }
   }
 
-  // --- ANALYTICS ---
   changeDateRange(event: any) { this.chartRange = event.detail.value; this.loadAnalytics(); }
   
   loadAnalytics() {
@@ -169,7 +208,6 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     });
   }
 
-  // --- MAP & CORE DATA ---
   loadData() {
     this.http.get(`${this.apiUrl}/active-emergencies`).subscribe((res: any) => {
       this.activeRequests = res;
@@ -200,7 +238,10 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
 
   initMap() {
     this.map = L.map('dispatch-map', { minZoom: 12 }).setView([15.3014, 120.9274], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(this.map);
+    
+    // UPDATED: Now using the Custom Caching Layer!
+    // @ts-ignore
+    new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(this.map);
 
     this.http.get('assets/data/san-isidro.geojson').subscribe((json: any) => {
       const boundaryLayer = L.geoJSON(json, { filter: (feature) => feature.geometry.type !== 'Point', style: { color: '#eb445a', weight: 3, fillOpacity: 0 } }).addTo(this.map);
@@ -213,7 +254,6 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
 
       this.plotMarkers();
       
-      // FIXED: Force leaflet to snap to the correct container size immediately
       setTimeout(() => {
         this.map.invalidateSize();
       }, 100);
