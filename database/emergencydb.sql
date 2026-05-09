@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 09, 2026 at 06:14 AM
+-- Generation Time: May 09, 2026 at 02:11 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -50,6 +50,19 @@ INSERT INTO `barangays` (`barangay_id`, `barangay_name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `broadcasts`
+--
+
+CREATE TABLE `broadcasts` (
+  `broadcast_id` int(11) NOT NULL,
+  `message` text DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `dispatch`
 --
 
@@ -90,6 +103,24 @@ CREATE TABLE `emergency_requests` (
 
 INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `image_proof`, `latitude`, `longitude`, `location_id`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (3, 1, 3, NULL, 15.30542100, 120.91368200, NULL, 'Cancelled', '2026-05-08 02:46:44', '2026-05-08 02:46:44', '2026-05-08 07:18:13', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `hazards`
+--
+
+CREATE TABLE `hazards` (
+  `hazard_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `image_proof` varchar(255) DEFAULT NULL,
+  `latitude` decimal(10,8) DEFAULT NULL,
+  `longitude` decimal(11,8) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'Active',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -207,6 +238,12 @@ ALTER TABLE `barangays`
   ADD PRIMARY KEY (`barangay_id`);
 
 --
+-- Indexes for table `broadcasts`
+--
+ALTER TABLE `broadcasts`
+  ADD PRIMARY KEY (`broadcast_id`);
+
+--
 -- Indexes for table `dispatch`
 --
 ALTER TABLE `dispatch`
@@ -220,6 +257,13 @@ ALTER TABLE `emergency_requests`
   ADD KEY `user_id` (`user_id`),
   ADD KEY `incident_type_id` (`incident_type_id`),
   ADD KEY `location_id` (`location_id`);
+
+--
+-- Indexes for table `hazards`
+--
+ALTER TABLE `hazards`
+  ADD PRIMARY KEY (`hazard_id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `incident_types`
@@ -260,6 +304,12 @@ ALTER TABLE `barangays`
   MODIFY `barangay_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
+-- AUTO_INCREMENT for table `broadcasts`
+--
+ALTER TABLE `broadcasts`
+  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `dispatch`
 --
 ALTER TABLE `dispatch`
@@ -270,6 +320,12 @@ ALTER TABLE `dispatch`
 --
 ALTER TABLE `emergency_requests`
   MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `hazards`
+--
+ALTER TABLE `hazards`
+  MODIFY `hazard_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `incident_types`
@@ -306,6 +362,12 @@ ALTER TABLE `emergency_requests`
   ADD CONSTRAINT `emergency_requests_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   ADD CONSTRAINT `emergency_requests_ibfk_2` FOREIGN KEY (`incident_type_id`) REFERENCES `incident_types` (`incident_type_id`),
   ADD CONSTRAINT `emergency_requests_ibfk_3` FOREIGN KEY (`location_id`) REFERENCES `locations` (`location_id`);
+
+--
+-- Constraints for table `hazards`
+--
+ALTER TABLE `hazards`
+  ADD CONSTRAINT `hazards_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 
 --
 -- Constraints for table `users`
