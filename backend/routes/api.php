@@ -16,7 +16,11 @@ Route::post('/create-dispatcher', [AuthController::class, 'createDispatcher']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/update-profile-picture', [AuthController::class, 'updateProfilePicture']);
 Route::post('/update-password', [AuthController::class, 'updatePassword']);
-Route::post('/update-medical-profile', [AuthController::class, 'updateMedicalProfile']); // NEW: Medical Profile
+Route::post('/update-medical-profile', [AuthController::class, 'updateMedicalProfile']);
+
+// NEW: Password Recovery Routes
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // Emergency & Dispatch Routes
 Route::post('/submit-sos', [EmergencyController::class, 'submitSos']);
