@@ -18,7 +18,6 @@ class EmergencyController extends Controller
         ]);
 
         $imagePath = null;
-        // Decode the live camera photo and save it
         if ($request->has('image_proof') && $request->image_proof) {
             $image_parts = explode(";base64,", $request->image_proof);
             $image_base64 = base64_decode($image_parts[1]);
@@ -135,5 +134,46 @@ class EmergencyController extends Controller
             ->select('emergency_requests.*', 'users.first_name', 'users.last_name', 'users.phone', 'incident_types.incident_name')
             ->get();
         return response()->json($requests);
+    }
+
+    // NEW: Analytics Data Engine
+    // UPGRADED: Dynamic Analytics Data Engine
+    public function getAnalytics(Request $request)
+    {
+        // Get the 'days' parameter from the URL, default to 7 if missing
+        $days = $request->query('days', 7); 
+
+        // 1. Group by Date dynamically based on the requested timeframe
+        $dailyStats = DB::table('emergency_requests')
+            ->select(DB::raw('DATE(request_time) as date'), DB::raw('count(*) as total'))
+            ->where('request_time', '>=', now()->subDays($days)) // Only grab data from the last X days
+            ->groupBy('date')
+            ->orderBy('date', 'asc') // Order chronologically for the chart
+            ->get();
+
+        // 2. Group by Incident Type (Filter this by the same timeframe too!)
+        $typeStats = DB::table('emergency_requests')
+            ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
+            ->where('emergency_requests.request_time', '>=', now()->subDays($days))
+            ->select('incident_types.incident_name', DB::raw('count(*) as total'))
+            ->groupBy('incident_types.incident_name')
+            ->get();
+
+        // 3. Get the recent records for the interactive clickable filter list
+        $recentRecords = DB::table('emergency_requests')
+            ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
+            ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
+            ->where('emergency_requests.request_time', '>=', now()->subDays($days))
+            ->select('emergency_requests.*', 'users.first_name', 'users.last_name', 'incident_types.incident_name')
+            ->orderBy('emergency_requests.request_time', 'desc')
+            ->limit(100)
+            ->get();
+
+        return response()->json([
+            'daily_stats' => $dailyStats,
+            'type_stats' => $typeStats,
+            'recent_records' => $recentRecords,
+            'timeframe' => $days
+        ]);
     }
 }
