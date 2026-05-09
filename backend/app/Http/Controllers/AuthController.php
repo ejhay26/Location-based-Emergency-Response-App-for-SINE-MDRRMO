@@ -18,9 +18,8 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
-        // Rate Limiting: Lock out by IP address
         $throttleKey = 'login_attempts|' . $request->ip();
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) { // Max 5 tries
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) { 
             $seconds = RateLimiter::availableIn($throttleKey);
             return response()->json(['message' => "Too many attempts. Please try again in {$seconds} seconds."], 429);
         }
@@ -28,17 +27,16 @@ class AuthController extends Controller
         $fieldType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
         $user = User::where($fieldType, $request->login)->first();
 
-        // Check if user is banned
         if ($user && $user->account_status === 'banned') {
             return response()->json(['message' => 'This account has been suspended.'], 403);
         }
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            RateLimiter::hit($throttleKey, 60); // Adds 60 seconds of penalty per failure
+            RateLimiter::hit($throttleKey, 60); 
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        RateLimiter::clear($throttleKey); // Success! Clear the penalty.
+        RateLimiter::clear($throttleKey); 
 
         return response()->json([
             'message' => 'Login successful',
@@ -49,7 +47,6 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        // 1. Validate the incoming multi-step data
         $request->validate([
             'first_name' => 'required|string',
             'last_name' => 'required|string',
@@ -58,35 +55,24 @@ class AuthController extends Controller
             'username' => 'required|string|unique:users',
             'email' => 'required|email|unique:users',
             'password' => [
-                'required',
-                'min:8',             // Minimum 8 characters
-                'regex:/[a-z]/',     // At least one lowercase letter
-                'regex:/[A-Z]/',     // At least one uppercase letter
-                'regex:/[0-9]/',     // At least one number
-                'regex:/[@$!%*#?&]/' // At least one special symbol
+                'required', 'min:8', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/'
             ],
             'barangay_id' => 'required|integer'
         ]);
 
-        // 2. Generate a 4-digit OTP
         $otp = rand(1000, 9999);
-
-        // 3. Save OTP to cache for 10 minutes, linked to their email
         Cache::put('otp_' . $request->email, $otp, now()->addMinutes(10));
 
-        // 4. Send the Email (Using Laravel's raw mail closure for simplicity)
         Mail::raw("Your SINE MDRRMO Verification Code is: {$otp}. It will expire in 10 minutes.", function ($message) use ($request) {
-            $message->to($request->email)
-                    ->subject('MDRRMO Account Verification');
+            $message->to($request->email)->subject('MDRRMO Account Verification');
         });
 
-        // 5. Create the inactive user
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'phone' => $request->phone,
             'birthdate' => $request->birthdate, 
-            'username' => $request->username, // FIXED: Now it successfully saves to the database
+            'username' => $request->username, 
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'barangay_id' => $request->barangay_id,
@@ -98,26 +84,14 @@ class AuthController extends Controller
 
     public function verifyOtp(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'otp' => 'required|numeric'
-        ]);
-
+        $request->validate(['email' => 'required|email', 'otp' => 'required|numeric']);
         $cachedOtp = Cache::get('otp_' . $request->email);
 
         if ($cachedOtp && $cachedOtp == $request->otp) {
-            // OTP is correct. Clear it and return success.
             Cache::forget('otp_' . $request->email);
-            
             $user = User::where('email', $request->email)->first();
-            
-            return response()->json([
-                'message' => 'Verification successful',
-                'user' => clone $user,
-                'role' => $user->role
-            ], 200);
+            return response()->json(['message' => 'Verification successful', 'user' => clone $user, 'role' => $user->role], 200);
         }
-
         return response()->json(['message' => 'Invalid or expired OTP'], 400);
     }
 
@@ -127,7 +101,7 @@ class AuthController extends Controller
             'first_name' => 'required|string',
             'last_name' => 'required|string',
             'phone' => 'required|string',
-            'username' => 'required|string|unique:users', // FIXED: Admin must provide a username for staff
+            'username' => 'required|string|unique:users', 
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
             'barangay_id' => 'required|integer'
@@ -137,11 +111,11 @@ class AuthController extends Controller
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'phone' => $request->phone,
-            'username' => $request->username, // FIXED: Save the username
+            'username' => $request->username, 
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'barangay_id' => $request->barangay_id,
-            'role' => 'dispatcher' // Force the role!
+            'role' => 'dispatcher' 
         ]);
 
         return response()->json(['message' => 'Dispatcher created successfully!'], 201);
@@ -170,13 +144,10 @@ class AuthController extends Controller
         $request->validate([
             'user_id' => 'required',
             'current_password' => 'required',
-            'new_password' => [
-                'required', 'min:8', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/'
-            ]
+            'new_password' => ['required', 'min:8', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/']
         ]);
 
         $user = User::where('user_id', $request->user_id)->first();
-
         if (!Hash::check($request->current_password, $user->password)) {
             return response()->json(['message' => 'Current password is incorrect.'], 400);
         }
@@ -185,5 +156,65 @@ class AuthController extends Controller
         $user->save();
 
         return response()->json(['message' => 'Password updated successfully!']);
+    }
+
+    public function updateMedicalProfile(Request $request)
+    {
+        $request->validate(['user_id' => 'required']);
+        
+        $user = User::where('user_id', $request->user_id)->first();
+        if (!$user) return response()->json(['message' => 'User not found'], 404);
+
+        $user->blood_type = $request->blood_type;
+        $user->allergies = $request->allergies;
+        $user->medical_conditions = $request->medical_conditions;
+        $user->pwd_status = $request->pwd_status;
+        $user->save();
+
+        return response()->json(['message' => 'Medical profile updated successfully!', 'user' => clone $user]);
+    }
+
+    // --- NEW: FORGOT PASSWORD FLOW --- //
+    
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+        
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            // Return success anyway to prevent email enumeration attacks (security best practice)
+            return response()->json(['message' => 'If an account exists, an OTP was sent.'], 200);
+        }
+
+        $otp = rand(1000, 9999);
+        Cache::put('reset_otp_' . $request->email, $otp, now()->addMinutes(10));
+
+        Mail::raw("Your SINE MDRRMO Password Reset Code is: {$otp}. It will expire in 10 minutes.", function ($message) use ($request) {
+            $message->to($request->email)->subject('Password Reset Request');
+        });
+
+        return response()->json(['message' => 'If an account exists, an OTP was sent.'], 200);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email', 
+            'otp' => 'required|numeric',
+            'new_password' => ['required', 'min:8', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/']
+        ]);
+
+        $cachedOtp = Cache::get('reset_otp_' . $request->email);
+
+        if ($cachedOtp && $cachedOtp == $request->otp) {
+            $user = User::where('email', $request->email)->first();
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+            
+            Cache::forget('reset_otp_' . $request->email);
+            return response()->json(['message' => 'Password reset successfully!'], 200);
+        }
+
+        return response()->json(['message' => 'Invalid or expired OTP'], 400);
     }
 }
