@@ -7,6 +7,7 @@ Note that on Linux, you will have to install MariaDB/MySQL server and PHP separa
 Installing XAMPP on Windows already provides the needed MariaDB and PHP server.
 
 Additionally, you will need to install several PHP extensions on **Linux** (the installation process depends on which distribution you are using):
+* php-mysql
 * php-mbstring
 * php-curl
 * php-zip
@@ -55,6 +56,8 @@ DB_DATABASE=emergencydb
 DB_USERNAME=your_username_here 
 DB_PASSWORD=your_password_here
 ```
+
+Also, replace the MAIL_PASSWORD= provided by me.
 
 *(Recommendation: Create a dedicated database user instead of using root):*
 - How to create new user?:
