@@ -12,40 +12,81 @@
     <p class="ion-color-medium">San Isidro, Nueva Ecija</p>
   </div>
 
-  <form (ngSubmit)="login()">
+  <div *ngIf="viewMode === 'login'">
+    <form (ngSubmit)="login()">
+      <ion-list>
+        <ion-item>
+          <ion-input label="Email or Username" labelPlacement="floating" type="text" [(ngModel)]="credentials.login" name="loginField" required></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input label="Password" labelPlacement="floating" type="password" [(ngModel)]="credentials.password" name="passwordField" required>
+            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+          </ion-input>
+        </ion-item>
+      </ion-list>
+
+      <div class="ion-text-right">
+        <ion-button fill="clear" color="medium" size="small" style="text-transform: none;" (click)="viewMode = 'forgot'">
+          Forgot Password?
+        </ion-button>
+      </div>
+
+      <ion-button type="submit" expand="block" color="danger" class="ion-margin-top">
+        Login
+      </ion-button>
+    </form>
+
+    <div class="ion-margin-top">
+      <ion-button fill="clear" color="medium" routerLink="/register" style="text-transform: none;">
+        Don't have an account? <span style="color: var(--ion-color-danger); margin-left: 4px;">Register here</span>
+      </ion-button>
+    </div>
+  </div>
+
+  <div *ngIf="viewMode === 'forgot'">
+    <h3 color="danger">Reset Password</h3>
+    <p class="ion-color-medium ion-margin-bottom">Enter your email to receive an OTP.</p>
+    
     <ion-list>
       <ion-item>
-        <ion-input 
-          label="Email or Username" 
-          labelPlacement="floating" 
-          type="text" 
-          name="loginField"
-          [(ngModel)]="credentials.login" 
-          required>
-        </ion-input>
+        <ion-input label="Registered Email" labelPlacement="floating" type="email" [(ngModel)]="resetData.email"></ion-input>
       </ion-item>
+    </ion-list>
 
+    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="requestReset()">
+      Send Recovery OTP
+    </ion-button>
+
+    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top" (click)="viewMode = 'login'">
+      Back to Login
+    </ion-button>
+  </div>
+
+  <div *ngIf="viewMode === 'reset'">
+    <h3 color="danger">Verify OTP</h3>
+    <p class="ion-color-medium ion-margin-bottom">Enter the 4-digit code sent to your email.</p>
+
+    <ion-list>
       <ion-item>
-        <ion-input 
-          label="Password" 
-          labelPlacement="floating" 
-          type="password" 
-          name="passwordField"
-          [(ngModel)]="credentials.password" 
-          required>
+        <ion-input label="4-Digit OTP" labelPlacement="floating" type="number" [(ngModel)]="resetData.otp"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="New Password" labelPlacement="floating" type="password" [(ngModel)]="resetData.new_password">
           <ion-input-password-toggle slot="end"></ion-input-password-toggle>
         </ion-input>
       </ion-item>
     </ion-list>
 
-    <ion-button type="submit" expand="block" color="danger" class="ion-margin-top">
-      Login
-    </ion-button>
-  </form>
+    <p style="font-size: 12px; color: var(--ion-color-medium); text-align: left; padding: 0 10px;">
+      Must be 8+ chars with uppercase, number, & symbol.
+    </p>
 
-  <div class="ion-margin-top">
-    <ion-button fill="clear" color="medium" routerLink="/register" style="text-transform: none;">
-      Don't have an account? <span style="color: var(--ion-color-danger); margin-left: 4px;">Register here</span>
+    <ion-button expand="block" color="success" class="ion-margin-top" (click)="confirmReset()">
+      Confirm New Password
+    </ion-button>
+
+    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top" (click)="viewMode = 'login'">
+      Cancel
     </ion-button>
   </div>
 

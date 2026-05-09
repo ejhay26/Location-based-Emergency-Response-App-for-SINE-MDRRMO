@@ -15,23 +15,28 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 export class LoginPage {
   
   credentials = { login: '', password: '' };
+  
+  // NEW: State for Forgot Password flow
+  viewMode: 'login' | 'forgot' | 'reset' = 'login';
+  resetData = { email: '', otp: '', new_password: '' };
+  
   apiUrl = 'http://127.0.0.1:8000/api';
 
   constructor(
     private router: Router, 
     private http: HttpClient,
     private toastController: ToastController,
-    private menuCtrl: MenuController // Injected MenuController
+    private menuCtrl: MenuController
   ) {}
 
-  // THE LOCK: Completely disables the menu on the login screen
   ionViewWillEnter() {
     this.menuCtrl.enable(false);
   }
 
+  // --- STANDARD LOGIN ---
   login() {
     if (!this.credentials.login || !this.credentials.password) {
-      this.showToast('Please enter both email and password.');
+      this.showToast('Please enter both email and password.', 'warning');
       return;
     }
 
@@ -47,14 +52,49 @@ export class LoginPage {
         }
       },
       error: (err) => {
-        this.showToast('Invalid email or password.');
+        this.showToast('Invalid email or password.', 'danger');
       }
     });
   }
 
-  async showToast(msg: string) {
+  // --- FORGOT PASSWORD FLOW ---
+  requestReset() {
+    if (!this.resetData.email) {
+      this.showToast('Please enter your email.', 'warning');
+      return;
+    }
+
+    this.http.post(`${this.apiUrl}/forgot-password`, { email: this.resetData.email }).subscribe({
+      next: () => {
+        this.showToast('An OTP has been sent to your email.', 'success');
+        this.viewMode = 'reset';
+      },
+      error: () => this.showToast('Failed to send reset email.', 'danger')
+    });
+  }
+
+  confirmReset() {
+    if (!this.resetData.otp || !this.resetData.new_password) {
+      this.showToast('Please fill out all fields.', 'warning');
+      return;
+    }
+
+    this.http.post(`${this.apiUrl}/reset-password`, this.resetData).subscribe({
+      next: () => {
+        this.showToast('Password reset successfully! You can now log in.', 'success');
+        this.viewMode = 'login';
+        this.resetData = { email: '', otp: '', new_password: '' }; // Clear memory
+      },
+      error: (err) => {
+        const msg = err.error.message || 'Invalid OTP or weak password.';
+        this.showToast(msg, 'danger');
+      }
+    });
+  }
+
+  async showToast(msg: string, color: string) {
     const toast = await this.toastController.create({
-      message: msg, duration: 3000, position: 'bottom', color: 'danger'
+      message: msg, duration: 3000, position: 'bottom', color: color
     });
     await toast.present();
   }
