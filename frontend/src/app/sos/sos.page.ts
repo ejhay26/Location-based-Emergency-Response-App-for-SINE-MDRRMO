@@ -166,7 +166,10 @@ export class SosPage {
           this.showToast('Emergency SOS Sent!', 'success');
           this.router.navigate(['/home']);
         },
-        error: () => this.showToast('Failed to send SOS. Check connection.', 'danger')
+        error: (err) => {
+          const errorMsg = err.error.message || 'Failed to submit request. Please try again.';
+          this.showToast(errorMsg, 'danger'); 
+        }
       });
     }
   }

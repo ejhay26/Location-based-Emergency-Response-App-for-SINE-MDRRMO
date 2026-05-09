@@ -134,7 +134,9 @@ export class HazardPage {
           this.showToast('Hazard reported successfully!', 'success');
           this.router.navigate(['/home']);
         },
-        error: () => this.showToast('Failed to report hazard.', 'danger')
+        error: (err) => {
+          const errorMsg = err.error.message || 'Failed to report hazard. Please try again.';
+          this.showToast(errorMsg, 'danger')}
       });
     }
   }
