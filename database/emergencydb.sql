@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 08, 2026 at 05:53 PM
+-- Generation Time: May 09, 2026 at 06:14 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -69,26 +69,27 @@ CREATE TABLE `dispatch` (
 -- Table structure for table `emergency_requests`
 --
 
-CREATE TABLE `emergency_requests` 
+CREATE TABLE `emergency_requests` (
   `request_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `incident_type_id` int(11) DEFAULT NULL,
   `image_proof` varchar(255) DEFAULT NULL,
   `latitude` decimal(10,8) DEFAULT NULL,
   `longitude` decimal(11,8) DEFAULT NULL,
+  `location_id` int(11) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `request_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` timestamp NULL DEFAULT NULL
- ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `emergency_requests`
 --
 
-INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `image_proof`, `latitude`, `longitude`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(3, 1, 3, NULL, 15.30542100, 120.91368200, 'Cancelled', '2026-05-08 02:46:44', '2026-05-08 02:46:44', '2026-05-08 07:18:13', NULL);
+INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `image_proof`, `latitude`, `longitude`, `location_id`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(3, 1, 3, NULL, 15.30542100, 120.91368200, NULL, 'Cancelled', '2026-05-08 02:46:44', '2026-05-08 02:46:44', '2026-05-08 07:18:13', NULL);
 
 -- --------------------------------------------------------
 
@@ -218,6 +219,7 @@ ALTER TABLE `emergency_requests`
   ADD PRIMARY KEY (`request_id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `incident_type_id` (`incident_type_id`),
+  ADD KEY `location_id` (`location_id`);
 
 --
 -- Indexes for table `incident_types`
@@ -303,6 +305,7 @@ ALTER TABLE `vehicles`
 ALTER TABLE `emergency_requests`
   ADD CONSTRAINT `emergency_requests_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   ADD CONSTRAINT `emergency_requests_ibfk_2` FOREIGN KEY (`incident_type_id`) REFERENCES `incident_types` (`incident_type_id`),
+  ADD CONSTRAINT `emergency_requests_ibfk_3` FOREIGN KEY (`location_id`) REFERENCES `locations` (`location_id`);
 
 --
 -- Constraints for table `users`
