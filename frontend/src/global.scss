@@ -11,6 +11,18 @@
 @import "@ionic/angular/css/flex-utils.css";
 @import '@ionic/angular/css/palettes/dark.system.css';
 
+@font-face {
+  font-family: 'Roboto';
+  src: url('/assets/fonts/Roboto-Bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --ion-family: 'Roboto', sans-serif !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+
 /* 1. STRICT GLOBAL UI ROUNDING */
 ion-card, ion-item, ion-list, ion-button, ion-input, ion-select, ion-avatar {
   --border-radius: 16px !important;
