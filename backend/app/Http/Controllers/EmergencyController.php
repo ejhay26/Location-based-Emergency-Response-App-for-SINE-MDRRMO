@@ -15,7 +15,17 @@ class EmergencyController extends Controller
             'incident_type_id' => 'required|integer',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'image_proof' => 'nullable|string|max:7340032'
         ]);
+
+        $existingEmergency = DB::table('emergency_requests')
+            ->where('user_id', $request->user_id)
+            ->whereIn('status', ['Pending', 'Dispatched'])
+            ->first();
+
+        if ($existingEmergency) {
+            return response()->json(['message' => 'You already have an active emergency request!'], 429);
+        }
 
         $imagePath = null;
         if ($request->has('image_proof') && $request->image_proof) {
