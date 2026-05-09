@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { addIcons } from 'ionicons';
-import { personOutline, callOutline, mailOutline, locationOutline, calendarOutline, createOutline, lockClosedOutline } from 'ionicons/icons';
+import { personOutline, callOutline, mailOutline, locationOutline, calendarOutline, createOutline, lockClosedOutline, medkitOutline, saveOutline } from 'ionicons/icons';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 @Component({
@@ -19,10 +19,14 @@ export class ProfilePage implements OnInit {
   calculatedAge: string | number = 'N/A';
   apiUrl = 'http://127.0.0.1:8000/api';
 
+  // NEW: State to hide/show the password form
+  showPasswordForm: boolean = false;
   passwords = { current: '', new: '', confirm: '' };
+  
+  medicalData = { blood_type: '', allergies: '', medical_conditions: '', pwd_status: '' };
 
   constructor(private http: HttpClient, private toastCtrl: ToastController) {
-    addIcons({ personOutline, callOutline, mailOutline, locationOutline, calendarOutline, createOutline, lockClosedOutline });
+    addIcons({ personOutline, callOutline, mailOutline, locationOutline, calendarOutline, createOutline, lockClosedOutline, medkitOutline, saveOutline });
   }
 
   ngOnInit() {
@@ -34,10 +38,16 @@ export class ProfilePage implements OnInit {
     if (userStr) {
       this.userData = JSON.parse(userStr);
       if (this.userData.birthdate) this.calculateAge(this.userData.birthdate);
+      
+      this.medicalData = {
+        blood_type: this.userData.blood_type || '',
+        allergies: this.userData.allergies || '',
+        medical_conditions: this.userData.medical_conditions || '',
+        pwd_status: this.userData.pwd_status || ''
+      };
     }
   }
 
-  // ALLOWS Prompt so they can pick from gallery OR camera for their avatar!
   async changePhoto() {
     const image = await Camera.getPhoto({
       quality: 90,
@@ -60,6 +70,20 @@ export class ProfilePage implements OnInit {
     }
   }
 
+  saveMedicalProfile() {
+    this.http.post(`${this.apiUrl}/update-medical-profile`, {
+      user_id: this.userData.user_id,
+      ...this.medicalData
+    }).subscribe({
+      next: (res: any) => {
+        this.userData = res.user;
+        localStorage.setItem('user', JSON.stringify(res.user));
+        this.showToast('Medical & Vulnerability Profile Saved!', 'success');
+      },
+      error: () => this.showToast('Failed to save medical data.', 'danger')
+    });
+  }
+
   updatePassword() {
     if (this.passwords.new !== this.passwords.confirm) {
       this.showToast('New passwords do not match.', 'danger');
@@ -73,10 +97,10 @@ export class ProfilePage implements OnInit {
     }).subscribe({
       next: () => {
         this.showToast('Password updated securely!', 'success');
-        this.passwords = { current: '', new: '', confirm: '' }; // clear form
+        this.passwords = { current: '', new: '', confirm: '' }; 
+        this.showPasswordForm = false; // Hide form on success!
       },
       error: (err) => {
-        // Displays the strict regex validation errors from Laravel
         const msg = err.error.message || 'Password update failed.';
         this.showToast(msg, 'danger');
       }

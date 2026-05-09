@@ -18,56 +18,52 @@
 
   <ion-list>
     <ion-list-header><ion-label color="danger">Personal Information</ion-label></ion-list-header>
-
-    <ion-item>
-      <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
-      <ion-label><h3>Full Name</h3><p>{{ userData.first_name }} {{ userData.last_name }}</p></ion-label>
-    </ion-item>
-
-    <ion-item>
-      <ion-icon name="calendar-outline" slot="start" color="medium"></ion-icon>
-      <ion-label><h3>Birthdate & Age</h3><p>{{ userData.birthdate ? userData.birthdate : 'Not set' }} ({{ calculatedAge }} years old)</p></ion-label>
-    </ion-item>
+    <ion-item><ion-icon name="person-outline" slot="start" color="medium"></ion-icon><ion-label><h3>Full Name</h3><p>{{ userData.first_name }} {{ userData.last_name }}</p></ion-label></ion-item>
+    <ion-item><ion-icon name="calendar-outline" slot="start" color="medium"></ion-icon><ion-label><h3>Birthdate & Age</h3><p>{{ userData.birthdate ? userData.birthdate : 'Not set' }} ({{ calculatedAge }} years old)</p></ion-label></ion-item>
 
     <ion-list-header><ion-label color="danger">Contact & Location (Locked)</ion-label></ion-list-header>
+    <ion-item><ion-icon name="call-outline" slot="start" color="medium"></ion-icon><ion-label><h3>Phone Number</h3><p>{{ userData.phone }}</p></ion-label></ion-item>
+    <ion-item><ion-icon name="mail-outline" slot="start" color="medium"></ion-icon><ion-label><h3>Email Address</h3><p>{{ userData.email }}</p></ion-label></ion-item>
+    <ion-item><ion-icon name="location-outline" slot="start" color="medium"></ion-icon><ion-label><h3>Barangay ID</h3><p>Barangay #{{ userData.barangay_id }}</p></ion-label></ion-item>
 
-    <ion-item>
-      <ion-icon name="call-outline" slot="start" color="medium"></ion-icon>
-      <ion-label><h3>Phone Number</h3><p>{{ userData.phone }}</p></ion-label>
-    </ion-item>
-
-    <ion-item>
-      <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
-      <ion-label><h3>Email Address</h3><p>{{ userData.email }}</p></ion-label>
-    </ion-item>
-
-    <ion-item>
-      <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
-      <ion-label><h3>Barangay ID</h3><p>Barangay #{{ userData.barangay_id }}</p></ion-label>
-    </ion-item>
+    <ion-list-header class="ion-margin-top"><ion-label color="danger">Medical & Vulnerability Profile</ion-label></ion-list-header>
+    <ion-card color="light">
+      <ion-card-content>
+        <p style="margin-bottom:15px; color: var(--ion-color-medium);">Optional: Provide details to assist emergency responders in case of an SOS.</p>
+        <ion-item class="ion-margin-bottom" fill="outline">
+          <ion-select label="Blood Type" labelPlacement="floating" [(ngModel)]="medicalData.blood_type">
+            <ion-select-option value="A+">A+</ion-select-option><ion-select-option value="A-">A-</ion-select-option><ion-select-option value="B+">B+</ion-select-option><ion-select-option value="B-">B-</ion-select-option><ion-select-option value="AB+">AB+</ion-select-option><ion-select-option value="AB-">AB-</ion-select-option><ion-select-option value="O+">O+</ion-select-option><ion-select-option value="O-">O-</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="Allergies" labelPlacement="floating" [(ngModel)]="medicalData.allergies" placeholder="e.g. Penicillin, Peanuts"></ion-input></ion-item>
+        <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="Medical Conditions" labelPlacement="floating" [(ngModel)]="medicalData.medical_conditions" placeholder="e.g. Asthma, Hypertension"></ion-input></ion-item>
+        <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="PWD Status" labelPlacement="floating" [(ngModel)]="medicalData.pwd_status" placeholder="e.g. Wheelchair user, Deaf"></ion-input></ion-item>
+        <ion-button expand="block" color="danger" (click)="saveMedicalProfile()"><ion-icon slot="start" name="save-outline"></ion-icon> Save Medical Profile</ion-button>
+      </ion-card-content>
+    </ion-card>
 
     <ion-list-header class="ion-margin-top"><ion-label color="danger">Security</ion-label></ion-list-header>
     <ion-card color="light">
       <ion-card-content>
-        <p style="margin-bottom:15px;">Password must contain at least 8 characters, an uppercase letter, a number, and a special symbol.</p>
         
-        <ion-item class="ion-margin-bottom" fill="outline">
-          <ion-input label="Current Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.current"></ion-input>
-        </ion-item>
-        
-        <ion-item class="ion-margin-bottom" fill="outline">
-          <ion-input label="New Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.new"></ion-input>
-        </ion-item>
-        
-        <ion-item class="ion-margin-bottom" fill="outline">
-          <ion-input label="Confirm New Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.confirm"></ion-input>
-        </ion-item>
-
-        <ion-button expand="block" color="danger" (click)="updatePassword()">
-          <ion-icon slot="start" name="lock-closed-outline"></ion-icon> Update Password
+        <ion-button *ngIf="!showPasswordForm" expand="block" fill="outline" color="dark" (click)="showPasswordForm = true">
+          <ion-icon slot="start" name="lock-closed-outline"></ion-icon> Change Password
         </ion-button>
+
+        <div *ngIf="showPasswordForm">
+          <p style="margin-bottom:15px;">Password must contain at least 8 characters, an uppercase letter, a number, and a special symbol.</p>
+          <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="Current Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.current"></ion-input></ion-item>
+          <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="New Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.new"></ion-input></ion-item>
+          <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="Confirm New Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.confirm"></ion-input></ion-item>
+          
+          <ion-row>
+            <ion-col><ion-button expand="block" fill="clear" color="medium" (click)="showPasswordForm = false">Cancel</ion-button></ion-col>
+            <ion-col><ion-button expand="block" color="danger" (click)="updatePassword()">Update</ion-button></ion-col>
+          </ion-row>
+        </div>
+
       </ion-card-content>
     </ion-card>
 
   </ion-list>
-</ion-content> 
+</ion-content>
