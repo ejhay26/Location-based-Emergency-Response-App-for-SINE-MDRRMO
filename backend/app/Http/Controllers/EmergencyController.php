@@ -69,12 +69,15 @@ class EmergencyController extends Controller
 
     public function getActiveEmergencies()
     {
+        // UPDATED: Now fetches the medical columns from the users table!
         $requests = DB::table('emergency_requests')
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
             ->whereIn('emergency_requests.status', ['Pending', 'Dispatched'])
             ->orderBy('emergency_requests.request_time', 'desc')
-            ->select('emergency_requests.*', 'users.first_name', 'users.last_name', 'users.phone', 'incident_types.incident_name')
+            ->select('emergency_requests.*', 'users.first_name', 'users.last_name', 'users.phone', 
+                     'users.blood_type', 'users.allergies', 'users.medical_conditions', 'users.pwd_status', 
+                     'incident_types.incident_name')
             ->get();
         return response()->json($requests);
     }
@@ -131,7 +134,9 @@ class EmergencyController extends Controller
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
             ->whereIn('emergency_requests.status', ['Resolved', 'Cancelled'])
             ->orderBy('emergency_requests.request_time', 'desc')
-            ->select('emergency_requests.*', 'users.first_name', 'users.last_name', 'users.phone', 'incident_types.incident_name')
+            ->select('emergency_requests.*', 'users.first_name', 'users.last_name', 'users.phone', 
+                     'users.blood_type', 'users.allergies', 'users.medical_conditions', 'users.pwd_status', 
+                     'incident_types.incident_name')
             ->get();
         return response()->json($requests);
     }
@@ -157,7 +162,9 @@ class EmergencyController extends Controller
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
             ->where('emergency_requests.request_time', '>=', now()->subDays($days))
-            ->select('emergency_requests.*', 'users.first_name', 'users.last_name', 'incident_types.incident_name')
+            ->select('emergency_requests.*', 'users.first_name', 'users.last_name', 
+                     'users.blood_type', 'users.allergies', 'users.medical_conditions', 'users.pwd_status',
+                     'incident_types.incident_name')
             ->orderBy('emergency_requests.request_time', 'desc')
             ->limit(100)
             ->get();
@@ -170,8 +177,6 @@ class EmergencyController extends Controller
         ]);
     }
 
-    // --- PHASE 4: HAZARDS & BROADCASTS --- //
-    
     public function submitHazard(Request $request)
     {
         $request->validate([
@@ -216,17 +221,12 @@ class EmergencyController extends Controller
     public function createBroadcast(Request $request)
     {
         $request->validate(['message' => 'required|string']);
-
-        // Set all previous broadcasts to inactive
         DB::table('broadcasts')->update(['is_active' => 0]);
-
-        // Insert new active broadcast
         DB::table('broadcasts')->insert([
             'message' => $request->message,
             'is_active' => 1,
             'created_at' => now()
         ]);
-
         return response()->json(['message' => 'Broadcast pushed to all citizens!']);
     }
 
