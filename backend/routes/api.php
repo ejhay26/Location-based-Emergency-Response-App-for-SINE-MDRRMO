@@ -19,11 +19,11 @@ Route::post('/update-password', [AuthController::class, 'updatePassword']);
 Route::post('/update-medical-profile', [AuthController::class, 'updateMedicalProfile']);
 
 // NEW: Password Recovery Routes
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,1');
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // Emergency & Dispatch Routes
-Route::post('/submit-sos', [EmergencyController::class, 'submitSos']);
+Route::post('/submit-sos', [EmergencyController::class, 'submitSos'])->middleware('throttle:5,1');
 Route::post('/cancel-sos', [EmergencyController::class, 'cancelEmergency']);
 Route::get('/my-emergencies/{user_id}', [EmergencyController::class, 'getMyEmergencies']); 
 Route::get('/active-emergencies', [EmergencyController::class, 'getActiveEmergencies']); 
@@ -34,7 +34,7 @@ Route::get('/archived-emergencies', [EmergencyController::class, 'getArchivedEme
 Route::get('/analytics', [EmergencyController::class, 'getAnalytics']);
 
 // Hazard & Broadcast Routes
-Route::post('/submit-hazard', [EmergencyController::class, 'submitHazard']);
+Route::post('/submit-hazard', [EmergencyController::class, 'submitHazard'])->middleware('throttle:5,1');
 Route::get('/active-hazards', [EmergencyController::class, 'getActiveHazards']);
 Route::post('/create-broadcast', [EmergencyController::class, 'createBroadcast']);
 Route::get('/active-broadcast', [EmergencyController::class, 'getActiveBroadcast']);
