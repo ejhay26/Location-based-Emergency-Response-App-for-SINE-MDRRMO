@@ -76,7 +76,18 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     }, 5000);
   }
 
+  // FIXED: Added back the missing DidEnter hook to boot the map on initial load!
+  ionViewDidEnter() {
+    setTimeout(() => {
+      const mapContainer = document.getElementById('dispatch-map');
+      if (mapContainer && !this.map && this.viewMode !== 'analytics') {
+        this.initMap();
+      }
+    }, 250);
+  }
+
   ionViewWillLeave() { if (this.pollingInterval) clearInterval(this.pollingInterval); }
+  
   ngOnDestroy() {
     if (this.pollingInterval) clearInterval(this.pollingInterval);
     if (this.trendChartInstance) this.trendChartInstance.destroy();
@@ -88,8 +99,11 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       setTimeout(() => this.renderCharts(), 200); 
     } else if (this.viewMode === 'active' || this.viewMode === 'broadcast') {
       setTimeout(() => {
-        if (this.map) this.map.invalidateSize();
-        else this.initMap();
+        if (this.map) {
+          this.map.invalidateSize();
+        } else {
+          this.initMap();
+        }
       }, 250);
     }
   }
@@ -163,7 +177,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     });
     this.http.get(`${this.apiUrl}/active-hazards`).subscribe((res: any) => {
       this.activeHazards = res;
-      this.plotMarkers(); // Replot to include hazards
+      this.plotMarkers(); 
     });
     this.http.get(`${this.apiUrl}/archived-emergencies`).subscribe((res: any) => this.archivedRequests = res);
     this.http.get(`${this.apiUrl}/dispatch-assets`).subscribe((res: any) => {
@@ -176,7 +190,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.http.get(`${this.apiUrl}/active-emergencies`).subscribe((res: any) => {
       if (res.length !== this.activeRequests.length) {
         this.activeRequests = res;
-        this.loadData(); // Re-syncs everything including hazards
+        this.loadData(); 
         this.loadAnalytics(); 
       } else {
         this.activeRequests = res; 
@@ -198,6 +212,11 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       L.polygon([ [[-90, -180], [90, -180], [90, 180], [-90, 180]], hole ], { color: 'transparent', fillColor: '#888888', fillOpacity: 0.6 }).addTo(this.map);
 
       this.plotMarkers();
+      
+      // FIXED: Force leaflet to snap to the correct container size immediately
+      setTimeout(() => {
+        this.map.invalidateSize();
+      }, 100);
     });
   }
 
@@ -206,11 +225,26 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.mapMarkers.forEach(marker => this.map.removeLayer(marker));
     this.mapMarkers = [];
 
-    // Plot SOS Emergencies
     this.activeRequests.forEach(req => {
+      
+      let medicalNote = '';
+      if (req.blood_type || req.allergies || req.medical_conditions || req.pwd_status) {
+        medicalNote = `
+          <hr style="margin: 8px 0; border-top: 1px solid #ccc;">
+          <b style="color:var(--ion-color-danger); font-size:12px;">⚠️ MEDICAL ALERT</b><br>
+          <span style="font-size:11px;">
+            <b>Blood:</b> ${req.blood_type || 'N/A'}<br>
+            <b>Allergies:</b> ${req.allergies || 'None'}<br>
+            <b>Conditions:</b> ${req.medical_conditions || 'None'}<br>
+            <b>PWD:</b> ${req.pwd_status || 'No'}
+          </span>
+        `;
+      }
+
       const marker = L.marker([req.latitude, req.longitude], { icon: this.sosIcon })
         .bindPopup(`
           <b>${req.incident_name}</b><br>${req.first_name} ${req.last_name}
+          ${medicalNote}
           <br><img src="http://127.0.0.1:8000/${req.image_proof}" style="max-width:100px; margin-top:5px; border-radius:4px;">
         `).addTo(this.map);
       
@@ -222,7 +256,6 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       this.mapMarkers.push(marker);
     });
 
-    // Plot Hazards (Same color icon, different popup)
     this.activeHazards.forEach(haz => {
       const hazardMarker = L.marker([haz.latitude, haz.longitude], { icon: this.sosIcon })
         .bindPopup(`
@@ -234,7 +267,6 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     });
   }
 
-  // --- ACTIONS ---
   submitBroadcast() {
     if (!this.broadcastForm.message) return;
     this.http.post(`${this.apiUrl}/create-broadcast`, this.broadcastForm).subscribe({

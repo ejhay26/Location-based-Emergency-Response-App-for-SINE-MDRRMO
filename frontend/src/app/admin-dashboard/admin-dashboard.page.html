@@ -95,7 +95,13 @@
               <ion-card-content>
                 <p><strong>Victim:</strong> {{ request.first_name }} {{ request.last_name }}</p>
                 <p><strong>Contact:</strong> {{ request.phone }}</p>
+                
+                <p *ngIf="request.blood_type || request.allergies || request.medical_conditions || request.pwd_status" class="ion-margin-vertical">
+                  <ion-badge color="danger">⚠️ MEDICAL/VULNERABILITY ALERT</ion-badge>
+                </p>
+
                 <p><strong>Status:</strong> <ion-badge [color]="request.status === 'Pending' ? 'warning' : 'primary'">{{ request.status }}</ion-badge></p>
+                
                 <ion-row class="ion-margin-top">
                   <ion-col *ngIf="request.status === 'Pending'"><ion-button expand="block" color="warning" size="small" (click)="openDispatchModal(request.request_id)"><ion-icon name="car-outline" slot="start"></ion-icon> Dispatch</ion-button></ion-col>
                   <ion-col><ion-button expand="block" color="success" size="small" (click)="resolveEmergency(request.request_id)"><ion-icon name="checkmark-circle-outline" slot="start"></ion-icon> Resolve</ion-button></ion-col>
@@ -134,6 +140,11 @@
                   <h2>{{ req.incident_name }}</h2>
                   <p>{{ req.first_name }} {{ req.last_name }}</p>
                   <p>{{ req.request_time | date:'medium' }}</p>
+                  
+                  <p *ngIf="req.blood_type || req.allergies || req.medical_conditions || req.pwd_status" style="margin-top: 5px;">
+                    <ion-badge color="danger">⚠️ MEDICAL ALERT</ion-badge>
+                  </p>
+
                 </ion-label>
                 <ion-badge [color]="req.status === 'Resolved' ? 'success' : (req.status === 'Pending' ? 'warning' : 'medium')" slot="end">{{ req.status }}</ion-badge>
               </ion-item>
