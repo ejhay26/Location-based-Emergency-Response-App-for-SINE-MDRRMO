@@ -25,12 +25,13 @@ The platform is divided into robust, role-based interfaces:
 * **Real-Time Dispatch Polling:** The command center silently polls the Laravel API in the background, automatically dropping interactive red pins on the map the second an emergency occurs.
 * **Dynamic Asset Dispatching:** Cascading relational dropdowns that allow dispatchers to assign specific units (e.g., Fire Department, RHU) and link them to their designated vehicles.
 * **Secure Profile Management:** End-to-end encrypted password updating (with strict regex security enforcement) and Base64 profile avatar uploading.
+* **Interactive Analytics Dashboard:** Built-in Chart.js data visualization allowing admins to filter emergencies by dynamic timeframes (7, 30, or 90 days). Includes interactive Line/Bar trend graphs and Doughnut charts that automatically filter the emergency history list when clicked.
+
 
 ## Future Scope & Recommendations (Version 2.0)
 While the core emergency dispatch engine is fully operational, the following features are slated for future development:
-1. **Data Analytics Dashboard:** Integration of Chart.js to track incident hotspots across barangays and calculate average dispatch times.
-2. **Offline Resiliency (Typhoon-Proofing):** Utilizing Ionic Local Storage to queue SOS requests during internet outages, automatically firing them to the server when mobile data is restored.
-3. **Push Notifications:** Integrating Firebase Cloud Messaging (FCM) to push free, real-time alert banners to citizens when responders are en route.
+1. **Offline Resiliency (Typhoon-Proofing):** Utilizing Ionic Local Storage to queue SOS requests during internet outages, automatically firing them to the server when mobile data is restored.
+2. **Push Notifications:** Integrating Firebase Cloud Messaging (FCM) to push free, real-time alert banners to citizens when responders are en route.
 
 ## Setup & Installation
 For instructions on how to set up the database, backend, and frontend environments locally, please refer to the [Installation Guide](./installation.md).
