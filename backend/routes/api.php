@@ -28,3 +28,4 @@ Route::get('/dispatch-assets', [EmergencyController::class, 'getDispatchAssets']
 Route::post('/dispatch-emergency', [EmergencyController::class, 'dispatchEmergency']);
 Route::post('/resolve-emergency', [EmergencyController::class, 'resolveEmergency']);
 Route::get('/archived-emergencies', [EmergencyController::class, 'getArchivedEmergencies']);
+Route::get('/analytics', [EmergencyController::class, 'getAnalytics']);
