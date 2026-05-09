@@ -136,22 +136,16 @@ class EmergencyController extends Controller
         return response()->json($requests);
     }
 
-    // NEW: Analytics Data Engine
-    // UPGRADED: Dynamic Analytics Data Engine
     public function getAnalytics(Request $request)
     {
-        // Get the 'days' parameter from the URL, default to 7 if missing
         $days = $request->query('days', 7); 
-
-        // 1. Group by Date dynamically based on the requested timeframe
         $dailyStats = DB::table('emergency_requests')
             ->select(DB::raw('DATE(request_time) as date'), DB::raw('count(*) as total'))
-            ->where('request_time', '>=', now()->subDays($days)) // Only grab data from the last X days
+            ->where('request_time', '>=', now()->subDays($days))
             ->groupBy('date')
-            ->orderBy('date', 'asc') // Order chronologically for the chart
+            ->orderBy('date', 'asc')
             ->get();
 
-        // 2. Group by Incident Type (Filter this by the same timeframe too!)
         $typeStats = DB::table('emergency_requests')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
             ->where('emergency_requests.request_time', '>=', now()->subDays($days))
@@ -159,7 +153,6 @@ class EmergencyController extends Controller
             ->groupBy('incident_types.incident_name')
             ->get();
 
-        // 3. Get the recent records for the interactive clickable filter list
         $recentRecords = DB::table('emergency_requests')
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
@@ -175,5 +168,71 @@ class EmergencyController extends Controller
             'recent_records' => $recentRecords,
             'timeframe' => $days
         ]);
+    }
+
+    // --- PHASE 4: HAZARDS & BROADCASTS --- //
+    
+    public function submitHazard(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'description' => 'required|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'image_proof' => 'required'
+        ]);
+
+        $image_parts = explode(";base64,", $request->image_proof);
+        $image_base64 = base64_decode($image_parts[1]);
+        $fileName = 'hazard_' . time() . '_' . $request->user_id . '.png';
+        
+        Storage::disk('public')->put('emergencies/' . $fileName, $image_base64);
+        $imagePath = 'storage/emergencies/' . $fileName; 
+
+        DB::table('hazards')->insert([
+            'user_id' => $request->user_id,
+            'description' => $request->description,
+            'image_proof' => $imagePath,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'status' => 'Active',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Hazard reported successfully!']);
+    }
+
+    public function getActiveHazards()
+    {
+        $hazards = DB::table('hazards')
+            ->join('users', 'hazards.user_id', '=', 'users.user_id')
+            ->where('hazards.status', 'Active')
+            ->select('hazards.*', 'users.first_name', 'users.last_name')
+            ->get();
+        return response()->json($hazards);
+    }
+
+    public function createBroadcast(Request $request)
+    {
+        $request->validate(['message' => 'required|string']);
+
+        // Set all previous broadcasts to inactive
+        DB::table('broadcasts')->update(['is_active' => 0]);
+
+        // Insert new active broadcast
+        DB::table('broadcasts')->insert([
+            'message' => $request->message,
+            'is_active' => 1,
+            'created_at' => now()
+        ]);
+
+        return response()->json(['message' => 'Broadcast pushed to all citizens!']);
+    }
+
+    public function getActiveBroadcast()
+    {
+        $broadcast = DB::table('broadcasts')->where('is_active', 1)->latest('created_at')->first();
+        return response()->json($broadcast);
     }
 }

@@ -14,8 +14,6 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/create-dispatcher', [AuthController::class, 'createDispatcher']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
-
-// NEW: Profile Management Routes
 Route::post('/update-profile-picture', [AuthController::class, 'updateProfilePicture']);
 Route::post('/update-password', [AuthController::class, 'updatePassword']);
 
@@ -29,3 +27,9 @@ Route::post('/dispatch-emergency', [EmergencyController::class, 'dispatchEmergen
 Route::post('/resolve-emergency', [EmergencyController::class, 'resolveEmergency']);
 Route::get('/archived-emergencies', [EmergencyController::class, 'getArchivedEmergencies']);
 Route::get('/analytics', [EmergencyController::class, 'getAnalytics']);
+
+// NEW: Hazard & Broadcast Routes
+Route::post('/submit-hazard', [EmergencyController::class, 'submitHazard']);
+Route::get('/active-hazards', [EmergencyController::class, 'getActiveHazards']);
+Route::post('/create-broadcast', [EmergencyController::class, 'createBroadcast']);
+Route::get('/active-broadcast', [EmergencyController::class, 'getActiveBroadcast']);
