@@ -1,0 +1,55 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="danger">
+    <ion-buttons slot="start"><ion-back-button defaultHref="/home" style="color: white;"></ion-back-button></ion-buttons>
+    <ion-title style="color: white;">Report Hazard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="ion-text-center ion-margin-bottom">
+    <h2>Road/Public Hazard</h2>
+    <p>Report floods, fallen trees, or dangerous road conditions to warn others.</p>
+  </div>
+
+  <ion-card>
+    <ion-card-content>
+      <form [formGroup]="hazardForm" (ngSubmit)="submitHazard()">
+        
+        <ion-item class="ion-margin-bottom" fill="outline">
+          <ion-input label="Description" labelPlacement="floating" formControlName="description" placeholder="e.g. Fallen tree blocking road"></ion-input>
+        </ion-item>
+
+        <ion-button expand="block" color="dark" class="ion-margin-bottom" (click)="takePhoto()">
+          <ion-icon name="camera-outline" slot="start"></ion-icon>
+          {{ photoPreview ? 'Retake Photo Evidence' : 'Take Photo Evidence' }}
+        </ion-button>
+
+        <div *ngIf="photoPreview" class="ion-margin-bottom ion-text-center">
+          <img [src]="photoPreview" style="max-height: 150px; border-radius: 8px; border: 2px solid var(--ion-color-danger);" />
+        </div>
+
+        <div class="ion-margin-bottom" style="position: relative;">
+          <div id="hazard-map" style="height: 250px; background-color: #e5e5e5; border-radius: 12px; z-index: 1;"></div>
+          <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png"
+               style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); z-index: 1000; pointer-events: none; width: 25px; height: 41px;" />
+        </div>
+
+        <ion-item class="ion-margin-bottom" fill="outline">
+          <ion-input label="Latitude" labelPlacement="floating" formControlName="latitude" readonly="true"></ion-input>
+        </ion-item>
+
+        <ion-item class="ion-margin-bottom" fill="outline">
+          <ion-input label="Longitude" labelPlacement="floating" formControlName="longitude" readonly="true"></ion-input>
+        </ion-item>
+
+        <ion-button expand="block" fill="outline" color="dark" class="ion-margin-bottom" (click)="getCurrentLocation()">
+          <ion-icon name="locate-outline" slot="start"></ion-icon> Get Current Location
+        </ion-button>
+
+        <ion-button type="submit" expand="block" color="danger" size="large" [disabled]="!hazardForm.valid || !photoPreview" class="ion-margin-top">
+          SUBMIT REPORT
+        </ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
