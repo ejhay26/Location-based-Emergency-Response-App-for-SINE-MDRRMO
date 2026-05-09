@@ -26,7 +26,10 @@ The platform is divided into robust, role-based interfaces:
 * **Dynamic Asset Dispatching:** Cascading relational dropdowns that allow dispatchers to assign specific units (e.g., Fire Department, RHU) and link them to their designated vehicles.
 * **Secure Profile Management:** End-to-end encrypted password updating (with strict regex security enforcement) and Base64 profile avatar uploading.
 * **Interactive Analytics Dashboard:** Built-in Chart.js data visualization allowing admins to filter emergencies by dynamic timeframes (7, 30, or 90 days). Includes interactive Line/Bar trend graphs and Doughnut charts that automatically filter the emergency history list when clicked.
-
+* **"Golden Minute" Medical Profile:** Allows citizens to optionally save vital health data (blood type, allergies, conditions, PWD status) that is instantly attached to their SOS dispatch, allowing responders to prepare specialized gear before arriving.
+* **Crowdsourced Hazard Mapping:** Empowers residents to report road hazards (e.g., floods, fallen trees) with photo evidence and GPS validation. These drop warning pins on the command center map to aid dispatchers in safe vehicle routing.
+* **Public Broadcast System:** Enables the MDRRMO Master Admin to push critical, real-time alert marquees directly to the top of all citizen dashboards (e.g., severe weather warnings).
+* **Stateless Account Recovery:** Highly secure, OTP-based email verification flow allowing citizens to reset forgotten passwords without requiring persistent server sessions.
 
 ## Future Scope & Recommendations (Version 2.0)
 While the core emergency dispatch engine is fully operational, the following features are slated for future development:
