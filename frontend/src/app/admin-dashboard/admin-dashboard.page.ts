@@ -114,21 +114,98 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     }
   }
 
-  changeDateRange(event: any) { this.chartRange = event.detail.value; this.loadAnalytics(); }
   getFilename(path: string): string { return path ? path.split('/').pop() || 'Unknown File' : 'No File Attachment'; }
 
-  // ... (Analytics fetching logic remains identical)
+  // --- ANALYTICS & CHART LOGIC --- //
+  changeDateRange(event: any) { this.chartRange = event.detail.value; this.loadAnalytics(); }
+
   loadAnalytics() {
     this.http.get(`${this.apiUrl}/analytics?days=${this.chartRange}`).subscribe((res: any) => {
       this.analyticsData = res;
       this.filteredAnalyticsRecords = res.recent_records; 
+      this.currentFilterLabel = 'All Records';
       if (this.viewMode === 'analytics') this.renderCharts();
     });
   }
 
   toggleChartType() { this.trendChartType = this.trendChartType === 'bar' ? 'line' : 'bar'; this.renderCharts(); }
-  clearFilter() { this.filteredAnalyticsRecords = this.analyticsData.recent_records; this.currentFilterLabel = 'All Records'; }
-  renderCharts() { /* Same as previous */ }
+  
+  clearFilter() { 
+    this.filteredAnalyticsRecords = this.analyticsData.recent_records; 
+    this.currentFilterLabel = 'All Records'; 
+  }
+
+  filterListByType(type: string) {
+    this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter((r: any) => r.incident_name === type);
+    this.currentFilterLabel = `Filtered: ${type} Emergencies`;
+  }
+
+  filterListByDate(date: string) {
+    this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter((r: any) => r.request_time.startsWith(date));
+    this.currentFilterLabel = `Filtered: Activity on ${date}`;
+  }
+
+  renderCharts() {
+    const trendCanvas = document.getElementById('trendChart') as HTMLCanvasElement;
+    const typeCanvas = document.getElementById('typeChart') as HTMLCanvasElement;
+    if (!trendCanvas || !typeCanvas) return;
+
+    if (this.trendChartInstance) this.trendChartInstance.destroy();
+    if (this.typeChartInstance) this.typeChartInstance.destroy();
+
+    const dates = this.analyticsData.daily_stats.map((d: any) => d.date);
+    const totals = this.analyticsData.daily_stats.map((d: any) => d.total);
+
+    // Trend Chart (Bar/Line)
+    this.trendChartInstance = new Chart(trendCanvas, {
+      type: this.trendChartType,
+      data: {
+        labels: dates,
+        datasets: [{
+          label: 'Emergencies',
+          data: totals,
+          backgroundColor: 'rgba(235, 68, 90, 0.7)', 
+          borderColor: '#eb445a',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3 
+        }]
+      },
+      options: { 
+        responsive: true, 
+        animation: { duration: 1200, easing: 'easeOutQuart' },
+        onClick: (event, elements) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            this.filterListByDate(dates[index]);
+          }
+        }
+      }
+    });
+
+    const types = this.analyticsData.type_stats.map((t: any) => t.incident_name);
+    const typeCounts = this.analyticsData.type_stats.map((t: any) => t.total);
+
+    // Breakdown Chart (Doughnut)
+    this.typeChartInstance = new Chart(typeCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: types,
+        datasets: [{ data: typeCounts, backgroundColor: ['#eb445a', '#ffc409', '#2dd36f', '#222428'], hoverOffset: 10 }]
+      },
+      options: { 
+        responsive: true, 
+        animation: { animateScale: true, animateRotate: true, duration: 1200 },
+        onClick: (event, elements) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            this.filterListByType(types[index]);
+          }
+        }
+      }
+    });
+  }
+  // ------------------------------- //
 
   loadData() {
     this.http.get(`${this.apiUrl}/active-emergencies`).subscribe((res: any) => { this.activeRequests = res; this.plotMarkers(); });
@@ -152,31 +229,19 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     // @ts-ignore
     new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(this.map);
 
-    // CORE UX FIX: Hook into Leaflet's native popup engine
     this.map.on('popupopen', (e: any) => {
       const mapContainer = document.getElementById('dispatch-map');
-      mapContainer?.classList.add('map-has-selection'); // Trigger CSS blur
-      
+      mapContainer?.classList.add('map-has-selection'); 
       const marker = e.popup._source;
-      if (marker && marker._icon) {
-        marker._icon.classList.add('selected-pin'); // Keep this pin bright
-      }
+      if (marker && marker._icon) { marker._icon.classList.add('selected-pin'); }
     });
 
     this.map.on('popupclose', (e: any) => {
       const mapContainer = document.getElementById('dispatch-map');
-      mapContainer?.classList.remove('map-has-selection'); // Remove CSS blur
-      
+      mapContainer?.classList.remove('map-has-selection'); 
       const marker = e.popup._source;
-      if (marker && marker._icon) {
-        marker._icon.classList.remove('selected-pin');
-      }
-
-      // Deselect list item
-      setTimeout(() => {
-        this.selectedRequestId = null;
-        this.previewType = null;
-      });
+      if (marker && marker._icon) { marker._icon.classList.remove('selected-pin'); }
+      setTimeout(() => { this.selectedRequestId = null; this.previewType = null; });
     });
 
     this.http.get('assets/data/san-isidro.geojson').subscribe((json: any) => {
@@ -196,63 +261,34 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.mapMarkers.forEach(marker => this.map.removeLayer(marker));
     this.mapMarkers = [];
 
-    // Plot Emergencies
     this.activeRequests.forEach(req => {
-      // Create clean popup string WITH Lat/Lng
-      const popupHtml = `
-        <div style="text-align: center;">
-          <b style="font-size: 14px;">${req.incident_name} Emergency</b><br>
-          ${req.first_name} ${req.last_name}<br>
-          <span style="font-size:10px; color:gray;">Lat: ${req.latitude}, Lng: ${req.longitude}</span>
-        </div>
-      `;
-
-      const marker = L.marker([req.latitude, req.longitude], { icon: this.sosIcon })
-        .bindPopup(popupHtml)
-        .addTo(this.map);
+      const popupHtml = `<div style="text-align: center;"><b style="font-size: 14px;">${req.incident_name} Emergency</b><br>${req.first_name} ${req.last_name}<br><span style="font-size:10px; color:gray;">Lat: ${req.latitude}, Lng: ${req.longitude}</span></div>`;
+      const marker = L.marker([req.latitude, req.longitude], { icon: this.sosIcon }).bindPopup(popupHtml).addTo(this.map);
       
-      // On click, sync the list UI
       marker.on('click', () => {
         this.selectedRequestId = req.request_id;
         this.previewType = 'emergency';
         if (this.viewMode !== 'active') { this.viewMode = 'active'; this.segmentChanged(); }
-
-        setTimeout(() => {
-          const element = document.getElementById('request-card-' + req.request_id);
-          if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 100);
+        setTimeout(() => { const element = document.getElementById('request-card-' + req.request_id); if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
       });
       this.mapMarkers.push(marker);
     });
 
-    // Plot Hazards
     this.activeHazards.forEach(haz => {
-      const popupHtml = `
-        <div style="text-align: center;">
-          <b style="font-size: 14px; color: #ffc409;">⚠️ Hazard Report</b><br>
-          <span style="font-size:10px; color:gray;">Lat: ${haz.latitude}, Lng: ${haz.longitude}</span>
-        </div>
-      `;
-
-      const hazardMarker = L.marker([haz.latitude, haz.longitude], { icon: this.hazardIcon })
-        .bindPopup(popupHtml)
-        .addTo(this.map);
+      const popupHtml = `<div style="text-align: center;"><b style="font-size: 14px; color: #ffc409;">⚠️ Hazard Report</b><br><span style="font-size:10px; color:gray;">Lat: ${haz.latitude}, Lng: ${haz.longitude}</span></div>`;
+      const hazardMarker = L.marker([haz.latitude, haz.longitude], { icon: this.hazardIcon }).bindPopup(popupHtml).addTo(this.map);
         
       hazardMarker.on('click', () => {
         this.selectedRequestId = haz.hazard_id;
         this.previewType = 'hazard';
         if (this.viewMode !== 'hazards') { this.viewMode = 'hazards'; this.segmentChanged(); }
-
-        setTimeout(() => {
-          const element = document.getElementById('hazard-card-' + haz.hazard_id);
-          if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 100);
+        setTimeout(() => { const element = document.getElementById('hazard-card-' + haz.hazard_id); if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
       });
       this.mapMarkers.push(hazardMarker);
     });
   }
 
-  submitBroadcast() { /* unchanged */ }
+  submitBroadcast() { /* placeholder */ }
   openDispatchModal(requestId: number) {
     this.dispatchForm.request_id = requestId;
     this.dispatchForm.responder_id = null;
@@ -268,7 +304,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       next: () => {
         this.showToast('Units Dispatched Successfully!', 'success');
         this.isDispatchModalOpen = false;
-        this.map.closePopup(); // Clear map selection automatically
+        this.map.closePopup(); 
         this.loadData(); 
       }
     });
@@ -284,7 +320,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     });
   }
 
-  saveDispatcher() { /* unchanged */ }
+  saveDispatcher() { /* placeholder */ }
 
   async showToast(msg: string, color: string = 'danger') {
     const toast = await this.toastController.create({ message: msg, duration: 3000, position: 'bottom', color: color });
