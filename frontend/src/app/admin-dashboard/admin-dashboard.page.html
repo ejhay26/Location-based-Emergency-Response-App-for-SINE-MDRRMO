@@ -11,7 +11,6 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  
   <div *ngIf="currentRole === 'admin'" class="ion-margin-bottom">
     <ion-card color="light">
       <ion-card-header><ion-card-title>Admin Controls</ion-card-title></ion-card-header>
@@ -62,6 +61,7 @@
         
         <ion-segment [(ngModel)]="viewMode" (ionChange)="segmentChanged()" color="danger" class="ion-margin-bottom">
           <ion-segment-button value="active"><ion-icon name="map-outline"></ion-icon></ion-segment-button>
+          <ion-segment-button value="hazards"><ion-icon name="warning-outline"></ion-icon></ion-segment-button>
           <ion-segment-button value="archive"><ion-icon name="archive-outline"></ion-icon></ion-segment-button>
           <ion-segment-button value="analytics"><ion-icon name="bar-chart-outline"></ion-icon></ion-segment-button>
           <ion-segment-button value="broadcast" *ngIf="currentRole === 'admin'"><ion-icon name="megaphone-outline"></ion-icon></ion-segment-button>
@@ -82,12 +82,23 @@
               </ion-button>
             </ion-card-content>
           </ion-card>
+
+          <ion-card *ngIf="recentBroadcast" class="ion-margin-top" style="border: 2px solid var(--ion-color-danger);">
+            <ion-card-header>
+              <ion-card-subtitle>Currently Active Broadcast</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <h3 style="color: var(--ion-color-danger); font-weight: bold; margin-bottom: 5px;">{{ recentBroadcast.message }}</h3>
+              <p style="font-size: 12px; color: var(--ion-color-medium);">Sent on: {{ recentBroadcast.created_at | date:'medium' }}</p>
+            </ion-card-content>
+          </ion-card>
         </div>
 
         <div *ngIf="viewMode === 'active'">
           <div *ngIf="activeRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active emergencies.</p></div>
           <ion-list *ngIf="activeRequests.length > 0" style="max-height: 550px; overflow-y: auto;">
-            <ion-card *ngFor="let request of activeRequests" [id]="'request-card-' + request.request_id" [ngStyle]="{'border': selectedRequestId === request.request_id ? '3px solid var(--ion-color-danger)' : 'none'}">
+            
+            <ion-card *ngFor="let request of activeRequests" [id]="'request-card-' + request.request_id" [ngStyle]="{'border': selectedRequestId === request.request_id && previewType === 'emergency' ? '3px solid var(--ion-color-danger)' : 'none'}">
               <ion-card-header>
                 <ion-card-subtitle>{{ request.request_time | date:'short' }}</ion-card-subtitle>
                 <ion-card-title color="danger">{{ request.incident_name }}</ion-card-title>
@@ -102,12 +113,49 @@
 
                 <p><strong>Status:</strong> <ion-badge [color]="request.status === 'Pending' ? 'warning' : 'primary'">{{ request.status }}</ion-badge></p>
                 
+                <div class="expandable-image" [class.expanded]="selectedRequestId === request.request_id && previewType === 'emergency'">
+                  <img [src]="'http://127.0.0.1:8000/' + request.image_proof" />
+                  <p class="file-name-text">
+                    <ion-icon name="image-outline"></ion-icon> {{ getFilename(request.image_proof) }}
+                  </p>
+                </div>
+
                 <ion-row class="ion-margin-top">
                   <ion-col *ngIf="request.status === 'Pending'"><ion-button expand="block" color="warning" size="small" (click)="openDispatchModal(request.request_id)"><ion-icon name="car-outline" slot="start"></ion-icon> Dispatch</ion-button></ion-col>
                   <ion-col><ion-button expand="block" color="success" size="small" (click)="resolveEmergency(request.request_id)"><ion-icon name="checkmark-circle-outline" slot="start"></ion-icon> Resolve</ion-button></ion-col>
                 </ion-row>
               </ion-card-content>
             </ion-card>
+            
+          </ion-list>
+        </div>
+
+        <div *ngIf="viewMode === 'hazards'">
+          <div style="padding: 0 10px;">
+            <h3 style="color: #ffc409; font-weight: bold;">Active Road Hazards</h3>
+          </div>
+          <div *ngIf="activeHazards.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No reported hazards.</p></div>
+          <ion-list *ngIf="activeHazards.length > 0" style="max-height: 500px; overflow-y: auto;">
+            
+            <ion-card *ngFor="let haz of activeHazards" [id]="'hazard-card-' + haz.hazard_id" [ngStyle]="{'border': selectedRequestId === haz.hazard_id && previewType === 'hazard' ? '3px solid #ffc409' : 'none'}">
+              <ion-item lines="none" color="light">
+                <ion-icon name="warning-outline" slot="start" color="warning" style="font-size: 24px;"></ion-icon>
+                <ion-label class="ion-text-wrap">
+                  <h2 style="font-weight: bold;">{{ haz.description }}</h2>
+                  <p>Reported by: {{ haz.first_name }} {{ haz.last_name }}</p>
+                  <p>{{ haz.created_at | date:'medium' }}</p>
+
+                  <div class="expandable-image" [class.expanded]="selectedRequestId === haz.hazard_id && previewType === 'hazard'">
+                    <img [src]="'http://127.0.0.1:8000/' + haz.image_proof" />
+                    <p class="file-name-text">
+                      <ion-icon name="image-outline"></ion-icon> {{ getFilename(haz.image_proof) }}
+                    </p>
+                  </div>
+
+                </ion-label>
+              </ion-item>
+            </ion-card>
+            
           </ion-list>
         </div>
 
@@ -140,11 +188,9 @@
                   <h2>{{ req.incident_name }}</h2>
                   <p>{{ req.first_name }} {{ req.last_name }}</p>
                   <p>{{ req.request_time | date:'medium' }}</p>
-                  
                   <p *ngIf="req.blood_type || req.allergies || req.medical_conditions || req.pwd_status" style="margin-top: 5px;">
                     <ion-badge color="danger">⚠️ MEDICAL ALERT</ion-badge>
                   </p>
-
                 </ion-label>
                 <ion-badge [color]="req.status === 'Resolved' ? 'success' : (req.status === 'Pending' ? 'warning' : 'medium')" slot="end">{{ req.status }}</ion-badge>
               </ion-item>
