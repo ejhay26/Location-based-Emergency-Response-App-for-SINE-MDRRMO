@@ -245,4 +245,11 @@ class EmergencyController extends Controller
         $broadcast = DB::table('broadcasts')->where('is_active', 1)->latest('created_at')->first();
         return response()->json($broadcast);
     }
+    
+    // NEW: Function to instantly stop the active broadcast
+    public function clearBroadcast()
+    {
+        DB::table('broadcasts')->update(['is_active' => 0]);
+        return response()->json(['message' => 'Broadcast alert removed successfully.']);
+    }
 }
