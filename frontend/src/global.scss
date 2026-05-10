@@ -9,7 +9,9 @@
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
-@import '@ionic/angular/css/palettes/dark.system.css';
+
+/* THE FIX: Use CLASS instead of SYSTEM for the toggle to work */
+@import "@ionic/angular/css/palettes/dark.class.css"; 
 
 @font-face {
   font-family: 'Roboto';
@@ -18,9 +20,20 @@
   font-style: normal;
 }
 
+:root:not(.ion-palette-dark) {
+  --ion-background-color: #f4f5f8;
+  --ion-text-color: #222428;
+}
+
+/* SOFT LIGHT THEME: Reduces eye strain and fixes invisible input text */
 :root {
   --ion-family: 'Roboto', sans-serif !important;
   font-family: 'Roboto', sans-serif !important;
+}
+
+/* Force Input text to be visible */
+ion-input, ion-select, ion-textarea {
+  --color: var(--ion-text-color) !important;
 }
 
 /* 1. STRICT GLOBAL UI ROUNDING */
@@ -30,15 +43,15 @@ ion-card, ion-item, ion-list, ion-button, ion-input, ion-select, ion-avatar {
 }
 
 /* Force rounding on physical HTML elements like Maps and Charts */
-.leaflet-container, canvas, #dispatch-map, #sos-map, #citizen-map {
+.leaflet-container, canvas, #dispatch-map, #sos-map, #citizen-map, #hazard-map {
   border-radius: 16px !important;
   overflow: hidden !important;
 }
 
 /* 2. INPUT POLISH */
-ion-input.ion-touched.ion-valid { --color: var(--ion-color-success); }
-ion-input.ion-touched.ion-invalid { --color: var(--ion-color-danger); }
-ion-input-password-toggle { --color: var(--ion-color-danger); }
+ion-input.ion-touched.ion-valid { --color: var(--ion-color-success) !important; }
+ion-input.ion-touched.ion-invalid { --color: var(--ion-color-danger) !important; }
+ion-input-password-toggle { --color: var(--ion-color-danger) !important; }
 
 /* 3. SOS BUTTON */
 .sos-container {
@@ -90,4 +103,88 @@ ion-input-password-toggle { --color: var(--ion-color-danger); }
 @keyframes marquee {
   0% { transform: translate(0, 0); }
   100% { transform: translate(-100%, 0); }
+}
+
+/* =========================================
+   SMOOTH DARK MODE TRANSITION
+   ========================================= */
+ion-app, ion-content, ion-toolbar, ion-card, ion-item, ion-list, ion-menu {
+  /* Ionic specific transition variables */
+  --transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+  
+  /* Standard DOM transitions */
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border 0.3s ease-in-out !important;
+}
+
+/* Ensure text inside labels and inputs also fades smoothly */
+ion-label, ion-title, ion-input, ion-textarea, ion-select {
+  transition: color 0.3s ease-in-out !important;
+}
+
+/* =========================================
+   LEAFLET POPUP DARK MODE SYNC
+   ========================================= */
+/* Forces Leaflet popups to respect your global light/dark theme */
+html.ion-palette-dark .leaflet-popup-content-wrapper,
+html.ion-palette-dark .leaflet-popup-tip {
+  background-color: var(--ion-background-color) !important;
+  color: var(--ion-text-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================
+   MAP BACKGROUND BLUR (FOCUS MODE)
+   ========================================= */
+/* 1. Add smooth transition to the map tiles and icons */
+.leaflet-tile-pane, .leaflet-marker-icon {
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+/* 2. When a pin is selected, blur and darken the map background */
+#dispatch-map.map-has-selection .leaflet-tile-pane {
+  filter: brightness(0.5) blur(3px);
+}
+
+/* 3. Darken and fade ALL map pins when there is a selection */
+#dispatch-map.map-has-selection .leaflet-marker-icon {
+  filter: brightness(0.4) grayscale(0.6);
+  opacity: 0.6;
+}
+
+/* 4. Ensure the SPECIFICALLY clicked pin remains fully bright */
+#dispatch-map.map-has-selection .leaflet-marker-icon.selected-pin {
+  filter: brightness(1.1) !important;
+  opacity: 1 !important;
+  z-index: 10000 !important;
+}
+
+/* =========================================
+   SMOOTH LIST EXPANSION (IMAGE PREVIEW)
+   ========================================= */
+.expandable-image {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.3s ease;
+}
+
+.expandable-image.expanded {
+  max-height: 400px; /* Big enough to fit the image */
+  opacity: 1;
+  margin-top: 15px;
+}
+
+.expandable-image img {
+  width: 100%;
+  border-radius: 8px;
+  object-fit: contain;
+  background-color: #000;
+  max-height: 250px;
+}
+
+.file-name-text {
+  text-align: center;
+  font-size: 11px;
+  color: var(--ion-color-medium);
+  margin-top: 5px;
 }
