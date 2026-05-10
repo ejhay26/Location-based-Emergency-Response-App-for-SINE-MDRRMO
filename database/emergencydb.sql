@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 09, 2026 at 02:36 PM
+-- Generation Time: May 10, 2026 at 09:41 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -60,6 +60,13 @@ CREATE TABLE `broadcasts` (
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `broadcasts`
+--
+
+INSERT INTO `broadcasts` (`broadcast_id`, `message`, `is_active`, `created_at`) VALUES
+(1, 'Evacuate now', 1, '2026-05-09 21:21:36');
+
 -- --------------------------------------------------------
 
 --
@@ -102,7 +109,9 @@ CREATE TABLE `emergency_requests` (
 --
 
 INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `image_proof`, `latitude`, `longitude`, `location_id`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(3, 1, 3, NULL, 15.30542100, 120.91368200, NULL, 'Cancelled', '2026-05-08 02:46:44', '2026-05-08 02:46:44', '2026-05-08 07:18:13', NULL);
+(3, 1, 3, NULL, 15.30542100, 120.91368200, NULL, 'Cancelled', '2026-05-08 02:46:44', '2026-05-08 02:46:44', '2026-05-08 07:18:13', NULL),
+(4, 3, 4, 'storage/emergencies/sos_1778388008_3.png', 15.27727200, 120.90597900, NULL, 'Pending', '2026-05-09 20:40:08', '2026-05-09 20:40:08', '2026-05-09 20:40:08', NULL),
+(5, 1, 1, 'storage/emergencies/sos_1778388059_1.png', 15.29416200, 120.90593600, NULL, 'Pending', '2026-05-09 20:40:59', '2026-05-09 20:40:59', '2026-05-09 20:40:59', NULL);
 
 -- --------------------------------------------------------
 
@@ -121,6 +130,13 @@ CREATE TABLE `hazards` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `hazards`
+--
+
+INSERT INTO `hazards` (`hazard_id`, `user_id`, `description`, `image_proof`, `latitude`, `longitude`, `status`, `created_at`, `updated_at`) VALUES
+(1, 3, 'Broken Road', 'storage/emergencies/hazard_1778387633_3.png', 15.27789300, 120.90927300, 'Active', '2026-05-09 20:33:53', '2026-05-09 20:33:53');
 
 -- --------------------------------------------------------
 
@@ -311,7 +327,7 @@ ALTER TABLE `barangays`
 -- AUTO_INCREMENT for table `broadcasts`
 --
 ALTER TABLE `broadcasts`
-  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `dispatch`
@@ -323,13 +339,13 @@ ALTER TABLE `dispatch`
 -- AUTO_INCREMENT for table `emergency_requests`
 --
 ALTER TABLE `emergency_requests`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `hazards`
 --
 ALTER TABLE `hazards`
-  MODIFY `hazard_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `hazard_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `incident_types`
