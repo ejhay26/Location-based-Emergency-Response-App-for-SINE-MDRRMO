@@ -5,7 +5,7 @@ import { IonicModule, ToastController, MenuController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { addIcons } from 'ionicons';
-import { logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline, warningOutline, imageOutline } from 'ionicons/icons';
+import { logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline, warningOutline, imageOutline, filterOutline } from 'ionicons/icons';
 import * as L from 'leaflet'; 
 import Chart from 'chart.js/auto';
 
@@ -79,7 +79,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   hazardIcon = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] });
 
   constructor(private router: Router, private http: HttpClient, private toastController: ToastController, private menuCtrl: MenuController) {
-    addIcons({ logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline, warningOutline, imageOutline });
+    addIcons({ logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline, warningOutline, imageOutline, filterOutline });
   }
 
   ngOnInit() {}
@@ -173,6 +173,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       },
       options: { 
         responsive: true, 
+        maintainAspectRatio: false, // NEW: Forces chart to obey CSS height
         animation: { duration: 1200, easing: 'easeOutQuart' },
         onClick: (event, elements) => {
           if (elements.length > 0) {
@@ -195,6 +196,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       },
       options: { 
         responsive: true, 
+        maintainAspectRatio: false, // NEW: Forces chart to obey CSS height
         animation: { animateScale: true, animateRotate: true, duration: 1200 },
         onClick: (event, elements) => {
           if (elements.length > 0) {
