@@ -38,3 +38,5 @@ Route::post('/submit-hazard', [EmergencyController::class, 'submitHazard'])->mid
 Route::get('/active-hazards', [EmergencyController::class, 'getActiveHazards']);
 Route::post('/create-broadcast', [EmergencyController::class, 'createBroadcast']);
 Route::get('/active-broadcast', [EmergencyController::class, 'getActiveBroadcast']);
+// NEW: Kill-switch for the active broadcast
+Route::post('/clear-broadcast', [EmergencyController::class, 'clearBroadcast']);
