@@ -90,9 +90,15 @@
           </ion-card>
 
           <ion-card *ngIf="recentBroadcast" class="ion-margin-top" style="border: 2px solid var(--ion-color-danger);">
-            <ion-card-header>
+            
+            <ion-card-header style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0;">
               <ion-card-subtitle>Currently Active Broadcast</ion-card-subtitle>
+              
+              <ion-button fill="clear" color="medium" size="small" (click)="endBroadcast()">
+                <ion-icon name="close-circle-outline" slot="start"></ion-icon> STOP ALERT
+              </ion-button>
             </ion-card-header>
+
             <ion-card-content>
               <h3 style="color: var(--ion-color-danger); font-weight: bold; margin-bottom: 5px;">{{ recentBroadcast.message }}</h3>
               <p style="font-size: 12px; color: var(--ion-color-medium);">Sent on: {{ recentBroadcast.created_at | date:'medium' }}</p>

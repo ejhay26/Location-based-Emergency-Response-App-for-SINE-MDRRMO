@@ -5,7 +5,7 @@ import { IonicModule, ToastController, MenuController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { addIcons } from 'ionicons';
-import { logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline, warningOutline, imageOutline, filterOutline } from 'ionicons/icons';
+import { logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline, warningOutline, imageOutline, filterOutline, closeCircleOutline } from 'ionicons/icons';
 import * as L from 'leaflet'; 
 import Chart from 'chart.js/auto';
 
@@ -79,7 +79,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   hazardIcon = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] });
 
   constructor(private router: Router, private http: HttpClient, private toastController: ToastController, private menuCtrl: MenuController) {
-    addIcons({ logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline, warningOutline, imageOutline, filterOutline });
+    addIcons({ logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline, warningOutline, imageOutline, filterOutline, closeCircleOutline });
   }
 
   ngOnInit() {}
@@ -216,7 +216,26 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.http.get(`${this.apiUrl}/dispatch-assets`).subscribe((res: any) => { this.availableResponders = res.responders; this.availableVehicles = res.vehicles; });
   }
 
-  fetchBroadcast() { this.http.get(`${this.apiUrl}/active-broadcast`).subscribe((res: any) => { if (res && res.message) this.recentBroadcast = res; }); }
+  // 1. Updated fetch to properly hide the card if no broadcast is active
+  fetchBroadcast() { 
+    this.http.get(`${this.apiUrl}/active-broadcast`).subscribe((res: any) => { 
+      if (res && res.message) {
+        this.recentBroadcast = res; 
+      } else {
+        this.recentBroadcast = null;
+      }
+    }); 
+  }
+
+  // 2. NEW: Function to trigger the Kill-Switch
+  endBroadcast() {
+    this.http.post(`${this.apiUrl}/clear-broadcast`, {}).subscribe({
+      next: () => {
+        this.showToast('Active broadcast stopped successfully.', 'medium');
+        this.recentBroadcast = null; // Instantly hide the card from the admin view
+      }
+    });
+  }
 
   pollActiveEmergencies() {
     this.http.get(`${this.apiUrl}/active-emergencies`).subscribe((res: any) => {
