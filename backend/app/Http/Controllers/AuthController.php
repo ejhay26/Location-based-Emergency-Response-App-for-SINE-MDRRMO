@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -27,6 +28,10 @@ class AuthController extends Controller
         $fieldType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
         $user = User::where($fieldType, $request->login)->first();
 
+        if ($user && $user->account_status === 'unverified') {
+            return response()->json(['message' => 'Your account registration is currently pending admin verification review.'], 403);
+        }
+
         if ($user && $user->account_status === 'banned') {
             return response()->json(['message' => 'This account has been suspended.'], 403);
         }
@@ -40,7 +45,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful',
-            'user' => clone $user,
+            'user' => $user,
             'role' => $user->role
         ]);
     }
@@ -54,11 +59,18 @@ class AuthController extends Controller
             'birthdate' => 'required|date',
             'username' => 'required|string|unique:users',
             'email' => 'required|email|unique:users',
-            'password' => [
-                'required', 'min:8', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/'
-            ],
-            'barangay_id' => 'required|integer'
+            'password' => ['required', 'min:8', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/'],
+            'barangay_id' => 'required|integer',
+            'valid_id_image' => 'required|string' 
         ]);
+
+        $id_parts = explode(";base64,", $request->valid_id_image);
+        $id_base64 = base64_decode($id_parts[1]);
+        $timestamp = now()->format('Ymd_His');
+        $idFileName = 'id_' . $timestamp . '_' . $request->username . '.png';
+        
+        Storage::disk('public')->put('verification_ids/' . $idFileName, $id_base64);
+        $idStoragePath = 'storage/verification_ids/' . $idFileName;
 
         $otp = rand(1000, 9999);
         Cache::put('otp_' . $request->email, $otp, now()->addMinutes(10));
@@ -76,10 +88,56 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'barangay_id' => $request->barangay_id,
-            'role' => 'citizen' 
+            'role' => 'citizen',
+            'account_status' => 'unverified',
+            'valid_id_proof' => $idStoragePath 
         ]);
 
         return response()->json(['message' => 'OTP sent to email', 'email' => $user->email], 200);
+    }
+
+    public function checkUsername(Request $request)
+    {
+        $exists = User::where('username', $request->query('username'))->exists();
+        return response()->json(['available' => !$exists]);
+    }
+
+    public function checkEmail(Request $request)
+    {
+        $exists = User::where('email', $request->query('email'))->exists();
+        return response()->json(['available' => !$exists]);
+    }
+
+    public function getDispatchers()
+    {
+        $dispatchers = User::where('role', 'dispatcher')
+            ->orderBy('created_at', 'desc')
+            ->get(['user_id', 'first_name', 'last_name', 'username', 'email', 'phone', 'barangay_id', 'account_status', 'created_at']);
+        return response()->json($dispatchers);
+    }
+
+    public function getPendingVerifications()
+    {
+        $users = User::where('account_status', 'unverified')->orderBy('created_at', 'desc')->get();
+        return response()->json($users);
+    }
+
+    public function approveUser(Request $request)
+    {
+        $request->validate(['user_id' => 'required|integer']);
+        User::where('user_id', $request->user_id)->update(['account_status' => 'active']);
+        return response()->json(['message' => 'User approved successfully.']);
+    }
+
+    public function rejectUser(Request $request)
+    {
+        $request->validate(['user_id' => 'required|integer']);
+        $user = User::where('user_id', $request->user_id)->first();
+        if ($user && $user->valid_id_proof) {
+            Storage::disk('public')->delete(str_replace('storage/', '', $user->valid_id_proof));
+        }
+        User::where('user_id', $request->user_id)->delete();
+        return response()->json(['message' => 'User request rejected and deleted.']);
     }
 
     public function verifyOtp(Request $request)
@@ -107,7 +165,7 @@ class AuthController extends Controller
             'barangay_id' => 'required|integer'
         ]);
 
-        $dispatcher = clone User::create([
+        User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'phone' => $request->phone,
@@ -115,7 +173,8 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'barangay_id' => $request->barangay_id,
-            'role' => 'dispatcher' 
+            'role' => 'dispatcher',
+            'account_status' => 'active'
         ]);
 
         return response()->json(['message' => 'Dispatcher created successfully!'], 201);
@@ -129,7 +188,7 @@ class AuthController extends Controller
         $image_base64 = base64_decode($image_parts[1]);
         $fileName = 'profile_' . time() . '_' . $request->user_id . '.png';
         
-        \Illuminate\Support\Facades\Storage::disk('public')->put('profiles/' . $fileName, $image_base64);
+        Storage::disk('public')->put('profiles/' . $fileName, $image_base64);
         $newUrl = 'http://127.0.0.1:8000/storage/profiles/' . $fileName;
 
         $user = User::where('user_id', $request->user_id)->first();
@@ -174,15 +233,12 @@ class AuthController extends Controller
         return response()->json(['message' => 'Medical profile updated successfully!', 'user' => clone $user]);
     }
 
-    // --- NEW: FORGOT PASSWORD FLOW --- //
-    
     public function forgotPassword(Request $request)
     {
         $request->validate(['email' => 'required|email']);
         
         $user = User::where('email', $request->email)->first();
         if (!$user) {
-            // Return success anyway to prevent email enumeration attacks (security best practice)
             return response()->json(['message' => 'If an account exists, an OTP was sent.'], 200);
         }
 
