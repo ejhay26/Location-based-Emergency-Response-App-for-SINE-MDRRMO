@@ -30,19 +30,28 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: { roles: ['admin', 'dispatcher'] } // Admin AND Dispatcher allowed!
   },
-  {
-    path: 'sos',
-    loadComponent: () => import('./sos/sos.page').then( m => m.SosPage),
-    canActivate: [AuthGuard],
-    data: { roles: ['citizen'] } // Only citizens can trigger an SOS
-  },
+  // removed this page for unified report page, but can be added back if we want separate flows for hazards vs emergencies
+  // {
+  //   path: 'sos',
+  //   loadComponent: () => import('./sos/sos.page').then( m => m.SosPage),
+  //   canActivate: [AuthGuard],
+  //   data: { roles: ['citizen'] } // Only citizens can trigger an SOS
+  // },
   {
     path: 'profile',
     loadComponent: () => import('./profile/profile.page').then( m => m.ProfilePage),
     canActivate: [AuthGuard] // Anyone who is logged in can view their profile
-  },  {
-    path: 'hazard',
-    loadComponent: () => import('./hazard/hazard.page').then( m => m.HazardPage)
+  },
+  // removed this page for unified report page, but can be added back if we want separate flows for hazards vs emergencies
+  // {
+  //   path: 'hazard',
+  //   loadComponent: () => import('./hazard/hazard.page').then( m => m.HazardPage)
+  // },
+  {
+    path: 'report',
+    loadComponent: () => import('./report/report.page').then( m => m.ReportPage),
+    canActivate: [AuthGuard],
+    data: { roles: ['citizen'] } // Only citizens can report emergencies or hazards
   }
 
 ];
