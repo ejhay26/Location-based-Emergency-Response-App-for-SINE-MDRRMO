@@ -15,7 +15,7 @@ class EmergencyController extends Controller
             'incident_type_id' => 'required|integer',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'image_proof' => 'nullable|string|max:7340032'
+            'proof_file' => 'nullable|string|max:20971520'
         ]);
 
         $existingEmergency = DB::table('emergency_requests')
@@ -27,20 +27,22 @@ class EmergencyController extends Controller
             return response()->json(['message' => 'You already have an active emergency request!'], 429);
         }
 
-        $imagePath = null;
-        if ($request->has('image_proof') && $request->image_proof) {
-            $image_parts = explode(";base64,", $request->image_proof);
-            $image_base64 = base64_decode($image_parts[1]);
-            $fileName = 'sos_' . time() . '_' . $request->user_id . '.png';
-            
-            Storage::disk('public')->put('emergencies/' . $fileName, $image_base64);
-            $imagePath = 'storage/emergencies/' . $fileName; 
+        $filePath = null;
+        if ($request->has('proof_file') && $request->proof_file) {
+            $fileData = $request->proof_file;
+            $ext = str_contains($fileData, 'data:video') ? 'mp4' : 'png';
+            $parts = explode(";base64,", $fileData);
+            $decoded = base64_decode($parts[1]);
+            $timestamp = now()->format('Ymd_His');
+            $fileName = 'sos_' . $timestamp . '_' . $request->user_id . '.' . $ext;
+            Storage::disk('public')->put('emergencies/' . $fileName, $decoded);
+            $filePath = 'storage/emergencies/' . $fileName;
         }
 
         $requestId = DB::table('emergency_requests')->insertGetId([
             'user_id' => $request->user_id,
             'incident_type_id' => $request->incident_type_id,
-            'image_proof' => $imagePath,
+            'proof_file' => $filePath,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'status' => 'Pending',
@@ -79,7 +81,6 @@ class EmergencyController extends Controller
 
     public function getActiveEmergencies()
     {
-        // UPDATED: Now fetches the medical columns from the users table!
         $requests = DB::table('emergency_requests')
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
@@ -154,9 +155,19 @@ class EmergencyController extends Controller
     public function getAnalytics(Request $request)
     {
         $days = $request->query('days', 7); 
+
+        // UPGRADED: Conditional Aggregation separates each category natively by timeline dates
         $dailyStats = DB::table('emergency_requests')
-            ->select(DB::raw('DATE(request_time) as date'), DB::raw('count(*) as total'))
-            ->where('request_time', '>=', now()->subDays($days))
+            ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
+            ->select(
+                DB::raw('DATE(emergency_requests.request_time) as date'),
+                DB::raw("SUM(CASE WHEN incident_types.incident_name = 'Fire' THEN 1 ELSE 0 END) as fire"),
+                DB::raw("SUM(CASE WHEN incident_types.incident_name = 'Flood' THEN 1 ELSE 0 END) as flood"),
+                DB::raw("SUM(CASE WHEN incident_types.incident_name = 'Medical' THEN 1 ELSE 0 END) as medical"),
+                DB::raw("SUM(CASE WHEN incident_types.incident_name = 'Crime' THEN 1 ELSE 0 END) as crime"),
+                DB::raw('count(*) as total')
+            )
+            ->where('emergency_requests.request_time', '>=', now()->subDays($days))
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();
@@ -194,20 +205,24 @@ class EmergencyController extends Controller
             'description' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'image_proof' => 'required'
+            'proof_file' => 'required|string',
+            'hazard_type' => 'nullable|string|max:50'
         ]);
 
-        $image_parts = explode(";base64,", $request->image_proof);
-        $image_base64 = base64_decode($image_parts[1]);
-        $fileName = 'hazard_' . time() . '_' . $request->user_id . '.png';
-        
-        Storage::disk('public')->put('emergencies/' . $fileName, $image_base64);
-        $imagePath = 'storage/emergencies/' . $fileName; 
+        $fileData = $request->proof_file;
+        $ext = str_contains($fileData, 'data:video') ? 'mp4' : 'png';
+        $parts = explode(";base64,", $fileData);
+        $decoded = base64_decode($parts[1]);
+        $timestamp = now()->format('Ymd_His');
+        $fileName = 'hazard_' . $timestamp . '_' . $request->user_id . '.' . $ext;
+        Storage::disk('public')->put('emergencies/' . $fileName, $decoded);
+        $filePath = 'storage/emergencies/' . $fileName;
 
         DB::table('hazards')->insert([
             'user_id' => $request->user_id,
             'description' => $request->description,
-            'image_proof' => $imagePath,
+            'hazard_type' => $request->hazard_type,
+            'proof_file' => $filePath,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'status' => 'Active',
@@ -216,6 +231,18 @@ class EmergencyController extends Controller
         ]);
 
         return response()->json(['message' => 'Hazard reported successfully!']);
+    }
+
+    // function to handle hazard dismissals
+    public function resolveHazard(Request $request)
+    {
+        $request->validate(['hazard_id' => 'required|integer']);
+
+        DB::table('hazards')
+            ->where('hazard_id', $request->hazard_id)
+            ->update(['status' => 'Resolved', 'updated_at' => now()]);
+
+        return response()->json(['message' => 'Hazard removed from active monitoring.']);
     }
 
     public function getActiveHazards()
@@ -246,7 +273,6 @@ class EmergencyController extends Controller
         return response()->json($broadcast);
     }
     
-    // NEW: Function to instantly stop the active broadcast
     public function clearBroadcast()
     {
         DB::table('broadcasts')->update(['is_active' => 0]);
