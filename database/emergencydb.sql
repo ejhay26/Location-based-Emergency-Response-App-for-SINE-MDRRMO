@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 10, 2026 at 09:41 AM
+-- Generation Time: May 27, 2026 at 12:55 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -65,7 +65,7 @@ CREATE TABLE `broadcasts` (
 --
 
 INSERT INTO `broadcasts` (`broadcast_id`, `message`, `is_active`, `created_at`) VALUES
-(1, 'Evacuate now', 1, '2026-05-09 21:21:36');
+(1, 'Evacuate now', 0, '2026-05-09 21:21:36');
 
 -- --------------------------------------------------------
 
@@ -93,7 +93,7 @@ CREATE TABLE `emergency_requests` (
   `request_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `incident_type_id` int(11) DEFAULT NULL,
-  `image_proof` varchar(255) DEFAULT NULL,
+  `proof_file` varchar(255) DEFAULT NULL,
   `latitude` decimal(10,8) DEFAULT NULL,
   `longitude` decimal(11,8) DEFAULT NULL,
   `location_id` int(11) DEFAULT NULL,
@@ -108,10 +108,10 @@ CREATE TABLE `emergency_requests` (
 -- Dumping data for table `emergency_requests`
 --
 
-INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `image_proof`, `latitude`, `longitude`, `location_id`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
+INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `proof_file`, `latitude`, `longitude`, `location_id`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (3, 1, 3, NULL, 15.30542100, 120.91368200, NULL, 'Cancelled', '2026-05-08 02:46:44', '2026-05-08 02:46:44', '2026-05-08 07:18:13', NULL),
 (4, 3, 4, 'storage/emergencies/sos_1778388008_3.png', 15.27727200, 120.90597900, NULL, 'Pending', '2026-05-09 20:40:08', '2026-05-09 20:40:08', '2026-05-09 20:40:08', NULL),
-(5, 1, 1, 'storage/emergencies/sos_1778388059_1.png', 15.29416200, 120.90593600, NULL, 'Pending', '2026-05-09 20:40:59', '2026-05-09 20:40:59', '2026-05-09 20:40:59', NULL);
+(5, 1, 1, 'storage/emergencies/sos_1778388059_1.png', 15.29416200, 120.90593600, NULL, 'Cancelled', '2026-05-09 20:40:59', '2026-05-09 20:40:59', '2026-05-22 18:34:15', NULL);
 
 -- --------------------------------------------------------
 
@@ -123,7 +123,8 @@ CREATE TABLE `hazards` (
   `hazard_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
-  `image_proof` varchar(255) DEFAULT NULL,
+  `hazard_type` varchar(50) DEFAULT NULL,
+  `proof_file` varchar(255) DEFAULT NULL,
   `latitude` decimal(10,8) DEFAULT NULL,
   `longitude` decimal(11,8) DEFAULT NULL,
   `status` varchar(50) DEFAULT 'Active',
@@ -135,8 +136,8 @@ CREATE TABLE `hazards` (
 -- Dumping data for table `hazards`
 --
 
-INSERT INTO `hazards` (`hazard_id`, `user_id`, `description`, `image_proof`, `latitude`, `longitude`, `status`, `created_at`, `updated_at`) VALUES
-(1, 3, 'Broken Road', 'storage/emergencies/hazard_1778387633_3.png', 15.27789300, 120.90927300, 'Active', '2026-05-09 20:33:53', '2026-05-09 20:33:53');
+INSERT INTO `hazards` (`hazard_id`, `user_id`, `description`, `hazard_type`, `proof_file`, `latitude`, `longitude`, `status`, `created_at`, `updated_at`) VALUES
+(1, 3, 'Broken Road', NULL, 'storage/emergencies/hazard_1778387633_3.png', 15.27789300, 120.90927300, 'Active', '2026-05-09 20:33:53', '2026-05-09 20:33:53');
 
 -- --------------------------------------------------------
 
@@ -157,7 +158,8 @@ INSERT INTO `incident_types` (`incident_type_id`, `incident_name`) VALUES
 (1, 'Fire'),
 (2, 'Flood'),
 (3, 'Medical'),
-(4, 'Crime');
+(4, 'Crime'),
+(5, 'Others');
 
 -- --------------------------------------------------------
 
@@ -220,7 +222,8 @@ INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `phone`, 
 (3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 1, '2026-05-07 05:45:17', '2026-05-07 17:33:20', NULL, NULL, NULL, NULL, NULL),
 (4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 1, '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL, NULL, NULL, NULL, NULL),
 (8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', 3, '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL, NULL, NULL, NULL, NULL),
-(9, 'dispatcher', '2', 'dispatcher2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis2@mail.com', '$2y$12$WuAbG0j2AFQjlMC/RttG4OF5qv2k372lv6qeIOfjJue5FnBJ8Eml.', 'dispatcher', 'active', 4, '2026-05-08 09:28:54', '2026-05-08 09:28:54', NULL, NULL, NULL, NULL, NULL);
+(9, 'dispatcher', '2', 'dispatcher2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis2@mail.com', '$2y$12$WuAbG0j2AFQjlMC/RttG4OF5qv2k372lv6qeIOfjJue5FnBJ8Eml.', 'dispatcher', 'active', 4, '2026-05-08 09:28:54', '2026-05-08 09:28:54', NULL, NULL, NULL, NULL, NULL),
+(10, 'awd', 'awd', 'awdawd', '131314', '2005-04-13', 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejcp2005@gmail.com', '$2y$12$C5EMGU7mvVIrkGD9VIn.PuKexBvLz4taR/.KJMRLn2qSw4dBlNFpW', 'citizen', 'active', 5, '2026-05-10 12:07:56', '2026-05-10 12:07:56', NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -351,7 +354,7 @@ ALTER TABLE `hazards`
 -- AUTO_INCREMENT for table `incident_types`
 --
 ALTER TABLE `incident_types`
-  MODIFY `incident_type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `incident_type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `responders`
@@ -363,7 +366,7 @@ ALTER TABLE `responders`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
