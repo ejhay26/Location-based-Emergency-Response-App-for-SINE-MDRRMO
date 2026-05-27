@@ -9,7 +9,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// Authentication & Account Routes
+// Authentication & Account Verification Routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/create-dispatcher', [AuthController::class, 'createDispatcher']);
@@ -18,7 +18,15 @@ Route::post('/update-profile-picture', [AuthController::class, 'updateProfilePic
 Route::post('/update-password', [AuthController::class, 'updatePassword']);
 Route::post('/update-medical-profile', [AuthController::class, 'updateMedicalProfile']);
 
-// NEW: Password Recovery Routes
+// NEW: Real-time Availability & Admin Verification Workflow Checkers
+Route::get('/check-username', [AuthController::class, 'checkUsername']);
+Route::get('/check-email', [AuthController::class, 'checkEmail']);
+Route::get('/pending-verifications', [AuthController::class, 'getPendingVerifications']);
+Route::get('/dispatchers', [AuthController::class, 'getDispatchers']);
+Route::post('/approve-user', [AuthController::class, 'approveUser']);
+Route::post('/reject-user', [AuthController::class, 'rejectUser']);
+
+// Password Recovery Routes
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,1');
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
@@ -38,5 +46,5 @@ Route::post('/submit-hazard', [EmergencyController::class, 'submitHazard'])->mid
 Route::get('/active-hazards', [EmergencyController::class, 'getActiveHazards']);
 Route::post('/create-broadcast', [EmergencyController::class, 'createBroadcast']);
 Route::get('/active-broadcast', [EmergencyController::class, 'getActiveBroadcast']);
-// NEW: Kill-switch for the active broadcast
 Route::post('/clear-broadcast', [EmergencyController::class, 'clearBroadcast']);
+Route::post('/resolve-hazard', [EmergencyController::class, 'resolveHazard']);
