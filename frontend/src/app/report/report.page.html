@@ -1,0 +1,126 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar [color]="reportType === 'hazard' ? 'warning' : 'danger'">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" style="color: white;"></ion-back-button>
+    </ion-buttons>
+    <ion-title style="color: white; font-weight: bold;">
+      {{ reportType === 'hazard' ? 'Report Road Hazard' : 'Send Emergency SOS' }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <form [formGroup]="reportForm" (ngSubmit)="submitReport()">
+
+    <!-- ══ STEP 1: Category selector grid ══ -->
+
+    <!-- Emergency incident types -->
+    <div *ngIf="reportType === 'emergency'">
+      <p style="font-weight: bold; font-size: 14px; margin: 0 0 10px 0; color: var(--ion-text-color);">What is your emergency?</p>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+        <div *ngFor="let type of incidentTypes"
+             (click)="selectIncident(type)"
+             [style.border]="reportForm.value.incident_type_id === type.id ? '3px solid ' + type.color : '2px solid #ddd'"
+             [style.background]="reportForm.value.incident_type_id === type.id ? type.color + '15' : 'var(--ion-card-background, white)'"
+             style="border-radius: 16px; padding: 22px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; transition: all 0.2s;">
+          <i [class]="type.icon" [style.color]="type.color" style="font-size: 30px; margin-bottom: 8px;"></i>
+          <div style="font-weight: bold; font-size: 13px; color: var(--ion-text-color);">{{ type.name }}</div>
+        </div>
+      </div>
+      <div style="padding: 6px 10px; background: var(--ion-color-light); border-radius: 8px; margin-bottom: 16px; text-align: center;">
+        <span style="font-weight: bold; font-size: 14px; color: var(--ion-text-color);">Selected: <span style="color: var(--ion-color-danger);">{{ selectedIncidentName }}</span></span>
+      </div>
+    </div>
+
+    <!-- Hazard categories -->
+    <div *ngIf="reportType === 'hazard'">
+      <p style="font-weight: bold; font-size: 14px; margin: 0 0 10px 0; color: var(--ion-text-color);">What type of hazard?</p>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+        <div *ngFor="let cat of hazardCategories"
+             (click)="selectHazard(cat)"
+             [style.border]="reportForm.value.hazard_type === cat.id ? '3px solid #ffc409' : '2px solid #ddd'"
+             [style.background]="reportForm.value.hazard_type === cat.id ? '#ffc40920' : 'var(--ion-card-background, white)'"
+             style="border-radius: 16px; padding: 22px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; transition: all 0.2s;">
+          <i [class]="cat.icon" [style.color]="cat.color" style="font-size: 30px; margin-bottom: 8px;"></i>
+          <div style="font-weight: bold; font-size: 13px; color: var(--ion-text-color);">{{ cat.name }}</div>
+        </div>
+      </div>
+      <div style="padding: 6px 10px; background: var(--ion-color-light); border-radius: 8px; margin-bottom: 16px; text-align: center;">
+        <span style="font-weight: bold; font-size: 14px; color: var(--ion-text-color);">Selected: <span style="color: #e0ac00;">{{ selectedHazardName }}</span></span>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: Description + photo + map ══ -->
+    <ion-card style="margin: 0 0 20px 0;">
+      <ion-card-content class="ion-no-padding" style="padding: 12px;">
+
+        <ion-item fill="outline" style="margin-bottom: 14px;">
+          <ion-textarea
+            [label]="reportType === 'emergency' ? 'Additional Details (optional)' : 'Describe the hazard'"
+            labelPlacement="floating"
+            formControlName="description"
+            [placeholder]="reportType === 'emergency' ? 'Landmarks, number of victims, current situation...' : 'Location details, severity, blocking constraints...'">
+          </ion-textarea>
+        </ion-item>
+
+        <ion-button expand="block" color="dark" class="ion-margin-bottom" (click)="captureEvidence()" style="font-weight: bold; height: 45px;">
+          <i class="fa-solid fa-camera" style="margin-right: 8px; font-size: 16px;"></i>
+          {{ photoPreview ? 'Re-record Evidence' : 'Record Evidence (Photo/Video)' }}
+        </ion-button>
+
+        <!-- Hidden native video input — triggered as fallback when camera is dismissed -->
+        <input id="videoInput" type="file" accept="video/*" capture="environment"
+               style="display: none;" (change)="onVideoSelected($event)" />
+
+        <div *ngIf="photoPreview" class="ion-margin-bottom ion-text-center">
+          <img *ngIf="evidenceType === 'photo'" [src]="photoPreview"
+               style="max-height: 180px; border-radius: 12px; border: 2px solid var(--ion-color-danger);" />
+          <video *ngIf="evidenceType === 'video'" [src]="photoPreview" controls playsinline
+                 style="max-height: 180px; width: 100%; border-radius: 12px; border: 2px solid var(--ion-color-danger);"></video>
+        </div>
+
+        <!-- Map with centred crosshair -->
+        <div style="position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 14px;">
+          <div id="report-map" style="height: 230px; background: #e5e5e5; z-index: 1;"></div>
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; pointer-events: none;">
+            <i class="fa-solid fa-crosshairs" [style.color]="crosshairColor" style="font-size: 32px; text-shadow: 0 2px 5px rgba(0,0,0,0.4);"></i>
+          </div>
+        </div>
+
+        <ion-row>
+          <ion-col size="6">
+            <ion-item fill="outline">
+              <ion-input label="Latitude" labelPlacement="floating" formControlName="latitude" [readonly]="true"></ion-input>
+            </ion-item>
+          </ion-col>
+          <ion-col size="6">
+            <ion-item fill="outline">
+              <ion-input label="Longitude" labelPlacement="floating" formControlName="longitude" [readonly]="true"></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+
+        <ion-button expand="block" fill="outline" color="dark" class="ion-margin-top ion-margin-bottom" (click)="getCurrentLocation()" style="font-weight: bold; height: 45px;">
+          <i class="fa-solid fa-location-crosshairs" style="margin-right: 8px; font-size: 16px;"></i>
+          Use My Current Location
+        </ion-button>
+
+      </ion-card-content>
+    </ion-card>
+
+    <!-- ══ STEP 4: Submit button ══ -->
+    <ion-button
+      type="submit"
+      expand="block"
+      [color]="reportType === 'hazard' ? 'warning' : 'danger'"
+      size="large"
+      [disabled]="!isFormReady || !photoPreview"
+      [style.box-shadow]="reportType === 'hazard' ? '0 4px 15px rgba(255,196,9,0.4)' : '0 4px 15px rgba(235,68,90,0.4)'"
+      style="font-weight: bold; height: 55px;">
+      <i [class]="reportType === 'hazard' ? 'fa-solid fa-road-barrier' : 'fa-solid fa-triangle-exclamation'" style="margin-right: 10px; font-size: 20px;"></i>
+      {{ reportType === 'hazard' ? 'Submit Hazard Report' : 'Send Emergency SOS' }}
+    </ion-button>
+
+  </form>
+</ion-content>
