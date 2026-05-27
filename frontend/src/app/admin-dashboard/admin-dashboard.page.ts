@@ -4,10 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, MenuController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { addIcons } from 'ionicons';
-import { logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline, warningOutline, imageOutline, filterOutline, closeCircleOutline } from 'ionicons/icons';
 import * as L from 'leaflet'; 
 import Chart from 'chart.js/auto';
+import { ApiService } from '../services/api';
 
 // @ts-ignore
 const CachedTileLayer = L.TileLayer.extend({
@@ -19,12 +18,7 @@ const CachedTileLayer = L.TileLayer.extend({
       caches.open('mdrrmo-offline-map').then(cache => {
         cache.match(url).then(response => {
           if (response) { response.blob().then(blob => { tile.src = URL.createObjectURL(blob); done(null, tile); }); } 
-          else {
-            fetch(url, { mode: 'cors' }).then(networkResponse => {
-              if (networkResponse.ok) { cache.put(url, networkResponse.clone()); }
-              networkResponse.blob().then(blob => { tile.src = URL.createObjectURL(blob); done(null, tile); });
-            }).catch(err => { done(err, tile); });
-          }
+          else { fetch(url, { mode: 'cors' }).then(networkResponse => { if (networkResponse.ok) { cache.put(url, networkResponse.clone()); } networkResponse.blob().then(blob => { tile.src = URL.createObjectURL(blob); done(null, tile); }); }).catch(err => { done(err, tile); }); }
         });
       });
     } else { tile.src = url; done(null, tile); }
@@ -41,20 +35,22 @@ const CachedTileLayer = L.TileLayer.extend({
 export class AdminDashboardPage implements OnInit, OnDestroy {
   
   currentRole: string | null = '';
-  apiUrl = 'http://127.0.0.1:8000/api';
   
   activeRequests: any[] = [];
   archivedRequests: any[] = [];
   activeHazards: any[] = [];
+  pendingVerifications: any[] = []; 
+  dispatchers: any[] = [];
   availableResponders: any[] = [];
   availableVehicles: any[] = [];
   filteredVehicles: any[] = []; 
   
-  viewMode: 'active' | 'hazards' | 'archive' | 'analytics' | 'broadcast' = 'active'; 
+  viewMode: 'active' | 'hazards' | 'archive' | 'analytics' | 'broadcast' | 'verifications' | 'dispatchers' = 'active'; 
   isModalOpen = false;
   isDispatchModalOpen = false;
+  isSidebarCollapsed = false; 
+  isDarkMode = false;
   
-  // Clean Selection State
   selectedRequestId: number | null = null; 
   previewType: 'emergency' | 'hazard' | null = null;
   
@@ -62,6 +58,25 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   dispatchForm = { request_id: null as number | null, responder_id: null, vehicle_id: null };
   broadcastForm = { message: '' };
   recentBroadcast: any = null;
+
+  isDispatcherModalOpen = false;
+  editingDispatcher: any = null;
+  dispatcherForm = { first_name: '', last_name: '', phone: '', username: '', email: '', password: '', barangay_id: null as number | null };
+
+  // Confirmation dialog state
+  confirmDialog: { open: boolean; title: string; message: string; icon: string; iconColor: string; confirmLabel: string; confirmColor: string; action: () => void } = {
+    open: false, title: '', message: '', icon: '', iconColor: '', confirmLabel: '', confirmColor: '', action: () => {}
+  };
+  showConfirm(cfg: { title: string; message: string; icon: string; iconColor: string; confirmLabel: string; confirmColor: string; action: () => void }) {
+    this.confirmDialog = { open: true, ...cfg };
+  }
+  runConfirm() { this.confirmDialog.action(); this.confirmDialog.open = false; }
+
+  barangayNames: Record<number, string> = {
+    1: 'Alua', 2: 'Calaba', 3: 'Malapit', 4: 'Mangga', 5: 'Poblacion',
+    6: 'Pulo', 7: 'San Roque', 8: 'Santo Cristo', 9: 'Tabon'
+  };
+  getBarangayName(id: number): string { return this.barangayNames[id] || `Barangay #${id}`; }
 
   map: any;
   mapMarkers: any[] = [];
@@ -75,28 +90,27 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   chartRange = 7; 
   currentFilterLabel: string = 'All Records';
 
-  sosIcon = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] });
-  hazardIcon = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] });
+  constructor(private router: Router, private http: HttpClient, private api: ApiService, private toastController: ToastController, private menuCtrl: MenuController) {}
 
-  constructor(private router: Router, private http: HttpClient, private toastController: ToastController, private menuCtrl: MenuController) {
-    addIcons({ logOutOutline, personAddOutline, shieldCheckmarkOutline, carOutline, checkmarkCircleOutline, archiveOutline, mapOutline, barChartOutline, megaphoneOutline, warningOutline, imageOutline, filterOutline, closeCircleOutline });
+  ngOnInit() {
+    this.isDarkMode = localStorage.getItem('darkMode') === 'true';
+    document.documentElement.classList.toggle('ion-palette-dark', this.isDarkMode);
   }
-
-  ngOnInit() {}
 
   ionViewWillEnter() {
     this.currentRole = localStorage.getItem('role');
-    this.menuCtrl.enable(true);
+    this.menuCtrl.enable(false); 
     this.loadData();
     this.loadAnalytics(); 
     this.fetchBroadcast(); 
+    this.loadPendingVerifications();
     this.pollingInterval = setInterval(() => { this.pollActiveEmergencies(); }, 5000);
   }
 
   ionViewDidEnter() {
     setTimeout(() => {
       const mapContainer = document.getElementById('dispatch-map');
-      if (mapContainer && !this.map && this.viewMode !== 'analytics') this.initMap();
+      if (mapContainer && !this.map && (this.viewMode === 'active' || this.viewMode === 'hazards')) this.initMap();
     }, 250);
   }
 
@@ -107,164 +121,128 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     if (this.typeChartInstance) this.typeChartInstance.destroy();
   }
 
+  toggleSidebar() {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+    setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 300);
+  }
+
+  toggleDarkMode(event: any) {
+    this.isDarkMode = event.detail.checked;
+    document.documentElement.classList.toggle('ion-palette-dark', this.isDarkMode);
+    localStorage.setItem('darkMode', String(this.isDarkMode));
+  }
+
+  logout() {
+    localStorage.clear();
+    this.router.navigate(['/login']);
+  }
+
   segmentChanged() {
-    if (this.viewMode === 'analytics') setTimeout(() => this.renderCharts(), 200); 
-    else if (this.viewMode === 'active' || this.viewMode === 'broadcast' || this.viewMode === 'hazards') {
-      setTimeout(() => { if (this.map) this.map.invalidateSize(); else this.initMap(); }, 250);
+    if (this.viewMode === 'analytics') {
+      setTimeout(() => this.renderCharts(), 200); 
+    } else if (this.viewMode === 'verifications') {
+      this.loadPendingVerifications();
+    } else if (this.viewMode === 'dispatchers') {
+      this.loadDispatchers();
+    }
+    
+    // Map is kept in DOM via [hidden], so we only need to invalidateSize() after
+    // the browser repaints the newly-visible container. The setTimeout gives the
+    // CSS transition time to finish before Leaflet recalculates tile positions.
+    if (['active', 'hazards'].includes(this.viewMode)) {
+      setTimeout(() => {
+        const mapContainer = document.getElementById('dispatch-map');
+        if (!mapContainer) return;
+
+        if (this.map) {
+          // First call after Angular applies the display style
+          this.map.invalidateSize();
+          // Second call after the browser fully repaints the revealed container
+          setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 250);
+        } else {
+          // First time or map was explicitly destroyed — initialize fresh
+          this.initMap();
+        }
+      }, 400);
     }
   }
 
-  getFilename(path: string): string { return path ? path.split('/').pop() || 'Unknown File' : 'No File Attachment'; }
+  loadPendingVerifications() {
+    this.api.getPendingVerifications().subscribe((res: any) => { this.pendingVerifications = res; });
+  }
 
-  // --- ANALYTICS & CHART LOGIC --- //
+  loadDispatchers() {
+    this.api.getDispatchers().subscribe((res: any) => { this.dispatchers = res; });
+  }
+
+  getFilename(path: string): string { return path ? path.split('/').pop() || 'Unknown File' : 'No File Attachment'; }
   changeDateRange(event: any) { this.chartRange = event.detail.value; this.loadAnalytics(); }
 
   loadAnalytics() {
-    this.http.get(`${this.apiUrl}/analytics?days=${this.chartRange}`).subscribe((res: any) => {
-      this.analyticsData = res;
-      this.filteredAnalyticsRecords = res.recent_records; 
-      this.currentFilterLabel = 'All Records';
+    this.api.getAnalytics(this.chartRange).subscribe((res: any) => {
+      this.analyticsData = res; this.filteredAnalyticsRecords = res.recent_records; this.currentFilterLabel = 'All Records';
       if (this.viewMode === 'analytics') this.renderCharts();
     });
   }
 
   toggleChartType() { this.trendChartType = this.trendChartType === 'bar' ? 'line' : 'bar'; this.renderCharts(); }
-  
-  clearFilter() { 
-    this.filteredAnalyticsRecords = this.analyticsData.recent_records; 
-    this.currentFilterLabel = 'All Records'; 
-  }
-
-  filterListByType(type: string) {
-    this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter((r: any) => r.incident_name === type);
-    this.currentFilterLabel = `Filtered: ${type} Emergencies`;
-  }
-
-  filterListByDate(date: string) {
-    this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter((r: any) => r.request_time.startsWith(date));
-    this.currentFilterLabel = `Filtered: Activity on ${date}`;
-  }
+  clearFilter() { this.filteredAnalyticsRecords = this.analyticsData.recent_records; this.currentFilterLabel = 'All Records'; }
+  filterListByType(type: string) { this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter((r: any) => r.incident_name === type); this.currentFilterLabel = `Filtered: ${type} Emergencies`; }
+  filterListByDate(date: string) { this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter((r: any) => r.request_time.startsWith(date)); this.currentFilterLabel = `Filtered: Activity on ${date}`; }
 
   renderCharts() {
     const trendCanvas = document.getElementById('trendChart') as HTMLCanvasElement;
     const typeCanvas = document.getElementById('typeChart') as HTMLCanvasElement;
     if (!trendCanvas || !typeCanvas) return;
-
     if (this.trendChartInstance) this.trendChartInstance.destroy();
     if (this.typeChartInstance) this.typeChartInstance.destroy();
-
     const dates = this.analyticsData.daily_stats.map((d: any) => d.date);
-    const totals = this.analyticsData.daily_stats.map((d: any) => d.total);
-
-    // Trend Chart (Bar/Line)
     this.trendChartInstance = new Chart(trendCanvas, {
       type: this.trendChartType,
       data: {
         labels: dates,
-        datasets: [{
-          label: 'Emergencies',
-          data: totals,
-          backgroundColor: 'rgba(235, 68, 90, 0.7)', 
-          borderColor: '#eb445a',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.3 
-        }]
+        datasets: [
+          { label: 'Fire', data: this.analyticsData.daily_stats.map((d: any) => Number(d.fire) || 0), backgroundColor: 'rgba(235, 68, 90, 0.6)', borderColor: '#eb445a', borderWidth: 2, tension: 0.2 },
+          { label: 'Flood', data: this.analyticsData.daily_stats.map((d: any) => Number(d.flood) || 0), backgroundColor: 'rgba(56, 128, 255, 0.6)', borderColor: '#3880ff', borderWidth: 2, tension: 0.2 },
+          { label: 'Medical', data: this.analyticsData.daily_stats.map((d: any) => Number(d.medical) || 0), backgroundColor: 'rgba(45, 211, 111, 0.6)', borderColor: '#2dd36f', borderWidth: 2, tension: 0.2 },
+          { label: 'Crime', data: this.analyticsData.daily_stats.map((d: any) => Number(d.crime) || 0), backgroundColor: 'rgba(181, 95, 230, 0.6)', borderColor: '#bc6fff', borderWidth: 2, tension: 0.2 }
+        ]
       },
-      options: { 
-        responsive: true, 
-        maintainAspectRatio: false, // NEW: Forces chart to obey CSS height
-        animation: { duration: 1200, easing: 'easeOutQuart' },
-        onClick: (event, elements) => {
-          if (elements.length > 0) {
-            const index = elements[0].index;
-            this.filterListByDate(dates[index]);
-          }
-        }
-      }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { stepSize: 1 }, beginAtZero: true } }, onClick: (event, elements) => { if (elements.length > 0) { const index = elements[0].index; this.filterListByDate(dates[index]); } } }
     });
-
     const types = this.analyticsData.type_stats.map((t: any) => t.incident_name);
     const typeCounts = this.analyticsData.type_stats.map((t: any) => t.total);
-
-    // Breakdown Chart (Doughnut)
     this.typeChartInstance = new Chart(typeCanvas, {
       type: 'doughnut',
-      data: {
-        labels: types,
-        datasets: [{ data: typeCounts, backgroundColor: ['#eb445a', '#ffc409', '#2dd36f', '#222428'], hoverOffset: 10 }]
-      },
-      options: { 
-        responsive: true, 
-        maintainAspectRatio: false, // NEW: Forces chart to obey CSS height
-        animation: { animateScale: true, animateRotate: true, duration: 1200 },
-        onClick: (event, elements) => {
-          if (elements.length > 0) {
-            const index = elements[0].index;
-            this.filterListByType(types[index]);
-          }
-        }
-      }
+      data: { labels: types, datasets: [{ data: typeCounts, backgroundColor: ['#eb445a', '#3880ff', '#2dd36f', '#bc6fff'], hoverOffset: 10 }] },
+      options: { responsive: true, maintainAspectRatio: false, onClick: (event, elements) => { if (elements.length > 0) { const index = elements[0].index; this.filterListByType(types[index]); } } }
     });
   }
-  // ------------------------------- //
 
   loadData() {
-    this.http.get(`${this.apiUrl}/active-emergencies`).subscribe((res: any) => { this.activeRequests = res; this.plotMarkers(); });
-    this.http.get(`${this.apiUrl}/active-hazards`).subscribe((res: any) => { this.activeHazards = res; this.plotMarkers(); });
-    this.http.get(`${this.apiUrl}/archived-emergencies`).subscribe((res: any) => this.archivedRequests = res);
-    this.http.get(`${this.apiUrl}/dispatch-assets`).subscribe((res: any) => { this.availableResponders = res.responders; this.availableVehicles = res.vehicles; });
+    this.api.getActiveEmergencies().subscribe((res: any) => { this.activeRequests = res; this.plotMarkers(); });
+    this.api.getActiveHazards().subscribe((res: any) => { this.activeHazards = res; this.plotMarkers(); });
+    this.api.getArchivedEmergencies().subscribe((res: any) => this.archivedRequests = res);
+    this.api.getDispatchAssets().subscribe((res: any) => { this.availableResponders = res.responders; this.availableVehicles = res.vehicles; });
   }
 
-  // 1. Updated fetch to properly hide the card if no broadcast is active
-  fetchBroadcast() { 
-    this.http.get(`${this.apiUrl}/active-broadcast`).subscribe((res: any) => { 
-      if (res && res.message) {
-        this.recentBroadcast = res; 
-      } else {
-        this.recentBroadcast = null;
-      }
-    }); 
-  }
-
-  // 2. NEW: Function to trigger the Kill-Switch
-  endBroadcast() {
-    this.http.post(`${this.apiUrl}/clear-broadcast`, {}).subscribe({
-      next: () => {
-        this.showToast('Active broadcast stopped successfully.', 'medium');
-        this.recentBroadcast = null; // Instantly hide the card from the admin view
-      }
-    });
+  fetchBroadcast() {
+    this.api.getActiveBroadcast().subscribe((res: any) => { this.recentBroadcast = (res && res.message) ? res : null; });
   }
 
   pollActiveEmergencies() {
-    this.http.get(`${this.apiUrl}/active-emergencies`).subscribe((res: any) => {
-      if (res.length !== this.activeRequests.length) { this.activeRequests = res; this.loadData(); this.loadAnalytics(); } 
+    this.api.getActiveEmergencies().subscribe((res: any) => {
+      if (res.length !== this.activeRequests.length) { this.activeRequests = res; this.loadData(); this.loadAnalytics(); }
       else { this.activeRequests = res; }
     });
   }
 
   initMap() {
-    this.map = L.map('dispatch-map', { minZoom: 12 }).setView([15.3014, 120.9274], 13);
-    
+    this.map = L.map('dispatch-map', { minZoom: 12, zoomControl: true }).setView([15.3014, 120.9274], 13);
     // @ts-ignore
     new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(this.map);
-
-    this.map.on('popupopen', (e: any) => {
-      const mapContainer = document.getElementById('dispatch-map');
-      mapContainer?.classList.add('map-has-selection'); 
-      const marker = e.popup._source;
-      if (marker && marker._icon) { marker._icon.classList.add('selected-pin'); }
-    });
-
-    this.map.on('popupclose', (e: any) => {
-      const mapContainer = document.getElementById('dispatch-map');
-      mapContainer?.classList.remove('map-has-selection'); 
-      const marker = e.popup._source;
-      if (marker && marker._icon) { marker._icon.classList.remove('selected-pin'); }
-      setTimeout(() => { this.selectedRequestId = null; this.previewType = null; });
-    });
-
+    this.map.on('popupopen', (e: any) => { const mapContainer = document.getElementById('dispatch-map'); mapContainer?.classList.add('map-has-selection'); const marker = e.popup._source; if (marker && marker._icon) { marker._icon.classList.add('selected-pin'); } });
+    this.map.on('popupclose', (e: any) => { const mapContainer = document.getElementById('dispatch-map'); mapContainer?.classList.remove('map-has-selection'); const marker = e.popup._source; if (marker && marker._icon) { marker._icon.classList.remove('selected-pin'); } setTimeout(() => { this.selectedRequestId = null; this.previewType = null; }); });
     this.http.get('assets/data/san-isidro.geojson').subscribe((json: any) => {
       const boundaryLayer = L.geoJSON(json, { filter: (feature) => feature.geometry.type !== 'Point', style: { color: '#eb445a', weight: 3, fillOpacity: 0 } }).addTo(this.map);
       this.map.fitBounds(boundaryLayer.getBounds());
@@ -273,7 +251,6 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       const hole = sanIsidroCoords.map((coord: any[]) => [coord[1], coord[0]]);
       L.polygon([ [[-90, -180], [90, -180], [90, 180], [-90, 180]], hole ], { color: 'transparent', fillColor: '#888888', fillOpacity: 0.6 }).addTo(this.map);
       this.plotMarkers();
-      setTimeout(() => { this.map.invalidateSize(); }, 100);
     });
   }
 
@@ -282,69 +259,149 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.mapMarkers.forEach(marker => this.map.removeLayer(marker));
     this.mapMarkers = [];
 
+    const iconConfig: any = {
+      'Fire': { class: 'fa-solid fa-fire', color: '#eb445a' },
+      'Flood': { class: 'fa-solid fa-cloud-showers-heavy', color: '#3880ff' },
+      'Medical': { class: 'fa-solid fa-heart-pulse', color: '#2dd36f' },
+      'Crime': { class: 'fa-solid fa-handcuffs', color: '#bc6fff' }
+    };
+
     this.activeRequests.forEach(req => {
-      const popupHtml = `<div style="text-align: center;"><b style="font-size: 14px;">${req.incident_name} Emergency</b><br>${req.first_name} ${req.last_name}<br><span style="font-size:10px; color:gray;">Lat: ${req.latitude}, Lng: ${req.longitude}</span></div>`;
-      const marker = L.marker([req.latitude, req.longitude], { icon: this.sosIcon }).bindPopup(popupHtml).addTo(this.map);
+      const config = iconConfig[req.incident_name] || { class: 'fa-solid fa-triangle-exclamation', color: '#eb445a' };
+      const pulseClass = req.status === 'Pending' ? 'sos-pulse-ripple' : ''; 
       
+      const customDivIcon = L.divIcon({
+        html: `
+          <div class="custom-fa-marker-wrapper ${pulseClass}">
+            <svg viewBox="0 0 30 42" class="vector-pin-shape">
+              <path d="M15 0C6.7 0 0 6.7 0 15c0 10.5 15 27 15 27s15-16.5 15-27C30 6.7 23.3 0 15 0z" fill="#eb445a"/>
+              <circle cx="15" cy="15" r="10" fill="white"/>
+            </svg>
+            <i class="${config.class} pin-inner-fa-icon" style="color: ${config.color};"></i>
+          </div>`,
+        className: 'leaflet-blank-div-icon',
+        iconSize: [45, 60],
+        iconAnchor: [22.5, 60],
+        popupAnchor: [0, -52]
+      });
+
+      const popupHtml = `
+        <div class="accessible-popup-box">
+          <h2 style="color:#eb445a; font-size:18px; font-weight:bold; margin:0 0 8px 0; border-bottom:2px solid #eb445a20; padding-bottom:4px;">${req.incident_name.toUpperCase()} EMERGENCY</h2>
+          <p style="font-size:15px; margin:4px 0; color:var(--ion-text-color);"><b>Citizen Name:</b> ${req.first_name} ${req.last_name}</p>
+          <p style="font-size:15px; margin:4px 0; color:var(--ion-text-color);"><b>Contact Link:</b> ${req.phone}</p>
+          <p style="font-size:13px; margin:4px 0; color:gray; background:var(--ion-color-light); padding:4px; border-radius:4px;"><b>Coordinates:</b> ${req.latitude}, ${req.longitude}</p>
+          <div style="margin-top:12px; display:flex; gap:8px;">
+            <button onclick="window.dispatchEvent(new CustomEvent('map-dispatch', {detail: ${req.request_id}}))" style="background:#ffc409; color:black; border:none; padding:10px 14px; font-weight:black; border-radius:8px; cursor:pointer; font-size:14px; flex:1; box-shadow:0 2px 6px rgba(0,0,0,0.15);">DISPATCH UNIT</button>
+            <button onclick="window.dispatchEvent(new CustomEvent('map-resolve', {detail: ${req.request_id}}))" style="background:#2dd36f; color:white; border:none; padding:10px 14px; font-weight:black; border-radius:8px; cursor:pointer; font-size:14px; flex:1; box-shadow:0 2px 6px rgba(0,0,0,0.15);">RESOLVE</button>
+          </div>
+        </div>
+      `;
+
+      const marker = L.marker([req.latitude, req.longitude], { icon: customDivIcon }).bindPopup(popupHtml).addTo(this.map);
       marker.on('click', () => {
-        this.selectedRequestId = req.request_id;
-        this.previewType = 'emergency';
+        this.selectedRequestId = req.request_id; this.previewType = 'emergency';
         if (this.viewMode !== 'active') { this.viewMode = 'active'; this.segmentChanged(); }
-        setTimeout(() => { const element = document.getElementById('request-card-' + req.request_id); if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+        setTimeout(() => { const element = document.getElementById('request-card-' + req.request_id); element?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
       });
       this.mapMarkers.push(marker);
     });
 
+    window.addEventListener('map-dispatch', (e: any) => { this.map.closePopup(); this.openDispatchModal(e.detail); }, { once: true });
+    window.addEventListener('map-resolve', (e: any) => { this.map.closePopup(); this.resolveEmergency(e.detail); }, { once: true });
+
     this.activeHazards.forEach(haz => {
-      const popupHtml = `<div style="text-align: center;"><b style="font-size: 14px; color: #ffc409;">⚠️ Hazard Report</b><br><span style="font-size:10px; color:gray;">Lat: ${haz.latitude}, Lng: ${haz.longitude}</span></div>`;
-      const hazardMarker = L.marker([haz.latitude, haz.longitude], { icon: this.hazardIcon }).bindPopup(popupHtml).addTo(this.map);
-        
+      const hazardDivIcon = L.divIcon({
+        html: `
+          <div class="custom-fa-marker-wrapper">
+            <svg viewBox="0 0 30 42" class="vector-pin-shape">
+              <path d="M15 0C6.7 0 0 6.7 0 15c0 10.5 15 27 15 27s15-16.5 15-27C30 6.7 23.3 0 15 0z" fill="#ffc409"/>
+              <circle cx="15" cy="15" r="10" fill="white"/>
+            </svg>
+            <i class="fa-solid fa-road-barrier pin-inner-fa-icon" style="color: #e0ac00;"></i>
+          </div>`,
+        className: 'leaflet-blank-div-icon',
+        iconSize: [45, 60],
+        iconAnchor: [22.5, 60],
+        popupAnchor: [0, -52]
+      });
+
+      const popupHtml = `
+        <div class="accessible-popup-box">
+          <h2 style="color:#e0ac00; font-size:17px; font-weight:bold; margin:0 0 6px 0; border-bottom:2px solid #ffc40930; padding-bottom:4px;">⚠️ PUBLIC HAZARD LOG</h2>
+          <p style="font-size:15px; margin:4px 0; color:var(--ion-text-color); line-height:1.4; background:var(--ion-color-light); padding:8px; border-radius:6px; border-left:4px solid #ffc409;">"${haz.description}"</p>
+          <p style="font-size:12px; color:gray; margin:6px 0 0 0;">Reported by: ${haz.first_name} ${haz.last_name}</p>
+        </div>
+      `;
+
+      const hazardMarker = L.marker([haz.latitude, haz.longitude], { icon: hazardDivIcon }).bindPopup(popupHtml).addTo(this.map);
       hazardMarker.on('click', () => {
-        this.selectedRequestId = haz.hazard_id;
-        this.previewType = 'hazard';
+        this.selectedRequestId = haz.hazard_id; this.previewType = 'hazard';
         if (this.viewMode !== 'hazards') { this.viewMode = 'hazards'; this.segmentChanged(); }
-        setTimeout(() => { const element = document.getElementById('hazard-card-' + haz.hazard_id); if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+        setTimeout(() => { const element = document.getElementById('hazard-card-' + haz.hazard_id); element?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
       });
       this.mapMarkers.push(hazardMarker);
     });
   }
 
-  submitBroadcast() { /* placeholder */ }
-  openDispatchModal(requestId: number) {
-    this.dispatchForm.request_id = requestId;
-    this.dispatchForm.responder_id = null;
-    this.dispatchForm.vehicle_id = null;
-    this.filteredVehicles = []; 
-    this.isDispatchModalOpen = true;
+  submitBroadcast() {
+    if (!this.broadcastForm.message) return;
+    this.api.createBroadcast(this.broadcastForm).subscribe({ next: () => { this.showToast('Alert sent to all citizens!', 'success'); this.broadcastForm.message = ''; this.fetchBroadcast(); } });
   }
-  onResponderChange() { this.filteredVehicles = this.availableVehicles.filter(v => v.responder_id === this.dispatchForm.responder_id); }
-
+  endBroadcast() {
+    this.showConfirm({ title: 'Stop Alert', message: 'Citizens will stop seeing this alert immediately. Are you sure?', icon: 'fa-solid fa-circle-stop', iconColor: '#eb445a', confirmLabel: 'Stop Alert', confirmColor: '#eb445a',
+      action: () => { this.api.clearBroadcast().subscribe({ next: () => { this.showToast('Alert stopped.', 'medium'); this.fetchBroadcast(); } }); }
+    });
+  }
+  openDispatchModal(requestId: number) { this.dispatchForm.request_id = requestId; this.dispatchForm.responder_id = null; this.dispatchForm.vehicle_id = null; this.filteredVehicles = []; this.isDispatchModalOpen = true; }
+  onResponderChange() { this.filteredVehicles = this.availableVehicles.filter((v: any) => v.responder_id === this.dispatchForm.responder_id); }
   submitDispatch() {
     if (!this.dispatchForm.responder_id || !this.dispatchForm.vehicle_id) return;
-    this.http.post(`${this.apiUrl}/dispatch-emergency`, this.dispatchForm).subscribe({
-      next: () => {
-        this.showToast('Units Dispatched Successfully!', 'success');
-        this.isDispatchModalOpen = false;
-        this.map.closePopup(); 
-        this.loadData(); 
-      }
-    });
+    this.api.dispatchEmergency(this.dispatchForm).subscribe({ next: () => { this.showToast('Units dispatched!', 'success'); this.isDispatchModalOpen = false; this.loadData(); } });
   }
-
   resolveEmergency(requestId: number) {
-    this.http.post(`${this.apiUrl}/resolve-emergency`, { request_id: requestId }).subscribe({
-      next: () => {
-        this.showToast('Emergency Resolved and Archived.', 'medium');
-        this.map.closePopup();
-        this.loadData(); 
-      }
+    this.showConfirm({ title: 'Resolve Emergency', message: 'Mark this emergency as resolved? It will be moved to the log archive.', icon: 'fa-solid fa-circle-check', iconColor: '#2dd36f', confirmLabel: 'Resolve', confirmColor: '#2dd36f',
+      action: () => { this.api.resolveEmergency({ request_id: requestId }).subscribe({ next: () => { this.showToast('Emergency resolved and archived.', 'medium'); this.loadData(); } }); }
     });
   }
-
-  saveDispatcher() { /* placeholder */ }
-
-  async showToast(msg: string, color: string = 'danger') {
-    const toast = await this.toastController.create({ message: msg, duration: 3000, position: 'bottom', color: color });
-    await toast.present();
+  dismissHazard(hazardId: number) {
+    this.showConfirm({ title: 'Acknowledge Hazard', message: 'Remove this hazard from the map and list? This confirms it has been addressed.', icon: 'fa-solid fa-road-barrier', iconColor: '#ffc409', confirmLabel: 'Acknowledge', confirmColor: '#ffc409',
+      action: () => { this.api.resolveHazard({ hazard_id: hazardId }).subscribe({ next: () => { this.showToast('Hazard acknowledged and removed.', 'medium'); this.loadData(); } }); }
+    });
   }
+  approveCitizen(userId: number) {
+    this.showConfirm({ title: 'Approve Citizen', message: 'Approve this citizen account? They will be able to use the app and submit emergency reports.', icon: 'fa-solid fa-user-check', iconColor: '#2dd36f', confirmLabel: 'Approve', confirmColor: '#2dd36f',
+      action: () => { this.api.approveUser({ user_id: userId }).subscribe({ next: () => { this.showToast('Citizen approved!', 'success'); this.loadPendingVerifications(); } }); }
+    });
+  }
+  rejectCitizen(userId: number) {
+    this.showConfirm({ title: 'Deny Application', message: "Deny this citizen's registration? They will need to register again.", icon: 'fa-solid fa-user-xmark', iconColor: '#eb445a', confirmLabel: 'Deny', confirmColor: '#eb445a',
+      action: () => { this.api.rejectUser({ user_id: userId }).subscribe({ next: () => { this.showToast('Application denied.', 'medium'); this.loadPendingVerifications(); } }); }
+    });
+  }
+  openDispatcherModal(dispatcher: any | null) {
+    this.editingDispatcher = dispatcher;
+    this.dispatcherForm = dispatcher
+      ? { first_name: dispatcher.first_name, last_name: dispatcher.last_name, phone: dispatcher.phone, username: dispatcher.username, email: dispatcher.email, password: '', barangay_id: dispatcher.barangay_id }
+      : { first_name: '', last_name: '', phone: '', username: '', email: '', password: '', barangay_id: null };
+    this.isDispatcherModalOpen = true;
+  }
+  saveDispatcherForm() {
+    if (this.editingDispatcher) {
+      const payload: any = { user_id: this.editingDispatcher.user_id, ...this.dispatcherForm };
+      if (!payload.password) delete payload.password;
+      this.api.updateDispatcher(payload).subscribe({ next: () => { this.showToast('Dispatcher updated!', 'success'); this.isDispatcherModalOpen = false; this.loadDispatchers(); } });
+    } else {
+      this.api.createDispatcher(this.dispatcherForm).subscribe({ next: () => { this.showToast('Dispatcher account created!', 'success'); this.isDispatcherModalOpen = false; this.loadDispatchers(); } });
+    }
+  }
+  confirmDeactivateDispatcher(dispatcher: any) {
+    this.showConfirm({ title: 'Remove Dispatcher', message: `Remove ${dispatcher.first_name} ${dispatcher.last_name}'s account? They will no longer be able to log in.`, icon: 'fa-solid fa-user-slash', iconColor: '#eb445a', confirmLabel: 'Remove', confirmColor: '#eb445a',
+      action: () => { this.api.deactivateDispatcher({ user_id: dispatcher.user_id }).subscribe({ next: () => { this.showToast('Dispatcher removed.', 'medium'); this.loadDispatchers(); } }); }
+    });
+  }
+  saveDispatcher() {
+    this.api.createDispatcher(this.newDispatcher).subscribe({ next: () => { this.showToast('Dispatcher account created!', 'success'); this.newDispatcher = { first_name: '', last_name: '', phone: '', username: '', email: '', password: '', barangay_id: null }; this.loadDispatchers(); } });
+  }
+  async showToast(msg: string, color: string = 'danger') { const toast = await this.toastController.create({ message: msg, duration: 3000, position: 'bottom', color: color }); await toast.present(); }
 }
