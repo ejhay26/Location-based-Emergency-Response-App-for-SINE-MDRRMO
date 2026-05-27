@@ -1,3 +1,1 @@
-export const environment = {
-  production: true
-};
+export const environment = { production: true, apiUrl: 'https://your-real-server.com/api' };
