@@ -1,280 +1,489 @@
-<ion-header>
-  <ion-toolbar color="danger">
-    <ion-buttons slot="start">
-      <ion-menu-button style="color: white;"></ion-menu-button>
-    </ion-buttons>
-    <ion-title style="color: white;">
-      <ion-icon name="shield-checkmark-outline" *ngIf="currentRole === 'admin'"></ion-icon>
-      {{ currentRole === 'admin' ? 'Master Admin' : 'MDRRMO Dispatch' }}
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
+<style>
+  .leaflet-blank-div-icon { background: transparent !important; border: none !important; }
+  .custom-fa-marker-wrapper { position: relative; width: 45px; height: 60px; display: flex; justify-content: center; align-items: flex-start; }
+  .vector-pin-shape { width: 45px; height: 60px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+  /* Pin icon: white circle center is at y≈21px (SVG circle cy=15 scaled 60/42).
+     top:7px + height:29px spans exactly the circle area so the icon centers on it. */
+  .pin-inner-fa-icon { position: absolute; top: 7px; left: 0; width: 45px; height: 29px; display: flex; align-items: center; justify-content: center; font-size: 13px; z-index: 10; }
   
-  <div *ngIf="currentRole === 'admin'" class="ion-margin-bottom">
-    <ion-card color="light">
-      <ion-card-header><ion-card-title>Admin Controls</ion-card-title></ion-card-header>
-      <ion-card-content>
-        <ion-button expand="block" color="danger" (click)="isModalOpen = true">
-          <ion-icon slot="start" name="person-add-outline"></ion-icon> Register New Dispatcher
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
-  </div>
+  /* Infinite Concentric Radar Ripple Animation Loop for Pending Emergency SOS Pins */
+  .sos-pulse-ripple::before {
+    content: ''; position: absolute; top: 8px; left: 8px; width: 28px; height: 28px;
+    border-radius: 50%; background: rgba(235, 68, 90, 0.4);
+    box-shadow: 0 0 18px rgba(235, 68, 90, 0.9);
+    animation: radarRipplePulse 1.6s infinite ease-out; z-index: 1;
+  }
+  @keyframes radarRipplePulse {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(3.5); opacity: 0; }
+  }
 
-  <ion-grid>
-    <ion-row>
-      
-      <ion-col size="12" size-md="7">
-        <ion-card [class.ion-hide]="viewMode === 'analytics'">
-          <ion-card-header><ion-card-title>San Isidro Live Map</ion-card-title></ion-card-header>
-          <ion-card-content>
-            <div id="dispatch-map" style="height: 600px; background-color: #e5e5e5; border-radius: 12px;"></div>
-          </ion-card-content>
-        </ion-card>
+  /* Base structural styling for layout capsule menu buttons */
+  .menu-capsule-link {
+    background: transparent; border: none; text-align: left; padding: 14px 16px;
+    font-weight: bold; font-size: 15px; width: 100%; cursor: pointer;
+    display: flex; align-items: center; border-radius: 12px; transition: all 0.2s ease;
+  }
 
-        <div *ngIf="viewMode === 'analytics'">
-          <ion-card>
-            <ion-card-header style="display: flex; justify-content: space-between; align-items: center;">
-              <ion-card-title>Emergency Trend</ion-card-title>
-              <div style="display: flex; align-items: center;">
-                <ion-select [(ngModel)]="chartRange" (ionChange)="changeDateRange($event)" interface="popover" style="min-width: 110px; margin-right: 10px; background: var(--ion-color-light); padding: 4px 8px;">
-                  <ion-select-option [value]="7">Last 7 Days</ion-select-option>
-                  <ion-select-option [value]="30">Last 30 Days</ion-select-option>
-                  <ion-select-option [value]="90">Last 3 Months</ion-select-option>
-                </ion-select>
-                <ion-button fill="clear" color="danger" size="small" (click)="toggleChartType()">
-                  <ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon>
-                </ion-button>
-              </div>
-            </ion-card-header>
-            <ion-card-content>
-              <canvas id="trendChart" style="height: 180px; max-height: 180px; width: 100%; cursor: pointer;"></canvas>
-            </ion-card-content>
-          </ion-card>
-          
-          <ion-card class="ion-margin-top">
-            <ion-card-header><ion-card-title>Incident Breakdown</ion-card-title></ion-card-header>
-            <ion-card-content style="display: flex; justify-content: center;">
-              <canvas id="typeChart" style="height: 180px; max-height: 180px; cursor: pointer;"></canvas>
-            </ion-card-content>
-          </ion-card>
-        </div>
-      </ion-col>
+  /* Eye-strain accessible popups sizing override metrics */
+  .accessible-popup-box { padding: 5px; min-width: 260px; }
+  .leaflet-popup-content { margin: 12px 16px !important; line-height: 1.4; }
 
-      <ion-col size="12" size-md="5">
+  /* Expandable image for selected incident cards */
+  .expandable-image { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .expandable-image.expanded { max-height: 300px; }
+</style>
+
+<ion-content class="ion-padding" style="--padding-top: 0; --padding-bottom: 0; --padding-start: 0; --padding-end: 0;">
+  <div style="display: flex; height: 100vh; width: 100%;">
+    
+    <div [style.width]="isSidebarCollapsed ? '75px' : '280px'" style="background: var(--ion-card-background, #fff); border-right: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.1)); display: flex; flex-direction: column; justify-content: space-between; padding: 15px 10px; z-index: 10; transition: width 0.25s ease;">
+      <div>
         
-        <ion-segment [(ngModel)]="viewMode" (ionChange)="segmentChanged()" color="danger" class="ion-margin-bottom">
-          <ion-segment-button value="active"><ion-icon name="map-outline"></ion-icon></ion-segment-button>
-          <ion-segment-button value="hazards"><ion-icon name="warning-outline"></ion-icon></ion-segment-button>
-          <ion-segment-button value="archive"><ion-icon name="archive-outline"></ion-icon></ion-segment-button>
-          <ion-segment-button value="analytics"><ion-icon name="bar-chart-outline"></ion-icon></ion-segment-button>
-          <ion-segment-button value="broadcast" *ngIf="currentRole === 'admin'"><ion-icon name="megaphone-outline"></ion-icon></ion-segment-button>
-        </ion-segment>
-
-        <div *ngIf="viewMode === 'broadcast'">
-          <ion-card color="light">
-            <ion-card-header>
-              <ion-card-title>Public Broadcast System</ion-card-title>
-              <ion-card-subtitle>Push a critical alert banner to all citizen devices.</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-item fill="outline" class="ion-margin-bottom ion-margin-top">
-                <ion-input label="Warning Message" labelPlacement="floating" [(ngModel)]="broadcastForm.message" placeholder="e.g. Evacuate due to severe flooding..."></ion-input>
-              </ion-item>
-              <ion-button expand="block" color="danger" (click)="submitBroadcast()">
-                <ion-icon name="megaphone-outline" slot="start"></ion-icon> PUSH BROADCAST
-              </ion-button>
-            </ion-card-content>
-          </ion-card>
-
-          <ion-card *ngIf="recentBroadcast" class="ion-margin-top" style="border: 2px solid var(--ion-color-danger);">
-            
-            <ion-card-header style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0;">
-              <ion-card-subtitle>Currently Active Broadcast</ion-card-subtitle>
-              
-              <ion-button fill="clear" color="medium" size="small" (click)="endBroadcast()">
-                <ion-icon name="close-circle-outline" slot="start"></ion-icon> STOP ALERT
-              </ion-button>
-            </ion-card-header>
-
-            <ion-card-content>
-              <h3 style="color: var(--ion-color-danger); font-weight: bold; margin-bottom: 5px;">{{ recentBroadcast.message }}</h3>
-              <p style="font-size: 12px; color: var(--ion-color-medium);">Sent on: {{ recentBroadcast.created_at | date:'medium' }}</p>
-            </ion-card-content>
-          </ion-card>
+        <div style="display: flex; margin-bottom: 10px;" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-end'">
+          <button (click)="toggleSidebar()" style="background: transparent; border: none; font-size: 22px; cursor: pointer; color: var(--ion-text-color); width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-bars"></i>
+          </button>
         </div>
 
-        <div *ngIf="viewMode === 'active'">
-          <div *ngIf="activeRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active emergencies.</p></div>
-          <ion-list *ngIf="activeRequests.length > 0" style="max-height: 550px; overflow-y: auto;">
-            
-            <ion-card *ngFor="let request of activeRequests" [id]="'request-card-' + request.request_id" [ngStyle]="{'border': selectedRequestId === request.request_id && previewType === 'emergency' ? '3px solid var(--ion-color-danger)' : 'none'}">
-              <ion-card-header>
-                <ion-card-subtitle>{{ request.request_time | date:'short' }}</ion-card-subtitle>
-                <ion-card-title color="danger">{{ request.incident_name }}</ion-card-title>
-              </ion-card-header>
-              <ion-card-content>
-                <p><strong>Victim:</strong> {{ request.first_name }} {{ request.last_name }}</p>
-                <p><strong>Contact:</strong> {{ request.phone }}</p>
-                
-                <p *ngIf="request.blood_type || request.allergies || request.medical_conditions || request.pwd_status" class="ion-margin-vertical">
-                  <ion-badge color="danger">⚠️ MEDICAL/VULNERABILITY ALERT</ion-badge>
-                </p>
+        <div style="padding-bottom: 15px; border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;">
+          <i class="fa-solid fa-shield-halved" style="font-size: 28px; color: var(--ion-color-danger); flex-shrink: 0;"></i>
+          <h5 *ngIf="!isSidebarCollapsed" style="margin: 0; font-weight: bold; color: var(--ion-text-color); letter-spacing: 0.5px; font-size: 15px;">MDRRMO</h5>
+        </div>
 
-                <p><strong>Status:</strong> <ion-badge [color]="request.status === 'Pending' ? 'warning' : 'primary'">{{ request.status }}</ion-badge></p>
-                
-                <div class="expandable-image" [class.expanded]="selectedRequestId === request.request_id && previewType === 'emergency'">
-                  <img [src]="'http://127.0.0.1:8000/' + request.image_proof" />
-                  <p class="file-name-text">
-                    <ion-icon name="image-outline"></ion-icon> {{ getFilename(request.image_proof) }}
-                  </p>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <button (click)="viewMode = 'active'; segmentChanged()" class="menu-capsule-link" 
+                  [style.background]="viewMode === 'active' ? 'var(--ion-color-danger)' : 'transparent'"
+                  [style.color]="viewMode === 'active' ? 'white' : 'var(--ion-text-color)'"
+                  [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+            <i class="fa-solid fa-map-location-dot" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'active' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i>
+            <span *ngIf="!isSidebarCollapsed">Incident Map</span>
+          </button>
+          
+          <button (click)="viewMode = 'hazards'; segmentChanged()" class="menu-capsule-link" 
+                  [style.background]="viewMode === 'hazards' ? 'var(--ion-color-danger)' : 'transparent'"
+                  [style.color]="viewMode === 'hazards' ? 'white' : 'var(--ion-text-color)'"
+                  [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+            <i class="fa-solid fa-road-barrier" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'hazards' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i>
+            <span *ngIf="!isSidebarCollapsed">Public Hazards</span>
+          </button>
+
+          <button *ngIf="currentRole === 'admin'" (click)="viewMode = 'verifications'; segmentChanged()" class="menu-capsule-link" 
+                  [style.background]="viewMode === 'verifications' ? 'var(--ion-color-danger)' : 'transparent'"
+                  [style.color]="viewMode === 'verifications' ? 'white' : 'var(--ion-text-color)'"
+                  [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+            <i class="fa-solid fa-id-card-clip" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'verifications' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i>
+            <span *ngIf="!isSidebarCollapsed">ID Verifications</span>
+          </button>
+
+          <button (click)="viewMode = 'archive'; segmentChanged()" class="menu-capsule-link" 
+                  [style.background]="viewMode === 'archive' ? 'var(--ion-color-danger)' : 'transparent'"
+                  [style.color]="viewMode === 'archive' ? 'white' : 'var(--ion-text-color)'"
+                  [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+            <i class="fa-solid fa-box-archive" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'archive' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i>
+            <span *ngIf="!isSidebarCollapsed">Log Archive</span>
+          </button>
+          
+          <button (click)="viewMode = 'analytics'; segmentChanged()" class="menu-capsule-link" 
+                  [style.background]="viewMode === 'analytics' ? 'var(--ion-color-danger)' : 'transparent'"
+                  [style.color]="viewMode === 'analytics' ? 'white' : 'var(--ion-text-color)'"
+                  [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+            <i class="fa-solid fa-chart-pie" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'analytics' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i>
+            <span *ngIf="!isSidebarCollapsed">Analytics</span>
+          </button>
+          
+          <button (click)="viewMode = 'broadcast'; segmentChanged()" class="menu-capsule-link" 
+                  [style.background]="viewMode === 'broadcast' ? 'var(--ion-color-danger)' : 'transparent'"
+                  [style.color]="viewMode === 'broadcast' ? 'white' : 'var(--ion-text-color)'"
+                  [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+            <i class="fa-solid fa-bullhorn" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'broadcast' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i>
+            <span *ngIf="!isSidebarCollapsed">Alert Broadcast</span>
+          </button>
+
+          <button *ngIf="currentRole === 'admin'" (click)="viewMode = 'dispatchers'; segmentChanged()" class="menu-capsule-link" 
+                  [style.background]="viewMode === 'dispatchers' ? 'var(--ion-color-danger)' : 'transparent'"
+                  [style.color]="viewMode === 'dispatchers' ? 'white' : 'var(--ion-text-color)'"
+                  [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+            <i class="fa-solid fa-user-gear" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'dispatchers' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i>
+            <span *ngIf="!isSidebarCollapsed">Dispatchers</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding-top: 12px;">
+        
+        <ion-item lines="none" style="--background: transparent; --padding-start: 6px;" *ngIf="!isSidebarCollapsed">
+          <i class="fa-solid fa-moon" slot="start" style="color: var(--ion-color-danger); font-size: 16px; margin-right: 10px;"></i>
+          <ion-label style="font-size: 13px; font-weight: bold; color: var(--ion-text-color);">Dark Mode</ion-label>
+          <ion-toggle slot="end" color="danger" (ionChange)="toggleDarkMode($event)" [checked]="isDarkMode"></ion-toggle>
+        </ion-item>
+
+        <button (click)="logout()" class="menu-capsule-link" style="color: var(--ion-color-danger);" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+          <i class="fa-solid fa-right-from-bracket" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" style="font-size: 18px; width: 22px; text-align: center;"></i>
+          <span *ngIf="!isSidebarCollapsed">Logout</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="flex: 1; min-width: 0; overflow-y: auto; background: var(--ion-background-color, #f4f5f8); padding: 20px; display: flex; flex-direction: column;">
+      
+      <!-- Flexbox row: left panel (map/analytics/verifications) + right panel (cards) -->
+      <div style="flex: 1; display: flex; gap: 15px; min-width: 0; overflow: hidden;">
+
+        <!-- LEFT PANEL — visible only for tabs that have map or chart content -->
+        <div [style.display]="(viewMode === 'active' || viewMode === 'hazards' || viewMode === 'analytics') ? 'flex' : 'none'" style="flex: 1; min-width: 0; flex-direction: column; overflow: hidden;">
+
+          <!-- Map — uses [hidden] NOT *ngIf so the #dispatch-map div is NEVER removed from
+               the DOM. *ngIf destroys the element, breaking Leaflet's internal container
+               reference and causing a permanent blank map on return. [hidden] keeps the
+               element alive (display:none) so invalidateSize() in segmentChanged() works. -->
+          <ion-card [style.display]="(viewMode === 'active' || viewMode === 'hazards') ? 'flex' : 'none'" style="margin: 0; box-shadow: none; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.04)); flex: 1; min-height: 0; flex-direction: column;">
+            <ion-card-content class="ion-no-padding" style="height: 100%;">
+              <div id="dispatch-map" style="height: 100%; width: 100%; min-height: 580px; background-color: #e5e5e5;"></div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Analytics charts -->
+          <div *ngIf="viewMode === 'analytics'" style="display: flex; flex-direction: column; gap: 15px; overflow-y: auto; flex: 1;">
+            <ion-card style="margin: 0 0 15px 0; box-shadow: none; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.05));">
+              <ion-card-header style="display: flex; justify-content: space-between; align-items: center;">
+                <ion-card-title style="font-weight: bold; font-size: 16px;">Incident Category Log Timeline Trends</ion-card-title>
+                <div style="display: flex; align-items: center;">
+                  <ion-select [(ngModel)]="chartRange" (ionChange)="changeDateRange($event)" interface="popover" style="min-width: 130px; margin-right: 10px; background: var(--ion-color-light); padding: 4px 8px; font-weight: bold;">
+                    <ion-select-option [value]="7">Last 7 Days</ion-select-option>
+                    <ion-select-option [value]="30">Last 30 Days</ion-select-option>
+                    <ion-select-option [value]="90">Last 3 Months</ion-select-option>
+                  </ion-select>
+                  <ion-button fill="clear" color="danger" size="small" (click)="toggleChartType()">
+                    <i class="fa-solid fa-chart-line" style="font-size: 16px;"></i>
+                  </ion-button>
+                </div>
+              </ion-card-header>
+              <ion-card-content><canvas id="trendChart" style="height: 200px; max-height: 200px; width: 100%;"></canvas></ion-card-content>
+            </ion-card>
+            <ion-card style="margin: 15px 0 0 0; box-shadow: none; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.05));"><ion-card-content style="display: flex; justify-content: center;"><canvas id="typeChart" style="height: 200px; max-height: 200px;"></canvas></ion-card-content></ion-card>
+          </div><!-- end analytics -->
+
+          <!-- Verifications content is in the right panel (full-width) -->
+
+        </div><!-- end LEFT PANEL -->
+
+        <!-- RIGHT PANEL — fixed width beside map/charts, full width for all other tabs -->
+        <div [style.width]="(viewMode === 'active' || viewMode === 'hazards' || viewMode === 'analytics') ? '340px' : '100%'" style="flex-shrink: 0; display: flex; flex-direction: column; min-width: 0;">
+            <div style="flex: 1; max-height: calc(100vh - 80px); overflow-y: auto;">
+
+              <!-- ID Verifications — full-width responsive grid -->
+              <div *ngIf="viewMode === 'verifications'">
+                <div *ngIf="pendingVerifications.length === 0" style="background: var(--ion-card-background, white); border-radius: 16px; border: 1px solid var(--ion-color-step-150, #ddd); color: var(--ion-text-color); padding: 48px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%;">
+                  <i class="fa-solid fa-user-shield" style="font-size: 52px; color: #2dd36f; margin-bottom: 14px;"></i>
+                  <h4 style="font-weight: bold; margin: 0; font-size: 18px;">Verification Queue Empty</h4>
+                  <p style="color: gray; margin: 8px 0 0 0; font-size: 14px;">All citizen accounts are verified.</p>
+                </div>
+                <div *ngFor="let user of pendingVerifications" style="background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); border-radius: 12px; margin-bottom: 16px; overflow: hidden;">
+                  <div style="padding: 18px; color: var(--ion-text-color);">
+                    <h4 style="font-weight: bold; font-size: 16px; margin: 0 0 14px 0; color: var(--ion-color-danger);">
+                      <i class="fa-solid fa-id-card-clip" style="margin-right: 8px;"></i>Review: {{ user.first_name }} {{ user.last_name }}
+                    </h4>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+                      <div style="flex: 1; min-width: 220px;">
+                        <p style="margin: 6px 0; font-size: 14px;"><b>Username:</b> {{ user.username }}</p>
+                        <p style="margin: 6px 0; font-size: 14px;"><b>Phone:</b> {{ user.phone }}</p>
+                        <p style="margin: 6px 0; font-size: 14px;"><b>Email:</b> {{ user.email }}</p>
+                        <p style="margin: 6px 0; font-size: 14px;"><b>Barangay:</b> #{{ user.barangay_id }}</p>
+                        <div style="margin-top: 16px; display: flex; gap: 10px;">
+                          <ion-button color="success" (click)="approveCitizen(user.user_id)" style="font-weight: bold; height: 42px;"><i class="fa-solid fa-user-check" style="margin-right: 8px;"></i> Approve</ion-button>
+                          <ion-button color="danger" fill="outline" (click)="rejectCitizen(user.user_id)" style="font-weight: bold; height: 42px;"><i class="fa-solid fa-user-xmark" style="margin-right: 8px;"></i> Deny</ion-button>
+                        </div>
+                      </div>
+                      <div style="flex: 2; min-width: 280px; border-radius: 10px; overflow: hidden; border: 1px solid var(--ion-color-step-150, #ddd); background: #111; display: flex; align-items: center; justify-content: center; min-height: 180px;">
+                        <img [src]="'http://127.0.0.1:8000/' + user.valid_id_proof" style="max-height: 200px; object-fit: contain; max-width: 100%;" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="viewMode === 'active'">
+                <div *ngIf="activeRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active emergencies.</p></div>
+                <div *ngFor="let request of activeRequests" [id]="'request-card-' + request.request_id" [ngStyle]="{'border': selectedRequestId === request.request_id && previewType === 'emergency' ? '3px solid var(--ion-color-danger)' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.04))'}" style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 15px; color: var(--ion-text-color);">
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <div style="width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center;" [style.background]="request.incident_name === 'Fire' ? '#eb445a18' : (request.incident_name === 'Flood' ? '#3880ff18' : (request.incident_name === 'Medical' ? '#2dd36f18' : '#bc6fff18'))">
+                      <i [class]="request.incident_name === 'Fire' ? 'fa-solid fa-fire' : (request.incident_name === 'Flood' ? 'fa-solid fa-cloud-showers-heavy' : (request.incident_name === 'Medical' ? 'fa-solid fa-heart-pulse' : 'fa-solid fa-handcuffs'))" [style.color]="request.incident_name === 'Fire' ? '#eb445a' : (request.incident_name === 'Flood' ? '#3880ff' : (request.incident_name === 'Medical' ? '#2dd36f' : '#bc6fff'))" style="font-size: 15px;"></i>
+                    </div>
+                    <div>
+                      <span style="font-size: 11px; font-weight: bold; color: gray;">{{ request.request_time | date:'short' }}</span>
+                      <h3 style="margin: 2px 0 0 0; font-weight: bold; font-size: 17px; color: var(--ion-color-danger);">{{ request.incident_name }} Emergency</h3>
+                    </div>
+                  </div>
+                  <p style="margin: 3px 0; font-size: 14px;"><strong>Victim:</strong> {{ request.first_name }} {{ request.last_name }}</p>
+                  <p style="margin: 3px 0; font-size: 14px;"><strong>Contact Line:</strong> {{ request.phone }}</p>
+                  <p style="margin: 3px 0; font-size: 14px;" *ngIf="request.description"><strong>Notes:</strong> "{{ request.description }}"</p>
+                  <div *ngIf="request.blood_type" style="margin: 6px 0;"><span style="background: #eb445a; color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 10px;">⚠️ MEDICAL DATA DOSSIER</span></div>
+                  
+                  <div class="expandable-image" [class.expanded]="selectedRequestId === request.request_id && previewType === 'emergency'">
+                    <img [src]="'http://127.0.0.1:8000/' + request.image_proof" style="width: 100%; border-radius: 8px; margin-top: 10px; max-height: 200px; object-fit: contain; background: #000;" />
+                    <p style="text-align: center; font-size: 11px; color: gray; margin: 4px 0 0 0;"><i class="fa-solid fa-file-image"></i> {{ getFilename(request.image_proof) }}</p>
+                  </div>
+                  <div style="display: flex; gap: 8px; margin-top: 12px;">
+                    <ion-button *ngIf="request.status === 'Pending'" color="warning" size="small" (click)="openDispatchModal(request.request_id)" style="font-weight: bold; flex: 1; height: 35px; margin: 0;"><i class="fa-solid fa-truck-medical" style="margin-right: 6px;"></i> Dispatch</ion-button>
+                    <ion-button color="success" size="small" (click)="resolveEmergency(request.request_id)" style="font-weight: bold; flex: 1; height: 35px; margin: 0;"><i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Resolve</ion-button>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="viewMode === 'hazards'">
+                <div *ngIf="activeHazards.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active public hazards logged.</p></div>
+                <div *ngFor="let haz of activeHazards" [id]="'hazard-card-' + haz.hazard_id" [ngStyle]="{'border': selectedRequestId === haz.hazard_id && previewType === 'hazard' ? '3px solid #ffc409' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.04))'}" style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 15px; color: var(--ion-text-color);">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <i class="fa-solid fa-road-barrier" style="color: #ffc409; font-size: 18px;"></i>
+                    <h4 style="margin: 0; font-weight: bold; font-size: 15px;">Public Hazard Report</h4>
+                  </div>
+                  <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.3;">{{ haz.description }}</p>
+                  <span style="font-size: 11px; color: gray; font-weight: bold;">Source: {{ haz.first_name }} {{ haz.last_name }} | {{ haz.created_at | date:'short' }}</span>
+                  <div class="expandable-image" [class.expanded]="selectedRequestId === haz.hazard_id && previewType === 'hazard'"><img [src]="'http://127.0.0.1:8000/' + haz.image_proof" style="width: 100%; border-radius: 8px; margin-top: 10px; max-height: 200px; object-fit: contain; background: #000;" /></div>
+                  <div style="margin-top: 12px;">
+                    <ion-button color="medium" fill="outline" expand="block" size="small" (click)="dismissHazard(haz.hazard_id)" style="font-weight: bold; height: 35px; margin: 0;">
+                      <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Acknowledge
+                    </ion-button>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="viewMode === 'archive'">
+                <div *ngIf="archivedRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No log archive entries compiled.</p></div>
+                <div *ngFor="let req of archivedRequests" style="margin: 0 0 10px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 12px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.04)); display: flex; justify-content: space-between; align-items: center; color: var(--ion-text-color);">
+                  <div><h4 style="margin: 0; font-weight: bold; font-size: 15px;">{{ req.incident_name }} Log</h4><p style="margin: 2px 0 0 0; font-size: 12px; color: gray;">Citizen: {{ req.first_name }} {{ req.last_name }} | {{ req.request_time | date:'short' }}</p></div>
+                  <ion-badge [color]="req.status === 'Resolved' ? 'success' : 'medium'" style="font-weight: bold;">{{ req.status }}</ion-badge>
+                </div>
+              </div>
+
+              <div *ngIf="viewMode === 'analytics'">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                  <h4 style="font-weight: bold; margin: 0; font-size: 15px; color: var(--ion-text-color);">{{ currentFilterLabel }}</h4>
+                  <div style="display: flex; align-items: center;">
+                    <ion-button *ngIf="currentFilterLabel !== 'All Records'" fill="clear" color="medium" size="small" (click)="clearFilter()" style="font-weight: bold; margin: 0;">Clear</ion-button>
+                    <ion-button fill="clear" color="danger" size="small" id="manual-filter-btn" style="margin: 0;"><i class="fa-solid fa-filter" style="font-size: 15px;"></i></ion-button>
+                    <ion-popover trigger="manual-filter-btn" dismissOnSelect="true" alignment="end"><ng-template><ion-content><ion-list lines="none"><ion-item button (click)="filterListByType('Fire')"><ion-label>Fire Logs</ion-label></ion-item><ion-item button (click)="filterListByType('Flood')"><ion-label>Flood Logs</ion-label></ion-item><ion-item button (click)="filterListByType('Medical')"><ion-label>Medical Logs</ion-label></ion-item><ion-item button (click)="filterListByType('Crime')"><ion-label>Crime Logs</ion-label></ion-item><ion-item button color="light" (click)="clearFilter()"><ion-label color="danger" style="font-weight: bold;">Reset Engine</ion-label></ion-item></ion-list></ion-content></ng-template></ion-popover>
+                  </div>
+                </div>
+                <div *ngIf="filteredAnalyticsRecords.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No matching trend logs found.</p></div>
+                <div *ngFor="let req of filteredAnalyticsRecords" style="margin: 0 0 10px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 12px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.04)); display: flex; justify-content: space-between; align-items: center; color: var(--ion-text-color);">
+                  <div><h4 style="margin: 0; font-weight: bold; font-size: 14px;">{{ req.incident_name }}</h4><p style="margin: 2px 0 0 0; font-size: 12px; color: gray;">{{ req.first_name }} {{ req.last_name }} | {{ req.request_time | date:'short' }}</p></div>
+                  <ion-badge [color]="req.status === 'Resolved' ? 'success' : (req.status === 'Pending' ? 'warning' : 'medium')" style="font-weight: bold;">{{ req.status }}</ion-badge>
+                </div>
+              </div>
+
+              <div *ngIf="viewMode === 'broadcast'">
+                <ion-card color="light" style="margin: 0; box-shadow: none; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.04));">
+                  <ion-card-header><ion-card-title style="font-weight: bold; font-size: 16px;">Send Alert to All Citizens</ion-card-title></ion-card-header>
+                  <ion-card-content>
+                    <ion-item fill="outline" class="ion-margin-bottom ion-margin-top"><ion-input label="Alert Message" labelPlacement="floating" [(ngModel)]="broadcastForm.message" placeholder="e.g. Flood warning in Barangay Pulo, prepare for evacuation..."></ion-input></ion-item>
+                    <ion-button expand="block" color="danger" (click)="submitBroadcast()" style="font-weight: bold; height: 45px;"><i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Send Alert</ion-button>
+                  </ion-card-content>
+                </ion-card>
+                <ion-card *ngIf="recentBroadcast" class="ion-margin-top" style="border: 2px solid var(--ion-color-danger); margin-left: 0; margin-right: 0; box-shadow: none;"><ion-card-header style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0;"><ion-card-subtitle style="font-weight: bold; color: var(--ion-color-danger);">Active Alert</ion-card-subtitle><ion-button fill="clear" color="medium" size="small" (click)="endBroadcast()" style="font-weight: bold;"><i class="fa-solid fa-circle-stop" style="margin-right: 6px;"></i> Stop Alert</ion-button></ion-card-header><ion-card-content><h3 style="color: var(--ion-color-danger); font-weight: bold; margin-bottom: 5px;">{{ recentBroadcast.message }}</h3><p style="font-size: 11px; color: var(--ion-color-medium);">Sent: {{ recentBroadcast.created_at | date:'medium' }}</p></ion-card-content></ion-card>
+              </div>
+
+              <div *ngIf="viewMode === 'dispatchers'">
+
+                <!-- Header bar -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                  <div>
+                    <h2 style="margin: 0; font-weight: bold; font-size: 22px; color: var(--ion-text-color);">Dispatchers</h2>
+                    <p style="margin: 2px 0 0 0; font-size: 13px; color: gray;">{{ dispatchers.length }} account{{ dispatchers.length !== 1 ? 's' : '' }} registered</p>
+                  </div>
+                  <ion-button color="danger" (click)="openDispatcherModal(null)" style="font-weight: bold; height: 42px; border-radius: 10px;">
+                    <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Add Dispatcher
+                  </ion-button>
                 </div>
 
-                <ion-row class="ion-margin-top">
-                  <ion-col *ngIf="request.status === 'Pending'"><ion-button expand="block" color="warning" size="small" (click)="openDispatchModal(request.request_id)"><ion-icon name="car-outline" slot="start"></ion-icon> Dispatch</ion-button></ion-col>
-                  <ion-col><ion-button expand="block" color="success" size="small" (click)="resolveEmergency(request.request_id)"><ion-icon name="checkmark-circle-outline" slot="start"></ion-icon> Resolve</ion-button></ion-col>
-                </ion-row>
-              </ion-card-content>
-            </ion-card>
-            
-          </ion-list>
-        </div>
+                <!-- Empty state -->
+                <div *ngIf="dispatchers.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 16px; border: 2px dashed var(--ion-color-step-150, #ddd);">
+                  <i class="fa-solid fa-users-gear" style="font-size: 48px; color: var(--ion-color-step-400, #aaa); margin-bottom: 14px;"></i>
+                  <h4 style="font-weight: bold; margin: 0 0 6px 0; color: var(--ion-text-color);">No Dispatchers Yet</h4>
+                  <p style="margin: 0; color: gray; font-size: 14px;">Click "Add Dispatcher" to create the first account.</p>
+                </div>
 
-        <div *ngIf="viewMode === 'hazards'">
-          <div style="padding: 0 10px;">
-            <h3 style="color: #ffc409; font-weight: bold;">Active Road Hazards</h3>
-          </div>
-          <div *ngIf="activeHazards.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No reported hazards.</p></div>
-          <ion-list *ngIf="activeHazards.length > 0" style="max-height: 500px; overflow-y: auto;">
-            
-            <ion-card *ngFor="let haz of activeHazards" [id]="'hazard-card-' + haz.hazard_id" [ngStyle]="{'border': selectedRequestId === haz.hazard_id && previewType === 'hazard' ? '3px solid #ffc409' : 'none'}">
-              <ion-item lines="none" color="light">
-                <ion-icon name="warning-outline" slot="start" color="warning" style="font-size: 24px;"></ion-icon>
-                <ion-label class="ion-text-wrap">
-                  <h2 style="font-weight: bold;">{{ haz.description }}</h2>
-                  <p>Reported by: {{ haz.first_name }} {{ haz.last_name }}</p>
-                  <p>{{ haz.created_at | date:'medium' }}</p>
+                <!-- Dispatcher cards grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+                  <div *ngFor="let d of dispatchers"
+                       style="background: var(--ion-card-background, #fff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)); padding: 20px; display: flex; flex-direction: column; gap: 0; color: var(--ion-text-color); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
 
-                  <div class="expandable-image" [class.expanded]="selectedRequestId === haz.hazard_id && previewType === 'hazard'">
-                    <img [src]="'http://127.0.0.1:8000/' + haz.image_proof" />
-                    <p class="file-name-text">
-                      <ion-icon name="image-outline"></ion-icon> {{ getFilename(haz.image_proof) }}
-                    </p>
+                    <!-- Card top: avatar + name + status -->
+                    <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;">
+                      <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; font-weight: bold; color: white; letter-spacing: -0.5px;">
+                        {{ (d.first_name?.[0] || '') + (d.last_name?.[0] || '') }}
+                      </div>
+                      <div style="flex: 1; min-width: 0;">
+                        <p style="margin: 0; font-weight: bold; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.first_name }} {{ d.last_name }}</p>
+                        <p style="margin: 1px 0 0 0; font-size: 12px; color: gray;">@{{ d.username }}</p>
+                      </div>
+                      <span style="background: #2dd36f1a; color: #2dd36f; border: 1px solid #2dd36f50; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: bold; white-space: nowrap; flex-shrink: 0;">
+                        Active
+                      </span>
+                    </div>
+
+                    <!-- Card details -->
+                    <div style="display: flex; flex-direction: column; gap: 7px; padding: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 10px; margin-bottom: 14px;">
+                      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                        <i class="fa-solid fa-phone" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i>
+                        <span>{{ d.phone }}</span>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; overflow: hidden;">
+                        <i class="fa-solid fa-envelope" style="color: var(--ion-color-danger); width: 14px; text-align: center; flex-shrink: 0;"></i>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.email }}</span>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                        <i class="fa-solid fa-location-dot" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i>
+                        <span>{{ getBarangayName(d.barangay_id) }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Card actions -->
+                    <div style="display: flex; gap: 8px;">
+                      <ion-button fill="outline" color="danger" size="small" (click)="openDispatcherModal(d)" style="flex: 1; font-weight: bold; height: 36px; margin: 0;">
+                        <i class="fa-solid fa-pen-to-square" style="margin-right: 6px;"></i> Edit
+                      </ion-button>
+                      <ion-button fill="outline" color="medium" size="small" (click)="confirmDeactivateDispatcher(d)" style="flex: 1; font-weight: bold; height: 36px; margin: 0;">
+                        <i class="fa-solid fa-user-slash" style="margin-right: 6px;"></i> Remove
+                      </ion-button>
+                    </div>
+
                   </div>
+                </div>
 
-                </ion-label>
-              </ion-item>
-            </ion-card>
-            
-          </ion-list>
-        </div>
+              </div>
 
-        <div *ngIf="viewMode === 'archive'">
-          <div *ngIf="archivedRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No archived requests.</p></div>
-          <ion-list *ngIf="archivedRequests.length > 0" style="max-height: 550px; overflow-y: auto;">
-            <ion-card *ngFor="let req of archivedRequests">
-              <ion-item lines="none">
-                <ion-label>
-                  <h2>{{ req.incident_name }} Emergency</h2>
-                  <p>{{ req.first_name }} {{ req.last_name }}</p>
-                  <p>{{ req.request_time | date:'medium' }}</p>
-                </ion-label>
-                <ion-badge [color]="req.status === 'Resolved' ? 'success' : 'medium'" slot="end">{{ req.status }}</ion-badge>
-              </ion-item>
-            </ion-card>
-          </ion-list>
-        </div>
-
-        <div *ngIf="viewMode === 'analytics'">
-          
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
-            <h3 style="color: var(--ion-color-danger); font-weight: bold; margin: 0; font-size: 16px;">{{ currentFilterLabel }}</h3>
-            
-            <div style="display: flex; align-items: center;">
-              <ion-button *ngIf="currentFilterLabel !== 'All Records'" fill="clear" color="medium" size="small" (click)="clearFilter()">Clear</ion-button>
-              
-              <ion-button fill="clear" color="danger" size="small" id="manual-filter-btn">
-                <ion-icon slot="icon-only" name="filter-outline"></ion-icon>
-              </ion-button>
-              
-              <ion-popover trigger="manual-filter-btn" dismissOnSelect="true" alignment="end">
-                <ng-template>
-                  <ion-content>
-                    <ion-list lines="none">
-                      <ion-list-header><ion-label>Filter by Type</ion-label></ion-list-header>
-                      <ion-item button (click)="filterListByType('Fire')"><ion-label>Fire</ion-label></ion-item>
-                      <ion-item button (click)="filterListByType('Medical')"><ion-label>Medical</ion-label></ion-item>
-                      <ion-item button (click)="filterListByType('Crime')"><ion-label>Crime</ion-label></ion-item>
-                      <ion-item button (click)="filterListByType('Flood')"><ion-label>Flood</ion-label></ion-item>
-                      <ion-item button color="light" (click)="clearFilter()"><ion-label color="danger">Reset Filter</ion-label></ion-item>
-                    </ion-list>
-                  </ion-content>
-                </ng-template>
-              </ion-popover>
             </div>
-          </div>
 
-          <div *ngIf="filteredAnalyticsRecords.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No records match this filter.</p></div>
-          <ion-list *ngIf="filteredAnalyticsRecords.length > 0" style="max-height: 500px; overflow-y: auto;">
-            <ion-card *ngFor="let req of filteredAnalyticsRecords" color="light">
-              <ion-item lines="none" color="light">
-                <ion-label>
-                  <h2>{{ req.incident_name }}</h2>
-                  <p>{{ req.first_name }} {{ req.last_name }}</p>
-                  <p>{{ req.request_time | date:'medium' }}</p>
-                  <p *ngIf="req.blood_type || req.allergies || req.medical_conditions || req.pwd_status" style="margin-top: 5px;">
-                    <ion-badge color="danger">⚠️ MEDICAL ALERT</ion-badge>
-                  </p>
-                </ion-label>
-                <ion-badge [color]="req.status === 'Resolved' ? 'success' : (req.status === 'Pending' ? 'warning' : 'medium')" slot="end">{{ req.status }}</ion-badge>
-              </ion-item>
-            </ion-card>
-          </ion-list>
-        </div>
+          </div><!-- end right panel scrollable -->
+        </div><!-- end RIGHT PANEL -->
 
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+      </div><!-- end flexbox row -->
+    </div>
 
-  <ion-modal [isOpen]="isDispatchModalOpen" (didDismiss)="isDispatchModalOpen = false" initialBreakpoint="0.65" [breakpoints]="[0, 0.65, 1]">
+
+  <ion-modal [isOpen]="isDispatchModalOpen" (didDismiss)="isDispatchModalOpen = false" initialBreakpoint="0.75" [breakpoints]="[0, 0.75, 1]">
     <ng-template>
-      <ion-header>
-        <ion-toolbar color="warning"><ion-title>Dispatch Units</ion-title><ion-buttons slot="end"><ion-button (click)="isDispatchModalOpen = false">Close</ion-button></ion-buttons></ion-toolbar>
+      <ion-header class="ion-no-border">
+        <ion-toolbar color="warning">
+          <ion-title style="color: white; font-weight: bold; font-size: 17px;">Dispatch Response Team</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="isDispatchModalOpen = false" style="color: white; font-weight: bold;">Close</ion-button></ion-buttons>
+        </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
-        <ion-list>
-          <ion-item><ion-select label="Select Responder Unit" labelPlacement="floating" [(ngModel)]="dispatchForm.responder_id" (ionChange)="onResponderChange()"><ion-select-option *ngFor="let r of availableResponders" [value]="r.responder_id">{{ r.name }} ({{ r.role }})</ion-select-option></ion-select></ion-item>
-          <ion-item class="ion-margin-top"><ion-select label="Select Vehicle" labelPlacement="floating" [(ngModel)]="dispatchForm.vehicle_id" [disabled]="!dispatchForm.responder_id"><ion-select-option *ngFor="let v of filteredVehicles" [value]="v.vehicle_id">{{ v.name }} [{{ v.plate }}]</ion-select-option></ion-select></ion-item>
-        </ion-list>
-        <ion-button expand="block" color="warning" class="ion-margin-top" (click)="submitDispatch()">CONFIRM DISPATCH</ion-button>
+
+        <p style="font-weight: bold; font-size: 15px; margin: 0 0 10px 0; color: var(--ion-text-color);">1. Select a Responder Team</p>
+        <ion-radio-group [(ngModel)]="dispatchForm.responder_id" (ionChange)="onResponderChange()">
+          <div *ngFor="let r of availableResponders" style="display: flex; align-items: center; background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; gap: 14px;"
+               [style.border-color]="dispatchForm.responder_id === r.responder_id ? '#ffc409' : 'var(--ion-color-step-150, #ddd)'"
+               [style.background]="dispatchForm.responder_id === r.responder_id ? '#ffc40915' : 'var(--ion-card-background, #fff)'">
+            <ion-radio [value]="r.responder_id" style="--color-checked: #ffc409;"></ion-radio>
+            <div>
+              <p style="margin: 0; font-weight: bold; font-size: 16px; color: var(--ion-text-color);">{{ r.name }}</p>
+              <p style="margin: 2px 0 0 0; font-size: 13px; color: gray;">{{ r.role }} · {{ r.contact }}</p>
+            </div>
+          </div>
+        </ion-radio-group>
+
+        <p style="font-weight: bold; font-size: 15px; margin: 16px 0 10px 0; color: var(--ion-text-color);">2. Assign a Vehicle</p>
+        <div *ngIf="!dispatchForm.responder_id" style="text-align: center; padding: 16px; color: gray; font-size: 14px; border: 2px dashed var(--ion-color-step-150, #ddd); border-radius: 12px;">
+          Select a responder first to see available vehicles.
+        </div>
+        <ion-radio-group [(ngModel)]="dispatchForm.vehicle_id" *ngIf="dispatchForm.responder_id">
+          <div *ngFor="let v of filteredVehicles" style="display: flex; align-items: center; background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; gap: 14px;"
+               [style.border-color]="dispatchForm.vehicle_id === v.vehicle_id ? '#ffc409' : 'var(--ion-color-step-150, #ddd)'"
+               [style.background]="dispatchForm.vehicle_id === v.vehicle_id ? '#ffc40915' : 'var(--ion-card-background, #fff)'">
+            <ion-radio [value]="v.vehicle_id" style="--color-checked: #ffc409;"></ion-radio>
+            <div>
+              <p style="margin: 0; font-weight: bold; font-size: 16px; color: var(--ion-text-color);">{{ v.name }}</p>
+              <p style="margin: 2px 0 0 0; font-size: 13px; color: gray;">{{ v.type }} · Plate: {{ v.plate }}</p>
+            </div>
+          </div>
+        </ion-radio-group>
+
+        <ion-button expand="block" color="warning" class="ion-margin-top" (click)="submitDispatch()"
+                    [disabled]="!dispatchForm.responder_id || !dispatchForm.vehicle_id"
+                    style="font-weight: bold; height: 52px; border-radius: 12px; font-size: 17px; margin-top: 20px;">
+          <i class="fa-solid fa-truck-medical" style="margin-right: 10px;"></i> Confirm Dispatch
+        </ion-button>
       </ion-content>
     </ng-template>
   </ion-modal>
 
-  <ion-modal [isOpen]="isModalOpen" (didDismiss)="isModalOpen = false">
+  <!-- Add / Edit Dispatcher Modal -->
+  <ion-modal [isOpen]="isDispatcherModalOpen" (didDismiss)="isDispatcherModalOpen = false" initialBreakpoint="0.92" [breakpoints]="[0, 0.92, 1]">
     <ng-template>
-      <ion-header>
-        <ion-toolbar color="danger"><ion-title>New Dispatcher</ion-title><ion-buttons slot="end"><ion-button (click)="isModalOpen = false">Close</ion-button></ion-buttons></ion-toolbar>
+      <ion-header class="ion-no-border">
+        <ion-toolbar color="danger">
+          <ion-title style="color: white; font-weight: bold; font-size: 17px;">{{ editingDispatcher ? 'Edit Dispatcher' : 'Add Dispatcher' }}</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="isDispatcherModalOpen = false" style="color: white; font-weight: bold;">Cancel</ion-button></ion-buttons>
+        </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
-        <ion-list>
-          <ion-item><ion-input label="First Name" labelPlacement="floating" [(ngModel)]="newDispatcher.first_name"></ion-input></ion-item>
-          <ion-item><ion-input label="Last Name" labelPlacement="floating" [(ngModel)]="newDispatcher.last_name"></ion-input></ion-item>
-          <ion-item><ion-input label="Phone Number" labelPlacement="floating" type="tel" [(ngModel)]="newDispatcher.phone"></ion-input></ion-item>
-          <ion-item><ion-input label="Username" labelPlacement="floating" type="text" [(ngModel)]="newDispatcher.username"></ion-input></ion-item>
-          <ion-item>
-            <ion-select label="Assigned Barangay" labelPlacement="floating" [(ngModel)]="newDispatcher.barangay_id">
+
+        <!-- Avatar preview -->
+        <div style="display: flex; justify-content: center; margin-bottom: 24px;">
+          <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; color: white; letter-spacing: -1px;">
+            {{ ((dispatcherForm.first_name || '?')[0]) + ((dispatcherForm.last_name || '')[0] || '') }}
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; gap: 10px;">
+            <ion-item fill="outline" style="flex: 1;"><ion-input label="First Name" labelPlacement="floating" [(ngModel)]="dispatcherForm.first_name"></ion-input></ion-item>
+            <ion-item fill="outline" style="flex: 1;"><ion-input label="Last Name" labelPlacement="floating" [(ngModel)]="dispatcherForm.last_name"></ion-input></ion-item>
+          </div>
+          <ion-item fill="outline"><ion-input label="Phone Number" labelPlacement="floating" type="tel" [(ngModel)]="dispatcherForm.phone"></ion-input></ion-item>
+          <ion-item fill="outline">
+            <ion-input label="Username" labelPlacement="floating" type="text" [(ngModel)]="dispatcherForm.username" [readonly]="!!editingDispatcher"></ion-input>
+          </ion-item>
+          <ion-item fill="outline">
+            <ion-select label="Assigned Barangay" labelPlacement="floating" [(ngModel)]="dispatcherForm.barangay_id">
               <ion-select-option [value]="1">Alua</ion-select-option><ion-select-option [value]="2">Calaba</ion-select-option><ion-select-option [value]="3">Malapit</ion-select-option><ion-select-option [value]="4">Mangga</ion-select-option><ion-select-option [value]="5">Poblacion</ion-select-option><ion-select-option [value]="6">Pulo</ion-select-option><ion-select-option [value]="7">San Roque</ion-select-option><ion-select-option [value]="8">Santo Cristo</ion-select-option><ion-select-option [value]="9">Tabon</ion-select-option>
             </ion-select>
           </ion-item>
-          <ion-item><ion-input label="Work Email" labelPlacement="floating" type="email" [(ngModel)]="newDispatcher.email"></ion-input></ion-item>
-          <ion-item><ion-input label="Temporary Password" labelPlacement="floating" type="password" [(ngModel)]="newDispatcher.password"></ion-input></ion-item>
-        </ion-list>
-        <ion-button expand="block" color="danger" class="ion-margin-top" (click)="saveDispatcher()">Create Account</ion-button>
+          <ion-item fill="outline"><ion-input label="Email Address" labelPlacement="floating" type="email" [(ngModel)]="dispatcherForm.email"></ion-input></ion-item>
+          <ion-item fill="outline">
+            <ion-input [label]="editingDispatcher ? 'New Password (leave blank to keep)' : 'Password'" labelPlacement="floating" type="password" [(ngModel)]="dispatcherForm.password"></ion-input>
+          </ion-item>
+        </div>
+
+        <ion-button expand="block" color="danger" (click)="saveDispatcherForm()" style="font-weight: bold; height: 50px; border-radius: 12px; margin-top: 24px; font-size: 16px;">
+          <i [class]="editingDispatcher ? 'fa-solid fa-floppy-disk' : 'fa-solid fa-user-plus'" style="margin-right: 10px;"></i>
+          {{ editingDispatcher ? 'Save Changes' : 'Create Account' }}
+        </ion-button>
+
       </ion-content>
     </ng-template>
   </ion-modal>
+
+  <!-- ══════════════════════════════════════════════════
+       CONFIRMATION DIALOG OVERLAY
+  ══════════════════════════════════════════════════ -->
+  <div *ngIf="confirmDialog.open" class="c-overlay" style="z-index: 99999;">
+    <div class="c-overlay-bg" (click)="confirmDialog.open = false"></div>
+    <div class="c-panel" style="width: min(400px, 90vw); border-radius: 22px; overflow: hidden;">
+      <div style="padding: 32px 28px; text-align: center;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;"
+             [style.background]="confirmDialog.iconColor + '18'">
+          <i [class]="confirmDialog.icon" style="font-size: 26px;" [style.color]="confirmDialog.iconColor"></i>
+        </div>
+        <h3 style="margin: 0 0 10px 0; font-weight: bold; font-size: 19px; color: var(--ion-text-color);">{{ confirmDialog.title }}</h3>
+        <p style="margin: 0 0 28px 0; font-size: 14px; color: gray; line-height: 1.5;">{{ confirmDialog.message }}</p>
+        <div style="display: flex; gap: 10px;">
+          <button (click)="confirmDialog.open = false"
+                  style="flex: 1; padding: 14px; background: var(--ion-color-light); border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; color: var(--ion-text-color);">
+            Cancel
+          </button>
+          <button (click)="runConfirm()"
+                  style="flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; color: white;"
+                  [style.background]="confirmDialog.confirmColor">
+            {{ confirmDialog.confirmLabel }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </ion-content>
