@@ -3,11 +3,11 @@
     
     <ion-header>
       <ion-toolbar color="danger">
-        <ion-title>Main Menu</ion-title>
+        <ion-title style="color: white; font-weight: bold;">Main Menu</ion-title>
         <ion-buttons slot="end">
           <ion-menu-toggle auto-hide="false">
-            <ion-button>
-              <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            <ion-button style="color: white;">
+              <i class="fa-solid fa-xmark" style="font-size: 20px;"></i>
             </ion-button>
           </ion-menu-toggle>
         </ion-buttons>
@@ -16,39 +16,39 @@
 
     <ion-content>
       <div class="ion-padding ion-text-center" style="background: var(--ion-color-light); border-bottom: 1px solid var(--ion-color-step-150, #ddd);">
-        <ion-icon name="person-circle-outline" color="danger" style="font-size: 80px;"></ion-icon>
-        <h2 style="margin-bottom: 0;">{{ userFullName }}</h2>
-        <p style="margin-top: 5px; color: gray;">{{ userRole }}</p>
+        <i class="fa-solid fa-circle-user" style="font-size: 70px; color: var(--ion-color-danger); margin-bottom: 10px; display: inline-block;"></i>
+        <h2 style="margin-bottom: 0; font-weight: bold; color: var(--ion-text-color);">{{ userFullName }}</h2>
+        <p style="margin-top: 5px; color: gray; font-size: 14px;">{{ userRole }}</p>
         
         <ion-menu-toggle auto-hide="false">
-          <ion-button fill="clear" color="danger" size="small" routerLink="/profile">
+          <ion-button fill="clear" color="danger" size="small" routerLink="/profile" style="font-weight: bold;">
             My Account
           </ion-button>
         </ion-menu-toggle>
       </div>
 
-      <ion-list lines="none">
+      <ion-list lines="none" style="background: transparent;">
         
         <ion-menu-toggle auto-hide="false">
-          <ion-item button routerLink="/home">
-            <ion-icon slot="start" name="home-outline" color="danger"></ion-icon>
-            <ion-label>Dashboard</ion-label>
+          <ion-item button routerLink="/home" detail="false">
+            <i class="fa-solid fa-house" slot="start" style="color: var(--ion-color-danger); width: 24px; font-size: 18px;"></i>
+            <ion-label style="font-weight: 500;">Dashboard</ion-label>
           </ion-item>
         </ion-menu-toggle>
         
-        <ion-item>
-          <ion-icon slot="start" name="moon-outline" color="danger"></ion-icon>
-          <ion-label>Dark Mode</ion-label>
+        <ion-item lines="none">
+          <i class="fa-solid fa-moon" slot="start" style="color: var(--ion-color-danger); width: 24px; font-size: 18px;"></i>
+          <ion-label style="font-weight: 500;">Dark Mode</ion-label>
           <ion-toggle slot="end" color="danger" (ionChange)="toggleDarkMode($event)" [checked]="isDarkMode"></ion-toggle>
         </ion-item>
       </ion-list>
     </ion-content>
 
-    <ion-footer>
-      <ion-toolbar>
+    <ion-footer class="ion-no-border">
+      <ion-toolbar color="light">
         <ion-menu-toggle auto-hide="false">
-          <ion-button expand="block" fill="clear" color="danger" (click)="logout()">
-            <ion-icon slot="start" name="log-out-outline"></ion-icon>
+          <ion-button expand="block" fill="clear" color="danger" (click)="logout()" style="font-weight: bold;">
+            <i class="fa-solid fa-right-from-bracket" style="margin-right: 8px;"></i>
             Logout
           </ion-button>
         </ion-menu-toggle>
