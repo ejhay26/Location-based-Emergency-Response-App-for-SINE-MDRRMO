@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { IonicModule, MenuController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { addIcons } from 'ionicons';
-import { homeOutline, moonOutline, logOutOutline, personCircleOutline, closeOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-root',
@@ -17,12 +15,9 @@ export class AppComponent implements OnInit {
   userRole: string = '';
   isDarkMode = false;
 
-  constructor(private router: Router, private menuCtrl: MenuController) {
-    addIcons({ homeOutline, moonOutline, logOutOutline, personCircleOutline, closeOutline });
-  }
+  constructor(private router: Router, private menuCtrl: MenuController) {}
 
   ngOnInit() {
-    // Load Dark Mode preference on app startup
     this.isDarkMode = localStorage.getItem('darkMode') === 'true';
     document.documentElement.classList.toggle('ion-palette-dark', this.isDarkMode);
   }
@@ -47,7 +42,7 @@ export class AppComponent implements OnInit {
   toggleDarkMode(event: any) {
     this.isDarkMode = event.detail.checked;
     document.documentElement.classList.toggle('ion-palette-dark', this.isDarkMode);
-    localStorage.setItem('darkMode', String(this.isDarkMode)); // Save to memory
+    localStorage.setItem('darkMode', String(this.isDarkMode));
   }
 
   logout() {
