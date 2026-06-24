@@ -1,6 +1,7 @@
 <ion-app>
-  <ion-menu contentId="main-content" type="overlay" (ionWillOpen)="menuOpened()">
-    
+  <ion-menu *ngIf="!currentUrl.includes('/login') && !currentUrl.includes('/register') && !currentUrl.includes('/welcome')"
+            contentId="main-content" type="overlay" (ionWillOpen)="menuOpened()">
+
     <ion-header>
       <ion-toolbar color="danger">
         <ion-title style="color: white; font-weight: bold;">Main Menu</ion-title>
@@ -15,32 +16,49 @@
     </ion-header>
 
     <ion-content>
-      <div class="ion-padding ion-text-center" style="background: var(--ion-color-light); border-bottom: 1px solid var(--ion-color-step-150, #ddd);">
-        <i class="fa-solid fa-circle-user" style="font-size: 70px; color: var(--ion-color-danger); margin-bottom: 10px; display: inline-block;"></i>
-        <h2 style="margin-bottom: 0; font-weight: bold; color: var(--ion-text-color);">{{ userFullName }}</h2>
-        <p style="margin-top: 5px; color: gray; font-size: 14px;">{{ userRole }}</p>
-        
-        <ion-menu-toggle auto-hide="false">
-          <ion-button fill="clear" color="danger" size="small" routerLink="/profile" style="font-weight: bold;">
-            My Account
-          </ion-button>
-        </ion-menu-toggle>
+      <!-- User identity -->
+      <div class="ion-padding ion-text-center"
+           style="background: var(--ion-color-light); border-bottom: 1px solid var(--ion-color-step-150, #ddd); padding-bottom: 16px;">
+        <div style="width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 10px auto; overflow: hidden; border: 3px solid var(--ion-color-danger); background: var(--ion-color-step-100); display: flex; align-items: center; justify-content: center;">
+          <img *ngIf="userAvatar" [src]="userAvatar" style="width: 100%; height: 100%; object-fit: cover;" />
+          <i *ngIf="!userAvatar" class="fa-solid fa-circle-user" style="font-size: 66px; color: var(--ion-color-danger);"></i>
+        </div>
+        <h2 style="margin-bottom: 0; font-weight: bold; color: var(--ion-text-color); font-size: 17px;">{{ userFullName }}</h2>
+        <p style="margin-top: 4px; color: gray; font-size: 13px;">{{ userRole }}</p>
       </div>
 
-      <ion-list lines="none" style="background: transparent;">
-        
+      <ion-list lines="none" style="background: transparent; padding: 10px 8px;">
+
+        <!-- Dashboard — active only when on /home exactly -->
         <ion-menu-toggle auto-hide="false">
-          <ion-item button routerLink="/home" detail="false">
+          <ion-item button routerLink="/home" routerLinkActive="menu-item-active"
+                    [routerLinkActiveOptions]="{ exact: true }" detail="false"
+                    style="border-radius: 12px; margin-bottom: 4px;">
             <i class="fa-solid fa-house" slot="start" style="color: var(--ion-color-danger); width: 24px; font-size: 18px;"></i>
             <ion-label style="font-weight: 500;">Dashboard</ion-label>
           </ion-item>
         </ion-menu-toggle>
-        
-        <ion-item lines="none">
+
+        <!-- My Profile — active only when on /profile -->
+        <ion-menu-toggle auto-hide="false">
+          <ion-item button routerLink="/profile" routerLinkActive="menu-item-active"
+                    [routerLinkActiveOptions]="{ exact: true }" detail="false"
+                    style="border-radius: 12px; margin-bottom: 4px;">
+            <i class="fa-solid fa-id-card" slot="start" style="color: var(--ion-color-danger); width: 24px; font-size: 18px;"></i>
+            <ion-label style="font-weight: 500;">My Profile</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+
+        <!-- Dark Mode -->
+        <ion-item lines="none" style="border-radius: 12px; margin-bottom: 4px; --background: transparent;">
           <i class="fa-solid fa-moon" slot="start" style="color: var(--ion-color-danger); width: 24px; font-size: 18px;"></i>
           <ion-label style="font-weight: 500;">Dark Mode</ion-label>
-          <ion-toggle slot="end" color="danger" (ionChange)="toggleDarkMode($event)" [checked]="isDarkMode"></ion-toggle>
+          <ion-toggle slot="end" color="danger"
+                      [checked]="isDarkMode"
+                      (ionChange)="toggleDarkMode($event)">
+          </ion-toggle>
         </ion-item>
+
       </ion-list>
     </ion-content>
 
