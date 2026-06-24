@@ -1,10 +1,19 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ToastController, MenuController } from '@ionic/angular';
+import { ToastController, MenuController, AlertController } from '@ionic/angular';
+import {
+  IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
+  IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle,
+  IonItem, IonInput, IonLabel, IonList,
+  IonSelect, IonSelectOption,
+  IonRadioGroup, IonRadio,
+  IonToggle, IonBadge,
+  IonModal, IonPopover
+} from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import * as L from 'leaflet'; 
+import { HttpClient } from '@angular/common/http';
+import * as L from 'leaflet';
 import Chart from 'chart.js/auto';
 import { ApiService } from '../services/api';
 
@@ -12,16 +21,34 @@ import { ApiService } from '../services/api';
 const CachedTileLayer = L.TileLayer.extend({
   createTile: function (coords: any, done: any) {
     const tile = document.createElement('img');
-    const url = this.getTileUrl(coords);
+    const url  = this.getTileUrl(coords);
     tile.crossOrigin = 'Anonymous';
+    const fetchOptions: RequestInit = {
+      mode: 'cors',
+      referrerPolicy: 'no-referrer',
+      headers: {
+        'User-Agent': 'SINEMDRRMOApp/1.0 (sine-mdrrmo-capstone; contact: ejperez623@gmail.com)',
+        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+      }
+    };
+    const loadTile = (blob: Blob) => { tile.src = URL.createObjectURL(blob); done(null, tile); };
+    const fetchFresh = () =>
+      fetch(url, fetchOptions)
+        .then((net: Response) => {
+          if (!net.ok) throw new Error(`OSM tile ${net.status}`);
+          const clone = net.clone();
+          if ('caches' in window) { caches.open('mdrrmo-tile-cache-v1').then((cache: Cache) => cache.put(url, clone)); }
+          return net.blob();
+        })
+        .then(loadTile)
+        .catch((err: any) => done(err, tile));
     if ('caches' in window) {
-      caches.open('mdrrmo-offline-map').then(cache => {
-        cache.match(url).then(response => {
-          if (response) { response.blob().then(blob => { tile.src = URL.createObjectURL(blob); done(null, tile); }); } 
-          else { fetch(url, { mode: 'cors' }).then(networkResponse => { if (networkResponse.ok) { cache.put(url, networkResponse.clone()); } networkResponse.blob().then(blob => { tile.src = URL.createObjectURL(blob); done(null, tile); }); }).catch(err => { done(err, tile); }); }
+      caches.open('mdrrmo-tile-cache-v1').then((cache: Cache) => {
+        cache.match(url).then((cached: Response | undefined) => {
+          if (cached) { cached.blob().then(loadTile); } else { fetchFresh(); }
         });
       });
-    } else { tile.src = url; done(null, tile); }
+    } else { fetchFresh(); }
     return tile;
   }
 });
@@ -30,7 +57,16 @@ const CachedTileLayer = L.TileLayer.extend({
   selector: 'app-admin-dashboard',
   templateUrl: './admin-dashboard.page.html',
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, HttpClientModule]
+  imports: [
+    CommonModule, FormsModule,
+    IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
+    IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle,
+    IonItem, IonInput, IonLabel, IonList,
+    IonSelect, IonSelectOption,
+    IonRadioGroup, IonRadio,
+    IonToggle, IonBadge,
+    IonModal, IonPopover
+  ]
 })
 export class AdminDashboardPage implements OnInit, OnDestroy {
   
@@ -80,17 +116,23 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
 
   map: any;
   mapMarkers: any[] = [];
-  pollingInterval: any; 
+  pollingInterval: any;
+  mapStyle: 'street' | 'satellite' = 'street';
+  private streetLayer: any;
+  private satelliteLayer: any; 
 
-  analyticsData: any = { daily_stats: [], type_stats: [], recent_records: [] };
+  analyticsData: any = { daily_stats: [], type_stats: [], recent_records: [], hazard_stats: [], hazard_daily_stats: [] };
+  analyticsTab: 'emergency' | 'hazard' = 'emergency';
   filteredAnalyticsRecords: any[] = [];
   trendChartInstance: any;
   typeChartInstance: any;
+  hazardTrendChartInstance: any;
+  hazardTypeChartInstance: any;
   trendChartType: 'bar' | 'line' = 'bar'; 
   chartRange = 7; 
   currentFilterLabel: string = 'All Records';
 
-  constructor(private router: Router, private http: HttpClient, private api: ApiService, private toastController: ToastController, private menuCtrl: MenuController) {}
+  constructor(private router: Router, private http: HttpClient, private api: ApiService, private toastController: ToastController, private menuCtrl: MenuController, private alertCtrl: AlertController) {}
 
   ngOnInit() {
     this.isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -119,6 +161,8 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     if (this.pollingInterval) clearInterval(this.pollingInterval);
     if (this.trendChartInstance) this.trendChartInstance.destroy();
     if (this.typeChartInstance) this.typeChartInstance.destroy();
+    if (this.hazardTrendChartInstance) this.hazardTrendChartInstance.destroy();
+    if (this.hazardTypeChartInstance)  this.hazardTypeChartInstance.destroy();
   }
 
   toggleSidebar() {
@@ -132,9 +176,61 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     localStorage.setItem('darkMode', String(this.isDarkMode));
   }
 
-  logout() {
-    localStorage.clear();
-    this.router.navigate(['/login']);
+  async logout() {
+    const alert = await this.alertCtrl.create({
+      header: 'Logout',
+      message: 'Are you sure you want to logout?',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Logout',
+          role: 'destructive',
+          handler: () => {
+            // Clear dark mode so next login starts fresh
+            document.documentElement.classList.remove('ion-palette-dark');
+            localStorage.removeItem('darkMode');
+            localStorage.clear();
+            this.router.navigate(['/login']);
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  toggleMapStyle(style: 'street' | 'satellite') {
+    if (style === this.mapStyle || !this.map) return;
+    [this.streetLayer, this.satelliteLayer].forEach(l => { if (l) this.map.removeLayer(l); });
+    this.mapStyle = style;
+    if (style === 'street')    this.streetLayer.addTo(this.map);
+    if (style === 'satellite') this.satelliteLayer.addTo(this.map);
+  }
+
+  switchAnalyticsTab(tab: 'emergency' | 'hazard') {
+    this.analyticsTab = tab;
+    setTimeout(() => { tab === 'emergency' ? this.renderCharts() : this.renderHazardCharts(); }, 100);
+  }
+
+  renderHazardCharts() {
+    const tc = document.getElementById('hazardTrendChart') as HTMLCanvasElement;
+    const dc = document.getElementById('hazardTypeChart')  as HTMLCanvasElement;
+    if (!tc || !dc) return;
+    if (this.hazardTrendChartInstance) this.hazardTrendChartInstance.destroy();
+    if (this.hazardTypeChartInstance)  this.hazardTypeChartInstance.destroy();
+    const dates  = (this.analyticsData.hazard_daily_stats || []).map((d: any) => d.date);
+    const totals = (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.total) || 0);
+    this.hazardTrendChartInstance = new Chart(tc, {
+      type: this.trendChartType,
+      data: { labels: dates, datasets: [{ label: 'Hazard Reports', data: totals, backgroundColor: 'rgba(255,196,9,0.6)', borderColor: '#ffc409', borderWidth: 2, tension: 0.2 }] },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { stepSize: 1 }, beginAtZero: true } } }
+    });
+    const types  = (this.analyticsData.hazard_stats || []).map((t: any) => t.hazard_type || 'Unknown');
+    const counts = (this.analyticsData.hazard_stats || []).map((t: any) => t.total);
+    this.hazardTypeChartInstance = new Chart(dc, {
+      type: 'doughnut',
+      data: { labels: types, datasets: [{ data: counts, backgroundColor: ['#3880ff','#ffc409','#e0ac00','#2dd36f','#92949c'], hoverOffset: 10 }] },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
   }
 
   segmentChanged() {
@@ -196,6 +292,8 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     if (!trendCanvas || !typeCanvas) return;
     if (this.trendChartInstance) this.trendChartInstance.destroy();
     if (this.typeChartInstance) this.typeChartInstance.destroy();
+    if (this.hazardTrendChartInstance) this.hazardTrendChartInstance.destroy();
+    if (this.hazardTypeChartInstance)  this.hazardTypeChartInstance.destroy();
     const dates = this.analyticsData.daily_stats.map((d: any) => d.date);
     this.trendChartInstance = new Chart(trendCanvas, {
       type: this.trendChartType,
@@ -205,7 +303,8 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
           { label: 'Fire', data: this.analyticsData.daily_stats.map((d: any) => Number(d.fire) || 0), backgroundColor: 'rgba(235, 68, 90, 0.6)', borderColor: '#eb445a', borderWidth: 2, tension: 0.2 },
           { label: 'Flood', data: this.analyticsData.daily_stats.map((d: any) => Number(d.flood) || 0), backgroundColor: 'rgba(56, 128, 255, 0.6)', borderColor: '#3880ff', borderWidth: 2, tension: 0.2 },
           { label: 'Medical', data: this.analyticsData.daily_stats.map((d: any) => Number(d.medical) || 0), backgroundColor: 'rgba(45, 211, 111, 0.6)', borderColor: '#2dd36f', borderWidth: 2, tension: 0.2 },
-          { label: 'Crime', data: this.analyticsData.daily_stats.map((d: any) => Number(d.crime) || 0), backgroundColor: 'rgba(181, 95, 230, 0.6)', borderColor: '#bc6fff', borderWidth: 2, tension: 0.2 }
+          { label: 'Crime', data: this.analyticsData.daily_stats.map((d: any) => Number(d.crime) || 0), backgroundColor: 'rgba(181, 95, 230, 0.6)', borderColor: '#bc6fff', borderWidth: 2, tension: 0.2 },
+          { label: 'Others', data: this.analyticsData.daily_stats.map((d: any) => Number(d.others) || 0), backgroundColor: 'rgba(146,148,156,0.6)', borderColor: '#92949c', borderWidth: 2, tension: 0.2 }
         ]
       },
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { stepSize: 1 }, beginAtZero: true } }, onClick: (event, elements) => { if (elements.length > 0) { const index = elements[0].index; this.filterListByDate(dates[index]); } } }
@@ -240,7 +339,12 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   initMap() {
     this.map = L.map('dispatch-map', { minZoom: 12, zoomControl: true }).setView([15.3014, 120.9274], 13);
     // @ts-ignore
-    new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(this.map);
+    this.streetLayer    = new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+    this.satelliteLayer = L.layerGroup([
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '© Esri' }),
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, opacity: 0.9 })
+    ]);
+    this.streetLayer.addTo(this.map);
     this.map.on('popupopen', (e: any) => { const mapContainer = document.getElementById('dispatch-map'); mapContainer?.classList.add('map-has-selection'); const marker = e.popup._source; if (marker && marker._icon) { marker._icon.classList.add('selected-pin'); } });
     this.map.on('popupclose', (e: any) => { const mapContainer = document.getElementById('dispatch-map'); mapContainer?.classList.remove('map-has-selection'); const marker = e.popup._source; if (marker && marker._icon) { marker._icon.classList.remove('selected-pin'); } setTimeout(() => { this.selectedRequestId = null; this.previewType = null; }); });
     this.http.get('assets/data/san-isidro.geojson').subscribe((json: any) => {
