@@ -4,93 +4,121 @@
   </ion-toolbar>
 </ion-header>
 
+<!-- Declarative toast — works reliably in standalone without ToastController -->
+<ion-toast
+  [isOpen]="toastOpen"
+  [message]="toastMessage"
+  [color]="toastColor"
+  [duration]="3500"
+  position="bottom"
+  (didDismiss)="toastOpen = false">
+</ion-toast>
+
 <ion-content class="ion-padding ion-text-center">
-  
+
   <div class="ion-margin-vertical">
-    <img src="assets/icon/logo.jpg" alt="MDRRMO Logo" style="max-width: 120px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+    <img src="assets/icon/logo.jpg" alt="MDRRMO Logo"
+         style="max-width: 120px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
     <h2 style="font-weight: bold; margin-bottom: 5px; color: var(--ion-text-color);">Emergency Portal</h2>
-    <p class="ion-color-medium" style="margin-top: 0; font-weight: 500;">San Isidro, Nueva Ecija</p>
+    <p style="margin-top: 0; font-weight: 500; color: var(--ion-color-medium);">San Isidro, Nueva Ecija</p>
   </div>
 
+  <!-- ── Login ── -->
   <div *ngIf="viewMode === 'login'">
     <form (ngSubmit)="login()">
       <ion-list style="background: transparent;">
         <ion-item>
           <i class="fa-solid fa-user" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-          <ion-input label="Email or Username" labelPlacement="floating" type="text" [(ngModel)]="credentials.login" name="loginField" required></ion-input>
+          <ion-input label="Email or Username" labelPlacement="floating" type="text"
+                     [(ngModel)]="credentials.login" name="loginField" required></ion-input>
         </ion-item>
         <ion-item>
           <i class="fa-solid fa-lock" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-          <ion-input label="Password" labelPlacement="floating" type="password" [(ngModel)]="credentials.password" name="passwordField" required>
+          <ion-input label="Password" labelPlacement="floating" type="password"
+                     [(ngModel)]="credentials.password" name="passwordField" required>
             <ion-input-password-toggle slot="end"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
       </ion-list>
 
       <div class="ion-text-right">
-        <ion-button fill="clear" color="medium" size="small" style="text-transform: none; font-weight: bold;" (click)="viewMode = 'forgot'">
+        <ion-button fill="clear" color="medium" size="small"
+                    style="text-transform: none; font-weight: bold;" (click)="viewMode = 'forgot'">
           Forgot Password?
         </ion-button>
       </div>
 
-      <ion-button type="submit" expand="block" color="danger" style="font-weight: bold; height: 45px; margin-top: 15px; box-shadow: 0 4px 12px rgba(235, 68, 90, 0.3);">
+      <ion-button type="submit" expand="block" color="danger"
+                  style="font-weight: bold; height: 45px; margin-top: 15px; box-shadow: 0 4px 12px rgba(235,68,90,0.3);">
         Login
       </ion-button>
     </form>
 
     <div class="ion-margin-top">
       <ion-button fill="clear" color="medium" routerLink="/register" style="text-transform: none; font-weight: 500;">
-        Don't have an account? <span style="color: var(--ion-color-danger); margin-left: 4px; font-weight: bold;">Register here</span>
+        Don't have an account?
+        <span style="color: var(--ion-color-danger); margin-left: 4px; font-weight: bold;">Register here</span>
       </ion-button>
     </div>
   </div>
 
+  <!-- ── Forgot Password ── -->
   <div *ngIf="viewMode === 'forgot'">
     <h3 style="font-weight: bold; color: var(--ion-text-color);">Reset Password</h3>
-    <p class="ion-color-medium ion-margin-bottom" style="font-weight: 500;">Enter your email to receive an emergency recovery OTP.</p>
-    
+    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
+      Enter your email to receive a recovery OTP.
+    </p>
+
     <ion-list style="background: transparent;">
       <ion-item>
         <i class="fa-solid fa-envelope" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-        <ion-input label="Registered Email Address" labelPlacement="floating" type="email" [(ngModel)]="resetData.email"></ion-input>
+        <ion-input label="Registered Email Address" labelPlacement="floating"
+                   type="email" [(ngModel)]="resetData.email"></ion-input>
       </ion-item>
     </ion-list>
 
-    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="requestReset()" style="font-weight: bold; height: 45px; box-shadow: 0 4px 12px rgba(235, 68, 90, 0.3);">
+    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="requestReset()"
+                style="font-weight: bold; height: 45px;">
       Send Recovery OTP
     </ion-button>
-
-    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top" (click)="viewMode = 'login'" style="font-weight: bold;">
+    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
+                (click)="viewMode = 'login'" style="font-weight: bold;">
       Back to Login
     </ion-button>
   </div>
 
+  <!-- ── Verify OTP + New Password ── -->
   <div *ngIf="viewMode === 'reset'">
     <h3 style="font-weight: bold; color: var(--ion-text-color);">Verify OTP</h3>
-    <p class="ion-color-medium ion-margin-bottom" style="font-weight: 500;">Enter the 4-digit code sent to your email inbox.</p>
+    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
+      Enter the 4-digit code sent to your email.
+    </p>
 
     <ion-list style="background: transparent;">
       <ion-item>
         <i class="fa-solid fa-key" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-        <ion-input label="4-Digit Verification OTP" labelPlacement="floating" type="number" [(ngModel)]="resetData.otp"></ion-input>
+        <ion-input label="4-Digit OTP" labelPlacement="floating"
+                   type="number" [(ngModel)]="resetData.otp"></ion-input>
       </ion-item>
       <ion-item>
         <i class="fa-solid fa-lock-open" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-        <ion-input label="New Crypt Password" labelPlacement="floating" type="password" [(ngModel)]="resetData.new_password">
+        <ion-input label="New Password" labelPlacement="floating"
+                   type="password" [(ngModel)]="resetData.new_password">
           <ion-input-password-toggle slot="end"></ion-input-password-toggle>
         </ion-input>
       </ion-item>
     </ion-list>
 
     <p style="font-size: 12px; color: var(--ion-color-medium); text-align: left; padding: 0 10px; font-weight: 500;">
-      Must be 8+ chars with uppercase, number, & special symbol.
+      Must be 8+ chars with uppercase, number, and special symbol.
     </p>
 
-    <ion-button expand="block" color="success" class="ion-margin-top" (click)="confirmReset()" style="font-weight: bold; height: 45px; box-shadow: 0 4px 12px rgba(45, 211, 111, 0.3);">
+    <ion-button expand="block" color="success" class="ion-margin-top" (click)="confirmReset()"
+                style="font-weight: bold; height: 45px;">
       Confirm New Password
     </ion-button>
-
-    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top" (click)="viewMode = 'login'" style="font-weight: bold;">
+    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
+                (click)="viewMode = 'login'" style="font-weight: bold;">
       Cancel
     </ion-button>
   </div>
