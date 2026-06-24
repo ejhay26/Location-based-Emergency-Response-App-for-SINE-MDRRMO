@@ -1,91 +1,230 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="danger">
-    <ion-buttons slot="start"><ion-back-button defaultHref="/home" style="color: white;"></ion-back-button></ion-buttons>
+    <ion-buttons slot="start">
+      <ion-menu-button style="color: white;"></ion-menu-button>
+    </ion-buttons>
     <ion-title style="color: white; font-weight: bold;">My Account</ion-title>
   </ion-toolbar>
 </ion-header>
 
+<!-- Declarative toast -->
+<ion-toast
+  [isOpen]="toastOpen"
+  [message]="toastMessage"
+  [color]="toastColor"
+  [duration]="3000"
+  position="bottom"
+  (didDismiss)="toastOpen = false">
+</ion-toast>
+
+<!--
+  Profile photo input:
+  - accept="image/*" allows any image format
+  - capture="environment" on mobile opens the CAMERA directly, not gallery
+  - On desktop/browser (ionic serve) it opens a file picker — that's fine for dev
+  - On Android/iOS the `capture` attribute forces the camera app to launch
+-->
+<input id="profilePhotoInput" type="file" accept="image/*" capture="user"
+       style="display: none;" (change)="onPhotoFileSelected($event)" />
+
 <ion-content class="ion-padding">
-  
+
+  <!-- ── Avatar ── -->
   <div class="ion-text-center ion-margin-vertical">
-    <ion-avatar style="width: 120px; height: 120px; margin: 0 auto; border: 4px solid var(--ion-color-danger);">
-      <img [src]="userData.profile_picture" alt="Profile Picture" />
-    </ion-avatar>
-    <ion-button fill="clear" color="danger" size="small" class="ion-margin-top" (click)="changePhoto()" style="font-weight: bold;">
-      Change Photo
+    <div style="
+      width: 120px; height: 120px; margin: 0 auto;
+      border-radius: 50%; overflow: hidden;
+      border: 4px solid var(--ion-color-danger);
+      background: var(--ion-color-light);
+      display: flex; align-items: center; justify-content: center;
+    ">
+      <img *ngIf="displayAvatar" [src]="displayAvatar"
+           style="width: 100%; height: 100%; object-fit: cover;"
+           (error)="userData.profile_picture = ''" />
+      <i *ngIf="!displayAvatar" class="fa-solid fa-circle-user"
+         style="font-size: 80px; color: var(--ion-color-medium);"></i>
+    </div>
+    <ion-button fill="clear" color="danger" size="small" class="ion-margin-top"
+                (click)="triggerPhotoPicker()" style="font-weight: bold;">
+      <i class="fa-solid fa-camera" style="margin-right: 6px;"></i> Change Photo
     </ion-button>
   </div>
 
   <ion-list style="background: transparent;">
-    <ion-list-header style="padding-left: 0;"><ion-label color="danger" style="font-weight: bold; font-size: 16px;">Personal Information</ion-label></ion-list-header>
-    
+
+    <!-- Personal Info -->
+    <ion-list-header style="padding-left: 0;">
+      <ion-label color="danger" style="font-weight: bold; font-size: 16px;">Personal Information</ion-label>
+    </ion-list-header>
+
     <ion-item>
       <i class="fa-solid fa-user" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-      <ion-label><h3>Full Name</h3><p style="font-weight: 500; color: var(--ion-text-color);">{{ userData.first_name }} {{ userData.last_name }}</p></ion-label>
+      <ion-label>
+        <h3>Full Name</h3>
+        <p style="font-weight: 500; color: var(--ion-text-color);">{{ userData.first_name }} {{ userData.last_name }}</p>
+      </ion-label>
     </ion-item>
-    
+
+    <ion-item>
+      <i class="fa-solid fa-at" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+      <ion-label>
+        <h3>Username</h3>
+        <p style="font-weight: 500; color: var(--ion-text-color);">{{ userData.username || 'Not set' }}</p>
+      </ion-label>
+    </ion-item>
+
     <ion-item>
       <i class="fa-solid fa-calendar-days" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-      <ion-label><h3>Birthdate & Age</h3><p style="font-weight: 500; color: var(--ion-text-color);">{{ userData.birthdate ? userData.birthdate : 'Not set' }} ({{ calculatedAge }} years old)</p></ion-label>
+      <ion-label>
+        <h3>Birthdate & Age</h3>
+        <p style="font-weight: 500; color: var(--ion-text-color);">
+          {{ userData.birthdate ? userData.birthdate : 'Not set' }}
+          <span *ngIf="userData.birthdate"> ({{ calculatedAge }} years old)</span>
+        </p>
+      </ion-label>
     </ion-item>
 
-    <ion-list-header style="padding-left: 0;" class="ion-margin-top"><ion-label color="danger" style="font-weight: bold; font-size: 16px;">Contact & Location (Locked)</ion-label></ion-list-header>
-    
+    <!-- Contact & Location (read-only) -->
+    <ion-list-header style="padding-left: 0;" class="ion-margin-top">
+      <ion-label color="danger" style="font-weight: bold; font-size: 16px;">Contact & Location</ion-label>
+    </ion-list-header>
+
     <ion-item>
       <i class="fa-solid fa-phone" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-      <ion-label><h3>Phone Number</h3><p style="font-weight: 500; color: var(--ion-text-color);">{{ userData.phone }}</p></ion-label>
-    </ion-item>
-    
-    <ion-item>
-      <i class="fa-solid fa-envelope" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-      <ion-label><h3>Email Address</h3><p style="font-weight: 500; color: var(--ion-text-color);">{{ userData.email }}</p></ion-label>
-    </ion-item>
-    
-    <ion-item>
-      <i class="fa-solid fa-map-pin" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-      <ion-label><h3>Barangay ID Reference</h3><p style="font-weight: 500; color: var(--ion-text-color);">Barangay #{{ userData.barangay_id }}</p></ion-label>
+      <ion-label>
+        <h3>Phone Number</h3>
+        <p style="font-weight: 500; color: var(--ion-text-color);">{{ userData.phone }}</p>
+      </ion-label>
     </ion-item>
 
-    <ion-list-header style="padding-left: 0;" class="ion-margin-top"><ion-label color="danger" style="font-weight: bold; font-size: 16px;">Medical & Vulnerability Profile</ion-label></ion-list-header>
+    <ion-item>
+      <i class="fa-solid fa-envelope" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+      <ion-label>
+        <h3>Email Address</h3>
+        <p style="font-weight: 500; color: var(--ion-text-color);">{{ userData.email }}</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item>
+      <i class="fa-solid fa-map-pin" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+      <ion-label>
+        <h3>Barangay</h3>
+        <p style="font-weight: 500; color: var(--ion-text-color);">{{ barangayName }}</p>
+      </ion-label>
+    </ion-item>
+
+    <!-- Medical Profile -->
+    <ion-list-header style="padding-left: 0;" class="ion-margin-top">
+      <ion-label color="danger" style="font-weight: bold; font-size: 16px;">Medical & Vulnerability Profile</ion-label>
+    </ion-list-header>
+
     <ion-card color="light" style="margin: 10px 0 0 0;">
       <ion-card-content>
-        <p style="margin-bottom:15px; color: var(--ion-color-medium); font-weight: 500;">Optional: Provide verified records to assist tactical rescue response dispatch optimization metrics in emergency incidents.</p>
+        <p style="margin-bottom: 15px; color: var(--ion-color-medium); font-weight: 500; font-size: 13px;">
+          Optional — helps responders prepare before arriving at your location.
+        </p>
         <ion-item class="ion-margin-bottom" fill="outline">
           <ion-select label="Blood Type" labelPlacement="floating" [(ngModel)]="medicalData.blood_type">
-            <ion-select-option value="A+">A+</ion-select-option><ion-select-option value="A-">A-</ion-select-option><ion-select-option value="B+">B+</ion-select-option><ion-select-option value="B-">B-</ion-select-option><ion-select-option value="AB+">AB+</ion-select-option><ion-select-option value="AB-">AB-</ion-select-option><ion-select-option value="O+">O+</ion-select-option><ion-select-option value="O-">O-</ion-select-option>
+            <ion-select-option value="A+">A+</ion-select-option>
+            <ion-select-option value="A-">A-</ion-select-option>
+            <ion-select-option value="B+">B+</ion-select-option>
+            <ion-select-option value="B-">B-</ion-select-option>
+            <ion-select-option value="AB+">AB+</ion-select-option>
+            <ion-select-option value="AB-">AB-</ion-select-option>
+            <ion-select-option value="O+">O+</ion-select-option>
+            <ion-select-option value="O-">O-</ion-select-option>
           </ion-select>
         </ion-item>
-        <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="Allergies" labelPlacement="floating" [(ngModel)]="medicalData.allergies" placeholder="e.g. Penicillin, Peanuts"></ion-input></ion-item>
-        <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="Medical Conditions" labelPlacement="floating" [(ngModel)]="medicalData.medical_conditions" placeholder="e.g. Asthma, Hypertension"></ion-input></ion-item>
-        <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="PWD Status" labelPlacement="floating" [(ngModel)]="medicalData.pwd_status" placeholder="e.g. Wheelchair user, Deaf"></ion-input></ion-item>
-        <ion-button expand="block" color="danger" (click)="saveMedicalProfile()" style="font-weight: bold; height: 45px;">
+        <ion-item class="ion-margin-bottom" fill="outline">
+          <ion-input label="Allergies" labelPlacement="floating"
+                     [(ngModel)]="medicalData.allergies" placeholder="e.g. Penicillin, Peanuts"></ion-input>
+        </ion-item>
+        <ion-item class="ion-margin-bottom" fill="outline">
+          <ion-input label="Medical Conditions" labelPlacement="floating"
+                     [(ngModel)]="medicalData.medical_conditions" placeholder="e.g. Asthma, Hypertension"></ion-input>
+        </ion-item>
+        <ion-item class="ion-margin-bottom" fill="outline">
+          <ion-input label="PWD Status" labelPlacement="floating"
+                     [(ngModel)]="medicalData.pwd_status" placeholder="e.g. Wheelchair user, Deaf"></ion-input>
+        </ion-item>
+        <ion-button expand="block" color="danger" (click)="saveMedicalProfile()"
+                    style="font-weight: bold; height: 45px;">
           <i class="fa-solid fa-floppy-disk" style="margin-right: 8px;"></i> Save Medical Profile
         </ion-button>
       </ion-card-content>
     </ion-card>
 
-    <ion-list-header style="padding-left: 0;" class="ion-margin-top"><ion-label color="danger" style="font-weight: bold; font-size: 16px;">Password Security</ion-label></ion-list-header>
-    <ion-card color="light" style="margin: 10px 0 0 0;">
+    <!-- Password -->
+    <ion-list-header style="padding-left: 0;" class="ion-margin-top">
+      <ion-label color="danger" style="font-weight: bold; font-size: 16px;">Password Security</ion-label>
+    </ion-list-header>
+
+    <ion-card color="light" style="margin: 10px 0 20px 0;">
       <ion-card-content>
-        
-        <ion-button *ngIf="!showPasswordForm" expand="block" fill="outline" color="dark" (click)="showPasswordForm = true" style="font-weight: bold; height: 45px;">
+        <ion-button *ngIf="!showPasswordForm" expand="block" fill="outline" color="dark"
+                    (click)="showPasswordForm = true" style="font-weight: bold; height: 45px;">
           <i class="fa-solid fa-lock" style="margin-right: 8px;"></i> Change Password
         </ion-button>
-
         <div *ngIf="showPasswordForm">
-          <p style="margin-bottom:15px; color: var(--ion-color-medium); font-size: 13px;">Security validation criteria enforce 8+ character length, uppercase, digit numbers, and unique symbols.</p>
-          <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="Current Crypt Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.current"></ion-input></ion-item>
-          <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="New Crypt Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.new"></ion-input></ion-item>
-          <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="Confirm New Password" labelPlacement="floating" type="password" [(ngModel)]="passwords.confirm"></ion-input></ion-item>
-          
+          <p style="margin-bottom: 15px; color: var(--ion-color-medium); font-size: 13px;">
+            8+ characters, uppercase, digit, and special symbol required.
+          </p>
+          <ion-item class="ion-margin-bottom" fill="outline">
+            <ion-input label="Current Password" labelPlacement="floating"
+                       type="password" [(ngModel)]="passwords.current"></ion-input>
+          </ion-item>
+          <ion-item class="ion-margin-bottom" fill="outline">
+            <ion-input label="New Password" labelPlacement="floating"
+                       type="password" [(ngModel)]="passwords.new"></ion-input>
+          </ion-item>
+          <ion-item class="ion-margin-bottom" fill="outline">
+            <ion-input label="Confirm New Password" labelPlacement="floating"
+                       type="password" [(ngModel)]="passwords.confirm"></ion-input>
+          </ion-item>
           <ion-row>
-            <ion-col><ion-button expand="block" fill="clear" color="medium" (click)="showPasswordForm = false" style="font-weight: bold;">Cancel</ion-button></ion-col>
-            <ion-col><ion-button expand="block" color="danger" (click)="updatePassword()" style="font-weight: bold;">Update</ion-button></ion-col>
+            <ion-col>
+              <ion-button expand="block" fill="clear" color="medium"
+                          (click)="showPasswordForm = false" style="font-weight: bold;">Cancel</ion-button>
+            </ion-col>
+            <ion-col>
+              <ion-button expand="block" color="danger"
+                          (click)="updatePassword()" style="font-weight: bold;">Update</ion-button>
+            </ion-col>
           </ion-row>
         </div>
-
       </ion-card-content>
     </ion-card>
 
   </ion-list>
 </ion-content>
+
+<!-- ── Profile Photo Crop Modal ── -->
+<ion-modal [isOpen]="showCropper" [backdropDismiss]="false">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar color="danger">
+        <ion-title style="color: white; font-weight: bold;">Crop Profile Photo</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cancelCrop()" style="color: white; font-weight: bold;">Cancel</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding" style="text-align: center;">
+      <p style="font-size: 13px; color: gray; margin-bottom: 12px;">
+        Drag to position. Use handles to crop.
+      </p>
+      <image-cropper
+        [imageFile]="cropperFile || undefined"
+        [maintainAspectRatio]="true"
+        [aspectRatio]="1"
+        format="jpeg"
+        (imageCropped)="onPhotoCropped($event)"
+        style="max-height: 65vh;">
+      </image-cropper>
+      <ion-button expand="block" color="danger" (click)="confirmCrop()"
+                  style="font-weight: bold; height: 48px; margin-top: 16px;">
+        <i class="fa-solid fa-crop-simple" style="margin-right: 8px;"></i> Use This Photo
+      </ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>
