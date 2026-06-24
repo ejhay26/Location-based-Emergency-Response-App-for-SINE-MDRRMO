@@ -59,6 +59,7 @@ function createWindow() {
 
   win.setMenuBarVisibility(false);
   win.loadFile(path.join(__dirname, 'www', 'index.html'));
+  win.removeMenu();
 
   // Uncomment to debug:
   // win.webContents.openDevTools();
