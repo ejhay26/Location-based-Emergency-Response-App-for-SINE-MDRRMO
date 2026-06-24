@@ -1,57 +1,53 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth-guard';
-import { GuestGuard } from './guards/guest-guard'; 
+import { GuestGuard } from './guards/guest-guard';
 
 export const routes: Routes = [
   {
+    // Root → welcome. The welcome page itself decides where to go next:
+    //   - first-time user: stays on welcome, then Login or Register
+    //   - returning user (welcomeSeen=true + stored session): straight to dashboard
+    //   - returning user (welcomeSeen=true, no session): straight to login
     path: '',
-    redirectTo: 'login',
+    redirectTo: 'welcome',
     pathMatch: 'full',
   },
   {
+    path: 'welcome',
+    loadComponent: () => import('./welcome/welcome.page').then(m => m.WelcomePage),
+    // No guard — the page handles its own redirect logic
+  },
+  {
     path: 'login',
-    loadComponent: () => import('./login/login.page').then( m => m.LoginPage),
-    canActivate: [GuestGuard] 
+    loadComponent: () => import('./login/login.page').then(m => m.LoginPage),
+    canActivate: [GuestGuard]
   },
   {
     path: 'register',
-    loadComponent: () => import('./register/register.page').then( m => m.RegisterPage),
-    canActivate: [GuestGuard] 
+    loadComponent: () => import('./register/register.page').then(m => m.RegisterPage),
+    canActivate: [GuestGuard]
   },
   {
     path: 'home',
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+    loadComponent: () => import('./home/home.page').then(m => m.HomePage),
     canActivate: [AuthGuard],
-    data: { roles: ['citizen'] } // Only citizens allowed
+    data: { roles: ['citizen'] }
   },
   {
     path: 'admin-dashboard',
-    loadComponent: () => import('./admin-dashboard/admin-dashboard.page').then( m => m.AdminDashboardPage),
+    loadComponent: () => import('./admin-dashboard/admin-dashboard.page').then(m => m.AdminDashboardPage),
     canActivate: [AuthGuard],
-    data: { roles: ['admin', 'dispatcher'] } // Admin AND Dispatcher allowed!
+    data: { roles: ['admin', 'dispatcher'] }
   },
-  // removed this page for unified report page, but can be added back if we want separate flows for hazards vs emergencies
-  // {
-  //   path: 'sos',
-  //   loadComponent: () => import('./sos/sos.page').then( m => m.SosPage),
-  //   canActivate: [AuthGuard],
-  //   data: { roles: ['citizen'] } // Only citizens can trigger an SOS
-  // },
   {
     path: 'profile',
-    loadComponent: () => import('./profile/profile.page').then( m => m.ProfilePage),
-    canActivate: [AuthGuard] // Anyone who is logged in can view their profile
+    loadComponent: () => import('./profile/profile.page').then(m => m.ProfilePage),
+    canActivate: [AuthGuard]
   },
-  // removed this page for unified report page, but can be added back if we want separate flows for hazards vs emergencies
-  // {
-  //   path: 'hazard',
-  //   loadComponent: () => import('./hazard/hazard.page').then( m => m.HazardPage)
-  // },
   {
     path: 'report',
-    loadComponent: () => import('./report/report.page').then( m => m.ReportPage),
+    loadComponent: () => import('./report/report.page').then(m => m.ReportPage),
     canActivate: [AuthGuard],
-    data: { roles: ['citizen'] } // Only citizens can report emergencies or hazards
+    data: { roles: ['citizen'] }
   }
-
 ];
