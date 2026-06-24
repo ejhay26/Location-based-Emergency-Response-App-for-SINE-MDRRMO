@@ -190,3 +190,14 @@ html.ion-palette-dark .leaflet-popup-tip {
   color: var(--ion-color-medium);
   margin-top: 5px;
 }
+
+/* Active menu item highlight */
+.menu-item-active {
+  --background: rgba(var(--ion-color-danger-rgb), 0.12) !important;
+  --color: var(--ion-color-danger) !important;
+  font-weight: 700 !important;
+}
+ 
+.menu-item-active i {
+  color: var(--ion-color-danger) !important;
+}
