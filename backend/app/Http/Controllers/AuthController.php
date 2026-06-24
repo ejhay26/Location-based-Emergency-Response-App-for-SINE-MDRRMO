@@ -93,7 +93,24 @@ class AuthController extends Controller
             'valid_id_proof' => $idStoragePath 
         ]);
 
-        return response()->json(['message' => 'OTP sent to email', 'email' => $user->email], 200);
+        $otp = rand(1000, 9999);
+        // Store OTP temporarily (use cache or a DB column)
+        \Cache::put('otp_' . $request->email, $otp, now()->addMinutes(10));
+ 
+        $channel = $request->input('otp_channel', 'email');
+ 
+        if ($channel === 'sms') {
+            // Send via Semaphore SMS
+            $sent = $this->semaphore->sendOtp($request->phone, $otp);
+            if (!$sent) {
+                return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
+            }
+        } else {
+            // Send via email (your existing mail logic)
+            \Mail::to($request->email)->send(new \App\Mail\OtpMail($otp));
+        }
+    
+        return response()->json(['message' => 'Verification code sent.']);
     }
 
     public function checkUsername(Request $request)
