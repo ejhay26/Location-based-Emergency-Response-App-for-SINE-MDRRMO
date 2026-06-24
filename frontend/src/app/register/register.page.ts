@@ -1,16 +1,32 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { ToastController } from '@ionic/angular';
+import {
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
+  IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
+  IonInputPasswordToggle, IonLabel, IonCard, IonCardContent,
+  IonSelect, IonSelectOption, IonChip, IonCheckbox,
+  IonRow, IonCol, IonButton, IonModal
+} from '@ionic/angular/standalone';
+import { ImageCropperComponent, ImageCroppedEvent, LoadedImage } from 'ngx-image-cropper';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ApiService } from '../services/api';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [
+    CommonModule, FormsModule,
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
+    IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
+    IonInputPasswordToggle, IonLabel, IonCard, IonCardContent,
+    IonSelect, IonSelectOption, IonChip, IonCheckbox,
+    IonRow, IonCol, IonButton, IonModal,
+    ImageCropperComponent
+  ],
 })
 export class RegisterPage {
 
@@ -18,7 +34,14 @@ export class RegisterPage {
   otpCode = '';
   passwordFocused = false;
   termsAccepted = false;
+
+  // Valid ID capture
   validIdPreview: string | null = null;
+  rawIdImageFile: File | null = null;
+  showIdCropper = false;
+
+  // OTP channel selection
+  otpChannel: 'email' | 'sms' = 'email';
 
   usernameStatus: 'idle' | 'checking' | 'available' | 'taken' = 'idle';
   emailStatus: 'idle' | 'checking' | 'available' | 'taken' = 'idle';
@@ -33,14 +56,16 @@ export class RegisterPage {
 
   userData = {
     first_name: '', last_name: '', phone: '', birthdate: '', username: '',
-    email: '', password: '', confirm_password: '', barangay_id: null,
-    valid_id_image: ''
+    email: '', password: '', confirm_password: '', barangay_id: null as number | null,
+    valid_id_image: '',
+    otp_channel: 'email' as 'email' | 'sms'
   };
 
   constructor(
     private router: Router,
     private api: ApiService,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private sanitizer: DomSanitizer
   ) {}
 
   checkLength(): boolean { return this.userData.password?.length >= 8; }
@@ -94,14 +119,56 @@ export class RegisterPage {
     this.usernameSuggestions = [];
   }
 
-  async captureValidId() {
-    try {
-      const image = await Camera.getPhoto({ quality: 80, allowEditing: false, resultType: CameraResultType.DataUrl, source: CameraSource.Camera });
-      this.validIdPreview = image.dataUrl || null;
-      this.userData.valid_id_image = this.validIdPreview || '';
-    } catch (e) { this.showToast('Camera closed.'); }
+  // ── ID Capture using native file input (non-deprecated) ─────────────────────
+  triggerIdCapture() {
+    document.getElementById('idCaptureInput')?.click();
   }
 
+  onIdFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { this.showToast('File too large. Max 10MB.'); return; }
+    this.rawIdImageFile = file;
+    this.showIdCropper = true;
+    // Reset the input so the same file can be re-selected if needed
+    (event.target as HTMLInputElement).value = '';
+  }
+
+  idCropperImageChangedEvent: Event | null = null;
+  idCroppedBase64: string = '';
+
+  get idCropperImageFile(): File | null { return this.rawIdImageFile; }
+
+  onIdCropped(event: ImageCroppedEvent) {
+    this.idCroppedBase64 = event.base64 || '';
+  }
+
+  confirmIdCrop() {
+    if (!this.idCroppedBase64) { this.showToast('Please wait for the image to load.'); return; }
+    this.validIdPreview = this.idCroppedBase64;
+    this.userData.valid_id_image = this.idCroppedBase64;
+    this.showIdCropper = false;
+    this.rawIdImageFile = null;
+  }
+
+  cancelIdCrop() {
+    this.showIdCropper = false;
+    this.rawIdImageFile = null;
+    this.idCroppedBase64 = '';
+  }
+
+  clearValidId() {
+    this.validIdPreview = null;
+    this.userData.valid_id_image = '';
+  }
+
+  // ── OTP Channel Selection ───────────────────────────────────────────────────
+  selectOtpChannel(channel: 'email' | 'sms') {
+    this.otpChannel = channel;
+    this.userData.otp_channel = channel;
+  }
+
+  // ── Step Navigation ─────────────────────────────────────────────────────────
   nextStep() {
     if (this.currentStep === 1) {
       if (!this.userData.first_name || !this.userData.last_name || !this.userData.phone || !this.userData.birthdate) {
@@ -124,6 +191,8 @@ export class RegisterPage {
         this.showToast('Passwords do not match.'); return;
       }
       if (!this.termsAccepted) { this.showToast('You must accept the Terms and Conditions.'); return; }
+      // Step 2 goes to OTP channel selection (step 2.5, embedded in step 2 UI)
+      // then submits registration
       this.submitRegistration(); return;
     }
     this.currentStep++;
@@ -133,7 +202,13 @@ export class RegisterPage {
 
   submitRegistration() {
     this.api.register(this.userData).subscribe({
-      next: () => { this.showToast('Verification code sent to your email.'); this.currentStep = 3; },
+      next: () => {
+        const channelLabel = this.otpChannel === 'sms'
+          ? `your phone number ${this.userData.phone}`
+          : `your email ${this.userData.email}`;
+        this.showToast(`Verification code sent to ${channelLabel}.`);
+        this.currentStep = 3;
+      },
       error: (err: any) => { this.showToast(err.error?.message || 'Registration failed.'); }
     });
   }
@@ -149,8 +224,8 @@ export class RegisterPage {
     });
   }
 
-  async showToast(msg: string) {
-    const toast = await this.toastController.create({ message: msg, duration: 3000, position: 'bottom', color: 'danger' });
+  async showToast(msg: string, color = 'danger') {
+    const toast = await this.toastController.create({ message: msg, duration: 3000, position: 'bottom', color });
     await toast.present();
   }
 }
