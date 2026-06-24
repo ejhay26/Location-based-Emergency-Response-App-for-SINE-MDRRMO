@@ -1,14 +1,24 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, MenuController, ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { ToastController, MenuController } from '@ionic/angular';
+import {
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton,
+  IonContent, IonButton, IonList, IonListHeader, IonLabel,
+  IonCard, IonItem, IonBadge
+} from '@ionic/angular/standalone';
 import { ApiService } from '../services/api';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   standalone: true,
-  imports: [IonicModule, CommonModule],
+  imports: [
+    CommonModule,
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton,
+    IonContent, IonButton, IonList, IonListHeader, IonLabel,
+    IonCard, IonItem, IonBadge
+  ],
 })
 export class HomePage {
   recentRequests: any[] = [];
