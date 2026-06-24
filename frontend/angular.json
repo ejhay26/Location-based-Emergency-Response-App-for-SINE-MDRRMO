@@ -18,6 +18,11 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
+
+            "allowedCommonJsDependencies": [
+              "leaflet"
+            ],
+
             "outputPath": {
               "base": "www",
               "browser": ""
@@ -82,11 +87,8 @@
             "development": {
               "buildTarget": "app:build:development",
               "allowedHosts": [
-      "interbranchial-angella-nonteleologically.ngrok-free.dev"
+                "all"
     ]
-            },
-            "ci": {
-              "progress": false
             }
             
           },
