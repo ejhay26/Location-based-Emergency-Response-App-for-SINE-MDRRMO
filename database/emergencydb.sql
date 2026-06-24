@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 27, 2026 at 12:55 PM
+-- Generation Time: Jun 22, 2026 at 08:16 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.5.7
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -83,6 +83,14 @@ CREATE TABLE `dispatch` (
   `status` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `dispatch`
+--
+
+INSERT INTO `dispatch` (`dispatch_id`, `request_id`, `responder_id`, `vehicle_id`, `dispatch_time`, `arrival_time`, `status`) VALUES
+(1, 4, 2, 2, '2026-06-13 09:41:33', '2026-06-13 09:43:20', 'Completed'),
+(2, 8, 4, 3, '2026-06-13 09:44:55', '2026-06-13 09:46:23', 'Completed');
+
 -- --------------------------------------------------------
 
 --
@@ -93,7 +101,7 @@ CREATE TABLE `emergency_requests` (
   `request_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `incident_type_id` int(11) DEFAULT NULL,
-  `proof_file` varchar(255) DEFAULT NULL,
+  `proof_files` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`proof_files`)),
   `latitude` decimal(10,8) DEFAULT NULL,
   `longitude` decimal(11,8) DEFAULT NULL,
   `location_id` int(11) DEFAULT NULL,
@@ -108,10 +116,13 @@ CREATE TABLE `emergency_requests` (
 -- Dumping data for table `emergency_requests`
 --
 
-INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `proof_file`, `latitude`, `longitude`, `location_id`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
+INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `proof_files`, `latitude`, `longitude`, `location_id`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (3, 1, 3, NULL, 15.30542100, 120.91368200, NULL, 'Cancelled', '2026-05-08 02:46:44', '2026-05-08 02:46:44', '2026-05-08 07:18:13', NULL),
-(4, 3, 4, 'storage/emergencies/sos_1778388008_3.png', 15.27727200, 120.90597900, NULL, 'Pending', '2026-05-09 20:40:08', '2026-05-09 20:40:08', '2026-05-09 20:40:08', NULL),
-(5, 1, 1, 'storage/emergencies/sos_1778388059_1.png', 15.29416200, 120.90593600, NULL, 'Cancelled', '2026-05-09 20:40:59', '2026-05-09 20:40:59', '2026-05-22 18:34:15', NULL);
+(4, 3, 4, '[\"storage/emergencies/sos_1778388008_3.png\"]', 15.27727200, 120.90597900, NULL, 'Resolved', '2026-05-09 20:40:08', '2026-05-09 20:40:08', '2026-06-14 02:40:38', NULL),
+(5, 1, 1, '[\"storage/emergencies/sos_1778388059_1.png\"]', 15.29416200, 120.90593600, NULL, 'Cancelled', '2026-05-09 20:40:59', '2026-05-09 20:40:59', '2026-06-14 02:40:38', NULL),
+(6, 1, 2, '[\"storage/emergencies/sos_20260611_094105_1.mp4\"]', 15.22605500, 120.90042100, NULL, 'Cancelled', '2026-06-11 01:41:05', '2026-06-11 01:41:05', '2026-06-14 02:40:38', NULL),
+(7, 1, 2, '[\"storage/emergencies/sos_20260613_093824_1.png\"]', 15.30950500, 120.90758600, NULL, 'Cancelled', '2026-06-13 01:38:24', '2026-06-13 01:38:24', '2026-06-14 02:40:38', NULL),
+(8, 3, 3, '[\"storage/emergencies/sos_20260613_094422_3.png\"]', 15.30951900, 120.90291000, NULL, 'Resolved', '2026-06-13 01:44:22', '2026-06-13 01:44:22', '2026-06-14 02:40:38', NULL);
 
 -- --------------------------------------------------------
 
@@ -124,7 +135,7 @@ CREATE TABLE `hazards` (
   `user_id` int(11) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
   `hazard_type` varchar(50) DEFAULT NULL,
-  `proof_file` varchar(255) DEFAULT NULL,
+  `proof_files` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`proof_files`)),
   `latitude` decimal(10,8) DEFAULT NULL,
   `longitude` decimal(11,8) DEFAULT NULL,
   `status` varchar(50) DEFAULT 'Active',
@@ -136,8 +147,9 @@ CREATE TABLE `hazards` (
 -- Dumping data for table `hazards`
 --
 
-INSERT INTO `hazards` (`hazard_id`, `user_id`, `description`, `hazard_type`, `proof_file`, `latitude`, `longitude`, `status`, `created_at`, `updated_at`) VALUES
-(1, 3, 'Broken Road', NULL, 'storage/emergencies/hazard_1778387633_3.png', 15.27789300, 120.90927300, 'Active', '2026-05-09 20:33:53', '2026-05-09 20:33:53');
+INSERT INTO `hazards` (`hazard_id`, `user_id`, `description`, `hazard_type`, `proof_files`, `latitude`, `longitude`, `status`, `created_at`, `updated_at`) VALUES
+(1, 3, 'Broken Road', NULL, '[\"storage/emergencies/hazard_1778387633_3.png\"]', 15.27789300, 120.90927300, 'Resolved', '2026-05-09 20:33:53', '2026-06-14 02:40:38'),
+(2, 1, 'baha', 'Flooded Street', '[\"storage/emergencies/hazard_20260613_093939_1.mp4\"]', 15.29582200, 120.88609000, 'Resolved', '2026-06-13 01:39:39', '2026-06-14 02:40:38');
 
 -- --------------------------------------------------------
 
@@ -218,7 +230,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `phone`, `birthdate`, `profile_picture`, `email`, `password`, `role`, `account_status`, `barangay_id`, `created_at`, `updated_at`, `deleted_at`, `blood_type`, `allergies`, `medical_conditions`, `pwd_status`) VALUES
-(1, 'Emmanuel John', 'Perez', 'user1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez623@gmail.com', '$2y$12$MNajtoT1vSxVNOw6I2pt.e7ipmAOb4Cy3HOAPsyxLwg/IZoxd/Eni', 'citizen', 'active', 9, '2026-05-07 05:45:17', '2026-05-07 17:33:12', NULL, NULL, NULL, NULL, NULL),
+(1, 'Emmanuel John', 'Perez', 'user1', '09123456789', NULL, 'http://127.0.0.1:8000/storage/profiles/profile_1781411581_1.png', 'ejperez623@gmail.com', '$2y$12$MNajtoT1vSxVNOw6I2pt.e7ipmAOb4Cy3HOAPsyxLwg/IZoxd/Eni', 'citizen', 'active', 9, '2026-05-07 05:45:17', '2026-06-14 04:33:01', NULL, NULL, NULL, NULL, NULL),
 (3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 1, '2026-05-07 05:45:17', '2026-05-07 17:33:20', NULL, NULL, NULL, NULL, NULL),
 (4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 1, '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL, NULL, NULL, NULL, NULL),
 (8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', 3, '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL, NULL, NULL, NULL, NULL),
@@ -336,19 +348,19 @@ ALTER TABLE `broadcasts`
 -- AUTO_INCREMENT for table `dispatch`
 --
 ALTER TABLE `dispatch`
-  MODIFY `dispatch_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `dispatch_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `emergency_requests`
 --
 ALTER TABLE `emergency_requests`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `hazards`
 --
 ALTER TABLE `hazards`
-  MODIFY `hazard_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `hazard_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `incident_types`
