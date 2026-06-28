@@ -57,6 +57,7 @@
     "@capacitor/haptics": "8.0.2",
     "@capacitor/ios": "^8.4.0",
     "@capacitor/keyboard": "8.0.3",
+    "@capacitor/push-notifications": "^8.1.1",
     "@capacitor/status-bar": "8.0.2",
     "@ionic/angular": "^8.0.0",
     "chart.js": "^4.5.1",
