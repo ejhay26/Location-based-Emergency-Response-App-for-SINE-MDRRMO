@@ -48,3 +48,5 @@ Route::post('/create-broadcast', [EmergencyController::class, 'createBroadcast']
 Route::get('/active-broadcast', [EmergencyController::class, 'getActiveBroadcast']);
 Route::post('/clear-broadcast', [EmergencyController::class, 'clearBroadcast']);
 Route::post('/resolve-hazard', [EmergencyController::class, 'resolveHazard']);
+
+Route::post('/save-push-token', [App\Http\Controllers\AuthController::class, 'savePushToken']);
