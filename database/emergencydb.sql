@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 22, 2026 at 08:16 AM
+-- Generation Time: Jun 29, 2026 at 05:20 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -66,6 +66,20 @@ CREATE TABLE `broadcasts` (
 
 INSERT INTO `broadcasts` (`broadcast_id`, `message`, `is_active`, `created_at`) VALUES
 (1, 'Evacuate now', 0, '2026-05-09 21:21:36');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `device_tokens`
+--
+
+CREATE TABLE `device_tokens` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `platform` varchar(20) DEFAULT 'android',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -230,7 +244,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `phone`, `birthdate`, `profile_picture`, `email`, `password`, `role`, `account_status`, `barangay_id`, `created_at`, `updated_at`, `deleted_at`, `blood_type`, `allergies`, `medical_conditions`, `pwd_status`) VALUES
-(1, 'Emmanuel John', 'Perez', 'user1', '09123456789', NULL, 'http://127.0.0.1:8000/storage/profiles/profile_1781411581_1.png', 'ejperez623@gmail.com', '$2y$12$MNajtoT1vSxVNOw6I2pt.e7ipmAOb4Cy3HOAPsyxLwg/IZoxd/Eni', 'citizen', 'active', 9, '2026-05-07 05:45:17', '2026-06-14 04:33:01', NULL, NULL, NULL, NULL, NULL),
+(1, 'Emmanuel John', 'Perez', 'user1', '09123456789', NULL, 'http://127.0.0.1:8000/storage/profiles/profile_1781411581_1.png', 'ejperez623@gmail.com', '$2y$12$MNajtoT1vSxVNOw6I2pt.e7ipmAOb4Cy3HOAPsyxLwg/IZoxd/Eni', 'citizen', 'active', 9, '2026-05-07 05:45:17', '2026-06-23 10:16:18', NULL, 'AB+', '', '', ''),
 (3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 1, '2026-05-07 05:45:17', '2026-05-07 17:33:20', NULL, NULL, NULL, NULL, NULL),
 (4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 1, '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL, NULL, NULL, NULL, NULL),
 (8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', 3, '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL, NULL, NULL, NULL, NULL),
@@ -277,6 +291,14 @@ ALTER TABLE `barangays`
 --
 ALTER TABLE `broadcasts`
   ADD PRIMARY KEY (`broadcast_id`);
+
+--
+-- Indexes for table `device_tokens`
+--
+ALTER TABLE `device_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_token` (`token`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `dispatch`
@@ -345,6 +367,12 @@ ALTER TABLE `broadcasts`
   MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT for table `device_tokens`
+--
+ALTER TABLE `device_tokens`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `dispatch`
 --
 ALTER TABLE `dispatch`
@@ -389,6 +417,12 @@ ALTER TABLE `vehicles`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `device_tokens`
+--
+ALTER TABLE `device_tokens`
+  ADD CONSTRAINT `device_tokens_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `emergency_requests`
