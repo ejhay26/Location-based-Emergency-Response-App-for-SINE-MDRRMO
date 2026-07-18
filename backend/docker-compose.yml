@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    container_name: mdrrmo_backend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_HOST: host.docker.internal   # reaches your host MySQL from inside Docker
+      DB_PORT: "3306"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Linux only — not needed on Docker Desktop
