@@ -10,6 +10,7 @@
         "google/apiclient": "^2.19",
         "google/auth": "^1.52",
         "laravel/framework": "^13.0",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0"
     },
     "require-dev": {
