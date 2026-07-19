@@ -16,7 +16,7 @@ export class GuestGuard implements CanActivate {
       if (role === 'admin') {
         this.router.navigate(['/admin-dashboard']);
       } else {
-        this.router.navigate(['/home']);
+        this.router.navigate(['/tabs/home']);
       }
       return false; // Block access to login/register
     }
