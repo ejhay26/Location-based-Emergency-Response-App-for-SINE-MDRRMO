@@ -1,1 +1,1 @@
-export const environment = { production: true, apiUrl: 'https://424f-120-29-77-107.ngrok-free.app/api' };
+export const environment = { production: true, apiUrl: 'https://nuclei-oil-modular.ngrok-free.dev/api' };
