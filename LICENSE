@@ -1,0 +1,103 @@
+Copyright (c) 2025 Emmanuel John C. Perez
+All rights reserved.
+
+MDRRMO San Isidro Emergency Response Application
+Bachelor of Science in Information Technology Capstone Project
+Nueva Ecija University of Science and Technology - San Isidro Campus
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TERMS AND CONDITIONS
+
+1. DEFINITIONS
+
+   "Software" refers to the MDRRMO San Isidro Emergency Response Application,
+   including all source code, documentation, assets, database schemas, and
+   associated files contained in this repository.
+
+   "Author" refers to Emmanuel John C. Perez, the original creator and sole
+   copyright holder of the Software.
+
+   "You" refers to any individual or entity accessing, viewing, or using
+   this repository.
+
+2. PERMITTED USES
+
+   You are permitted to:
+
+   a) View and read the source code for educational, research, or reference
+      purposes.
+
+   b) Clone or download this repository solely for the purpose of inspecting
+      or studying the code.
+
+   c) Reference this project in academic or research work, provided that
+      proper attribution is given to the Author.
+
+3. PROHIBITED USES
+
+   You are expressly prohibited from:
+
+   a) Copying, reproducing, or duplicating any portion of the Software,
+      in whole or in part, for any purpose other than those stated in
+      Section 2.
+
+   b) Modifying, adapting, translating, or creating derivative works based
+      on the Software.
+
+   c) Distributing, sublicensing, selling, renting, leasing, or otherwise
+      transferring the Software or any portion thereof to any third party.
+
+   d) Publishing, deploying, or using the Software or any derivative of it
+      in any product, service, or application — whether commercial or
+      non-commercial — without the express written permission of the Author.
+
+   e) Removing, obscuring, or altering this license notice, copyright
+      notice, or any other proprietary notices in the Software.
+
+   f) Using the Software's name, branding, or the Author's name to endorse
+      or promote products or services derived from or inspired by this
+      Software without prior written consent.
+
+4. ATTRIBUTION
+
+   Any permitted use of this Software must include clear and visible
+   attribution to the Author as follows:
+
+      "MDRRMO San Isidro Emergency Response Application
+       © 2025 Emmanuel John C. Perez. All rights reserved."
+
+5. NO WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+   FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+
+6. TERMINATION
+
+   Any breach of these terms automatically terminates your rights under this
+   license. Upon termination, you must destroy all copies of the Software in
+   your possession.
+
+7. GOVERNING LAW
+
+   This license shall be governed by and construed in accordance with the
+   laws of the Republic of the Philippines. Any disputes arising from this
+   license shall be subject to the exclusive jurisdiction of the courts of
+   Nueva Ecija, Philippines.
+
+8. CONTACT
+
+   For permissions beyond the scope of this license, including requests for
+   collaboration, deployment, or academic use, contact the Author at:
+
+      ejcp2005@gmail.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This is a proprietary license. This project is NOT open source.
+Viewing is permitted. Copying, modifying, and redistribution are NOT.
