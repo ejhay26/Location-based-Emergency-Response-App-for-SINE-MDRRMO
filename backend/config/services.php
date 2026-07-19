@@ -39,5 +39,10 @@ return [
         'key'    => env('SEMAPHORE_API_KEY'),
         'sender' => env('SEMAPHORE_SENDER_NAME', 'MDRRMO SAN ISIDRO NUEVA ECIJA'),
     ],
+    
+    'firebase' => [
+        'project_id'  => env('FIREBASE_PROJECT_ID'),
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+    ],
 
 ];
