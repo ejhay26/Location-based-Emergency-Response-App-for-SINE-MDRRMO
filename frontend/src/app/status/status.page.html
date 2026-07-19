@@ -1,0 +1,115 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="danger">
+    <ion-title style="color: white; font-weight: bold;">My Reports</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding tab-page-content">
+
+  <!-- Pull-to-refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="load($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- ── Date filter chips — always visible, no dropdown needed ── -->
+  <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;">
+    <button (click)="setFilter('all')"
+            [style.background]="dateFilter==='all' ? 'var(--ion-color-danger)' : 'var(--ion-color-light)'"
+            [style.color]="dateFilter==='all' ? 'white' : 'var(--ion-text-color)'"
+            [style.border]="dateFilter==='all' ? 'none' : '1px solid var(--ion-color-step-200,#ddd)'"
+            style="flex-shrink:0;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;">
+      All
+    </button>
+    <button (click)="setFilter('week')"
+            [style.background]="dateFilter==='week' ? 'var(--ion-color-danger)' : 'var(--ion-color-light)'"
+            [style.color]="dateFilter==='week' ? 'white' : 'var(--ion-text-color)'"
+            [style.border]="dateFilter==='week' ? 'none' : '1px solid var(--ion-color-step-200,#ddd)'"
+            style="flex-shrink:0;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;">
+      <i class="fa-solid fa-calendar-week" style="margin-right:5px;"></i>This Week
+    </button>
+    <button (click)="setFilter('month')"
+            [style.background]="dateFilter==='month' ? 'var(--ion-color-danger)' : 'var(--ion-color-light)'"
+            [style.color]="dateFilter==='month' ? 'white' : 'var(--ion-text-color)'"
+            [style.border]="dateFilter==='month' ? 'none' : '1px solid var(--ion-color-step-200,#ddd)'"
+            style="flex-shrink:0;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;">
+      <i class="fa-solid fa-calendar-days" style="margin-right:5px;"></i>This Month
+    </button>
+  </div>
+
+  <!-- Result count -->
+  <p *ngIf="!isLoading && emergencies.length > 0"
+     style="font-size:12px;color:var(--ion-color-medium);margin:0 0 10px 2px;">
+    {{ filteredEmergencies.length }} of {{ emergencies.length }} report{{ emergencies.length !== 1 ? 's' : '' }}
+  </p>
+
+  <!-- Loading skeletons -->
+  <ng-container *ngIf="isLoading">
+    <ion-card *ngFor="let i of [1,2,3]" style="margin:10px 0;">
+      <ion-item lines="none">
+        <ion-label>
+          <h2><ion-skeleton-text [animated]="true" style="width:60%;"></ion-skeleton-text></h2>
+          <p><ion-skeleton-text [animated]="true" style="width:40%;"></ion-skeleton-text></p>
+        </ion-label>
+      </ion-item>
+    </ion-card>
+  </ng-container>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && filteredEmergencies.length === 0"
+       style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;text-align:center;">
+    <i class="fa-solid fa-clipboard-list"
+       style="font-size:52px;color:var(--ion-color-step-400,#bbb);margin-bottom:14px;"></i>
+    <p style="color:var(--ion-color-medium);font-size:14px;margin-bottom:20px;">{{ emptyLabel }}</p>
+    <ion-button color="danger" (click)="goToSos()" style="font-weight:bold;margin-bottom:8px;">
+      <i class="fa-solid fa-triangle-exclamation" style="margin-right:8px;"></i>Send Emergency SOS
+    </ion-button>
+    <ion-button fill="outline" color="danger" (click)="goToHazard()" style="font-weight:bold;">
+      <i class="fa-solid fa-road-barrier" style="margin-right:8px;"></i>Report a Hazard
+    </ion-button>
+  </div>
+
+  <!-- Report cards -->
+  <ion-list *ngIf="!isLoading && filteredEmergencies.length > 0" style="background:transparent;">
+    <ion-card *ngFor="let req of filteredEmergencies" style="margin:10px 0;">
+      <ion-item lines="none">
+
+        <!-- Incident icon -->
+        <div slot="start"
+             style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
+             [style.background]="req.status==='Resolved' ? '#2dd36f20' : req.status==='Pending' ? '#ffc40920' : '#92949c20'">
+          <i [class]="iconClass(req)"
+             [style.color]="req.status==='Resolved' ? '#2dd36f' : req.status==='Pending' ? '#e0ac00' : '#92949c'"
+             style="font-size:18px;"></i>
+        </div>
+
+        <ion-label>
+          <h2 style="font-weight:bold;color:var(--ion-text-color);">
+            {{ req.incident_name ? req.incident_name + ' Emergency' : (req.hazard_type || 'Hazard Report') }}
+          </h2>
+          <p style="color:var(--ion-color-medium);font-size:12px;">
+            {{ req.request_time | date:'MMM d, y · h:mm a' }}
+          </p>
+          <p *ngIf="req.description"
+             style="font-size:12px;color:var(--ion-color-medium);margin-top:2px;
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            {{ req.description }}
+          </p>
+        </ion-label>
+
+        <ion-badge slot="end" [color]="statusColor(req.status)"
+                   style="font-weight:bold;padding:6px 12px;border-radius:8px;">
+          {{ req.status }}
+        </ion-badge>
+      </ion-item>
+
+      <!-- Cancel for pending only -->
+      <ion-button *ngIf="req.status === 'Pending'"
+                  fill="clear" color="medium" expand="block"
+                  (click)="cancelRequest(req.request_id)"
+                  style="font-weight:bold;border-top:1px solid var(--ion-color-step-100,#eee);margin-top:4px;">
+        <i class="fa-solid fa-circle-ban" style="margin-right:6px;"></i>Cancel Request
+      </ion-button>
+    </ion-card>
+  </ion-list>
+
+</ion-content>
