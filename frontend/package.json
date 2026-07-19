@@ -34,7 +34,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
-    "start:desktop": "ionic build && electron .",
+    "start:desktop": "electron .",
     "build:linux": "ionic build && electron-builder --linux",
     "build:mac": "ionic build && electron-builder --mac",
     "build:win": "ionic build && electron-builder --win"
