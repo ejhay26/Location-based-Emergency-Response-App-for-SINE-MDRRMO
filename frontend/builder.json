@@ -1,0 +1,16 @@
+{
+  "project": "MDRRMO SAN ISIDRO EMERGENCY RESPONSE APP",
+  "platform": "ios",
+  "github": {
+    "owner": "ejhay26",
+    "repo": "Location-based-Emergency-Response-App-for-SINE-MDRRMO"
+  },
+  "ios": {
+    "path": "ios"
+  },
+  "flutter": {
+    "watch": {}
+  },
+  "reactNative": {},
+  "mobai": {}
+}
