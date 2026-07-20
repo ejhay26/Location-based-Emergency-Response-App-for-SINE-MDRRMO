@@ -1,21 +1,10 @@
 <?php
 
 return [
-
-    /*
-    |--------------------------------------------------------------------------
-    | Cross-Origin Resource Sharing (CORS) Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-    |
-    */
-
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    // storage-proxy/* is included so the CORS middleware adds
+    // Access-Control-Allow-Origin to both the OPTIONS preflight and the
+    // actual GET response for profile picture / ID proof fetches.
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'storage/*', 'storage-proxy/*'],
 
     'allowed_methods' => ['*'],
 
@@ -23,12 +12,11 @@ return [
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*' , 'http://localhost:8100' , 'http://192.168.100.6:8100'],
+    'allowed_headers' => ['*'],
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    'max_age' => 86400,
 
     'supports_credentials' => false,
-
 ];
