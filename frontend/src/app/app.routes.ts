@@ -3,51 +3,58 @@ import { AuthGuard } from './guards/auth-guard';
 import { GuestGuard } from './guards/guest-guard';
 
 export const routes: Routes = [
-  {
-    // Root → welcome. The welcome page itself decides where to go next:
-    //   - first-time user: stays on welcome, then Login or Register
-    //   - returning user (welcomeSeen=true + stored session): straight to dashboard
-    //   - returning user (welcomeSeen=true, no session): straight to login
-    path: '',
-    redirectTo: 'welcome',
-    pathMatch: 'full',
-  },
+  { path: '', redirectTo: 'welcome', pathMatch: 'full' },
+
   {
     path: 'welcome',
     loadComponent: () => import('./welcome/welcome.page').then(m => m.WelcomePage),
-    // No guard — the page handles its own redirect logic
   },
   {
     path: 'login',
     loadComponent: () => import('./login/login.page').then(m => m.LoginPage),
-    canActivate: [GuestGuard]
+    canActivate: [GuestGuard],
   },
   {
     path: 'register',
     loadComponent: () => import('./register/register.page').then(m => m.RegisterPage),
-    canActivate: [GuestGuard]
-  },
-  {
-    path: 'home',
-    loadComponent: () => import('./home/home.page').then(m => m.HomePage),
-    canActivate: [AuthGuard],
-    data: { roles: ['citizen'] }
+    canActivate: [GuestGuard],
   },
   {
     path: 'admin-dashboard',
     loadComponent: () => import('./admin-dashboard/admin-dashboard.page').then(m => m.AdminDashboardPage),
     canActivate: [AuthGuard],
-    data: { roles: ['admin', 'dispatcher'] }
+    data: { roles: ['admin', 'dispatcher'] },
   },
+
+  // Citizen tab shell — all citizen pages live under /tabs/* so the bottom
+  // tab bar persists across navigation.
   {
-    path: 'profile',
-    loadComponent: () => import('./profile/profile.page').then(m => m.ProfilePage),
-    canActivate: [AuthGuard]
+    path: 'tabs',
+    loadComponent: () => import('./tabs/tabs.page').then(m => m.TabsPage),
+    canActivate: [AuthGuard],
+    data: { roles: ['citizen'] },
+    children: [
+      { path: 'home',     loadComponent: () => import('./home/home.page').then(m => m.HomePage) },
+      { path: 'status',   loadComponent: () => import('./status/status.page').then(m => m.StatusPage) },
+      { path: 'profile',  loadComponent: () => import('./profile/profile.page').then(m => m.ProfilePage) },
+      { path: 'settings', loadComponent: () => import('./settings/settings.page').then(m => m.SettingsPage) },
+      { path: 'help',     loadComponent: () => import('./help/help.page').then(m => m.HelpPage) },
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+    ],
   },
+
+  // Report stays at root level — slides in as full-screen push, no tab bar.
   {
     path: 'report',
     loadComponent: () => import('./report/report.page').then(m => m.ReportPage),
     canActivate: [AuthGuard],
-    data: { roles: ['citizen'] }
-  }
+    data: { roles: ['citizen'] },
+  },
+
+  // Legacy redirects — kept for any bookmarks or stored deep links
+  { path: 'home',     redirectTo: 'tabs/home',    pathMatch: 'full' },
+  { path: 'profile',  redirectTo: 'tabs/profile', pathMatch: 'full' },
+  { path: 'settings', redirectTo: 'tabs/settings', pathMatch: 'full' },
+  { path: 'status',   redirectTo: 'tabs/status',  pathMatch: 'full' },
+  { path: 'help',     redirectTo: 'tabs/help',    pathMatch: 'full' },
 ];
