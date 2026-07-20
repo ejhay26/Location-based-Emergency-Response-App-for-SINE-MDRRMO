@@ -43,14 +43,21 @@
 
       <div class="ion-text-right">
         <ion-button fill="clear" color="medium" size="small"
-                    style="text-transform: none; font-weight: bold;" (click)="viewMode = 'forgot'">
+                    style="text-transform: none; font-weight: bold;" (click)="viewMode = 'forgot-choose'">
           Forgot Password?
         </ion-button>
       </div>
 
       <ion-button type="submit" expand="block" color="danger"
+                  [disabled]="isLoggingIn || lockoutSecsRemaining > 0"
                   style="font-weight: bold; height: 45px; margin-top: 15px; box-shadow: 0 4px 12px rgba(235,68,90,0.3);">
-        Login
+        <ng-container *ngIf="!isLoggingIn && lockoutSecsRemaining === 0">Login</ng-container>
+        <span *ngIf="isLoggingIn" style="display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-spinner fa-spin"></i> Signing in…
+        </span>
+        <span *ngIf="!isLoggingIn && lockoutSecsRemaining > 0" style="display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-lock"></i> Try again in {{ lockoutSecsRemaining }}s
+        </span>
       </ion-button>
     </form>
 
@@ -62,28 +69,58 @@
     </div>
   </div>
 
-  <!-- ── Forgot Password ── -->
-  <div *ngIf="viewMode === 'forgot'">
+  <!-- ── Forgot Password: choose channel ── -->
+  <div *ngIf="viewMode === 'forgot-choose'">
     <h3 style="font-weight: bold; color: var(--ion-text-color);">Reset Password</h3>
     <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
-      Enter your email to receive a recovery OTP.
+      How would you like to receive your OTP?
+    </p>
+
+    <ion-button expand="block" color="danger" class="ion-margin-bottom" (click)="chooseOtpChannel('email')"
+                style="font-weight: bold; height: 48px;">
+      <i class="fa-solid fa-envelope" style="margin-right: 8px;"></i> Use Registered Email
+    </ion-button>
+    <ion-button expand="block" fill="outline" color="danger" (click)="chooseOtpChannel('phone')"
+                style="font-weight: bold; height: 48px;">
+      <i class="fa-solid fa-mobile-screen" style="margin-right: 8px;"></i> Use Registered Phone Number
+    </ion-button>
+
+    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
+                (click)="viewMode = 'login'" style="font-weight: bold;">
+      Back to Login
+    </ion-button>
+  </div>
+
+  <!-- ── Forgot Password: input chosen channel ── -->
+  <div *ngIf="viewMode === 'forgot-input'">
+    <h3 style="font-weight: bold; color: var(--ion-text-color);">Reset Password</h3>
+    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
+      Enter your {{ otpChannel === 'email' ? 'email' : 'phone number' }} to receive a recovery OTP.
     </p>
 
     <ion-list style="background: transparent;">
-      <ion-item>
+      <ion-item *ngIf="otpChannel === 'email'">
         <i class="fa-solid fa-envelope" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
         <ion-input label="Registered Email Address" labelPlacement="floating"
                    type="email" [(ngModel)]="resetData.email"></ion-input>
       </ion-item>
+      <ion-item *ngIf="otpChannel === 'phone'">
+        <i class="fa-solid fa-mobile-screen" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+        <ion-input label="Registered Phone Number" labelPlacement="floating"
+                   type="tel" [(ngModel)]="resetData.phone"></ion-input>
+      </ion-item>
     </ion-list>
 
     <ion-button expand="block" color="danger" class="ion-margin-top" (click)="requestReset()"
-                style="font-weight: bold; height: 45px;">
-      Send Recovery OTP
+                [disabled]="isSendingOtp" style="font-weight: bold; height: 45px;">
+      <ng-container *ngIf="!isSendingOtp">Send Recovery OTP</ng-container>
+      <span *ngIf="isSendingOtp" style="display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-spinner fa-spin"></i> Sending…
+      </span>
     </ion-button>
     <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
-                (click)="viewMode = 'login'" style="font-weight: bold;">
-      Back to Login
+                (click)="viewMode = 'forgot-choose'" style="font-weight: bold;">
+      Back
     </ion-button>
   </div>
 
@@ -91,14 +128,15 @@
   <div *ngIf="viewMode === 'reset'">
     <h3 style="font-weight: bold; color: var(--ion-text-color);">Verify OTP</h3>
     <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
-      Enter the 4-digit code sent to your email.
+      Enter the 4-digit code sent to your {{ otpChannel === 'phone' ? 'phone number' : 'email' }}.
     </p>
 
     <ion-list style="background: transparent;">
       <ion-item>
         <i class="fa-solid fa-key" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
         <ion-input label="4-Digit OTP" labelPlacement="floating"
-                   type="number" [(ngModel)]="resetData.otp"></ion-input>
+                   type="tel" inputmode="numeric" autocomplete="one-time-code"
+                   [(ngModel)]="resetData.otp"></ion-input>
       </ion-item>
       <ion-item>
         <i class="fa-solid fa-lock-open" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
@@ -114,8 +152,11 @@
     </p>
 
     <ion-button expand="block" color="success" class="ion-margin-top" (click)="confirmReset()"
-                style="font-weight: bold; height: 45px;">
-      Confirm New Password
+                [disabled]="isResettingPwd" style="font-weight: bold; height: 45px;">
+      <ng-container *ngIf="!isResettingPwd">Confirm New Password</ng-container>
+      <span *ngIf="isResettingPwd" style="display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-spinner fa-spin"></i> Updating…
+      </span>
     </ion-button>
     <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
                 (click)="viewMode = 'login'" style="font-weight: bold;">
