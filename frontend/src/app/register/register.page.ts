@@ -13,6 +13,7 @@ import { ImageCropperComponent, ImageCroppedEvent, LoadedImage } from 'ngx-image
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { ApiService } from '../services/api';
+import { TourService } from '../services/tour';
 
 @Component({
   selector: 'app-register',
@@ -24,7 +25,7 @@ import { ApiService } from '../services/api';
     IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
     IonInputPasswordToggle, IonLabel, IonCard, IonCardContent,
     IonSelect, IonSelectOption, IonChip, IonCheckbox,
-    IonRow, IonCol, IonButton, IonModal,
+    IonRow, IonCol, IonButton, IonModal, IonSelect, IonSelectOption,
     ImageCropperComponent
   ],
 })
@@ -65,7 +66,8 @@ export class RegisterPage {
     private router: Router,
     private api: ApiService,
     private toastController: ToastController,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private tour: TourService
   ) {}
 
   checkLength(): boolean { return this.userData.password?.length >= 8; }
@@ -213,14 +215,48 @@ export class RegisterPage {
     });
   }
 
+  // ── Post-registration medical profile prompt ────────────────────────
+  showMedicalModal = false;
+  medicalData = { blood_type: '', allergies: '', medical_conditions: '', pwd_status: '' };
+  isSavingMedical = false;
+
   verifyOtp() {
     this.api.verifyOtp({ email: this.userData.email, otp: this.otpCode }).subscribe({
       next: (res: any) => {
         localStorage.setItem('user', JSON.stringify(res.user));
         localStorage.setItem('role', res.role);
-        this.router.navigate(['/home']);
+        // Show the optional medical profile prompt before going home.
+        // If the user skips, they can always fill it in from their profile page.
+        this.showMedicalModal = true;
       },
       error: () => { this.showToast('Invalid verification code.'); }
+    });
+  }
+
+  saveMedicalAndProceed() {
+    const user = JSON.parse(localStorage.getItem('user')!);
+    this.isSavingMedical = true;
+    this.api.updateMedicalProfile({ user_id: user.user_id, ...this.medicalData }).subscribe({
+      next: (res: any) => {
+        localStorage.setItem('user', JSON.stringify(res.user));
+        this.isSavingMedical = false;
+        this.showMedicalModal = false;
+        this.router.navigate(['/tabs/home']);
+      },
+      error: () => { this.isSavingMedical = false; this.showToast('Failed to save. You can update this from your Profile later.'); this.skipMedical(); }
+    });
+  }
+
+  skipMedical() {
+    this.showMedicalModal = false;
+    this.promptTourIfNew();
+  }
+
+  private promptTourIfNew() {
+    this.router.navigate(['/tabs/home']).then(() => {
+      if (!this.tour.hasSeenTour()) {
+        setTimeout(() => this.tour.promptStart(), 600);
+      }
     });
   }
 
