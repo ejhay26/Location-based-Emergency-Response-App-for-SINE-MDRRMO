@@ -4,34 +4,23 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use HasApiTokens, Notifiable;
 
-    // Tell Laravel exactly which table and primary key to use
     protected $table = 'users';
     protected $primaryKey = 'user_id';
-    
-    // Disable default timestamps since your table doesn't use created_at/updated_at
     public $timestamps = false;
 
-    // Allow these fields to be filled via the API
     protected $fillable = [
-        'first_name',
-        'last_name',
-        'phone',
-        'username', // Added
-        'birthdate', // Added
-        'email',
-        'password',
-        'barangay_id',
-        'role', // Added so dispatchers save correctly!
-        'profile_picture' // Added
+        'first_name', 'last_name', 'phone', 'username', 'birthdate',
+        'email', 'password', 'barangay_id', 'role', 'profile_picture',
+        'account_status', 'valid_id_proof', 'ban_reason', 'banned_at',
+        'blood_type', 'allergies', 'medical_conditions', 'pwd_status',
+        'false_alarm_strikes',
     ];
 
-    // Hide the password when sending data back to Ionic
-    protected $hidden = [
-        'password',
-    ];
+    protected $hidden = ['password'];
 }
