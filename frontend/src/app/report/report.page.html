@@ -15,7 +15,9 @@
     <!-- Category selector: Emergency -->
     <div *ngIf="reportType === 'emergency'">
       <p style="font-weight:bold;font-size:14px;margin:0 0 10px 0;color:var(--ion-text-color);">What is your emergency?</p>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;">
+      <div id="tour-incident-grid"
+           [class.tour-highlight]="tour.targetId() === 'tour-incident-grid'"
+           style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;">
         <div *ngFor="let type of incidentTypes" (click)="selectIncident(type)"
              [style.border]="reportForm.value.incident_type_id===type.id?'3px solid '+type.color:'2px solid #ddd'"
              [style.background]="reportForm.value.incident_type_id===type.id?type.color+'15':'var(--ion-card-background,white)'"
@@ -32,7 +34,9 @@
     <!-- Category selector: Hazard -->
     <div *ngIf="reportType === 'hazard'">
       <p style="font-weight:bold;font-size:14px;margin:0 0 10px 0;color:var(--ion-text-color);">What type of hazard?</p>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;">
+      <div id="tour-hazard-grid"
+           [class.tour-highlight]="tour.targetId() === 'tour-hazard-grid'"
+           style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;">
         <div *ngFor="let cat of hazardCategories" (click)="selectHazard(cat)"
              [style.border]="reportForm.value.hazard_type===cat.id?'3px solid #ffc409':'2px solid #ddd'"
              [style.background]="reportForm.value.hazard_type===cat.id?'#ffc40920':'var(--ion-card-background,white)'"
@@ -49,20 +53,31 @@
     <ion-card style="margin:0 0 20px 0;">
       <ion-card-content class="ion-no-padding" style="padding:12px;">
 
-        <ion-item fill="outline" style="margin-bottom:14px;">
-          <ion-textarea [label]="reportType==='emergency'?'Additional Details (optional)':'Describe the hazard'"
-            labelPlacement="floating" formControlName="description"
-            [placeholder]="reportType==='emergency'?'Landmarks, victims, situation...':'Location, severity, constraints...'">
+        <ion-item fill="outline" style="margin-bottom:4px;">
+          <ion-textarea id="tour-description-field"
+            [class.tour-highlight]="tour.targetId() === 'tour-description-field'" [label]="reportType==='emergency' ? 'Additional Details (optional)' : 'Describe the hazard (required)'"
+            labelPlacement="stacked" formControlName="description" [rows]="3"
+            [placeholder]="reportType==='emergency'
+              ? 'Tap here to describe the situation — e.g. landmarks nearby, number of people, what happened…'
+              : 'Tap here to describe the hazard — e.g. how long it has been there, how severe, any dangers…'">
           </ion-textarea>
         </ion-item>
+        <p style="font-size:11px;color:var(--ion-color-medium);margin:0 4px 14px 4px;display:flex;align-items:center;gap:5px;">
+          <i class="fa-solid fa-pen-to-square" style="font-size:11px;"></i>
+          {{ reportType === 'emergency'
+            ? 'Any detail helps responders arrive faster — your location, situation, or special needs.'
+            : 'More detail helps the MDRRMO respond appropriately.' }}
+        </p>
 
         <!-- Media capture buttons -->
-        <div *ngIf="canAddMore" style="display:flex;gap:8px;margin-bottom:14px;">
-          <ion-button expand="block" color="dark" style="flex:1;font-weight:bold;height:45px;" (click)="openBuiltInCamera('photo')">
+        <div *ngIf="canAddMore" id="tour-media-buttons"
+             [class.tour-highlight]="tour.targetId() === 'tour-media-buttons'"
+             style="display:flex;gap:8px;margin-bottom:14px;">
+          <ion-button type="button" expand="block" color="dark" style="flex:1;font-weight:bold;height:45px;" (click)="takePhoto()">
             <i class="fa-solid fa-camera" style="margin-right:6px;"></i> Photo
           </ion-button>
-          <ion-button expand="block" color="dark" fill="outline" style="flex:1;font-weight:bold;height:45px;" (click)="openBuiltInCamera('video')">
-            <i class="fa-solid fa-video" style="margin-right:6px;"></i> Video (10s)
+          <ion-button type="button" expand="block" color="dark" fill="outline" style="flex:1;font-weight:bold;height:45px;" (click)="triggerVideo()">
+            <i class="fa-solid fa-video" style="margin-right:6px;"></i> Video (≤10s)
           </ion-button>
         </div>
 
@@ -78,34 +93,49 @@
                  style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;border:2px solid var(--ion-color-danger);" />
             <video *ngIf="media.type==='video'" [src]="media.preview" controls playsinline
                    style="width:100%;max-height:140px;border-radius:10px;border:2px solid var(--ion-color-danger);"></video>
-            <button (click)="removeMedia(i)"
+            <button type="button" (click)="removeMedia(i)"
                     style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.65);border:none;border-radius:50%;width:26px;height:26px;color:white;font-size:13px;cursor:pointer;">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
         </div>
 
-        <!-- Map -->
-        <div style="position:relative;border-radius:12px;overflow:hidden;margin-bottom:14px;">
-          <div id="report-map" style="height:230px;background:#e5e5e5;z-index:1;"></div>
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;pointer-events:none;">
-            <i class="fa-solid fa-crosshairs" [style.color]="crosshairColor" style="font-size:32px;text-shadow:0 2px 5px rgba(0,0,0,0.4);"></i>
-          </div>
-          <!-- Map style toggle — full width tab bar below map -->
-          <div style="display:flex;border-radius:10px;overflow:hidden;margin-bottom:14px;border:2px solid var(--ion-color-step-150,#ddd);">
-            <button (click)="toggleMapStyle('street')"
-              [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'var(--ion-color-light)'"
-              [style.color]="mapStyle==='street'?'white':'var(--ion-text-color)'"
-              style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;">
-              <i class="fa-solid fa-map"></i> Street
+        <input id="videoInput" type="file" accept="video/*" capture="environment"
+               style="display:none;" (change)="onVideoSelected($event)" />
+
+        <!-- Map (collapsed) -->
+        <div id="tour-map-area"
+             [class.tour-highlight]="tour.targetId() === 'tour-map-area'"
+             style="border-radius:12px;overflow:hidden;margin-bottom:0;position:relative;">
+          <div id="report-map" style="height:280px;background:#e5e5e5;position:relative;">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;pointer-events:none;">
+              <i class="fa-solid fa-crosshairs" [style.color]="crosshairColor" style="font-size:32px;text-shadow:0 2px 5px rgba(0,0,0,0.4);"></i>
+            </div>
+            <div *ngIf="showMapHint && !mapExpanded" style="position:absolute;bottom:44px;left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.62);color:white;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;">
+              <i class="fa-solid fa-arrows-up-down-left-right" style="font-size:13px;"></i>
+              Drag the map to move the pin
+            </div>
+            <button type="button" (click)="toggleMapExpand()"
+                    style="position:absolute;top:8px;right:8px;z-index:1002;width:34px;height:34px;border-radius:8px;border:none;background:rgba(0,0,0,0.55);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+              <i class="fa-solid fa-expand"></i>
             </button>
-            <button (click)="toggleMapStyle('satellite')"
-              [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'var(--ion-color-light)'"
-              [style.color]="mapStyle==='satellite'?'white':'var(--ion-text-color)'"
-              style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;border-left:2px solid var(--ion-color-step-150,#ddd);">
-              <i class="fa-solid fa-satellite"></i> Satellite
-            </button>
           </div>
+        </div>
+
+        <!-- Map style toggle -->
+        <div style="display:flex;border-radius:10px;overflow:hidden;margin-bottom:14px;border:2px solid var(--ion-color-step-150,#ddd);">
+          <button type="button" (click)="toggleMapStyle('street')"
+            [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'var(--ion-color-light)'"
+            [style.color]="mapStyle==='street'?'white':'var(--ion-text-color)'"
+            style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;">
+            <i class="fa-solid fa-map"></i> Street
+          </button>
+          <button type="button" (click)="toggleMapStyle('satellite')"
+            [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'var(--ion-color-light)'"
+            [style.color]="mapStyle==='satellite'?'white':'var(--ion-text-color)'"
+            style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;border-left:2px solid var(--ion-color-step-150,#ddd);">
+            <i class="fa-solid fa-satellite"></i> Satellite
+          </button>
         </div>
 
         <ion-row>
@@ -113,7 +143,7 @@
           <ion-col size="6"><ion-item fill="outline"><ion-input label="Longitude" labelPlacement="floating" formControlName="longitude" [readonly]="true"></ion-input></ion-item></ion-col>
         </ion-row>
 
-        <ion-button expand="block" fill="outline" color="dark" class="ion-margin-top ion-margin-bottom"
+        <ion-button type="button" expand="block" fill="outline" color="dark" class="ion-margin-top ion-margin-bottom"
                     (click)="getCurrentLocation()" style="font-weight:bold;height:45px;">
           <i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Use My Location
         </ion-button>
@@ -121,7 +151,9 @@
       </ion-card-content>
     </ion-card>
 
-    <ion-button type="submit" expand="block" [color]="reportType==='hazard'?'warning':'danger'"
+    <ion-button id="tour-submit-button"
+                [class.tour-highlight]="tour.targetId() === 'tour-submit-button'"
+                type="submit" expand="block" [color]="reportType==='hazard'?'warning':'danger'"
                 size="large" [disabled]="!isFormReady || !hasMedia" style="font-weight:bold;height:55px;">
       <i [class]="reportType==='hazard'?'fa-solid fa-road-barrier':'fa-solid fa-triangle-exclamation'" style="margin-right:10px;font-size:20px;"></i>
       {{ reportType === 'hazard' ? 'Submit Hazard Report' : 'Send Emergency SOS' }}
@@ -130,61 +162,54 @@
   </form>
 </ion-content>
 
-<!-- Built-in Camera Modal -->
-<ion-modal [isOpen]="showCamera" [backdropDismiss]="false">
-  <ng-template>
-    <ion-header class="ion-no-border">
-      <ion-toolbar [color]="reportType==='hazard'?'warning':'danger'">
-        <ion-title style="color:white;font-weight:bold;">
-          {{ cameraMode === 'photo' ? 'Take Photo' : 'Record Video (10s)' }}
-        </ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="closeCamera()" style="color:white;font-weight:bold;">Cancel</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content>
-      <div style="position:relative;width:100%;height:100%;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;">
 
-        <!-- Live preview -->
-        <video id="cameraPreview" autoplay playsinline muted
-               style="width:100%;max-height:65vh;object-fit:cover;"></video>
+<!-- Fullscreen map overlay — outside ion-content so position:fixed anchors to viewport -->
+<div *ngIf="mapExpanded"
+     style="position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;">
 
-        <!-- Recording countdown -->
-        <div *ngIf="isRecording"
-             style="position:absolute;top:16px;left:50%;transform:translateX(-50%);background:rgba(235,68,90,0.9);color:white;padding:6px 16px;border-radius:20px;font-weight:bold;font-size:15px;">
-          <i class="fa-solid fa-circle" style="color:#ff6b6b;margin-right:6px;animation:pulse 1s infinite;"></i>
-          {{ VIDEO_LIMIT - recordingSeconds }}s remaining
-        </div>
+  <!-- Toolbar — 72px top padding guarantees clearance on any Android status bar height.
+       env(safe-area-inset-top) refines it further on devices that expose the variable. -->
+  <div style="display:flex;align-items:center;justify-content:space-between;
+              padding-top:max(72px, calc(env(safe-area-inset-top, 48px) + 24px));
+              padding-bottom:12px;padding-left:14px;padding-right:14px;
+              background:rgba(0,0,0,0.85);flex-shrink:0;">
+    <span style="color:white;font-weight:700;font-size:15px;">
+      <i class="fa-solid fa-map-location-dot" style="margin-right:7px;"></i>Pin Location
+    </span>
+    <!-- Map style toggle -->
+    <div style="display:flex;border-radius:8px;overflow:hidden;border:1.5px solid rgba(255,255,255,0.3);">
+      <button type="button" (click)="toggleMapStyle('street')"
+        [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'rgba(255,255,255,0.12)'"
+        style="border:none;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;color:white;display:flex;align-items:center;gap:5px;transition:background 0.2s;">
+        <i class="fa-solid fa-map"></i> Street
+      </button>
+      <button type="button" (click)="toggleMapStyle('satellite')"
+        [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'rgba(255,255,255,0.12)'"
+        style="border:none;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;color:white;display:flex;align-items:center;gap:5px;transition:background 0.2s;border-left:1.5px solid rgba(255,255,255,0.3);">
+        <i class="fa-solid fa-satellite"></i> Satellite
+      </button>
+    </div>
+    <!-- Compress button -->
+    <button type="button" (click)="toggleMapExpand()"
+            style="width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+      <i class="fa-solid fa-compress"></i>
+    </button>
+  </div>
 
-        <!-- Controls -->
-        <div style="padding:24px;display:flex;gap:20px;justify-content:center;width:100%;">
-
-          <!-- Photo mode -->
-          <ng-container *ngIf="cameraMode === 'photo'">
-            <button (click)="capturePhoto()"
-              style="width:72px;height:72px;border-radius:50%;background:white;border:4px solid var(--ion-color-danger);cursor:pointer;display:flex;align-items:center;justify-content:center;">
-              <i class="fa-solid fa-camera" style="font-size:28px;color:var(--ion-color-danger);"></i>
-            </button>
-          </ng-container>
-
-          <!-- Video mode -->
-          <ng-container *ngIf="cameraMode === 'video'">
-            <button *ngIf="!isRecording" (click)="startRecording()"
-              style="width:72px;height:72px;border-radius:50%;background:#eb445a;border:4px solid white;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-              <i class="fa-solid fa-circle" style="font-size:28px;color:white;"></i>
-            </button>
-            <button *ngIf="isRecording" (click)="stopRecording()"
-              style="width:72px;height:72px;border-radius:50%;background:#eb445a;border:4px solid white;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-              <i class="fa-solid fa-stop" style="font-size:28px;color:white;"></i>
-            </button>
-          </ng-container>
-
-        </div>
-      </div>
-    </ion-content>
-  </ng-template>
-</ion-modal>
+  <!-- Map area — fills the rest of the screen below the toolbar -->
+  <div id="report-map-fullscreen-wrap" style="position:relative;flex:1;min-height:0;">
+    <!-- Crosshair -->
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;pointer-events:none;">
+      <i class="fa-solid fa-crosshairs" [style.color]="crosshairColor" style="font-size:40px;text-shadow:0 2px 8px rgba(0,0,0,0.5);"></i>
+    </div>
+    <!-- Drag hint -->
+    <div *ngIf="showMapHint" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.62);color:white;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;">
+      <i class="fa-solid fa-arrows-up-down-left-right" style="font-size:13px;"></i>
+      Drag the map to move the pin
+    </div>
+    <div id="report-map-fullscreen" style="width:100%;height:100%;"></div>
+  </div>
+</div>
 
 <!-- Photo Crop Modal -->
 <ion-modal [isOpen]="showCropper" [backdropDismiss]="false">
@@ -199,6 +224,7 @@
     </ion-header>
     <ion-content class="ion-padding" style="text-align:center;">
       <image-cropper [imageFile]="cropperFile || undefined" [maintainAspectRatio]="false" format="jpeg"
+                     [output]="'base64'"
                      (imageCropped)="onPhotoCropped($event)" style="max-height:60vh;"></image-cropper>
       <ion-button expand="block" [color]="reportType==='hazard'?'warning':'danger'" (click)="confirmCrop()"
                   style="font-weight:bold;height:48px;margin-top:16px;">
