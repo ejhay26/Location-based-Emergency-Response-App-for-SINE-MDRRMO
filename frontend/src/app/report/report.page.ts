@@ -6,12 +6,17 @@ import { HttpClient } from '@angular/common/http';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonCard,
   IonCardContent, IonItem, IonButton, IonInput, IonBackButton, IonButtons,
-  ToastController, AlertController, IonTextarea, IonRow, IonCol, IonModal
+  ToastController, AlertController, ModalController, IonTextarea, IonRow, IonCol, IonModal
 } from '@ionic/angular/standalone';
 import { Geolocation } from '@capacitor/geolocation';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import * as L from 'leaflet';
 import { ApiService } from '../services/api';
+import { TourService } from '../services/tour';
+import { UserSettingsService } from '../services/user-settings';
+import { LocationService } from '../services/location';
+import { VideoTrimmerComponent } from '../components/video-trimmer/video-trimmer.component';
 
 // @ts-ignore
 const CachedTileLayer = L.TileLayer.extend({
@@ -61,17 +66,29 @@ export interface MediaFile { preview: string; type: 'photo' | 'video'; }
   ]
 })
 export class ReportPage implements OnDestroy {
-  private fb        = inject(FormBuilder);
-  private router    = inject(Router);
-  private route     = inject(ActivatedRoute);
-  private http      = inject(HttpClient);
-  private toastCtrl = inject(ToastController);
-  private alertCtrl = inject(AlertController);
-  private api       = inject(ApiService);
+  private fb          = inject(FormBuilder);
+  private router      = inject(Router);
+  private route       = inject(ActivatedRoute);
+  private http        = inject(HttpClient);
+  private toastCtrl   = inject(ToastController);
+  private alertCtrl   = inject(AlertController);
+  private modalCtrl   = inject(ModalController);
+  private api         = inject(ApiService);
+  public  tour        = inject(TourService);
+  private userSettings  = inject(UserSettingsService);
+  private locationSvc   = inject(LocationService);
 
   map: any;
   sanIsidroPolygon: any[] = [];
+  private sanIsidroGeoJson: any = null;
+
   reportType: 'emergency' | 'hazard' = 'emergency';
+
+  ngOnInit() {
+    const type = this.route.snapshot.queryParamMap.get('type');
+    this.reportType = type === 'hazard' ? 'hazard' : 'emergency';
+  }
+
   selectedIncidentName = 'None';
   selectedHazardName   = 'None';
 
@@ -79,24 +96,15 @@ export class ReportPage implements OnDestroy {
   get canAddMore(): boolean { return this.mediaFiles.length < 2; }
   get hasMedia(): boolean   { return this.mediaFiles.length > 0; }
 
-  // ── Built-in camera state ───────────────────────────────────────────
-  showCamera = false;
-  cameraMode: 'photo' | 'video' = 'photo';
-  cameraStream: MediaStream | null = null;
-  mediaRecorder: MediaRecorder | null = null;
-  recordedChunks: Blob[] = [];
-  isRecording = false;
-  recordingSeconds = 0;
-  private recordingTimer: any;
-  readonly VIDEO_LIMIT = 10; // seconds
-
-  // ── Cropper state ───────────────────────────────────────────────────
   showCropper = false;
   cropperFile: File | null = null;
   croppedBase64 = '';
 
-  // ── Map style ───────────────────────────────────────────────────────
   mapStyle: 'street' | 'satellite' = 'street';
+  mapExpanded = false;
+  showMapHint = true;
+  private hintTimer: any;
+  private fullscreenMap: any = null;
   private streetLayer: any;
   private satelliteLayer: any;
 
@@ -129,137 +137,106 @@ export class ReportPage implements OnDestroy {
       : !!this.reportForm.value.hazard_type;
   }
 
+  constructor() {}
+
   ionViewDidEnter() {
-    this.route.queryParams.subscribe(params => {
-      this.reportType = params['type'] === 'hazard' ? 'hazard' : 'emergency';
-    });
-    setTimeout(() => { if (document.getElementById('report-map') && !this.map) this.initMap(); }, 250);
+    setTimeout(() => {
+      if (document.getElementById('report-map') && !this.map) {
+        this.mapStyle = this.userSettings.get('map_default_style') as 'street' | 'satellite';
+        this.initMap();
+      }
+    }, 250);
   }
 
   ionViewWillLeave() {
-    this.stopCameraStream();
+    if (this.fullscreenMap) { this.fullscreenMap.remove(); this.fullscreenMap = null; }
     if (this.map) { this.map.remove(); this.map = null; }
+    clearTimeout(this.hintTimer);
+    this.mapExpanded = false;
   }
+
   ngOnDestroy() {
-    this.stopCameraStream();
     if (this.map) { this.map.remove(); this.map = null; }
+    clearTimeout(this.hintTimer);
   }
 
-  selectIncident(type: any) { this.reportForm.patchValue({ incident_type_id: type.id }); this.selectedIncidentName = type.name; }
-  selectHazard(cat: any)    { this.reportForm.patchValue({ hazard_type: cat.id });       this.selectedHazardName   = cat.name; }
-
-  // ── Built-in camera ─────────────────────────────────────────────────
-  async openBuiltInCamera(mode: 'photo' | 'video') {
-    if (!this.canAddMore) { this.showToast('Maximum 2 files allowed.', 'warning'); return; }
-    this.cameraMode = mode;
-    this.showCamera = true;
-    // Small delay so modal renders before we access the video element
-    setTimeout(() => this.startCameraStream(), 150);
+  selectIncident(type: any) {
+    this.reportForm.patchValue({ incident_type_id: type.id });
+    this.selectedIncidentName = type.name;
+    this.tour.onInteraction();
+  }
+  selectHazard(cat: any) {
+    this.reportForm.patchValue({ hazard_type: cat.id });
+    this.selectedHazardName = cat.name;
+    this.tour.onInteraction();
   }
 
-  async startCameraStream() {
-    try {
-      this.cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: this.cameraMode === 'video'
-      });
-      const videoEl = document.getElementById('cameraPreview') as HTMLVideoElement;
-      if (videoEl) { videoEl.srcObject = this.cameraStream; videoEl.play(); }
-    } catch {
-      this.showToast('Camera access denied. Please allow camera permission.', 'danger');
-      this.showCamera = false;
+  private addBoundaryOverlay(targetMap: any) {
+    if (!this.sanIsidroGeoJson) return;
+    L.geoJSON(this.sanIsidroGeoJson, {
+      filter: (f) => f.geometry.type !== 'Point',
+      style: { color: '#eb445a', weight: 3, fillOpacity: 0 }
+    }).addTo(targetMap);
+    const hole = this.sanIsidroPolygon.map((c: any[]) => [c[1], c[0]]);
+    L.polygon([[[-90, -180], [90, -180], [90, 180], [-90, 180]], hole],
+      { color: 'transparent', fillColor: '#888', fillOpacity: 0.6 }).addTo(targetMap);
+  }
+
+  toggleMapExpand() {
+    this.mapExpanded = !this.mapExpanded;
+
+    if (this.mapExpanded) {
+      setTimeout(() => {
+        const el = document.getElementById('report-map-fullscreen');
+        if (!el || this.fullscreenMap) return;
+        const center = this.map ? this.map.getCenter() : [15.3014, 120.9274];
+        const zoom   = this.map ? this.map.getZoom()   : 14;
+
+        this.fullscreenMap = L.map('report-map-fullscreen', {
+          minZoom: 13, zoomControl: true,
+          center: center as [number, number], zoom
+        });
+
+        const url  = this.mapStyle === 'satellite'
+          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const attr = this.mapStyle === 'satellite' ? 'Tiles &copy; Esri' : '&copy; OpenStreetMap contributors';
+        L.tileLayer(url, { attribution: attr, maxZoom: 19 }).addTo(this.fullscreenMap);
+
+        this.addBoundaryOverlay(this.fullscreenMap);
+
+        this.fullscreenMap.on('move', () => {
+          if (!this.map) return;
+          this.map.setView(this.fullscreenMap.getCenter(), this.fullscreenMap.getZoom(), { animate: false });
+          const c = this.fullscreenMap.getCenter();
+          this.reportForm.patchValue({ latitude: c.lat.toFixed(6), longitude: c.lng.toFixed(6) });
+        });
+
+        this.fullscreenMap.invalidateSize();
+      }, 200);
+    } else {
+      if (this.fullscreenMap) { this.fullscreenMap.remove(); this.fullscreenMap = null; }
+      setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 100);
     }
   }
 
-  stopCameraStream() {
-    clearInterval(this.recordingTimer);
-    if (this.mediaRecorder && this.isRecording) { this.mediaRecorder.stop(); }
-    if (this.cameraStream) { this.cameraStream.getTracks().forEach(t => t.stop()); this.cameraStream = null; }
-    this.isRecording = false;
-    this.recordingSeconds = 0;
-  }
-
-  closeCamera() {
-    this.stopCameraStream();
-    this.showCamera = false;
-  }
-
-  // ── Photo capture ───────────────────────────────────────────────────
-  capturePhoto() {
-    const videoEl = document.getElementById('cameraPreview') as HTMLVideoElement;
-    const canvas  = document.createElement('canvas');
-    canvas.width  = videoEl.videoWidth;
-    canvas.height = videoEl.videoHeight;
-    canvas.getContext('2d')!.drawImage(videoEl, 0, 0);
-    canvas.toBlob(blob => {
-      if (!blob) return;
-      const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
-      this.closeCamera();
-      this.openCropper(file);
-    }, 'image/jpeg', 0.85);
-  }
-
-  // ── Video recording — 10s limit ─────────────────────────────────────
-  startRecording() {
-    if (!this.cameraStream) return;
-    this.recordedChunks = [];
-    this.recordingSeconds = 0;
-    this.mediaRecorder = new MediaRecorder(this.cameraStream, { mimeType: 'video/webm;codecs=vp8,opus' });
-    this.mediaRecorder.ondataavailable = (e: BlobEvent) => { if (e.data.size > 0) this.recordedChunks.push(e.data); };
-    this.mediaRecorder.onstop = () => { this.finaliseVideo(); };
-    this.mediaRecorder.start(100); // collect chunks every 100ms
-    this.isRecording = true;
-
-    // Countdown timer — auto-stop at VIDEO_LIMIT seconds
-    this.recordingTimer = setInterval(() => {
-      this.recordingSeconds++;
-      if (this.recordingSeconds >= this.VIDEO_LIMIT) { this.stopRecording(); }
-    }, 1000);
-  }
-
-  stopRecording() {
-    clearInterval(this.recordingTimer);
-    if (this.mediaRecorder && this.isRecording) {
-      this.mediaRecorder.stop();
-      this.isRecording = false;
-    }
-  }
-
-  finaliseVideo() {
-    const blob    = new Blob(this.recordedChunks, { type: 'video/webm' });
-    const reader  = new FileReader();
-    reader.onload = () => {
-      this.mediaFiles.push({ preview: reader.result as string, type: 'video' });
-      this.closeCamera();
-    };
-    reader.readAsDataURL(blob);
-  }
-
-  // ── Cropper ─────────────────────────────────────────────────────────
-  openCropper(file: File) { this.cropperFile = file; this.croppedBase64 = ''; this.showCropper = true; }
-  onPhotoCropped(event: ImageCroppedEvent) { this.croppedBase64 = event.base64 || (event as any).objectUrl || ''; }
-  confirmCrop() {
-    if (!this.croppedBase64) { this.showToast('Please wait for the image to load.', 'warning'); return; }
-    this.mediaFiles.push({ preview: this.croppedBase64, type: 'photo' });
-    this.showCropper = false; this.cropperFile = null; this.croppedBase64 = '';
-  }
-  cancelCrop() { this.showCropper = false; this.cropperFile = null; this.croppedBase64 = ''; }
-
-  async removeMedia(index: number) {
-    const a = await this.alertCtrl.create({
-      header: 'Remove File', message: 'Remove this file?',
-      buttons: [{ text: 'Cancel', role: 'cancel' }, { text: 'Remove', role: 'destructive', handler: () => { this.mediaFiles.splice(index, 1); } }]
-    });
-    await a.present();
-  }
-
-  // ── Map ──────────────────────────────────────────────────────────────
   toggleMapStyle(style: 'street' | 'satellite') {
-    if (style === this.mapStyle || !this.map) return;
-    [this.streetLayer, this.satelliteLayer].forEach(l => { if (l) this.map.removeLayer(l); });
+    if (style === this.mapStyle) return;
     this.mapStyle = style;
-    if (style === 'street')    this.streetLayer.addTo(this.map);
-    if (style === 'satellite') this.satelliteLayer.addTo(this.map);
+    if (this.map) {
+      [this.streetLayer, this.satelliteLayer].forEach(l => { if (l) this.map.removeLayer(l); });
+      if (style === 'street')    this.streetLayer.addTo(this.map);
+      if (style === 'satellite') this.satelliteLayer.addTo(this.map);
+    }
+    if (this.fullscreenMap) {
+      this.fullscreenMap.eachLayer((l: any) => this.fullscreenMap.removeLayer(l));
+      const url  = style === 'satellite'
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      const attr = style === 'satellite' ? 'Tiles &copy; Esri' : '&copy; OpenStreetMap contributors';
+      L.tileLayer(url, { attribution: attr, maxZoom: 19 }).addTo(this.fullscreenMap);
+      this.addBoundaryOverlay(this.fullscreenMap);
+    }
   }
 
   initMap() {
@@ -267,26 +244,48 @@ export class ReportPage implements OnDestroy {
     // @ts-ignore
     this.streetLayer    = new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
     this.satelliteLayer = L.layerGroup([
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '© Esri' }),
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, opacity: 0.8 })
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        { maxZoom: 19, maxNativeZoom: 17, attribution: '© Esri' }),
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+        { maxZoom: 19, maxNativeZoom: 13, opacity: 0.9 })
     ]);
-    this.streetLayer.addTo(this.map);
+
+    if (this.mapStyle === 'satellite') {
+      this.satelliteLayer.addTo(this.map);
+    } else {
+      this.streetLayer.addTo(this.map);
+    }
+
     this.http.get('assets/data/san-isidro.geojson').subscribe((json: any) => {
+      this.sanIsidroGeoJson = json;
+      this.sanIsidroPolygon = json.features[0].geometry.coordinates[0];
+
       const boundaryLayer = L.geoJSON(json, {
         filter: (f) => f.geometry.type !== 'Point',
         style: { color: '#eb445a', weight: 3, fillOpacity: 0 }
       }).addTo(this.map);
-      this.sanIsidroPolygon = json.features[0].geometry.coordinates[0];
+
       const hole = this.sanIsidroPolygon.map((c: any[]) => [c[1], c[0]]);
       L.polygon([[[-90, -180], [90, -180], [90, 180], [-90, 180]], hole],
         { color: 'transparent', fillColor: '#888', fillOpacity: 0.6 }).addTo(this.map);
+
       const bounds = boundaryLayer.getBounds();
       this.map.fitBounds(bounds);
       this.map.setMaxBounds(bounds.pad(0.1));
       this.map.options.maxBoundsViscosity = 1.0;
       this.updateCoords();
+
+      // If the background watch already has a fix, fly to it immediately — no GPS wait.
+      // Falls back to the default center if no cached position exists yet.
+      const cached = this.locationSvc.cachedPosition;
+      if (cached && this.map) {
+        this.map.flyTo([cached.lat, cached.lng], 17);
+      }
     });
+
     this.map.on('moveend', () => this.updateCoords());
+    this.showMapHint = true;
+    this.hintTimer = setTimeout(() => { this.showMapHint = false; }, 3000);
   }
 
   updateCoords() {
@@ -299,14 +298,42 @@ export class ReportPage implements OnDestroy {
   }
 
   async getCurrentLocation() {
+    // Separate try/catch for permission: on some Android builds requestPermissions()
+    // throws when permission was already granted, which we should treat as granted.
+    let permDenied = false;
     try {
       const perm = await Geolocation.requestPermissions();
-      if (perm.location === 'denied') { this.showToast('Location permission denied.', 'danger'); return; }
-      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
-      this.map.flyTo([pos.coords.latitude, pos.coords.longitude], 17);
-    } catch (err: any) {
-      this.showToast('Could not get location. Try again or move to open sky.', 'warning');
+      if (perm.location === 'denied') { permDenied = true; }
+    } catch { /* already granted — continue */ }
+
+    if (permDenied) {
+      this.showToast('Location permission denied. Enable it in app settings.', 'danger'); return;
     }
+
+    // Try high-accuracy first; fall back to low-accuracy on timeout (cold GPS chip).
+    let pos: any = null;
+    try {
+      pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+    } catch (highErr: any) {
+      const isTimeout = highErr?.message?.toLowerCase().includes('timeout') || highErr?.code === 3;
+      if (isTimeout) {
+        try {
+          pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 8000 });
+        } catch {
+          this.showToast('Could not get location. Check that GPS is enabled.', 'warning'); return;
+        }
+      } else {
+        this.showToast('Could not get location. Check that GPS is enabled.', 'warning'); return;
+      }
+    }
+
+    if (this.map) { this.map.flyTo([pos.coords.latitude, pos.coords.longitude], 17); }
+
+    // Update the service cache so future page opens benefit from this fresh fix.
+    this.locationSvc.cachedPosition = {
+      lat: pos.coords.latitude, lng: pos.coords.longitude,
+      accuracy: pos.coords.accuracy, timestamp: pos.timestamp,
+    };
   }
 
   isInsideSanIsidro(lat: number, lng: number): boolean {
@@ -318,6 +345,85 @@ export class ReportPage implements OnDestroy {
       if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
     }
     return inside;
+  }
+
+  // ── Photo ────────────────────────────────────────────────────────────
+  async takePhoto() {
+    if (!this.canAddMore) { this.showToast('Maximum 2 files allowed.', 'warning'); return; }
+    try {
+      await Camera.requestPermissions({ permissions: ['camera'] });
+      const result = await Camera.getPhoto({
+        quality: 80, allowEditing: false,
+        resultType: CameraResultType.DataUrl, source: CameraSource.Camera
+      });
+      if (!result.dataUrl) return;
+      const res  = await fetch(result.dataUrl);
+      const blob = await res.blob();
+      this.openCropper(new File([blob], 'capture.jpg', { type: 'image/jpeg' }));
+    } catch { /* cancelled or permission denied */ }
+  }
+
+  // ── Video ────────────────────────────────────────────────────────────
+  triggerVideo() {
+    if (!this.canAddMore) { this.showToast('Maximum 2 files allowed.', 'warning'); return; }
+    document.getElementById('videoInput')?.click();
+  }
+
+  async onVideoSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (!file) return;
+    (event.target as HTMLInputElement).value = '';
+    if (file.size > 200 * 1024 * 1024) { this.showToast('Video file is too large.', 'warning'); return; }
+    const modal = await this.modalCtrl.create({
+      component: VideoTrimmerComponent,
+      componentProps: { videoBlob: file },
+      cssClass: 'video-trimmer-modal'
+    });
+    this.tour.modalOpen.set(true);
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    this.tour.modalOpen.set(false);
+    if (data?.dataUrl) { this.mediaFiles.push({ preview: data.dataUrl, type: 'video' }); }
+  }
+
+  // ── Cropper ──────────────────────────────────────────────────────────
+  openCropper(file: File) {
+    this.cropperFile = file;
+    this.croppedBase64 = '';
+    this.showCropper = true;
+    this.tour.modalOpen.set(true);
+  }
+
+  onPhotoCropped(event: ImageCroppedEvent) {
+    this.croppedBase64 = event.base64 && event.base64.includes(';base64,') ? event.base64 : '';
+  }
+
+  confirmCrop() {
+    if (!this.croppedBase64) {
+      this.showToast('Image is still processing. Please wait a moment and try cropping again.', 'warning');
+      return;
+    }
+    this.mediaFiles.push({ preview: this.croppedBase64, type: 'photo' });
+    this.showCropper = false;
+    this.cropperFile = null;
+    this.croppedBase64 = '';
+    this.tour.modalOpen.set(false);
+  }
+
+  cancelCrop() {
+    this.showCropper = false;
+    this.cropperFile = null;
+    this.croppedBase64 = '';
+    this.tour.modalOpen.set(false);
+  }
+
+  async removeMedia(index: number) {
+    const a = await this.alertCtrl.create({
+      header: 'Remove File', message: 'Remove this file?',
+      buttons: [{ text: 'Cancel', role: 'cancel' },
+                { text: 'Remove', role: 'destructive', handler: () => { this.mediaFiles.splice(index, 1); } }]
+    });
+    await a.present();
   }
 
   async showToast(msg: string, color = 'danger') {
@@ -343,17 +449,21 @@ export class ReportPage implements OnDestroy {
     const user       = JSON.parse(localStorage.getItem('user')!);
     const proofFiles = this.mediaFiles.map(m => m.preview);
     if (this.reportType === 'emergency') {
-      this.api.submitSos({ user_id: user.user_id, incident_type_id: this.reportForm.value.incident_type_id,
+      this.api.submitSos({
+        user_id: user.user_id, incident_type_id: this.reportForm.value.incident_type_id,
         description: this.reportForm.value.description, latitude: this.reportForm.value.latitude,
-        longitude: this.reportForm.value.longitude, proof_files: proofFiles }).subscribe({
-        next: () => { this.showToast('Emergency SOS sent!', 'success'); this.router.navigate(['/home']); },
+        longitude: this.reportForm.value.longitude, proof_files: proofFiles
+      }).subscribe({
+        next: () => { this.showToast('Emergency SOS sent!', 'success'); this.router.navigate(['/tabs/home']); },
         error: (err: any) => this.showToast(err.error?.message || 'Submission failed.', 'danger')
       });
     } else {
-      this.api.submitHazard({ user_id: user.user_id, description: this.reportForm.value.description || '',
+      this.api.submitHazard({
+        user_id: user.user_id, description: this.reportForm.value.description || '',
         hazard_type: this.selectedHazardName, latitude: this.reportForm.value.latitude,
-        longitude: this.reportForm.value.longitude, proof_files: proofFiles }).subscribe({
-        next: () => { this.showToast('Hazard reported!', 'success'); this.router.navigate(['/home']); },
+        longitude: this.reportForm.value.longitude, proof_files: proofFiles
+      }).subscribe({
+        next: () => { this.showToast('Hazard reported!', 'success'); this.router.navigate(['/tabs/home']); },
         error: (err: any) => this.showToast(err.error?.message || 'Submission failed.', 'danger')
       });
     }
