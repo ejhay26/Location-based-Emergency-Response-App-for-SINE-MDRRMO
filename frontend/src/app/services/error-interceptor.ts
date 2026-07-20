@@ -6,38 +6,54 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ToastController } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class ErrorInterceptorService implements HttpInterceptor {
 
-  constructor(private toastCtrl: ToastController) {}
+  constructor(private toastCtrl: ToastController, private router: Router) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
+        const isStorageFetch = req.url.includes('/storage/');
+        const isLogout       = req.url.includes('/logout');
+        const isLogin        = req.url.includes('/login');
+
         let message = '';
 
-        if (!navigator.onLine || error.status === 0) {
-          // No network or server completely unreachable
-          message = 'No network connection. Please check your internet.';
-        } else if (error.status >= 500) {
-          message = 'Server error. Please try again later.';
-        } else if (error.status === 503 || error.status === 502) {
-          message = 'Server is currently unavailable.';
+        if (!isStorageFetch) {
+          if (!navigator.onLine || error.status === 0) {
+            // Network error — do NOT log out. May just be offline or ngrok timeout.
+            message = 'No network connection. Please check your internet.';
+          } else if (error.status === 401 && !isLogout && !isLogin) {
+            const isApiRequest = req.url.includes('/api/');
+            if (isApiRequest) {
+              localStorage.removeItem('api_token');
+              localStorage.removeItem('user');
+              localStorage.removeItem('role');
+              this.router.navigate(['/login']);
+              message = 'Your session has expired. Please log in again.';
+            }
+          } else if (error.status === 502 || error.status === 503) {
+            message = 'Server is currently unavailable.';
+          } else if (error.status >= 500) {
+            message = 'Server error. Please try again later.';
+          }
         }
-        // 4xx errors (validation, auth, etc.) are handled per-page — don't intercept them globally
 
         if (message) {
+          // No icon — avoids the ion-icon registration error when
+          // Ionicons isn't loaded in the current context.
           this.toastCtrl.create({
             message,
             duration: 4000,
-            position: 'top',        // top so it's visible even on login screen
+            position: 'top',
             color: 'warning',
-            icon: 'wifi-outline'
           }).then(t => t.present());
         }
 
-        return throwError(() => error); // still propagate so per-page error handlers work
+        return throwError(() => error);
       })
     );
   }
