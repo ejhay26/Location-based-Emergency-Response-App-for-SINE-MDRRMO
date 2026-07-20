@@ -35,9 +35,9 @@
     "test": "ng test",
     "lint": "ng lint",
     "start:desktop": "electron .",
-    "build:linux": "ionic build && electron-builder --linux",
-    "build:mac": "ionic build && electron-builder --mac",
-    "build:win": "ionic build && electron-builder --win"
+    "build:linux": "ionic build --prod && electron-builder --linux",
+    "build:mac": "ionic build --prod && electron-builder --mac",
+    "build:win": "ionic build --prod && electron-builder --win"
   },
   "private": true,
   "dependencies": {
