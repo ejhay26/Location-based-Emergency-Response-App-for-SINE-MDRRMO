@@ -21,6 +21,22 @@ class AuthController extends Controller
         $this->semaphore = $semaphore;
     }
 
+    // ── File storage structure ────────────────────────────────────────────────
+    // profiles/        → user profile pictures (old deleted on update)
+    // verification_ids/→ registration ID proofs (kept permanently)
+    // reports/sos/     → SOS proof photos and videos
+    // reports/hazard/  → Hazard proof photos and videos
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function decodeBase64Image(string $data): string|false
+    {
+        if (str_contains($data, ';base64,')) {
+            $parts = explode(';base64,', $data, 2);
+            return base64_decode($parts[1] ?? '', true);
+        }
+        return base64_decode($data, true);
+    }
+
     public function login(Request $request)
     {
         $request->validate(['login' => 'required', 'password' => 'required']);
@@ -56,10 +72,12 @@ class AuthController extends Controller
 
         $token = $user->createToken('app-token', $abilities)->plainTextToken;
 
+        // fresh() ensures ALL columns are returned including medical fields
+        // and any columns added after the model was originally loaded.
         return response()->json([
             'message' => 'Login successful',
             'token'   => $token,
-            'user'    => $user,
+            'user'    => $user->fresh(),
             'role'    => $user->role,
         ]);
     }
@@ -84,17 +102,15 @@ class AuthController extends Controller
             'valid_id_image' => 'required|string',
         ]);
 
-        $id_parts = explode(';base64,', $request->valid_id_image, 2);
-        if (count($id_parts) < 2 || $id_parts[1] === '') {
+        $id_base64 = $this->decodeBase64Image($request->valid_id_image);
+        if ($id_base64 === false || strlen($id_base64) < 100) {
             return response()->json(['message' => 'Your ID photo failed to process. Please retake it and try again.'], 422);
         }
-        $id_base64 = base64_decode($id_parts[1], true);
-        if ($id_base64 === false) {
-            return response()->json(['message' => 'Your ID photo failed to process. Please retake it and try again.'], 422);
-        }
-        $timestamp  = now()->format('Ymd_His');
-        $idFileName = 'id_' . $timestamp . '_' . $request->username . '.png';
-        Storage::disk('public')->put('verification_ids/' . $idFileName, $id_base64);
+
+        // Store under verification_ids/<username>/
+        $idFileName = 'id_' . now()->format('Ymd_His') . '.png';
+        $idPath     = 'verification_ids/' . $request->username . '/' . $idFileName;
+        Storage::disk('public')->put($idPath, $id_base64);
 
         $user = User::create([
             'first_name'     => $request->first_name,
@@ -107,7 +123,7 @@ class AuthController extends Controller
             'barangay_id'    => $request->barangay_id,
             'role'           => 'citizen',
             'account_status' => 'unverified',
-            'valid_id_proof' => 'storage/verification_ids/' . $idFileName,
+            'valid_id_proof' => 'storage/' . $idPath,
         ]);
 
         $otp     = rand(1000, 9999);
@@ -145,18 +161,7 @@ class AuthController extends Controller
             'image'   => 'required|string',
         ]);
 
-        $image = $request->image;
-
-        // Handle both formats from ngx-image-cropper:
-        //   "data:image/jpeg;base64,<data>"  → split on ;base64,
-        //   "<raw base64 string>"            → use directly
-        if (str_contains($image, ';base64,')) {
-            $parts        = explode(';base64,', $image, 2);
-            $image_base64 = base64_decode($parts[1] ?? '', true);
-        } else {
-            $image_base64 = base64_decode($image, true);
-        }
-
+        $image_base64 = $this->decodeBase64Image($request->image);
         if ($image_base64 === false || strlen($image_base64) < 100) {
             return response()->json(['message' => 'Photo failed to process. Please try cropping again.'], 422);
         }
@@ -166,17 +171,19 @@ class AuthController extends Controller
             return response()->json(['message' => 'User not found.'], 404);
         }
 
-        // Delete old profile picture to save storage.
+        // Delete old profile picture before saving new one.
         if ($user->profile_picture) {
-            $oldPath = str_replace('storage/', '', $user->profile_picture);
-            if (Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
+            $oldDiskPath = str_replace('storage/', '', $user->profile_picture);
+            if (Storage::disk('public')->exists($oldDiskPath)) {
+                Storage::disk('public')->delete($oldDiskPath);
             }
         }
 
-        $fileName = 'profile_' . time() . '_' . $request->user_id . '.png';
-        Storage::disk('public')->put('profiles/' . $fileName, $image_base64);
-        $user->profile_picture = 'storage/profiles/' . $fileName;
+        // Store under profiles/<user_id>/
+        $fileName = 'profile_' . time() . '.png';
+        $filePath = 'profiles/' . $user->user_id . '/' . $fileName;
+        Storage::disk('public')->put($filePath, $image_base64);
+        $user->profile_picture = 'storage/' . $filePath;
         $user->save();
 
         return response()->json(['message' => 'Photo updated!', 'user' => $user->fresh()]);
@@ -187,9 +194,8 @@ class AuthController extends Controller
         $request->validate(['user_id' => 'required|integer', 'channel' => 'required|in:email,phone']);
         $user = User::where('user_id', $request->user_id)->first();
         if (!$user) return response()->json(['message' => 'User not found.'], 404);
-        $otp      = rand(1000, 9999);
-        $cacheKey = 'pwd_change_otp_' . $request->user_id;
-        Cache::put($cacheKey, $otp, now()->addMinutes(10));
+        $otp = rand(1000, 9999);
+        Cache::put('pwd_change_otp_' . $request->user_id, $otp, now()->addMinutes(10));
         if ($request->channel === 'phone') {
             $sent = $this->semaphore->sendOtp($user->phone, (string) $otp);
             if (!$sent) return response()->json(['message' => 'Failed to send SMS OTP.'], 500);
@@ -204,10 +210,9 @@ class AuthController extends Controller
     public function verifyPasswordChangeOtp(Request $request)
     {
         $request->validate(['user_id' => 'required|integer', 'otp' => 'required|numeric']);
-        $cacheKey  = 'pwd_change_otp_' . $request->user_id;
-        $cachedOtp = Cache::get($cacheKey);
+        $cachedOtp = Cache::get('pwd_change_otp_' . $request->user_id);
         if ($cachedOtp && $cachedOtp == $request->otp) {
-            Cache::forget($cacheKey);
+            Cache::forget('pwd_change_otp_' . $request->user_id);
             Cache::put('pwd_change_verified_' . $request->user_id, true, now()->addMinutes(5));
             return response()->json(['message' => 'OTP verified.']);
         }
@@ -220,15 +225,14 @@ class AuthController extends Controller
             'user_id'      => 'required',
             'new_password' => ['required', 'min:8', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/'],
         ]);
-        $verifiedKey = 'pwd_change_verified_' . $request->user_id;
-        if (!Cache::get($verifiedKey)) {
+        if (!Cache::get('pwd_change_verified_' . $request->user_id)) {
             return response()->json(['message' => 'Identity verification required before changing password.'], 403);
         }
         $user = User::where('user_id', $request->user_id)->first();
         if (!$user) return response()->json(['message' => 'User not found.'], 404);
         $user->password = Hash::make($request->new_password);
         $user->save();
-        Cache::forget($verifiedKey);
+        Cache::forget('pwd_change_verified_' . $request->user_id);
         return response()->json(['message' => 'Password updated successfully!']);
     }
 
@@ -237,10 +241,10 @@ class AuthController extends Controller
         $request->validate(['user_id' => 'required']);
         $user = User::where('user_id', $request->user_id)->first();
         if (!$user) return response()->json(['message' => 'User not found'], 404);
-        $user->blood_type         = $request->blood_type;
-        $user->allergies          = $request->allergies;
-        $user->medical_conditions = $request->medical_conditions;
-        $user->pwd_status         = $request->pwd_status;
+        $user->blood_type         = $request->blood_type         ?? null;
+        $user->allergies          = $request->allergies          ?? null;
+        $user->medical_conditions = $request->medical_conditions ?? null;
+        $user->pwd_status         = $request->pwd_status         ?? null;
         $user->save();
         return response()->json(['message' => 'Medical profile updated successfully!', 'user' => $user->fresh()]);
     }
@@ -263,7 +267,9 @@ class AuthController extends Controller
         }
         return response()->json(
             $query->orderBy('created_at', 'desc')
-                  ->get(['user_id','first_name','last_name','username','email','phone','barangay_id','account_status','ban_reason','banned_at','created_at'])
+                  ->get(['user_id','first_name','last_name','username','email','phone',
+                         'barangay_id','account_status','ban_reason','banned_at',
+                         'created_at','profile_picture','false_alarm_strikes'])
         );
     }
 
@@ -296,13 +302,16 @@ class AuthController extends Controller
     {
         return response()->json(
             User::where('role', 'dispatcher')->orderBy('created_at', 'desc')
-                ->get(['user_id','first_name','last_name','username','email','phone','barangay_id','account_status','created_at'])
+                ->get(['user_id','first_name','last_name','username','email',
+                       'phone','barangay_id','account_status','created_at','profile_picture'])
         );
     }
 
     public function getPendingVerifications()
     {
-        return response()->json(User::where('account_status', 'unverified')->orderBy('created_at', 'desc')->get());
+        return response()->json(
+            User::where('account_status', 'unverified')->orderBy('created_at', 'desc')->get()
+        );
     }
 
     public function approveUser(Request $request)
@@ -317,7 +326,9 @@ class AuthController extends Controller
         $request->validate(['user_id' => 'required|integer']);
         $user = User::where('user_id', $request->user_id)->first();
         if ($user && $user->valid_id_proof) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $user->valid_id_proof));
+            Storage::disk('public')->deleteDirectory(
+                'verification_ids/' . $user->username
+            );
         }
         User::where('user_id', $request->user_id)->delete();
         return response()->json(['message' => 'User request rejected and deleted.']);
@@ -330,7 +341,11 @@ class AuthController extends Controller
         if ($cachedOtp && $cachedOtp == $request->otp) {
             Cache::forget('otp_' . $request->email);
             $user = User::where('email', $request->email)->first();
-            return response()->json(['message' => 'Verification successful', 'user' => $user->fresh(), 'role' => $user->role]);
+            return response()->json([
+                'message' => 'Verification successful',
+                'user'    => $user->fresh(),
+                'role'    => $user->role,
+            ]);
         }
         return response()->json(['message' => 'Invalid or expired OTP'], 400);
     }
