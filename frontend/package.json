@@ -1,8 +1,11 @@
 {
-  "name": "frontend",
+  "name": "mdrrmo-sine-emergency-response-app",
   "main": "main.js",
   "version": "0.0.1",
-  "author": "Ionic Framework",
+  "author": {
+    "name": "MDRRMO-SINE",
+    "email": "ejcp2005@gmail.com"
+  },
   "homepage": "https://ionicframework.com/",
   "build": {
     "appId": "com.mdrrmo.emergencyapp",
