@@ -34,15 +34,32 @@ export class LoginPage {
   isSendingOtp   = false;
   isResettingPwd = false;
 
-  toastOpen = false;
+  toastOpen    = false;
   toastMessage = '';
-  toastColor = 'danger';
+  toastColor   = 'danger';
 
   private attemptCount = 0;
   private readonly MAX_ATTEMPTS = 5;
   private lockoutUntil = 0;
   lockoutSecsRemaining = 0;
   private lockoutInterval: any;
+
+  // ── Reset password real-time validation ──────────────────────────────────
+  // Computed instantly on each keystroke — no need to hit enter.
+  resetPwdLength = false;
+  resetPwdUpper  = false;
+  resetPwdLower  = false;
+  resetPwdNum    = false;
+  resetPwdSym    = false;
+
+  onResetPasswordInput() {
+    const p = this.resetData.new_password;
+    this.resetPwdLength = p.length >= 8;
+    this.resetPwdUpper  = /[A-Z]/.test(p);
+    this.resetPwdLower  = /[a-z]/.test(p);
+    this.resetPwdNum    = /\d/.test(p);
+    this.resetPwdSym    = /[@$!%*#?&]/.test(p);
+  }
 
   constructor(
     private router: Router,
@@ -88,18 +105,12 @@ export class LoginPage {
         this.api.setToken(res.token);
         localStorage.setItem('user', JSON.stringify(res.user));
         localStorage.setItem('role', res.role);
-
         this.settings.loadFromServer(res.user.user_id).then(() => {
           this.locationSvc.start();
           const target = (res.role === 'admin' || res.role === 'dispatcher')
             ? '/admin-dashboard' : '/tabs/home';
-
           this.router.navigate([target]).then(() => {
-            // Apply dark mode AFTER navigation completes AND after a full
-            // animation frame so it never bleeds back onto the login page.
-            requestAnimationFrame(() => {
-              this.settings.applyToDom();
-            });
+            requestAnimationFrame(() => { this.settings.applyToDom(); });
             if (res.role !== 'admin' && res.role !== 'dispatcher') {
               this.pushNotificationsService.registerPush(res.user.user_id);
             }
@@ -148,7 +159,14 @@ export class LoginPage {
       : { phone: this.resetData.phone, otp_channel: 'phone' };
     this.isSendingOtp = true;
     this.api.forgotPassword(payload).subscribe({
-      next: () => { this.isSendingOtp = false; this.showToast('Recovery OTP sent.', 'success'); this.viewMode = 'reset'; },
+      next: () => {
+        this.isSendingOtp = false;
+        this.showToast('Recovery OTP sent.', 'success');
+        this.viewMode = 'reset';
+        // Reset validation state for the new password field.
+        this.resetData.new_password = '';
+        this.onResetPasswordInput();
+      },
       error: () => { this.isSendingOtp = false; this.showToast(
         this.otpChannel === 'email' ? 'Email not found.' : 'Phone number not found.', 'danger'
       ); }
@@ -156,7 +174,11 @@ export class LoginPage {
   }
 
   confirmReset() {
-    if (!this.resetData.otp || !this.resetData.new_password) { this.showToast('Fill out all fields.', 'warning'); return; }
+    if (!this.resetData.otp) { this.showToast('Please enter the OTP code.', 'warning'); return; }
+    if (!this.resetData.new_password) { this.showToast('Please enter a new password.', 'warning'); return; }
+    if (!this.resetPwdLength || !this.resetPwdUpper || !this.resetPwdLower || !this.resetPwdNum || !this.resetPwdSym) {
+      this.showToast('Password does not meet all requirements.', 'warning'); return;
+    }
     const payload = this.otpChannel === 'email'
       ? { email: this.resetData.email, otp: this.resetData.otp, new_password: this.resetData.new_password, otp_channel: 'email' }
       : { phone: this.resetData.phone, otp: this.resetData.otp, new_password: this.resetData.new_password, otp_channel: 'phone' };
@@ -168,8 +190,12 @@ export class LoginPage {
         this.viewMode = 'login';
         this.resetData = { email: '', phone: '', otp: '', new_password: '' };
         this.otpChannel = null;
+        this.onResetPasswordInput();
       },
-      error: (err: any) => { this.isResettingPwd = false; this.showToast(err.error?.message || 'Invalid OTP or weak password.', 'danger'); }
+      error: (err: any) => {
+        this.isResettingPwd = false;
+        this.showToast(err.error?.message || 'Invalid OTP or weak password.', 'danger');
+      }
     });
   }
 
