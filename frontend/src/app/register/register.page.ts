@@ -1,13 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastController } from '@ionic/angular';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
-  IonInputPasswordToggle, IonLabel, IonCard, IonCardContent,
+  IonInputPasswordToggle, IonCard, IonCardContent,
   IonSelect, IonSelectOption, IonChip, IonCheckbox,
-  IonRow, IonCol, IonButton, IonModal
+  IonButton, IonModal
 } from '@ionic/angular/standalone';
 import { ImageCropperComponent, ImageCroppedEvent, LoadedImage } from 'ngx-image-cropper';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -23,13 +23,13 @@ import { TourService } from '../services/tour';
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
-    IonInputPasswordToggle, IonLabel, IonCard, IonCardContent,
+    IonInputPasswordToggle, IonCard, IonCardContent,
     IonSelect, IonSelectOption, IonChip, IonCheckbox,
-    IonRow, IonCol, IonButton, IonModal, IonSelect, IonSelectOption,
+    IonButton, IonModal,
     ImageCropperComponent
   ],
 })
-export class RegisterPage {
+export class RegisterPage implements OnDestroy {
 
   currentStep = 1;
   otpCode = '';
@@ -44,10 +44,13 @@ export class RegisterPage {
   // OTP channel selection
   otpChannel: 'email' | 'sms' = 'email';
 
-  usernameStatus: 'idle' | 'checking' | 'available' | 'taken' = 'idle';
-  emailStatus: 'idle' | 'checking' | 'available' | 'taken' = 'idle';
+  // Three-state availability: null = not checked yet, true = available, false = taken/invalid
+  usernameAvailable: boolean | null = null;
+  emailAvailable: boolean | null = null;
   usernameSuggestions: string[] = [];
-  private debounceTimeout: any;
+  
+  private usernameDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private emailDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   barangays = [
     { id: 1, name: 'Alua' }, { id: 2, name: 'Calaba' }, { id: 3, name: 'Malapit' },
@@ -70,139 +73,267 @@ export class RegisterPage {
     private tour: TourService
   ) {}
 
-  checkLength(): boolean { return this.userData.password?.length >= 8; }
-  checkUpper(): boolean  { return /[A-Z]/.test(this.userData.password); }
-  checkLower(): boolean  { return /[a-z]/.test(this.userData.password); }
-  checkNum(): boolean    { return /\d/.test(this.userData.password); }
-  checkSym(): boolean    { return /[@$!%*#?&]/.test(this.userData.password); }
+  ngOnDestroy(): void {
+    // Clean up debounce timers on component destroy
+    if (this.usernameDebounceTimer) clearTimeout(this.usernameDebounceTimer);
+    if (this.emailDebounceTimer) clearTimeout(this.emailDebounceTimer);
+  }
 
-  onUsernameChange() {
-    if (!this.userData.username) { this.usernameStatus = 'idle'; return; }
-    this.usernameStatus = 'checking';
-    clearTimeout(this.debounceTimeout);
-    this.debounceTimeout = setTimeout(() => {
-      this.api.checkUsername(this.userData.username).subscribe({
+  // ── PASSWORD VALIDATION GETTERS (always reactive) ────────────────────────────
+  get pwdLength(): boolean { return (this.userData.password?.length ?? 0) >= 8; }
+  get pwdUpper(): boolean { return /[A-Z]/.test(this.userData.password ?? ''); }
+  get pwdLower(): boolean { return /[a-z]/.test(this.userData.password ?? ''); }
+  get pwdNum(): boolean { return /\d/.test(this.userData.password ?? ''); }
+  get pwdSym(): boolean { return /[@$!%*#?&]/.test(this.userData.password ?? ''); }
+
+  // ── FORMAT VALIDATION (instant feedback) ──────────────────────────────────────
+  isUsernameFormatValid(): boolean {
+    // Only letters, numbers, underscores, and dots
+    return /^[a-zA-Z0-9._]*$/.test(this.userData.username ?? '');
+  }
+
+  isEmailFormatValid(): boolean {
+    // Basic email format validation
+    return /^[^\s@]*@?[^\s@]*\.?[^\s@]*$/.test(this.userData.email ?? '');
+  }
+
+  // ── USERNAME AVAILABILITY CHECK ───────────────────────────────────────────────
+  onUsernameInput(): void {
+    const username = this.userData.username?.trim() ?? '';
+
+    // Reset to neutral if field is empty
+    if (!username) {
+      this.usernameAvailable = null;
+      this.usernameSuggestions = [];
+      return;
+    }
+
+    // Check format instantly
+    if (!this.isUsernameFormatValid()) {
+      this.usernameAvailable = false;
+      this.usernameSuggestions = [];
+      return;
+    }
+
+    // Reset to neutral and clear suggestions while checking
+    this.usernameAvailable = null;
+    this.usernameSuggestions = [];
+
+    // Clear previous timer
+    if (this.usernameDebounceTimer) clearTimeout(this.usernameDebounceTimer);
+
+    // Only check if username is at least 3 characters
+    if (username.length < 3) return;
+
+    // Debounce API call by 500ms
+    this.usernameDebounceTimer = setTimeout(() => {
+      this.api.checkUsername(username).subscribe({
         next: (res: any) => {
-          if (res.available) { this.usernameStatus = 'available'; this.usernameSuggestions = []; }
-          else { this.usernameStatus = 'taken'; this.generateUsernameSuggestions(); }
+          if (res?.available) {
+            this.usernameAvailable = true;
+            this.usernameSuggestions = [];
+          } else {
+            this.usernameAvailable = false;
+            this.generateUsernameSuggestions();
+          }
         },
-        error: () => { this.usernameStatus = 'idle'; }
+        error: (err) => {
+          console.error('Username check error:', err);
+          this.usernameAvailable = null;
+        }
       });
-    }, 600);
+    }, 500);
   }
 
-  onEmailChange() {
-    if (!this.userData.email) { this.emailStatus = 'idle'; return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.userData.email)) { this.emailStatus = 'taken'; return; }
-    this.emailStatus = 'checking';
-    clearTimeout(this.debounceTimeout);
-    this.debounceTimeout = setTimeout(() => {
-      this.api.checkEmail(this.userData.email).subscribe({
-        next: (res: any) => { this.emailStatus = res.available ? 'available' : 'taken'; },
-        error: () => { this.emailStatus = 'idle'; }
+  // ── EMAIL AVAILABILITY CHECK ──────────────────────────────────────────────────
+  onEmailInput(): void {
+    const email = this.userData.email?.trim() ?? '';
+
+    // Reset to neutral if field is empty
+    if (!email) {
+      this.emailAvailable = null;
+      return;
+    }
+
+    // Check format instantly
+    if (!this.isEmailFormatValid()) {
+      this.emailAvailable = false;
+      return;
+    }
+
+    // Reset to neutral while checking
+    this.emailAvailable = null;
+
+    // Clear previous timer
+    if (this.emailDebounceTimer) clearTimeout(this.emailDebounceTimer);
+
+    // Debounce API call by 500ms
+    this.emailDebounceTimer = setTimeout(() => {
+      this.api.checkEmail(email).subscribe({
+        next: (res: any) => {
+          this.emailAvailable = res?.available ?? false;
+        },
+        error: (err) => {
+          console.error('Email check error:', err);
+          this.emailAvailable = null;
+        }
       });
-    }, 600);
+    }, 500);
   }
 
-  generateUsernameSuggestions() {
-    const base = (this.userData.first_name || 'user').toLowerCase().replace(/\s+/g, '')
-               + (this.userData.last_name || '').toLowerCase().substring(0, 2);
-    const birthYear = this.userData.birthdate ? new Date(this.userData.birthdate).getFullYear() : '26';
+  // ── GENERATE USERNAME SUGGESTIONS ─────────────────────────────────────────────
+  private generateUsernameSuggestions(): void {
+    const firstName = this.userData.first_name?.toLowerCase().replace(/\s+/g, '') ?? 'user';
+    const lastName = this.userData.last_name?.toLowerCase().substring(0, 2) ?? '';
+    const birthYear = this.userData.birthdate 
+      ? new Date(this.userData.birthdate).getFullYear().toString() 
+      : '26';
+    
+    const base = firstName + lastName;
+    
     this.usernameSuggestions = [
       `${base}_${birthYear}`,
       `${base}${Math.floor(10 + Math.random() * 90)}`,
       `sine_${base}`
-    ];
+    ].filter(s => s.length > 0); // Filter out empty suggestions
   }
 
-  applySuggestion(name: string) {
+  applySuggestion(name: string): void {
     this.userData.username = name;
-    this.usernameStatus = 'available';
+    this.usernameAvailable = true;
     this.usernameSuggestions = [];
   }
 
-  // ── ID Capture using native file input (non-deprecated) ─────────────────────
-  triggerIdCapture() {
+  // ── ID CAPTURE using native file input ────────────────────────────────────────
+  triggerIdCapture(): void {
     document.getElementById('idCaptureInput')?.click();
   }
 
-  onIdFileSelected(event: any) {
-    const file: File = event.target.files[0];
+  onIdFileSelected(event: any): void {
+    const file: File = event.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { this.showToast('File too large. Max 10MB.'); return; }
+
+    // Check file size (max 10MB)
+    const maxSizeMb = 10;
+    if (file.size > maxSizeMb * 1024 * 1024) {
+      this.showToast(`File too large. Max ${maxSizeMb}MB.`);
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      this.showToast('Please select an image file.');
+      return;
+    }
+
     this.rawIdImageFile = file;
     this.showIdCropper = true;
+
     // Reset the input so the same file can be re-selected if needed
     (event.target as HTMLInputElement).value = '';
   }
 
-  idCropperImageChangedEvent: Event | null = null;
   idCroppedBase64: string = '';
 
-  get idCropperImageFile(): File | null { return this.rawIdImageFile; }
-
-  onIdCropped(event: ImageCroppedEvent) {
-    this.idCroppedBase64 = event.base64 || '';
+  get idCropperImageFile(): File | null {
+    return this.rawIdImageFile;
   }
 
-  confirmIdCrop() {
-    if (!this.idCroppedBase64) { this.showToast('Please wait for the image to load.'); return; }
+  onIdCropped(event: ImageCroppedEvent): void {
+    this.idCroppedBase64 = event.base64 ?? '';
+  }
+
+  confirmIdCrop(): void {
+    if (!this.idCroppedBase64) {
+      this.showToast('Please wait for the image to load.');
+      return;
+    }
     this.validIdPreview = this.idCroppedBase64;
     this.userData.valid_id_image = this.idCroppedBase64;
     this.showIdCropper = false;
     this.rawIdImageFile = null;
   }
 
-  cancelIdCrop() {
+  cancelIdCrop(): void {
     this.showIdCropper = false;
     this.rawIdImageFile = null;
     this.idCroppedBase64 = '';
   }
 
-  clearValidId() {
+  clearValidId(): void {
     this.validIdPreview = null;
     this.userData.valid_id_image = '';
   }
 
-  // ── OTP Channel Selection ───────────────────────────────────────────────────
-  selectOtpChannel(channel: 'email' | 'sms') {
+  // ── OTP CHANNEL SELECTION ─────────────────────────────────────────────────────
+  selectOtpChannel(channel: 'email' | 'sms'): void {
     this.otpChannel = channel;
     this.userData.otp_channel = channel;
   }
 
-  // ── Step Navigation ─────────────────────────────────────────────────────────
-  nextStep() {
+  // ── STEP NAVIGATION ───────────────────────────────────────────────────────────
+  nextStep(): void {
     if (this.currentStep === 1) {
-      if (!this.userData.first_name || !this.userData.last_name || !this.userData.phone || !this.userData.birthdate) {
-        this.showToast('Please fill out all personal details.'); return;
+      if (!this.userData.first_name?.trim() || !this.userData.last_name?.trim() 
+          || !this.userData.phone?.trim() || !this.userData.birthdate?.trim()) {
+        this.showToast('Please fill out all personal details.');
+        return;
       }
-      if (!this.validIdPreview) { this.showToast('A valid ID photo is required.'); return; }
+      if (!this.validIdPreview) {
+        this.showToast('A valid ID photo is required.');
+        return;
+      }
     }
+
     if (this.currentStep === 2) {
-      if (!this.userData.username || !this.userData.email || !this.userData.barangay_id) {
-        this.showToast('Please fill out all account details.'); return;
+      if (!this.userData.username?.trim() || !this.userData.email?.trim() 
+          || !this.userData.barangay_id) {
+        this.showToast('Please fill out all account details.');
+        return;
       }
-      if (this.usernameStatus === 'taken' || this.emailStatus === 'taken') {
-        this.showToast('Username or email is already taken.'); return;
+
+      // Check availability statuses: must be exactly true (not null or false)
+      if (this.usernameAvailable !== true) {
+        this.showToast('Please verify your username availability.');
+        return;
       }
+      if (this.emailAvailable !== true) {
+        this.showToast('Please verify your email availability.');
+        return;
+      }
+
+      // Validate password meets all requirements
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
-      if (!passwordRegex.test(this.userData.password)) {
-        this.showToast('Password must meet all security requirements.'); return;
+      if (!passwordRegex.test(this.userData.password ?? '')) {
+        this.showToast('Password must meet all security requirements.');
+        return;
       }
+
+      // Check password confirmation
       if (this.userData.password !== this.userData.confirm_password) {
-        this.showToast('Passwords do not match.'); return;
+        this.showToast('Passwords do not match.');
+        return;
       }
-      if (!this.termsAccepted) { this.showToast('You must accept the Terms and Conditions.'); return; }
-      // Step 2 goes to OTP channel selection (step 2.5, embedded in step 2 UI)
-      // then submits registration
-      this.submitRegistration(); return;
+
+      // Check terms acceptance
+      if (!this.termsAccepted) {
+        this.showToast('You must accept the Terms and Conditions.');
+        return;
+      }
+
+      // All validations passed, submit registration
+      this.submitRegistration();
+      return;
     }
+
     this.currentStep++;
   }
 
-  prevStep() { if (this.currentStep > 1) this.currentStep--; }
+  prevStep(): void {
+    if (this.currentStep > 1) this.currentStep--;
+  }
 
-  submitRegistration() {
+  submitRegistration(): void {
     this.api.register(this.userData).subscribe({
       next: () => {
         const channelLabel = this.otpChannel === 'sms'
@@ -211,48 +342,72 @@ export class RegisterPage {
         this.showToast(`Verification code sent to ${channelLabel}.`);
         this.currentStep = 3;
       },
-      error: (err: any) => { this.showToast(err.error?.message || 'Registration failed.'); }
+      error: (err: any) => {
+        this.showToast(err?.error?.message ?? 'Registration failed.');
+      }
     });
   }
 
-  // ── Post-registration medical profile prompt ────────────────────────
+  // ── POST-REGISTRATION MEDICAL PROFILE PROMPT ──────────────────────────────────
   showMedicalModal = false;
   medicalData = { blood_type: '', allergies: '', medical_conditions: '', pwd_status: '' };
   isSavingMedical = false;
 
-  verifyOtp() {
+  verifyOtp(): void {
+    if (!this.otpCode?.trim()) {
+      this.showToast('Please enter the verification code.');
+      return;
+    }
+
     this.api.verifyOtp({ email: this.userData.email, otp: this.otpCode }).subscribe({
       next: (res: any) => {
         localStorage.setItem('user', JSON.stringify(res.user));
         localStorage.setItem('role', res.role);
-        // Show the optional medical profile prompt before going home.
-        // If the user skips, they can always fill it in from their profile page.
+        // Show optional medical profile prompt before going home
         this.showMedicalModal = true;
       },
-      error: () => { this.showToast('Invalid verification code.'); }
+      error: () => {
+        this.showToast('Invalid verification code.');
+      }
     });
   }
 
-  saveMedicalAndProceed() {
-    const user = JSON.parse(localStorage.getItem('user')!);
-    this.isSavingMedical = true;
-    this.api.updateMedicalProfile({ user_id: user.user_id, ...this.medicalData }).subscribe({
-      next: (res: any) => {
-        localStorage.setItem('user', JSON.stringify(res.user));
-        this.isSavingMedical = false;
-        this.showMedicalModal = false;
-        this.router.navigate(['/tabs/home']);
-      },
-      error: () => { this.isSavingMedical = false; this.showToast('Failed to save. You can update this from your Profile later.'); this.skipMedical(); }
-    });
+  saveMedicalAndProceed(): void {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') ?? '{}');
+      if (!user?.user_id) {
+        this.showToast('Session error. Please try again.');
+        return;
+      }
+
+      this.isSavingMedical = true;
+
+      this.api.updateMedicalProfile({ user_id: user.user_id, ...this.medicalData }).subscribe({
+        next: (res: any) => {
+          this.isSavingMedical = false;
+          localStorage.setItem('user', JSON.stringify(res.user));
+          this.showMedicalModal = false;
+          this.promptTourIfNew();
+        },
+        error: (err) => {
+          this.isSavingMedical = false;
+          console.error('Failed to save medical profile:', err);
+          this.showToast('Failed to save. You can update this from your Profile later.');
+          this.skipMedical();
+        }
+      });
+    } catch (err) {
+      console.error('Error parsing user data:', err);
+      this.showToast('Session error. Please try again.');
+    }
   }
 
-  skipMedical() {
+  skipMedical(): void {
     this.showMedicalModal = false;
     this.promptTourIfNew();
   }
 
-  private promptTourIfNew() {
+  private promptTourIfNew(): void {
     this.router.navigate(['/tabs/home']).then(() => {
       if (!this.tour.hasSeenTour()) {
         setTimeout(() => this.tour.promptStart(), 600);
@@ -260,8 +415,13 @@ export class RegisterPage {
     });
   }
 
-  async showToast(msg: string, color = 'danger') {
-    const toast = await this.toastController.create({ message: msg, duration: 3000, position: 'bottom', color });
+  async showToast(msg: string, color = 'danger'): Promise<void> {
+    const toast = await this.toastController.create({
+      message: msg,
+      duration: 3000,
+      position: 'bottom',
+      color
+    });
     await toast.present();
   }
 }
