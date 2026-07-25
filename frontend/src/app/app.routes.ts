@@ -3,11 +3,13 @@ import { AuthGuard } from './guards/auth-guard';
 import { GuestGuard } from './guards/guest-guard';
 
 export const routes: Routes = [
+  // On hard reload, redirect based on auth state rather than always to welcome.
   { path: '', redirectTo: 'welcome', pathMatch: 'full' },
 
   {
     path: 'welcome',
     loadComponent: () => import('./welcome/welcome.page').then(m => m.WelcomePage),
+    canActivate: [GuestGuard],
   },
   {
     path: 'login',
