@@ -11,14 +11,14 @@ export class GuestGuard implements CanActivate {
     const user = localStorage.getItem('user');
     const role = localStorage.getItem('role');
     
-    // If they are already logged in, send them away from the auth pages
+    // If they are already logged in, send them away from the auth pages.
     if (user) {
-      if (role === 'admin') {
+      if (role === 'admin' || role === 'dispatcher') {
         this.router.navigate(['/admin-dashboard']);
       } else {
         this.router.navigate(['/tabs/home']);
       }
-      return false; // Block access to login/register
+      return false;
     }
     
     return true; // Let them see the login/register page
