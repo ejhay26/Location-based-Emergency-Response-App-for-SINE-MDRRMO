@@ -9,7 +9,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding" style="--padding-bottom: 88px;">
   <form [formGroup]="reportForm" (ngSubmit)="submitReport()">
 
     <!-- Category selector: Emergency -->
@@ -151,16 +151,38 @@
       </ion-card-content>
     </ion-card>
 
-    <ion-button id="tour-submit-button"
-                [class.tour-highlight]="tour.targetId() === 'tour-submit-button'"
-                type="submit" expand="block" [color]="reportType==='hazard'?'warning':'danger'"
-                size="large" [disabled]="!isFormReady || !hasMedia" style="font-weight:bold;height:55px;">
-      <i [class]="reportType==='hazard'?'fa-solid fa-road-barrier':'fa-solid fa-triangle-exclamation'" style="margin-right:10px;font-size:20px;"></i>
-      {{ reportType === 'hazard' ? 'Submit Hazard Report' : 'Send Emergency SOS' }}
-    </ion-button>
-
   </form>
 </ion-content>
+
+<!-- Floating submit button — fixed at bottom above the safe area so the user
+     never has to scroll to submit. Outside ion-content so it stays anchored. -->
+<div style="
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  left: 16px;
+  right: 16px;
+  z-index: 8000;">
+  <ion-button
+    id="tour-submit-button"
+    [class.tour-highlight]="tour.targetId() === 'tour-submit-button'"
+    (click)="submitReport()"
+    expand="block"
+    [color]="reportType === 'hazard' ? 'warning' : 'danger'"
+    size="large"
+    [style.opacity]="(!isFormReady || isSubmitting) ? '0.55' : '1'"
+    [style.filter]="!isFormReady ? 'saturate(0.5)' : 'none'"
+    [style.cursor]="(!isFormReady || isSubmitting) ? 'not-allowed' : 'pointer'"
+    style="font-weight: bold; height: 55px; box-shadow: 0 4px 20px rgba(0,0,0,0.35); transition: opacity 0.2s, filter 0.2s;">
+    <ng-container *ngIf="!isSubmitting">
+      <i [class]="reportType === 'hazard' ? 'fa-solid fa-road-barrier' : 'fa-solid fa-triangle-exclamation'"
+         style="margin-right: 10px; font-size: 20px;"></i>
+      {{ reportType === 'hazard' ? 'Submit Hazard Report' : 'Send Emergency SOS' }}
+    </ng-container>
+    <span *ngIf="isSubmitting" class="dot-loader">
+      <span></span><span></span><span></span>
+    </span>
+  </ion-button>
+</div>
 
 
 <!-- Fullscreen map overlay — outside ion-content so position:fixed anchors to viewport -->
