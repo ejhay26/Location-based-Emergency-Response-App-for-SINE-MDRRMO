@@ -129,12 +129,14 @@ export class ReportPage implements OnDestroy {
     latitude: ['', Validators.required], longitude: ['', Validators.required],
   });
 
+  isSubmitting = false;
+
   get crosshairColor(): string { return this.reportType === 'hazard' ? '#ffc409' : '#eb445a'; }
   get isFormReady(): boolean {
     if (!this.reportForm.value.latitude || !this.reportForm.value.longitude) return false;
-    return this.reportType === 'emergency'
-      ? !!this.reportForm.value.incident_type_id
-      : !!this.reportForm.value.hazard_type;
+    if (this.reportType === 'emergency') return !!this.reportForm.value.incident_type_id;
+    // Hazard requires both a type selection AND at least one proof file.
+    return !!this.reportForm.value.hazard_type && this.hasMedia;
   }
 
   constructor() {}
@@ -432,7 +434,11 @@ export class ReportPage implements OnDestroy {
   }
 
   async submitReport() {
-    if (!this.hasMedia) { this.showToast('At least one photo or video is required.', 'warning'); return; }
+    if (this.isSubmitting) return;
+    // Hazard always requires media (enforced in isFormReady too, but guard here as well).
+    if (this.reportType === 'hazard' && !this.hasMedia) {
+      this.showToast('At least one photo or video is required for hazard reports.', 'warning'); return;
+    }
     if (!this.isFormReady) { this.showToast('Please fill out all required fields.', 'warning'); return; }
     const label = this.reportType === 'emergency' ? 'Send Emergency SOS' : 'Submit Hazard Report';
     const msg   = this.reportType === 'emergency'
@@ -446,6 +452,7 @@ export class ReportPage implements OnDestroy {
       }).then(a => { a.present(); a.onDidDismiss().then(r => resolve(r.role === 'destructive')); });
     });
     if (!confirmed) return;
+    this.isSubmitting = true;
     const user       = JSON.parse(localStorage.getItem('user')!);
     const proofFiles = this.mediaFiles.map(m => m.preview);
     if (this.reportType === 'emergency') {
@@ -454,8 +461,15 @@ export class ReportPage implements OnDestroy {
         description: this.reportForm.value.description, latitude: this.reportForm.value.latitude,
         longitude: this.reportForm.value.longitude, proof_files: proofFiles
       }).subscribe({
-        next: () => { this.showToast('Emergency SOS sent!', 'success'); this.router.navigate(['/tabs/home']); },
-        error: (err: any) => this.showToast(err.error?.message || 'Submission failed.', 'danger')
+        next: () => {
+          this.isSubmitting = false;
+          this.showToast('Emergency SOS sent!', 'success');
+          this.router.navigate(['/tabs/home']);
+        },
+        error: (err: any) => {
+          this.isSubmitting = false;
+          this.showToast(err.error?.message || 'Submission failed.', 'danger');
+        }
       });
     } else {
       this.api.submitHazard({
@@ -463,8 +477,15 @@ export class ReportPage implements OnDestroy {
         hazard_type: this.selectedHazardName, latitude: this.reportForm.value.latitude,
         longitude: this.reportForm.value.longitude, proof_files: proofFiles
       }).subscribe({
-        next: () => { this.showToast('Hazard reported!', 'success'); this.router.navigate(['/tabs/home']); },
-        error: (err: any) => this.showToast(err.error?.message || 'Submission failed.', 'danger')
+        next: () => {
+          this.isSubmitting = false;
+          this.showToast('Hazard reported!', 'success');
+          this.router.navigate(['/tabs/home']);
+        },
+        error: (err: any) => {
+          this.isSubmitting = false;
+          this.showToast(err.error?.message || 'Submission failed.', 'danger');
+        }
       });
     }
   }
