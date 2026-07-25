@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -30,7 +30,7 @@ import { ImageCacheService } from '../services/image-cache';
     ImageCropperComponent
   ]
 })
-export class ProfilePage implements OnDestroy {
+export class ProfilePage implements OnInit, OnDestroy {
 
   userData: any = {};
   calculatedAge: string | number = 'N/A';
@@ -110,16 +110,34 @@ export class ProfilePage implements OnDestroy {
     private imageCache: ImageCacheService,
   ) {}
 
-  async ionViewWillEnter() {
+  private storageListener = () => this.loadLocalUser();
+
+  async ngOnInit() {
     await this.loadLocalUser();
+    // Re-sync whenever another page updates localStorage (e.g. after profile
+    // picture update fires window.dispatchEvent(new Event('storage'))).
+    window.addEventListener('storage', this.storageListener);
   }
 
-  ngOnDestroy() { this.otpAutofill.stop(); }
+  ngOnDestroy() {
+    this.otpAutofill.stop();
+    window.removeEventListener('storage', this.storageListener);
+  }
 
   async loadLocalUser() {
     const userStr = localStorage.getItem('user');
     if (!userStr) return;
-    this.userData = JSON.parse(userStr);
+    try {
+      this.userData = JSON.parse(userStr);
+    } catch {
+      localStorage.removeItem('user');
+      return;
+    }
+    // Guard: if the parsed object has no user_id the cache is stale/corrupt.
+    if (!this.userData?.user_id) {
+      this.userData = {};
+      return;
+    }
     if (this.userData.birthdate) this.calculateAge(this.userData.birthdate);
     // Medical data — read from localStorage (which is kept in sync after
     // every save/update-profile-picture response via res.user).
