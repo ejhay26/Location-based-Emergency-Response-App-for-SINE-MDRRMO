@@ -14,6 +14,7 @@ class UserSettingsController extends Controller
         'map_default_style',
         'notif_emergency_alerts',
         'notif_broadcast_alerts',
+        'save_media_to_device',
     ];
 
     private const DEFAULTS = [
@@ -23,6 +24,7 @@ class UserSettingsController extends Controller
         'map_default_style'      => 'street',
         'notif_emergency_alerts' => 'true',
         'notif_broadcast_alerts' => 'true',
+        'save_media_to_device'   => 'false',
     ];
 
     public function get(int $user_id)
