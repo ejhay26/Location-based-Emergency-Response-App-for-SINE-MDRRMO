@@ -354,9 +354,11 @@ export class ReportPage implements OnDestroy {
     if (!this.canAddMore) { this.showToast('Maximum 2 files allowed.', 'warning'); return; }
     try {
       await Camera.requestPermissions({ permissions: ['camera'] });
+      const saveToGallery = this.userSettings.getBool('save_media_to_device');
       const result = await Camera.getPhoto({
         quality: 80, allowEditing: false,
-        resultType: CameraResultType.DataUrl, source: CameraSource.Camera
+        resultType: CameraResultType.DataUrl, source: CameraSource.Camera,
+        saveToGallery,
       });
       if (!result.dataUrl) return;
       const res  = await fetch(result.dataUrl);
