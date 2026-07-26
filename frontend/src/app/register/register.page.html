@@ -254,7 +254,12 @@
         [(ngModel)]="otpCode"></ion-input>
     </ion-item>
 
-    <ion-button expand="block" color="success" class="ion-margin-top" (click)="verifyOtp()" style="font-weight: bold; height: 50px;">Verify & Login</ion-button>
+    <ion-button expand="block" color="success" class="ion-margin-top" (click)="verifyOtp()"
+                [class.btn-loading]="isVerifyingOtp"
+                style="font-weight: bold; height: 50px;">
+      <ng-container *ngIf="!isVerifyingOtp">Verify & Login</ng-container>
+      <span *ngIf="isVerifyingOtp" class="dot-loader"><span></span><span></span><span></span></span>
+    </ion-button>
   </div>
 
 </ion-content>
