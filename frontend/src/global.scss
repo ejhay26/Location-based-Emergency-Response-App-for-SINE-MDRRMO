@@ -22,6 +22,29 @@
   font-style: normal;
 }
 
+/* ───────────────────────────────────────────────────────────────────────────
+   DESIGN TOKEN SYSTEM
+   Three solid colors + neutrals. No gradients anywhere.
+
+   --app-red       Primary brand / danger / SOS (#D32F2F)
+   --app-yellow    Hazard / warnings / lower-level toasts (#F9A825)
+   --app-radius    Global border radius (16px — matches Ionic rounding)
+   --app-shadow    Standard card / button shadow
+   --app-shadow-md Heavier shadow (floating buttons, modals)
+
+   Shadow colors derive from --app-red so they stay on-brand.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --app-red:       #D32F2F;
+  --app-red-light: rgba(211, 47, 47, 0.15);
+  --app-red-glow:  rgba(211, 47, 47, 0.4);
+  --app-yellow:    #F9A825;
+  --app-radius:    16px;
+  --app-radius-sm: 8px;
+  --app-shadow:    0 2px 8px rgba(211, 47, 47, 0.18);
+  --app-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.30);
+}
+
 :root:not(.ion-palette-dark) {
   --ion-background-color: #f4f5f8;
   --ion-text-color: #222428;
@@ -38,6 +61,20 @@ ion-input, ion-select, ion-textarea {
   --color: var(--ion-text-color) !important;
 }
 
+/* Suppress native Android/WebView tap highlight box and text selection
+   that appears on buttons and tappable elements on long-press or tap.
+   -webkit-tap-highlight-color removes the blue/grey flash rectangle.
+   user-select none prevents accidental text selection on tap. */
+* {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+}
+button, ion-button, ion-item, ion-tab-button, a, [role="button"] {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  outline: none !important;
+}
+
 /* 1. STRICT GLOBAL UI ROUNDING */
 ion-card, ion-item, ion-list, ion-button, ion-input, ion-select, ion-avatar {
   --border-radius: 16px !important;
@@ -50,10 +87,38 @@ ion-card, ion-item, ion-list, ion-button, ion-input, ion-select, ion-avatar {
   overflow: hidden !important;
 }
 
-/* 2. INPUT POLISH */
-ion-input.ion-touched.ion-valid { --color: var(--ion-color-success) !important; }
+/* 2. INPUT POLISH — only show red on explicitly invalid touched fields.
+   We intentionally do NOT use ion-touched.ion-valid green coloring here
+   because it turns green as soon as the user types a single character —
+   before any actual validation is met.
+   Colour feedback is handled per-field in the template via explicit logic.
+   Remove ion-input-password-toggle color so it doesn't flash danger on load. */
 ion-input.ion-touched.ion-invalid { --color: var(--ion-color-danger) !important; }
-ion-input-password-toggle { --color: var(--ion-color-danger) !important; }
+
+/* =========================================
+   BUTTON STATE UTILITIES
+   .btn-muted   — button is not yet actionable (form incomplete, etc.)
+                  Uses a grey overlay instead of transparency so the button
+                  remains fully visible and readable, just clearly inactive.
+   .btn-loading — button is waiting on an async operation.
+                  Pairs with the dot-loader inside the button.
+   Apply these classes directly; never use [disabled] on ion-button if you
+   want to avoid Ionic’s default semi-transparent disabled appearance.
+   ========================================= */
+ion-button.btn-muted::part(native) {
+  background:     #888 !important;
+  box-shadow:     none !important;
+  cursor:         not-allowed !important;
+  pointer-events: none;
+  transition:     background 0.2s;
+}
+ion-button.btn-loading::part(native) {
+  background:     #666 !important;
+  box-shadow:     none !important;
+  cursor:         not-allowed !important;
+  pointer-events: none;
+  transition:     background 0.2s;
+}
 
 /* 3. SOS BUTTON */
 .sos-container {
@@ -67,31 +132,31 @@ ion-input-password-toggle { --color: var(--ion-color-danger) !important; }
   width: 200px;
   height: 200px;
   border-radius: 50% !important;
-  background-color: var(--ion-color-danger);
+  background-color: var(--app-red);
   color: white;
   font-size: 24px;
   font-weight: bold;
   border: none;
-  box-shadow: 0 8px 24px rgba(255, 0, 0, 0.4);
+  box-shadow: 0 8px 24px var(--app-red-glow);
   transition: transform 0.1s ease;
 }
 
 .sos-button:active {
   transform: scale(0.95);
-  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.6);
+  box-shadow: 0 4px 12px var(--app-red-glow);
 }
 
 /* 4. PUBLIC BROADCAST MARQUEE ANIMATION */
 .broadcast-banner {
-  background-color: var(--ion-color-danger);
+  background-color: var(--app-red);
   color: white;
   padding: 12px;
   font-weight: bold;
   overflow: hidden;
   white-space: nowrap;
-  border-radius: 16px;
+  border-radius: var(--app-radius);
   margin-bottom: 15px;
-  box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
+  box-shadow: 0 4px 10px var(--app-red-glow);
   display: flex;
   align-items: center;
 }
@@ -192,7 +257,7 @@ html.ion-palette-dark .leaflet-popup-tip {
 
 .expandable-image img {
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--app-radius-sm);
   object-fit: contain;
   background-color: #000;
   max-height: 250px;
@@ -207,13 +272,13 @@ html.ion-palette-dark .leaflet-popup-tip {
 
 /* Active menu item highlight */
 .menu-item-active {
-  --background: rgba(var(--ion-color-danger-rgb), 0.12) !important;
-  --color: var(--ion-color-danger) !important;
+  --background: var(--app-red-light) !important;
+  --color: var(--app-red) !important;
   font-weight: 700 !important;
 }
- 
+
 .menu-item-active i {
-  color: var(--ion-color-danger) !important;
+  color: var(--app-red) !important;
 }
 
 .dot-loader { display: flex; gap: 5px; align-items: center; height: 16px; }
@@ -276,7 +341,7 @@ html.ion-palette-dark .leaflet-popup-tip {
 .sos-ring {
   position: absolute;
   border-radius: 50%;
-  border: 2.5px solid rgba(235, 68, 90, 0.5);
+  border: 2.5px solid var(--app-red-glow);
   animation: sosRipple 2.4s ease-out infinite;
   pointer-events: none;
 }
