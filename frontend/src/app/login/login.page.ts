@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MenuController, AlertController } from '@ionic/angular/standalone';
+import { MenuController } from '@ionic/angular/standalone';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem,
   IonInput, IonButton, IonInputPasswordToggle, IonToast
@@ -26,13 +26,106 @@ import { LocationService } from '../services/location';
 export class LoginPage {
 
   credentials = { login: '', password: '' };
-  viewMode: 'login' | 'forgot-choose' | 'forgot-input' | 'reset' = 'login';
+  viewMode: 'login' | 'email-otp' | 'forgot-choose' | 'forgot-input' | 'reset' = 'login';
   otpChannel: 'email' | 'phone' | null = null;
   resetData = { email: '', phone: '', otp: '', new_password: '' };
 
   isLoggingIn    = false;
   isSendingOtp   = false;
+  isVerifyingOtp = false;
   isResettingPwd = false;
+
+  // ── Email OTP login ───────────────────────────────────────────────────────
+  emailOtpData    = { email: '', otp: '' };
+  otpSent         = false;
+  otpResendSecs   = 0;
+  private resendInterval: any;
+
+  get emailValid(): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.emailOtpData.email);
+  }
+
+  startResendCountdown() {
+    this.otpResendSecs = 60;
+    clearInterval(this.resendInterval);
+    this.resendInterval = setInterval(() => {
+      this.otpResendSecs--;
+      if (this.otpResendSecs <= 0) clearInterval(this.resendInterval);
+    }, 1000);
+  }
+
+  sendLoginOtp() {
+    if (!this.emailValid) { this.showToast('Please enter a valid email address.', 'warning'); return; }
+    if (this.otpResendSecs > 0) return;
+    this.isSendingOtp = true;
+    this.api.loginSendOtp({ email: this.emailOtpData.email }).subscribe({
+      next: () => {
+        this.isSendingOtp = false;
+        this.otpSent = true;
+        this.startResendCountdown();
+        this.showToast('OTP sent — check your email.', 'success');
+      },
+      error: (err: any) => {
+        this.isSendingOtp = false;
+        if (err.status === 403) {
+          this.showToast('Your account is pending admin verification.', 'warning');
+        } else {
+          // Same message as success to avoid email enumeration.
+          this.otpSent = true;
+          this.startResendCountdown();
+          this.showToast('OTP sent — check your email.', 'success');
+        }
+      }
+    });
+  }
+
+  verifyLoginOtp() {
+    if (!this.emailOtpData.otp || this.emailOtpData.otp.length < 4) {
+      this.showToast('Please enter the 4-digit code.', 'warning'); return;
+    }
+    this.isVerifyingOtp = true;
+    this.api.loginVerifyOtp({ email: this.emailOtpData.email, otp: this.emailOtpData.otp }).subscribe({
+      next: (res: any) => {
+        this.isVerifyingOtp = false;
+        this.handleLoginSuccess(res);
+      },
+      error: (err: any) => {
+        this.isVerifyingOtp = false;
+        this.showToast(err.error?.message || 'Invalid or expired code.', 'danger');
+      }
+    });
+  }
+
+  switchToEmailOtp() {
+    this.viewMode = 'email-otp';
+    this.emailOtpData = { email: '', otp: '' };
+    this.otpSent = false;
+    this.otpResendSecs = 0;
+    clearInterval(this.resendInterval);
+  }
+
+  /** Shared post-login handler used by both password and OTP flows. */
+  private handleLoginSuccess(res: any) {
+    if (Capacitor.isNativePlatform() && (res.role === 'admin' || res.role === 'dispatcher')) {
+      this.isLoggingIn = false;
+      this.showToast('Admin access is not available on the mobile app.', 'danger'); return;
+    }
+    this.attemptCount = 0;
+    this.api.setToken(res.token);
+    localStorage.setItem('user', JSON.stringify(res.user));
+    localStorage.setItem('role', res.role);
+    this.settings.loadFromServer(res.user.user_id).then(() => {
+      this.locationSvc.start();
+      const target = (res.role === 'admin' || res.role === 'dispatcher')
+        ? '/admin-dashboard' : '/tabs/home';
+      this.router.navigate([target]).then(() => {
+        requestAnimationFrame(() => { this.settings.applyToDom(); });
+        if (res.role !== 'admin' && res.role !== 'dispatcher') {
+          this.pushNotificationsService.registerPush(res.user.user_id);
+        }
+      });
+    });
+  }
 
   toastOpen    = false;
   toastMessage = '';
@@ -65,7 +158,6 @@ export class LoginPage {
     private router: Router,
     private api: ApiService,
     private menuCtrl: MenuController,
-    private alertCtrl: AlertController,
     private pushNotificationsService: PushNotificationsService,
     private settings: UserSettingsService,
     private locationSvc: LocationService,
@@ -83,6 +175,7 @@ export class LoginPage {
   ionViewWillLeave() {
     this.menuCtrl.enable(true);
     clearInterval(this.lockoutInterval);
+    clearInterval(this.resendInterval);
   }
 
   login() {
@@ -97,25 +190,8 @@ export class LoginPage {
     this.isLoggingIn = true;
     this.api.login(this.credentials).subscribe({
       next: (res: any) => {
-        if (Capacitor.isNativePlatform() && (res.role === 'admin' || res.role === 'dispatcher')) {
-          this.isLoggingIn = false;
-          this.showToast('Admin access is not available on the mobile app.', 'danger'); return;
-        }
-        this.attemptCount = 0;
-        this.api.setToken(res.token);
-        localStorage.setItem('user', JSON.stringify(res.user));
-        localStorage.setItem('role', res.role);
-        this.settings.loadFromServer(res.user.user_id).then(() => {
-          this.locationSvc.start();
-          const target = (res.role === 'admin' || res.role === 'dispatcher')
-            ? '/admin-dashboard' : '/tabs/home';
-          this.router.navigate([target]).then(() => {
-            requestAnimationFrame(() => { this.settings.applyToDom(); });
-            if (res.role !== 'admin' && res.role !== 'dispatcher') {
-              this.pushNotificationsService.registerPush(res.user.user_id);
-            }
-          });
-        });
+        this.isLoggingIn = false;
+        this.handleLoginSuccess(res);
       },
       error: (err: any) => {
         this.isLoggingIn = false;
