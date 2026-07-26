@@ -45,6 +45,15 @@ export class WelcomePage implements OnInit {
   }
 
   async ngOnInit() {
+    // On desktop (Electron / web browser) the permission-request slides
+    // are meaningless — there is no camera/location OS dialog to trigger.
+    // Skip straight to login so dispatchers and admins on .exe or browser
+    // never see the mobile onboarding flow.
+    if (!Capacitor.isNativePlatform()) {
+      await this.router.navigate(['/login'], { replaceUrl: true });
+      return;
+    }
+
     const seen = localStorage.getItem('welcomeSeen') === 'true';
     if (seen) {
       const user = localStorage.getItem('user');
