@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\MediaHandling;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Services\SemaphoreService;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
+    use MediaHandling;
+
     private SemaphoreService $semaphore;
 
     public function __construct(SemaphoreService $semaphore)
@@ -22,19 +25,54 @@ class AuthController extends Controller
     }
 
     // ── File storage structure ────────────────────────────────────────────────
-    // profiles/        → user profile pictures (old deleted on update)
-    // verification_ids/→ registration ID proofs (kept permanently)
-    // reports/sos/     → SOS proof photos and videos
-    // reports/hazard/  → Hazard proof photos and videos
+    // profiles/          → profile pictures   (public disk, old deleted on update)
+    // verification_ids/  → ID proofs          (private disk, admin-only retrieval)
+    // reports/sos/       → SOS proof files    (public disk, permanent)
+    // reports/hazard/    → hazard proof files  (public disk, permanent)
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function decodeBase64Image(string $data): string|false
+    public function loginSendOtp(Request $request)
     {
-        if (str_contains($data, ';base64,')) {
-            $parts = explode(';base64,', $data, 2);
-            return base64_decode($parts[1] ?? '', true);
+        $request->validate(['email' => 'required|email']);
+        $user = User::where('email', $request->email)->first();
+        // Always return the same message to avoid email enumeration.
+        if (!$user || $user->account_status === 'banned') {
+            return response()->json(['message' => 'If that email exists, an OTP was sent.'], 200);
         }
-        return base64_decode($data, true);
+        if ($user->account_status === 'unverified') {
+            return response()->json(['message' => 'Your account is pending admin verification.'], 403);
+        }
+        $otp = rand(1000, 9999);
+        Cache::put('login_otp_' . $user->email, $otp, now()->addMinutes(10));
+        Mail::raw("Your MDRRMO San Isidro login code is: {$otp}. It expires in 10 minutes.", function ($m) use ($user) {
+            $m->to($user->email)->subject('Login Verification Code');
+        });
+        return response()->json(['message' => 'If that email exists, an OTP was sent.']);
+    }
+
+    public function loginVerifyOtp(Request $request)
+    {
+        $request->validate(['email' => 'required|email', 'otp' => 'required|numeric']);
+        $cached = Cache::get('login_otp_' . $request->email);
+        if (!$cached || $cached != $request->otp) {
+            return response()->json(['message' => 'Invalid or expired code.'], 400);
+        }
+        Cache::forget('login_otp_' . $request->email);
+        $user = User::where('email', $request->email)->first();
+        if (!$user) return response()->json(['message' => 'Invalid or expired code.'], 400);
+        $user->tokens()->delete();
+        $abilities = match ($user->role) {
+            'admin'      => ['admin', 'dispatcher', 'citizen'],
+            'dispatcher' => ['dispatcher'],
+            default      => ['citizen'],
+        };
+        $token = $user->createToken('app-token', $abilities)->plainTextToken;
+        return response()->json([
+            'message' => 'Login successful',
+            'token'   => $token,
+            'user'    => $user->fresh(),
+            'role'    => $user->role,
+        ]);
     }
 
     public function login(Request $request)
@@ -72,8 +110,6 @@ class AuthController extends Controller
 
         $token = $user->createToken('app-token', $abilities)->plainTextToken;
 
-        // fresh() ensures ALL columns are returned including medical fields
-        // and any columns added after the model was originally loaded.
         return response()->json([
             'message' => 'Login successful',
             'token'   => $token,
@@ -102,15 +138,24 @@ class AuthController extends Controller
             'valid_id_image' => 'required|string',
         ]);
 
-        $id_base64 = $this->decodeBase64Image($request->valid_id_image);
-        if ($id_base64 === false || strlen($id_base64) < 100) {
+        $id_base64 = $this->decodeBase64($request->valid_id_image);
+        if ($id_base64 === false) {
             return response()->json(['message' => 'Your ID photo failed to process. Please retake it and try again.'], 422);
         }
+        if (!$this->checkSize($id_base64, 'id')) {
+            return response()->json(['message' => 'ID photo is too large. Maximum is 10 MB.'], 422);
+        }
+        $mime = $this->detectMime($id_base64);
+        if ($mime === null || $mime === 'video/mp4') {
+            return response()->json(['message' => 'ID photo must be a PNG or JPEG image.'], 422);
+        }
 
-        // Store under verification_ids/<username>/
-        $idFileName = 'id_' . now()->format('Ymd_His') . '.png';
+        // Store ID proof on the PUBLIC disk for now.
+        // TODO: Switch to storePrivate() once private retrieval endpoint is set up.
+        $ext        = $this->mimeToExtension($mime);
+        $idFileName = 'id_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $ext;
         $idPath     = 'verification_ids/' . $request->username . '/' . $idFileName;
-        Storage::disk('public')->put($idPath, $id_base64);
+        $this->storePublic($idPath, $id_base64);
 
         $user = User::create([
             'first_name'     => $request->first_name,
@@ -161,9 +206,16 @@ class AuthController extends Controller
             'image'   => 'required|string',
         ]);
 
-        $image_base64 = $this->decodeBase64Image($request->image);
-        if ($image_base64 === false || strlen($image_base64) < 100) {
+        $image_base64 = $this->decodeBase64($request->image);
+        if ($image_base64 === false) {
             return response()->json(['message' => 'Photo failed to process. Please try cropping again.'], 422);
+        }
+        if (!$this->checkSize($image_base64, 'profile')) {
+            return response()->json(['message' => 'Photo is too large. Maximum is 5 MB.'], 422);
+        }
+        $mime = $this->detectMime($image_base64);
+        if ($mime === null || $mime === 'video/mp4') {
+            return response()->json(['message' => 'Profile picture must be a PNG or JPEG image.'], 422);
         }
 
         $user = User::where('user_id', $request->user_id)->first();
@@ -171,18 +223,20 @@ class AuthController extends Controller
             return response()->json(['message' => 'User not found.'], 404);
         }
 
-        // Delete old profile picture before saving new one.
-        if ($user->profile_picture) {
-            $oldDiskPath = str_replace('storage/', '', $user->profile_picture);
+        // Store new file FIRST, then delete old — avoids broken state on failure.
+        $ext      = $this->mimeToExtension($mime);
+        $fileName = $this->makeFilename('profile', $user->user_id, $ext);
+        $filePath = 'profiles/' . $user->user_id . '/' . $fileName;
+        $this->storePublic($filePath, $image_base64);
+
+        // Only delete old file after new one is safely written.
+        if ($user->profile_picture && str_starts_with($user->profile_picture, 'storage/')) {
+            $oldDiskPath = substr($user->profile_picture, strlen('storage/'));
             if (Storage::disk('public')->exists($oldDiskPath)) {
                 Storage::disk('public')->delete($oldDiskPath);
             }
         }
 
-        // Store under profiles/<user_id>/
-        $fileName = 'profile_' . time() . '.png';
-        $filePath = 'profiles/' . $user->user_id . '/' . $fileName;
-        Storage::disk('public')->put($filePath, $image_base64);
         $user->profile_picture = 'storage/' . $filePath;
         $user->save();
 
