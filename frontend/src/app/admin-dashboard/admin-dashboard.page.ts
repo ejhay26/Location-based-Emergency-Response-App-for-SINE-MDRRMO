@@ -17,6 +17,7 @@ import * as L from 'leaflet';
 import Chart from 'chart.js/auto';
 import { ApiService } from '../services/api';
 import { UserSettingsService } from '../services/user-settings';
+import { TourService } from '../services/tour';
 
 // @ts-ignore
 const CachedTileLayer = L.TileLayer.extend({
@@ -120,7 +121,6 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
   // ─────────────────────────────────────────────────────────────────────────
 
-  newDispatcher = { first_name: '', last_name: '', phone: '', username: '', email: '', password: '', barangay_id: null };
   dispatchForm  = { request_id: null as number | null, responder_id: null, vehicle_id: null };
   broadcastForm = { message: '' };
   recentBroadcast: any = null;
@@ -128,6 +128,11 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   isDispatcherModalOpen = false;
   editingDispatcher: any = null;
   dispatcherForm = { first_name: '', last_name: '', phone: '', username: '', email: '', password: '', barangay_id: null as number | null };
+
+  // ── Loading state flags ───────────────────────────────────────────────
+  isBroadcasting    = false;
+  isDispatching     = false;
+  isSavingDispatcher = false;
 
   confirmDialog: { open: boolean; title: string; message: string; icon: string; iconColor: string; confirmLabel: string; confirmColor: string; action: () => void } = {
     open: false, title: '', message: '', icon: '', iconColor: '', confirmLabel: '', confirmColor: '', action: () => {}
@@ -169,6 +174,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     private menuCtrl: MenuController,
     private alertCtrl: AlertController,
     private userSettings: UserSettingsService,
+    private tour: TourService,
   ) {}
 
   ngOnInit() {
@@ -197,6 +203,19 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       const mapContainer = document.getElementById('dispatch-map');
       if (mapContainer && !this.map && (this.viewMode === 'active' || this.viewMode === 'hazards')) this.initMap();
     }, 250);
+    // Auto-start the guided tour for dispatchers on their first login.
+    // Uses a localStorage key per user so it only fires once.
+    const role = localStorage.getItem('role');
+    if (role === 'dispatcher') {
+      const userStr = localStorage.getItem('user');
+      const userId  = userStr ? JSON.parse(userStr)?.user_id : null;
+      const tourKey = `dispatcherTourSeen_${userId}`;
+      if (userId && localStorage.getItem(tourKey) !== 'true') {
+        localStorage.setItem(tourKey, 'true');
+        // Short delay so the map finishes initializing before the tour dims it.
+        setTimeout(() => { this.tour.start(); }, 1200);
+      }
+    }
   }
 
   ionViewWillLeave() { if (this.pollingInterval) clearInterval(this.pollingInterval); }
@@ -340,6 +359,8 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
         if (!match) return '';
         relative = match[1];
       }
+      // Handle both new per-user paths (storage/profiles/<id>/...) and
+      // legacy flat paths (storage/reports/sos/file.mp4) or old profile paths.
       const filePart = relative.replace(/^storage\//, '');
       return `${origin}/storage-proxy/${filePart}`;
     } catch { return ''; }
@@ -489,8 +510,17 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   submitBroadcast() {
-    if (!this.broadcastForm.message) return;
-    this.api.createBroadcast(this.broadcastForm).subscribe({ next: () => { this.showToast('Alert sent to all citizens!', 'success'); this.broadcastForm.message = ''; this.fetchBroadcast(); } });
+    if (!this.broadcastForm.message || this.isBroadcasting) return;
+    this.isBroadcasting = true;
+    this.api.createBroadcast(this.broadcastForm).subscribe({
+      next: () => {
+        this.isBroadcasting = false;
+        this.showToast('Alert sent to all citizens!', 'success');
+        this.broadcastForm.message = '';
+        this.fetchBroadcast();
+      },
+      error: () => { this.isBroadcasting = false; this.showToast('Failed to send alert.', 'danger'); }
+    });
   }
 
   endBroadcast() {
@@ -502,8 +532,17 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   openDispatchModal(requestId: number) { this.dispatchForm.request_id = requestId; this.dispatchForm.responder_id = null; this.dispatchForm.vehicle_id = null; this.filteredVehicles = []; this.isDispatchModalOpen = true; }
   onResponderChange() { this.filteredVehicles = this.availableVehicles.filter((v: any) => v.responder_id === this.dispatchForm.responder_id); }
   submitDispatch() {
-    if (!this.dispatchForm.responder_id || !this.dispatchForm.vehicle_id) return;
-    this.api.dispatchEmergency(this.dispatchForm).subscribe({ next: () => { this.showToast('Units dispatched!', 'success'); this.isDispatchModalOpen = false; this.loadData(); } });
+    if (!this.dispatchForm.responder_id || !this.dispatchForm.vehicle_id || this.isDispatching) return;
+    this.isDispatching = true;
+    this.api.dispatchEmergency(this.dispatchForm).subscribe({
+      next: () => {
+        this.isDispatching = false;
+        this.showToast('Units dispatched!', 'success');
+        this.isDispatchModalOpen = false;
+        this.loadData();
+      },
+      error: () => { this.isDispatching = false; this.showToast('Dispatch failed.', 'danger'); }
+    });
   }
 
   resolveEmergency(requestId: number) {
@@ -553,12 +592,20 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   saveDispatcherForm() {
+    if (this.isSavingDispatcher) return;
+    this.isSavingDispatcher = true;
     if (this.editingDispatcher) {
       const payload: any = { user_id: this.editingDispatcher.user_id, ...this.dispatcherForm };
       if (!payload.password) delete payload.password;
-      this.api.updateDispatcher(payload).subscribe({ next: () => { this.showToast('Dispatcher updated!', 'success'); this.isDispatcherModalOpen = false; this.loadDispatchers(); } });
+      this.api.updateDispatcher(payload).subscribe({
+        next: () => { this.isSavingDispatcher = false; this.showToast('Dispatcher updated!', 'success'); this.isDispatcherModalOpen = false; this.loadDispatchers(); },
+        error: () => { this.isSavingDispatcher = false; this.showToast('Update failed.', 'danger'); }
+      });
     } else {
-      this.api.createDispatcher(this.dispatcherForm).subscribe({ next: () => { this.showToast('Dispatcher created!', 'success'); this.isDispatcherModalOpen = false; this.loadDispatchers(); } });
+      this.api.createDispatcher(this.dispatcherForm).subscribe({
+        next: () => { this.isSavingDispatcher = false; this.showToast('Dispatcher created!', 'success'); this.isDispatcherModalOpen = false; this.loadDispatchers(); },
+        error: () => { this.isSavingDispatcher = false; this.showToast('Creation failed.', 'danger'); }
+      });
     }
   }
 
@@ -568,8 +615,25 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     });
   }
 
-  saveDispatcher() {
-    this.api.createDispatcher(this.newDispatcher).subscribe({ next: () => { this.showToast('Dispatcher created!', 'success'); this.newDispatcher = { first_name: '', last_name: '', phone: '', username: '', email: '', password: '', barangay_id: null }; this.loadDispatchers(); } });
+  // ── Archive filtering & sorting ────────────────────────────────────────
+  archiveFilter: 'all' | 'resolved' | 'false_alarm' | 'cancelled' = 'all';
+  archiveSort: 'newest' | 'oldest' | 'type' = 'newest';
+  archiveTypeFilter = 'all';
+
+  get filteredArchivedRequests(): any[] {
+    let list = [...this.archivedRequests];
+    if (this.archiveFilter === 'resolved')    list = list.filter(r => r.status === 'Resolved' && !r.is_false_alarm);
+    if (this.archiveFilter === 'false_alarm') list = list.filter(r => r.is_false_alarm);
+    if (this.archiveFilter === 'cancelled')   list = list.filter(r => r.status === 'Cancelled');
+    if (this.archiveTypeFilter !== 'all')     list = list.filter(r => r.incident_name === this.archiveTypeFilter);
+    if (this.archiveSort === 'newest') list.sort((a, b) => new Date(b.request_time).getTime() - new Date(a.request_time).getTime());
+    if (this.archiveSort === 'oldest') list.sort((a, b) => new Date(a.request_time).getTime() - new Date(b.request_time).getTime());
+    if (this.archiveSort === 'type')   list.sort((a, b) => a.incident_name.localeCompare(b.incident_name));
+    return list;
+  }
+
+  get archiveIncidentTypes(): string[] {
+    return [...new Set(this.archivedRequests.map(r => r.incident_name))].sort();
   }
 
   feedbackList: any[] = [];
