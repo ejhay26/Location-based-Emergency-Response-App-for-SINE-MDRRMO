@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 25, 2026 at 02:36 PM
+-- Generation Time: Jul 27, 2026 at 01:17 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -358,8 +358,7 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
-(16, 'App\\Models\\User', 4, 'app-token', '485d874cd761cb70cdbfc2810ed7ee8b67e254f1696112a23e000594422f92a7', '[\"admin\",\"dispatcher\",\"citizen\"]', '2026-07-21 04:39:31', NULL, '2026-07-21 04:38:27', '2026-07-21 04:39:31'),
-(25, 'App\\Models\\User', 1, 'app-token', '9b4805bc06c385a0c7cd4597a72ab68e4a047a43017997d0f88a89e3b693c9e6', '[\"citizen\"]', '2026-07-25 04:15:55', NULL, '2026-07-24 07:23:51', '2026-07-25 04:15:55');
+(27, 'App\\Models\\User', 1, 'app-token', '11123567423497ef4400b215631dcbb337b7b179337c45291243167c580e9815', '[\"citizen\"]', '2026-07-26 08:09:30', NULL, '2026-07-26 08:09:30', '2026-07-26 08:09:30');
 
 -- --------------------------------------------------------
 
@@ -464,11 +463,12 @@ CREATE TABLE `user_settings` (
 --
 
 INSERT INTO `user_settings` (`id`, `user_id`, `key`, `value`, `updated_at`, `save_media_to_device`) VALUES
-(1, 1, 'dark_mode', 'true', '2026-07-24 00:05:11', 0),
+(1, 1, 'dark_mode', 'false', '2026-07-26 01:32:59', 0),
 (2, 1, 'location_auto_fetch', 'true', '2026-07-25 04:15:55', 0),
 (3, 1, 'map_default_style', 'street', '2026-07-20 01:02:21', 0),
 (4, 1, 'reduce_animations', 'false', '2026-07-19 15:50:53', 0),
-(5, 4, 'dark_mode', 'true', '2026-07-21 04:39:27', 0);
+(5, 4, 'dark_mode', 'true', '2026-07-21 04:39:27', 0),
+(6, 1, 'save_media_to_device', 'false', '2026-07-25 16:21:36', 0);
 
 -- --------------------------------------------------------
 
@@ -718,7 +718,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `responders`
@@ -736,7 +736,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_settings`
 --
 ALTER TABLE `user_settings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
