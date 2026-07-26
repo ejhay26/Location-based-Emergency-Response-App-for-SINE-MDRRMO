@@ -165,14 +165,13 @@
   <ion-button
     id="tour-submit-button"
     [class.tour-highlight]="tour.targetId() === 'tour-submit-button'"
+    [class.btn-muted]="!isFormReady && !isSubmitting"
+    [class.btn-loading]="isSubmitting"
     (click)="submitReport()"
     expand="block"
     [color]="reportType === 'hazard' ? 'warning' : 'danger'"
     size="large"
-    [style.opacity]="(!isFormReady || isSubmitting) ? '0.55' : '1'"
-    [style.filter]="!isFormReady ? 'saturate(0.5)' : 'none'"
-    [style.cursor]="(!isFormReady || isSubmitting) ? 'not-allowed' : 'pointer'"
-    style="font-weight: bold; height: 55px; box-shadow: 0 4px 20px rgba(0,0,0,0.35); transition: opacity 0.2s, filter 0.2s;">
+    style="font-weight: bold; height: 55px; box-shadow: 0 4px 20px rgba(0,0,0,0.35);">
     <ng-container *ngIf="!isSubmitting">
       <i [class]="reportType === 'hazard' ? 'fa-solid fa-road-barrier' : 'fa-solid fa-triangle-exclamation'"
          style="margin-right: 10px; font-size: 20px;"></i>
