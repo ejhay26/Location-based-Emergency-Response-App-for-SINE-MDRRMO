@@ -8,6 +8,8 @@ use App\Http\Controllers\UserSettingsController;
 // ── Public routes (no token required) ────────────────────────────────────────
 Route::post('/register',        [AuthController::class, 'register']);
 Route::post('/login',           [AuthController::class, 'login']);
+Route::post('/login-send-otp',   [AuthController::class, 'loginSendOtp'])->middleware('throttle:3,1');
+Route::post('/login-verify-otp', [AuthController::class, 'loginVerifyOtp'])->middleware('throttle:5,1');
 Route::post('/verify-otp',      [AuthController::class, 'verifyOtp']);
 Route::get('/check-username',   [AuthController::class, 'checkUsername']);
 Route::get('/check-email',      [AuthController::class, 'checkEmail']);
