@@ -52,6 +52,8 @@ export class ApiService {
 
   // ── Public (no token) ────────────────────────────────────────────────
   login(data: any): Observable<any>                { return this.http.post(`${this.url}/login`, data, this.opts()); }
+  loginSendOtp(data: any): Observable<any>          { return this.http.post(`${this.url}/login-send-otp`, data, this.opts()); }
+  loginVerifyOtp(data: any): Observable<any>        { return this.http.post(`${this.url}/login-verify-otp`, data, this.opts()); }
   register(data: any): Observable<any>             { return this.http.post(`${this.url}/register`, data, this.opts()); }
   verifyOtp(data: any): Observable<any>            { return this.http.post(`${this.url}/verify-otp`, data, this.opts()); }
   checkUsername(username: string): Observable<any> { return this.http.get(`${this.url}/check-username?username=${username}`, this.opts()); }
