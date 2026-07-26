@@ -65,6 +65,87 @@
         <span style="color: var(--ion-color-danger); margin-left: 4px; font-weight: bold;">Register here</span>
       </ion-button>
     </div>
+
+    <div class="ion-margin-top" style="border-top: 1px solid var(--ion-color-light); padding-top: 12px;">
+      <ion-button fill="clear" color="medium" size="small"
+                  style="text-transform: none;" (click)="switchToEmailOtp()">
+        <i class="fa-solid fa-envelope" style="margin-right: 6px;"></i>
+        Login with Email OTP instead
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- ── Email OTP Login ── -->
+  <div *ngIf="viewMode === 'email-otp'">
+    <h3 style="font-weight: bold; color: var(--ion-text-color);">Login with Email</h3>
+    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
+      Enter your registered email to receive a one-time login code.
+    </p>
+
+    <ion-list style="background: transparent;">
+      <ion-item>
+        <i class="fa-solid fa-envelope" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+        <ion-input label="Registered Email" labelPlacement="floating"
+                   type="email" inputmode="email" autocomplete="email"
+                   [(ngModel)]="emailOtpData.email"
+                   (ionInput)="emailOtpData.otp = ''; otpSent = false;"
+                   [disabled]="isSendingOtp"></ion-input>
+      </ion-item>
+    </ion-list>
+
+    <!-- Email validation hint -->
+    <div *ngIf="emailOtpData.email.length > 0 && !emailValid"
+         style="text-align: left; padding: 6px 16px; font-size: 12px; color: var(--ion-color-danger);">
+      <i class="fa-solid fa-circle-exclamation" style="margin-right: 5px;"></i>
+      Enter a valid email address.
+    </div>
+
+    <!-- Send / Resend OTP button -->
+    <ion-button expand="block" color="danger" class="ion-margin-top"
+                [class.btn-muted]="!emailValid || otpResendSecs > 0"
+                [class.btn-loading]="isSendingOtp"
+                (click)="sendLoginOtp()"
+                style="font-weight: bold; height: 45px;">
+      <ng-container *ngIf="!isSendingOtp">
+        <i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i>
+        <ng-container *ngIf="!otpSent">Send OTP</ng-container>
+        <ng-container *ngIf="otpSent && otpResendSecs > 0">Resend in {{ otpResendSecs }}s</ng-container>
+        <ng-container *ngIf="otpSent && otpResendSecs === 0">Resend OTP</ng-container>
+      </ng-container>
+      <span *ngIf="isSendingOtp" class="dot-loader"><span></span><span></span><span></span></span>
+    </ion-button>
+
+    <!-- OTP input — only appears after first send -->
+    <div *ngIf="otpSent" style="margin-top: 20px;">
+      <ion-list style="background: transparent;">
+        <ion-item>
+          <i class="fa-solid fa-key" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+          <ion-input label="4-Digit Code" labelPlacement="floating"
+                     type="tel" inputmode="numeric" autocomplete="one-time-code"
+                     maxlength="4"
+                     [(ngModel)]="emailOtpData.otp"
+                     (ionInput)="emailOtpData.otp.length === 4 && verifyLoginOtp()"></ion-input>
+        </ion-item>
+      </ion-list>
+
+      <ion-button expand="block" color="danger" class="ion-margin-top"
+                  [class.btn-muted]="emailOtpData.otp.length < 4"
+                  [class.btn-loading]="isVerifyingOtp"
+                  (click)="verifyLoginOtp()"
+                  style="font-weight: bold; height: 45px;">
+        <ng-container *ngIf="!isVerifyingOtp">
+          <i class="fa-solid fa-right-to-bracket" style="margin-right: 8px;"></i>
+          Verify & Login
+        </ng-container>
+        <span *ngIf="isVerifyingOtp" class="dot-loader"><span></span><span></span><span></span></span>
+      </ion-button>
+    </div>
+
+    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
+                (click)="viewMode = 'login'" style="font-weight: bold;">
+      <i class="fa-solid fa-arrow-left" style="margin-right: 6px;"></i>
+      Back to Password Login
+    </ion-button>
   </div>
 
   <!-- ── Forgot: choose channel ── -->
