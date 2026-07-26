@@ -96,6 +96,17 @@ export class SettingsPage implements OnInit {
     }
   ];
 
+  reporting: SettingToggle[] = [
+    {
+      key: 'save_media_to_device',
+      label: 'Save Captured Media to Device',
+      hint: v => v
+        ? 'Photos and videos captured while reporting will be saved to your device gallery.'
+        : 'Captured media is used only for the report and not saved to your device.',
+      value: false
+    }
+  ];
+
   constructor(
     private settings: UserSettingsService,
     private locationSvc: LocationService,
@@ -106,6 +117,7 @@ export class SettingsPage implements OnInit {
     this.location.forEach(s => s.value = this.settings.getBool(s.key));
     this.notifications.forEach(s => s.value = this.settings.getBool(s.key));
     this.mapSettings.forEach(s => s.value = this.settings.get(s.key));
+    this.reporting.forEach(s => s.value = this.settings.getBool(s.key));
   }
 
   onToggle(setting: SettingToggle) {
