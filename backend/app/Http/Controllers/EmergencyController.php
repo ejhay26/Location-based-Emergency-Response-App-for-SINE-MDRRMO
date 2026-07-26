@@ -2,37 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\MediaHandling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use App\Services\FirebasePushService;
 
 class EmergencyController extends Controller
 {
+    use MediaHandling;
+
     // ── File storage structure ────────────────────────────────────────────────
-    // reports/sos/<user_id>/    → SOS proof photos and videos
-    // reports/hazard/<user_id>/ → Hazard proof photos and videos
+    // reports/sos/<user_id>/    → SOS proof files    (public disk, permanent)
+    // reports/hazard/<user_id>/ → hazard proof files  (public disk, permanent)
     // Note: report media is NEVER deleted (permanent evidence record).
     // ─────────────────────────────────────────────────────────────────────────
-
-    private function saveProofFiles(array $files, int $userId, string $type): string
-    {
-        $paths = [];
-        foreach (array_slice($files, 0, 2) as $fileData) {
-            if (!$fileData || !is_string($fileData) || !str_contains($fileData, ';base64,')) continue;
-            $isVideo  = str_contains($fileData, 'data:video');
-            $ext      = $isVideo ? 'mp4' : 'png';
-            $parts    = explode(';base64,', $fileData, 2);
-            if (count($parts) < 2 || $parts[1] === '') continue;
-            $decoded  = base64_decode($parts[1], true);
-            if ($decoded === false || strlen($decoded) < 100) continue;
-            $fileName = now()->format('Ymd_His') . '_' . uniqid() . '.' . $ext;
-            $filePath = 'reports/' . $type . '/' . $userId . '/' . $fileName;
-            Storage::disk('public')->put($filePath, $decoded);
-            $paths[] = 'storage/' . $filePath;
-        }
-        return json_encode($paths);
-    }
 
     private function notifyUser(int $userId, string $title, string $body, array $data = []): void
     {
@@ -81,7 +64,7 @@ class EmergencyController extends Controller
 
         $proofFilesJson = null;
         if ($request->filled('proof_files') && count($request->proof_files)) {
-            $proofFilesJson = $this->saveProofFiles($request->proof_files, $request->user_id, 'sos');
+            $proofFilesJson = $this->processProofFiles($request->proof_files, $request->user_id, 'sos');
         }
 
         $requestId = DB::table('emergency_requests')->insertGetId([
@@ -312,7 +295,7 @@ class EmergencyController extends Controller
             'hazard_type'   => 'nullable|string|max:50',
         ]);
 
-        $proofFilesJson = $this->saveProofFiles($request->proof_files, $request->user_id, 'hazard');
+        $proofFilesJson = $this->processProofFiles($request->proof_files, $request->user_id, 'hazard');
 
         DB::table('hazards')->insert([
             'user_id'     => $request->user_id,
