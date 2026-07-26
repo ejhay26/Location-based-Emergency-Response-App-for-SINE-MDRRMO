@@ -34,7 +34,11 @@ export class RegisterPage implements OnDestroy {
   currentStep = 1;
   otpCode = '';
   passwordFocused = false;
-  termsAccepted = false;
+  termsAccepted   = false;
+  isRegistering   = false;
+  isVerifyingOtp  = false;
+  isSavingMedical = false;
+  showMedicalModal = false;
 
   // Valid ID capture
   validIdPreview: string | null = null;
@@ -334,8 +338,11 @@ export class RegisterPage implements OnDestroy {
   }
 
   submitRegistration(): void {
+    if (this.isRegistering) return;
+    this.isRegistering = true;
     this.api.register(this.userData).subscribe({
       next: () => {
+        this.isRegistering = false;
         const channelLabel = this.otpChannel === 'sms'
           ? `your phone number ${this.userData.phone}`
           : `your email ${this.userData.email}`;
@@ -343,30 +350,31 @@ export class RegisterPage implements OnDestroy {
         this.currentStep = 3;
       },
       error: (err: any) => {
+        this.isRegistering = false;
         this.showToast(err?.error?.message ?? 'Registration failed.');
       }
     });
   }
 
-  // ── POST-REGISTRATION MEDICAL PROFILE PROMPT ──────────────────────────────────
-  showMedicalModal = false;
+  // POST-REGISTRATION MEDICAL PROFILE PROMPT ─────────────────────────────────
   medicalData = { blood_type: '', allergies: '', medical_conditions: '', pwd_status: '' };
-  isSavingMedical = false;
 
   verifyOtp(): void {
     if (!this.otpCode?.trim()) {
       this.showToast('Please enter the verification code.');
       return;
     }
-
+    if (this.isVerifyingOtp) return;
+    this.isVerifyingOtp = true;
     this.api.verifyOtp({ email: this.userData.email, otp: this.otpCode }).subscribe({
       next: (res: any) => {
+        this.isVerifyingOtp = false;
         localStorage.setItem('user', JSON.stringify(res.user));
         localStorage.setItem('role', res.role);
-        // Show optional medical profile prompt before going home
         this.showMedicalModal = true;
       },
       error: () => {
+        this.isVerifyingOtp = false;
         this.showToast('Invalid verification code.');
       }
     });
