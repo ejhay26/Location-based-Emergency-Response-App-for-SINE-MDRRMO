@@ -62,9 +62,12 @@ export class ProfilePage implements OnInit, OnDestroy {
   toastMessage = '';
   toastColor   = 'success';
 
-  showCropper  = false;
+  showCropper    = false;
   cropperFile: File | null = null;
-  croppedBase64 = '';
+  croppedBase64  = '';
+  isCropping     = false;
+  isSavingMedical    = false;
+  isUpdatingPassword = false;
 
   barangays = [
     { id: 1, name: 'Alua' },       { id: 2, name: 'Calaba' },
@@ -223,12 +226,15 @@ export class ProfilePage implements OnInit, OnDestroy {
     if (!userId) {
       this.showToast('Session data missing. Please log out and log back in.', 'danger'); return;
     }
+    if (this.isCropping) return;
+    this.isCropping = true;
     this.showCropper = false;
     const imagePayload = this.croppedBase64.startsWith('data:')
       ? this.croppedBase64
       : `data:image/jpeg;base64,${this.croppedBase64}`;
     this.api.updateProfilePicture({ user_id: userId, image: imagePayload }).subscribe({
       next: async (res: any) => {
+        this.isCropping = false;
         this.userData = res.user;
         localStorage.setItem('user', JSON.stringify(res.user));
         this.imageCache.clear();
@@ -237,6 +243,7 @@ export class ProfilePage implements OnInit, OnDestroy {
         this.showToast('Profile picture updated!', 'success');
       },
       error: (err: any) => {
+        this.isCropping = false;
         this.showToast(err?.error?.message || 'Failed to update photo. Please try again.', 'danger');
       }
     });
@@ -251,12 +258,13 @@ export class ProfilePage implements OnInit, OnDestroy {
     if (!userId) {
       this.showToast('Session data missing. Please log out and log back in.', 'danger'); return;
     }
+    if (this.isSavingMedical) return;
+    this.isSavingMedical = true;
     this.api.updateMedicalProfile({ user_id: userId, ...this.medicalData }).subscribe({
       next: (res: any) => {
-        // Keep full user object in sync — includes all medical fields.
+        this.isSavingMedical = false;
         this.userData = res.user;
         localStorage.setItem('user', JSON.stringify(res.user));
-        // Re-read medical fields from the server response.
         this.medicalData = {
           blood_type:         res.user.blood_type         || '',
           allergies:          res.user.allergies          || '',
@@ -265,7 +273,7 @@ export class ProfilePage implements OnInit, OnDestroy {
         };
         this.showToast('Medical profile saved!', 'success');
       },
-      error: () => this.showToast('Failed to save.', 'danger')
+      error: () => { this.isSavingMedical = false; this.showToast('Failed to save.', 'danger'); }
     });
   }
 
@@ -307,14 +315,23 @@ export class ProfilePage implements OnInit, OnDestroy {
   async updatePassword() {
     if (!this.passwordMeetsAllRules) { this.showToast('New password does not meet all requirements.', 'danger'); return; }
     if (!this.passwordsMatch)        { this.showToast('Passwords do not match.', 'danger'); return; }
+    if (this.isUpdatingPassword) return;
     const alert = await this.alertCtrl.create({
       header: 'Confirm Password Change', message: 'Are you sure you want to change your password?',
       buttons: [
         { text: 'Cancel', role: 'cancel' },
         { text: 'Confirm', role: 'confirm', handler: () => {
+          this.isUpdatingPassword = true;
           this.api.updatePassword({ user_id: this.getUserId(), new_password: this.passwords.new, otp_verified: true }).subscribe({
-            next: () => { this.showToast('Password updated!', 'success'); this.cancelPasswordChange(); },
-            error: (err: any) => this.showToast(err.error?.message || 'Update failed.', 'danger')
+            next: () => {
+              this.isUpdatingPassword = false;
+              this.showToast('Password updated!', 'success');
+              this.cancelPasswordChange();
+            },
+            error: (err: any) => {
+              this.isUpdatingPassword = false;
+              this.showToast(err.error?.message || 'Update failed.', 'danger');
+            }
           });
         }}
       ]
