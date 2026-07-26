@@ -7,7 +7,8 @@ export type SettingKey =
   | 'location_auto_fetch'
   | 'map_default_style'
   | 'notif_emergency_alerts'
-  | 'notif_broadcast_alerts';
+  | 'notif_broadcast_alerts'
+  | 'save_media_to_device';
 
 const STORAGE_KEY = 'user_settings_cache';
 
@@ -18,6 +19,7 @@ const DEFAULTS: Record<SettingKey, string> = {
   map_default_style:       'street',
   notif_emergency_alerts:  'true',
   notif_broadcast_alerts:  'true',
+  save_media_to_device:    'false',
 };
 
 @Injectable({ providedIn: 'root' })
