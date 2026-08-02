@@ -60,7 +60,7 @@ Used by the registration, login, password-change, and password-reset OTP flows �
 | `FIREBASE_PROJECT_ID` | Firebase project ID |
 | `FIREBASE_CREDENTIALS` | Path to the Firebase Admin SDK service-account JSON — **keep this file out of version control**, treat it like a secret key |
 
-## AWS (optional — production storage)
+## AWS (Optional Production Storage)
 
 | Variable | Purpose |
 |---|---|
