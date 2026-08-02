@@ -69,7 +69,7 @@
       <span style="font-size:11px;color:var(--ion-color-medium);font-weight:600;">from MDRRMO</span>
     </div>
 
-    <div *ngIf="activeBroadcast && !broadcastDismissed"
+    <div *ngIf="activeBroadcast"
          id="tour-announcement-pane"
          [class.tour-highlight]="tour.targetId() === 'tour-announcement-pane'"
          style="border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#c62828,#eb445a);box-shadow:0 6px 24px rgba(235,68,90,0.32);">
@@ -86,14 +86,11 @@
             </div>
             <p style="color:white;font-weight:600;font-size:14px;margin:0;line-height:1.5;">{{ activeBroadcast.message }}</p>
           </div>
-          <button (click)="dismissBroadcast()" style="background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:28px;height:28px;color:rgba(255,255,255,0.9);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
         </div>
       </div>
     </div>
 
-    <div *ngIf="!activeBroadcast || broadcastDismissed"
+    <div *ngIf="!activeBroadcast"
          id="tour-announcement-pane"
          [class.tour-highlight]="tour.targetId() === 'tour-announcement-pane'"
          style="border-radius:18px;padding:20px;background:var(--ion-card-background,white);border:1.5px dashed var(--ion-color-step-200,#ccc);display:flex;align-items:center;gap:14px;">
