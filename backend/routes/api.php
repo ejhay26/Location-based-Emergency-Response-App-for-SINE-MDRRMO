@@ -54,7 +54,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/settings',          [UserSettingsController::class, 'set']);
 
     // Push notifications
-    Route::post('/save-push-token', [ProfileController::class, 'savePushToken']);
+    Route::post('/save-push-token',   [ProfileController::class, 'savePushToken']);
+    Route::post('/delete-push-token', [ProfileController::class, 'deletePushToken']);
 
     // Citizen actions
     Route::post('/submit-sos',              [SosController::class, 'submitSos'])->middleware('throttle:5,1');
