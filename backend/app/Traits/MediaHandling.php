@@ -178,4 +178,19 @@ trait MediaHandling
         }
         return json_encode($paths);
     }
+
+    /**
+     * Decode the JSON-encoded proof_files column on a fetched record into a
+     * PHP array, in place. Shared by any controller listing emergency or
+     * hazard records (previously duplicated per-controller).
+     */
+    protected function decodeProofFiles(object $record): object
+    {
+        if (isset($record->proof_files) && is_string($record->proof_files)) {
+            $record->proof_files = json_decode($record->proof_files, true) ?? [];
+        } elseif (!isset($record->proof_files)) {
+            $record->proof_files = [];
+        }
+        return $record;
+    }
 }
