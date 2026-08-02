@@ -2,7 +2,7 @@
 
 Step-by-step guide to run the SINE MDRRMO Emergency Response App on your own machine.
 
-> Related: [Environment Variables](./environment.md) · [Troubleshooting](./troubleshooting.md)
+> Related: [System Requirements](./system-requirements.md) · [Environment Variables](./environment.md) · [Troubleshooting](./troubleshooting.md)
 >
 > Every code block below has a copy button in the top-right corner when you hover over it on GitHub — no need to type these out by hand.
 
@@ -90,7 +90,7 @@ DB_USERNAME=your_username_here
 DB_PASSWORD=your_password_here
 ```
 
-Also set `MAIL_PASSWORD` — needed for the OTP email flow (see [Environment Variables](./environment.md#mail-otp-delivery)).
+Also set `MAIL_PASSWORD` — needed for the OTP email flow (see [Environment Variables](./environment.md#mail-otp-emails)).
 
 **Recommended:** use a dedicated database user instead of `root`:
 ```sql
