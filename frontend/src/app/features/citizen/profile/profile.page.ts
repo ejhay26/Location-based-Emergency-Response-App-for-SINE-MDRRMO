@@ -9,6 +9,7 @@ import { ApiService } from '../../../core/services/api';
 import { UserSettingsService } from '../../../core/services/user-settings';
 import { LocationService } from '../../../core/services/location';
 import { ImageCacheService } from '../../../core/services/image-cache';
+import { PushNotificationsService } from '../../../core/services/push-notifications';
 import { ProfilePhotoComponent } from './components/profile-photo/profile-photo.component';
 import { ProfileMedicalComponent, MedicalData } from './components/profile-medical/profile-medical.component';
 import { ProfilePasswordComponent } from './components/profile-password/profile-password.component';
@@ -33,6 +34,7 @@ export class ProfilePage implements OnInit, OnDestroy {
   private settings   = inject(UserSettingsService);
   private locationSvc = inject(LocationService);
   private imageCache  = inject(ImageCacheService);
+  private pushNotifications = inject(PushNotificationsService);
 
   userData: any = {};
   calculatedAge: string | number = 'N/A';
@@ -103,6 +105,7 @@ export class ProfilePage implements OnInit, OnDestroy {
       buttons: [
         { text: 'Cancel', role: 'cancel' },
         { text: 'Logout', role: 'confirm', cssClass: 'alert-button-danger', handler: () => {
+          this.pushNotifications.unregisterPush();
           this.api.logout().subscribe({ error: () => {} });
           this.locationSvc.stop(); this.api.clearToken(); this.imageCache.clear(); this.settings.clear();
           localStorage.removeItem('user'); localStorage.removeItem('role');
