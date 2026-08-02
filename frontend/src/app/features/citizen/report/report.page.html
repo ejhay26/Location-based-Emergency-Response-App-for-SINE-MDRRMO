@@ -1,0 +1,47 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar [color]="reportType === 'hazard' ? 'warning' : 'danger'">
+    <ion-buttons slot="start"><ion-back-button defaultHref="/home" style="color: white;"></ion-back-button></ion-buttons>
+    <ion-title style="color: white; font-weight: bold;">{{ reportType === 'hazard' ? 'Report Hazard' : 'Send Emergency SOS' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" style="--padding-bottom: 88px;">
+  <form [formGroup]="reportForm" (ngSubmit)="submitReport()">
+    <app-report-type-selector
+      [reportType]="reportType"
+      (incidentTypeChange)="reportForm.patchValue({ incident_type_id: $event })"
+      (hazardTypeChange)="reportForm.patchValue({ hazard_type: $event })">
+    </app-report-type-selector>
+
+    <ion-card style="margin:0 0 20px 0;">
+      <ion-card-content class="ion-no-padding" style="padding:12px;">
+        <ion-item fill="outline" style="margin-bottom:4px;">
+          <ion-textarea id="tour-description-field" [class.tour-highlight]="tour.targetId() === 'tour-description-field'" [label]="reportType==='emergency' ? 'Additional Details (optional)' : 'Describe the hazard (required)'" labelPlacement="stacked" formControlName="description" [rows]="3" [placeholder]="reportType==='emergency' ? 'Tap here to describe the situation…' : 'Tap here to describe the hazard…'"></ion-textarea>
+        </ion-item>
+
+        <app-report-media
+          [reportType]="reportType"
+          (mediaFilesChange)="mediaFiles = $event">
+        </app-report-media>
+
+        <app-report-map
+          [reportType]="reportType"
+          (coordsChanged)="onCoordsChanged($event)">
+        </app-report-map>
+
+        <ion-row>
+          <ion-col size="6"><ion-item fill="outline"><ion-input label="Latitude" labelPlacement="floating" formControlName="latitude" [readonly]="true"></ion-input></ion-item></ion-col>
+          <ion-col size="6"><ion-item fill="outline"><ion-input label="Longitude" labelPlacement="floating" formControlName="longitude" [readonly]="true"></ion-input></ion-item></ion-col>
+        </ion-row>
+        <ion-button type="button" expand="block" fill="outline" color="dark" class="ion-margin-top ion-margin-bottom" (click)="reportMapCmp?.getCurrentLocation()" style="font-weight:bold;height:45px;"><i class="fa-solid fa-location-crosshairs" style="margin-right:8px;"></i> Use My Location</ion-button>
+      </ion-card-content>
+    </ion-card>
+  </form>
+</ion-content>
+
+<div style="position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:16px;right:16px;z-index:8000;">
+  <ion-button id="tour-submit-button" [class.tour-highlight]="tour.targetId() === 'tour-submit-button'" [class.btn-muted]="!isFormReady && !isSubmitting" [class.btn-loading]="isSubmitting" (click)="submitReport()" expand="block" [color]="reportType === 'hazard' ? 'warning' : 'danger'" size="large" style="font-weight:bold;height:55px;box-shadow:0 4px 20px rgba(0,0,0,0.35);">
+    <ng-container *ngIf="!isSubmitting"><i [class]="reportType === 'hazard' ? 'fa-solid fa-road-barrier' : 'fa-solid fa-triangle-exclamation'" style="margin-right:10px;font-size:20px;"></i>{{ reportType === 'hazard' ? 'Submit Hazard Report' : 'Send Emergency SOS' }}</ng-container>
+    <span *ngIf="isSubmitting" class="dot-loader"><span></span><span></span><span></span></span>
+  </ion-button>
+</div>

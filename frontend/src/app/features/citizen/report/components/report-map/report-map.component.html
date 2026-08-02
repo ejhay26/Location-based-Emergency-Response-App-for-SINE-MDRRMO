@@ -1,0 +1,28 @@
+<div id="tour-map-area" [class.tour-highlight]="tour.targetId() === 'tour-map-area'" style="border-radius:12px;overflow:hidden;margin-bottom:0;position:relative;">
+  <div id="report-map" style="height:280px;background:#e5e5e5;position:relative;">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;pointer-events:none;"><i class="fa-solid fa-crosshairs" [style.color]="crosshairColor" style="font-size:32px;text-shadow:0 2px 5px rgba(0,0,0,0.4);"></i></div>
+    <div *ngIf="showMapHint && !mapExpanded" style="position:absolute;bottom:44px;left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.62);color:white;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-arrows-up-down-left-right" style="font-size:13px;"></i>Drag the map to move the pin</div>
+    <button type="button" (click)="toggleMapExpand()" style="position:absolute;top:8px;right:8px;z-index:1002;width:34px;height:34px;border-radius:8px;border:none;background:rgba(0,0,0,0.55);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-expand"></i></button>
+  </div>
+</div>
+
+<div style="display:flex;border-radius:10px;overflow:hidden;margin-bottom:14px;border:2px solid var(--ion-color-step-150,#ddd);">
+  <button type="button" (click)="toggleMapStyle('street')" [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'var(--ion-color-light)'" [style.color]="mapStyle==='street'?'white':'var(--ion-text-color)'" style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;"><i class="fa-solid fa-map"></i> Street</button>
+  <button type="button" (click)="toggleMapStyle('satellite')" [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'var(--ion-color-light)'" [style.color]="mapStyle==='satellite'?'white':'var(--ion-text-color)'" style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;border-left:2px solid var(--ion-color-step-150,#ddd);"><i class="fa-solid fa-satellite"></i> Satellite</button>
+</div>
+
+<div *ngIf="mapExpanded" style="position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding-top:max(72px,calc(env(safe-area-inset-top,48px) + 24px));padding-bottom:12px;padding-left:14px;padding-right:14px;background:rgba(0,0,0,0.85);flex-shrink:0;">
+    <span style="color:white;font-weight:700;font-size:15px;"><i class="fa-solid fa-map-location-dot" style="margin-right:7px;"></i>Pin Location</span>
+    <div style="display:flex;border-radius:8px;overflow:hidden;border:1.5px solid rgba(255,255,255,0.3);">
+      <button type="button" (click)="toggleMapStyle('street')" [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'rgba(255,255,255,0.12)'" style="border:none;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;color:white;display:flex;align-items:center;gap:5px;"><i class="fa-solid fa-map"></i> Street</button>
+      <button type="button" (click)="toggleMapStyle('satellite')" [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'rgba(255,255,255,0.12)'" style="border:none;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;color:white;display:flex;align-items:center;gap:5px;border-left:1.5px solid rgba(255,255,255,0.3);"><i class="fa-solid fa-satellite"></i> Satellite</button>
+    </div>
+    <button type="button" (click)="toggleMapExpand()" style="width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-compress"></i></button>
+  </div>
+  <div id="report-map-fullscreen-wrap" style="position:relative;flex:1;min-height:0;">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;pointer-events:none;"><i class="fa-solid fa-crosshairs" [style.color]="crosshairColor" style="font-size:40px;text-shadow:0 2px 8px rgba(0,0,0,0.5);"></i></div>
+    <div *ngIf="showMapHint" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.62);color:white;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-arrows-up-down-left-right" style="font-size:13px;"></i>Drag the map to move the pin</div>
+    <div id="report-map-fullscreen" style="width:100%;height:100%;"></div>
+  </div>
+</div>
