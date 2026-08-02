@@ -1,9 +1,18 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\EmergencyController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\CitizenController;
+use App\Http\Controllers\Admin\DispatcherController;
+use App\Http\Controllers\Emergency\SosController;
+use App\Http\Controllers\Emergency\DispatchController;
+use App\Http\Controllers\Emergency\HazardController;
+use App\Http\Controllers\Emergency\BroadcastController;
+use App\Http\Controllers\Emergency\AnalyticsController;
 use App\Http\Controllers\UserSettingsController;
+use App\Http\Controllers\FeedbackController;
 
 // ── Public routes (no token required) ────────────────────────────────────────
 Route::post('/register',        [AuthController::class, 'register']);
@@ -16,59 +25,73 @@ Route::get('/check-email',      [AuthController::class, 'checkEmail']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,1');
 Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
 
-// Public read-only feeds
-Route::get('/active-emergencies',   [EmergencyController::class, 'getActiveEmergencies']);
-Route::get('/active-hazards',       [EmergencyController::class, 'getActiveHazards']);
-Route::get('/active-broadcast',     [EmergencyController::class, 'getActiveBroadcast']);
-Route::get('/dispatch-assets',      [EmergencyController::class, 'getDispatchAssets']);
-Route::get('/analytics',            [EmergencyController::class, 'getAnalytics']);
-Route::get('/archived-emergencies', [EmergencyController::class, 'getArchivedEmergencies']);
-
 // ── Sanctum-protected routes ──────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
+
+    // Read-only feeds — moved behind auth. These are only ever reached after
+    // a frontend route guard has already confirmed login (app is online-only,
+    // no offline/pre-login screens use them), so the client always holds a
+    // token by the time it calls these.
+    Route::get('/active-emergencies',   [SosController::class, 'getActiveEmergencies']);
+    Route::get('/active-hazards',       [HazardController::class, 'getActiveHazards']);
+    Route::get('/active-broadcast',     [BroadcastController::class, 'getActiveBroadcast']);
+    Route::get('/dispatch-assets',      [DispatchController::class, 'getDispatchAssets']);
+    Route::get('/analytics',            [AnalyticsController::class, 'getAnalytics']);
+    Route::get('/archived-emergencies', [SosController::class, 'getArchivedEmergencies']);
 
     // Session
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Profile & account
-    Route::post('/update-profile-picture',     [AuthController::class, 'updateProfilePicture']);
-    Route::post('/update-password',            [AuthController::class, 'updatePassword']);
-    Route::post('/send-password-change-otp',   [AuthController::class, 'sendPasswordChangeOtp']);
-    Route::post('/verify-password-change-otp', [AuthController::class, 'verifyPasswordChangeOtp']);
-    Route::post('/update-medical-profile',     [AuthController::class, 'updateMedicalProfile']);
+    Route::post('/update-profile-picture',     [ProfileController::class, 'updateProfilePicture']);
+    Route::post('/update-password',            [PasswordController::class, 'updatePassword']);
+    Route::post('/send-password-change-otp',   [PasswordController::class, 'sendPasswordChangeOtp']);
+    Route::post('/verify-password-change-otp', [PasswordController::class, 'verifyPasswordChangeOtp']);
+    Route::post('/update-medical-profile',     [ProfileController::class, 'updateMedicalProfile']);
 
     // Settings
     Route::get('/settings/{user_id}', [UserSettingsController::class, 'get']);
     Route::post('/settings',          [UserSettingsController::class, 'set']);
 
     // Push notifications
-    Route::post('/save-push-token', [AuthController::class, 'savePushToken']);
+    Route::post('/save-push-token', [ProfileController::class, 'savePushToken']);
 
     // Citizen actions
-    Route::post('/submit-sos',              [EmergencyController::class, 'submitSos'])->middleware('throttle:5,1');
-    Route::post('/cancel-sos',              [EmergencyController::class, 'cancelEmergency']);
-    Route::post('/submit-hazard',           [EmergencyController::class, 'submitHazard'])->middleware('throttle:5,1');
-    Route::get('/my-emergencies/{user_id}', [EmergencyController::class, 'getMyEmergencies']);
+    Route::post('/submit-sos',              [SosController::class, 'submitSos'])->middleware('throttle:5,1');
+    Route::post('/cancel-sos',              [SosController::class, 'cancelEmergency']);
+    Route::post('/submit-hazard',           [HazardController::class, 'submitHazard'])->middleware('throttle:5,1');
+    Route::get('/my-emergencies/{user_id}', [SosController::class, 'getMyEmergencies']);
 
     // Feedback
-    Route::post('/feedback',         [App\Http\Controllers\FeedbackController::class, 'store']);
+    Route::post('/feedback',         [FeedbackController::class, 'store']);
 
-    // Admin / dispatcher only
-    Route::post('/create-dispatcher',     [AuthController::class, 'createDispatcher']);
-    Route::get('/pending-verifications',  [AuthController::class, 'getPendingVerifications']);
-    Route::get('/dispatchers',            [AuthController::class, 'getDispatchers']);
-    Route::post('/approve-user',          [AuthController::class, 'approveUser']);
-    Route::post('/reject-user',           [AuthController::class, 'rejectUser']);
-    Route::get('/citizens',               [AuthController::class, 'getCitizens']);
-    Route::post('/suspend-citizen',       [AuthController::class, 'suspendCitizen']);
-    Route::post('/reactivate-citizen',    [AuthController::class, 'reactivateCitizen']);
-    Route::post('/dispatch-emergency',    [EmergencyController::class, 'dispatchEmergency']);
-    Route::post('/resolve-emergency',     [EmergencyController::class, 'resolveEmergency']);
-    Route::post('/mark-false-alarm',      [EmergencyController::class, 'markFalseAlarm']);
-    Route::post('/resolve-hazard',        [EmergencyController::class, 'resolveHazard']);
-    Route::post('/create-broadcast',      [EmergencyController::class, 'createBroadcast']);
-    Route::post('/clear-broadcast',       [EmergencyController::class, 'clearBroadcast']);
-    Route::get('/feedback',               [App\Http\Controllers\FeedbackController::class, 'index']);
-    Route::post('/feedback/clear',        [App\Http\Controllers\FeedbackController::class, 'clear']);
-    Route::get('/feedback/export',        [App\Http\Controllers\FeedbackController::class, 'export']);
+    // Admin-only account & verification management
+    // (admin tokens hold ['admin','dispatcher','citizen']; dispatcher/citizen
+    // tokens lack 'admin' and are now rejected with 403 instead of allowed through)
+    Route::middleware('ability:admin')->group(function () {
+        Route::post('/create-dispatcher',     [DispatcherController::class, 'createDispatcher']);
+        Route::get('/pending-verifications',  [CitizenController::class, 'getPendingVerifications']);
+        Route::get('/dispatchers',            [DispatcherController::class, 'getDispatchers']);
+        Route::post('/update-dispatcher',     [DispatcherController::class, 'updateDispatcher']);
+        Route::post('/deactivate-dispatcher', [DispatcherController::class, 'deactivateDispatcher']);
+        Route::post('/approve-user',          [CitizenController::class, 'approveUser']);
+        Route::post('/reject-user',           [CitizenController::class, 'rejectUser']);
+        Route::get('/citizens',               [CitizenController::class, 'getCitizens']);
+        Route::post('/suspend-citizen',       [CitizenController::class, 'suspendCitizen']);
+        Route::post('/reactivate-citizen',    [CitizenController::class, 'reactivateCitizen']);
+        Route::get('/feedback',               [FeedbackController::class, 'index']);
+        Route::post('/feedback/clear',        [FeedbackController::class, 'clear']);
+        Route::get('/feedback/export',        [FeedbackController::class, 'export']);
+    });
+
+    // Dispatcher-operational actions (admin tokens include the 'dispatcher'
+    // ability too, so admins can still perform these)
+    Route::middleware('ability:dispatcher')->group(function () {
+        Route::post('/dispatch-emergency',    [DispatchController::class, 'dispatchEmergency']);
+        Route::post('/resolve-emergency',     [DispatchController::class, 'resolveEmergency']);
+        Route::post('/mark-false-alarm',      [DispatchController::class, 'markFalseAlarm']);
+        Route::post('/resolve-hazard',        [HazardController::class, 'resolveHazard']);
+        Route::post('/create-broadcast',      [BroadcastController::class, 'createBroadcast']);
+        Route::post('/clear-broadcast',       [BroadcastController::class, 'clearBroadcast']);
+    });
 });
