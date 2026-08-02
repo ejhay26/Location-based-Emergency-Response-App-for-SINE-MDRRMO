@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import UserNotifications
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,8 +8,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        registerNotificationCategories()
         return true
+    }
+
+    /// Registers the "Got it" dismiss action shown on MDRRMO push notifications.
+    /// This only declares which actions the system should display for
+    /// notifications tagged with this category (via apns.payload.aps.category
+    /// on the backend, see FirebasePushService.php) — it does NOT set
+    /// UNUserNotificationCenter's delegate, so Capacitor's own
+    /// push-notifications plugin (which already forwards action taps to the
+    /// 'pushNotificationActionPerformed' JS listener) keeps working unchanged.
+    private func registerNotificationCategories() {
+        let gotIt = UNNotificationAction(identifier: "GOT_IT", title: "Got it", options: [])
+        let category = UNNotificationCategory(identifier: "MDRRMO_ALERT", actions: [gotIt], intentIdentifiers: [], options: [])
+        UNUserNotificationCenter.current().setNotificationCategories([category])
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
