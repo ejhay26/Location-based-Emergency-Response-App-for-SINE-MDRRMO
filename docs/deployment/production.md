@@ -61,7 +61,11 @@ php artisan storage:link
 
 ## Frontend Deployment
 
-The Ionic/Angular app builds to static files (`www/` / `dist/`) for the web, and to a signed APK/AAB via Capacitor for Android, plus IPA for iOS, plus a desktop build via Electron for admins. Point the frontend's API base URL at the deployed backend's real domain before building for release — not `localhost`.
+There's no hosted web frontend — this avoids paying for frontend hosting entirely. The Ionic/Angular build output is packaged into native installs instead of being served from a URL:
+- A signed APK/AAB via Capacitor for Android, and an IPA for iOS (citizen app)
+- A native desktop install via Electron for Windows/macOS/Linux (admin/dispatcher app) — see [System Requirements](../setup/system-requirements.md)
+
+Either way, point the app's API base URL at the deployed backend's real domain before building for release — not `localhost`. The backend API itself still needs to be hosted somewhere reachable (see above); it's only the frontend that skips hosting.
 
 ## Before You Deploy
 
