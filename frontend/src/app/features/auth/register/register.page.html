@@ -40,177 +40,15 @@
       </ion-item>
     </ion-list>
 
-    <ion-card style="margin: 20px 0 10px 0; border: 2px dashed var(--ion-color-danger); background: transparent;">
-      <ion-card-content class="ion-text-center">
-        <p style="margin-bottom: 4px; font-weight: 600; color: var(--ion-text-color);">Valid ID Verification</p>
-        <p style="font-size: 12px; margin-top: 0 0 12px 0; color: var(--ion-color-medium);">A clear photo of your ID is required for account verification.</p>
-        <div *ngIf="!validIdPreview" style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;">
-          <ion-button color="danger" fill="solid" (click)="triggerIdCapture()" style="font-weight: bold;">
-            <i class="fa-solid fa-id-card" style="margin-right: 8px;"></i> Capture ID Photo
-          </ion-button>
-        </div>
-        <div *ngIf="validIdPreview" style="margin-top: 10px;">
-          <div style="border-radius: 8px; overflow: hidden; border: 2px solid #2dd36f; margin-bottom: 10px;">
-            <img [src]="validIdPreview" style="max-height: 160px; object-fit: contain; width: 100%; background: #000;" />
-          </div>
-          <div style="display: flex; gap: 8px; justify-content: center;">
-            <ion-button color="medium" fill="outline" size="small" (click)="clearValidId()" style="font-weight: bold;">
-              <i class="fa-solid fa-rotate" style="margin-right: 6px;"></i> Retake
-            </ion-button>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card style="margin: 10px 0 10px 0; border: 2px dashed var(--ion-color-danger); background: transparent;">
-      <ion-card-content class="ion-text-center">
-        <p style="margin-bottom: 4px; font-weight: 600; color: var(--ion-text-color);">Selfie with Valid ID</p>
-        <p style="font-size: 12px; margin-top: 0 0 12px 0; color: var(--ion-color-medium);">Take a selfie holding the same ID so we can confirm it's you.</p>
-        <div *ngIf="!selfieWithIdPreview" style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;">
-          <ion-button color="danger" fill="solid" (click)="triggerSelfieCapture()" style="font-weight: bold;">
-            <i class="fa-solid fa-camera-retro" style="margin-right: 8px;"></i> Capture Selfie
-          </ion-button>
-        </div>
-        <div *ngIf="selfieWithIdPreview" style="margin-top: 10px;">
-          <div style="border-radius: 8px; overflow: hidden; border: 2px solid #2dd36f; margin-bottom: 10px;">
-            <img [src]="selfieWithIdPreview" style="max-height: 160px; object-fit: contain; width: 100%; background: #000;" />
-          </div>
-          <div style="display: flex; gap: 8px; justify-content: center;">
-            <ion-button color="medium" fill="outline" size="small" (click)="clearSelfieWithId()" style="font-weight: bold;">
-              <i class="fa-solid fa-rotate" style="margin-right: 6px;"></i> Retake
-            </ion-button>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
+    <app-register-id-capture variant="id" fieldName="valid_id_image" [userData]="userData" (toast)="showToast($event)"></app-register-id-capture>
+    <app-register-id-capture variant="selfie" fieldName="selfie_with_id_image" [userData]="userData" (toast)="showToast($event)"></app-register-id-capture>
 
     <ion-button expand="block" color="danger" class="ion-margin-top" (click)="nextStep()" style="font-weight: bold; height: 45px;">Next</ion-button>
   </div>
 
   <!-- ══ STEP 2: Account Details + OTP Channel ══ -->
   <div *ngIf="currentStep === 2">
-    <ion-list style="background: transparent;">
-      <ion-item>
-        <ion-select label="Barangay" labelPlacement="stacked" placeholder="Tap to select your barangay" [(ngModel)]="userData.barangay_id" required>
-          <ion-select-option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</ion-select-option>
-        </ion-select>
-      </ion-item>
-
-      <ion-item
-        [style.border]="usernameAvailable === true ? '2px solid #2dd36f' : (usernameAvailable === false ? '2px solid #eb445a' : 'none')"
-        style="border-radius: 12px; margin-bottom: 5px;">
-        <ion-input label="Username" labelPlacement="stacked" type="text" placeholder="Tap to enter a username"
-                   [(ngModel)]="userData.username" (ionInput)="onUsernameInput()" required></ion-input>
-        <i class="fa-solid fa-spinner fa-spin" slot="end"
-           *ngIf="usernameAvailable === null && (userData.username ?? '').length > 0" style="color: #8a8a8a;"></i>
-        <i class="fa-solid fa-circle-check" slot="end" *ngIf="usernameAvailable === true" style="color: #2dd36f;"></i>
-        <i class="fa-solid fa-circle-xmark" slot="end" *ngIf="usernameAvailable === false" style="color: #eb445a;"></i>
-      </ion-item>
-
-      <p *ngIf="(userData.username ?? '').length > 0 && !isUsernameFormatValid()"
-         style="color: #eb445a; font-size: 12px; margin: 4px 0 8px 8px;">
-        <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-        Only letters, numbers, underscores and dots allowed.
-      </p>
-
-      <div *ngIf="usernameSuggestions.length > 0" style="padding: 0 10px 10px 10px;">
-        <p style="font-size: 11px; margin: 4px 0; color: #eb445a; font-weight: 500;">Username is taken. Suggested handles:</p>
-        <ion-chip *ngFor="let name of usernameSuggestions" color="primary" (click)="applySuggestion(name)"
-                  style="font-weight: bold; font-size: 12px; margin: 2px;">{{ name }}</ion-chip>
-      </div>
-
-      <ion-item
-        [style.border]="emailAvailable === true ? '2px solid #2dd36f' : (emailAvailable === false ? '2px solid #eb445a' : 'none')"
-        style="border-radius: 12px; margin-bottom: 5px;">
-        <ion-input label="Email Address" labelPlacement="stacked" type="email" placeholder="Tap to enter your email address"
-                   [(ngModel)]="userData.email" (ionInput)="onEmailInput()" required></ion-input>
-        <i class="fa-solid fa-spinner fa-spin" slot="end"
-           *ngIf="emailAvailable === null && (userData.email ?? '').length > 0" style="color: #8a8a8a;"></i>
-        <i class="fa-solid fa-circle-check" slot="end" *ngIf="emailAvailable === true" style="color: #2dd36f;"></i>
-        <i class="fa-solid fa-circle-xmark" slot="end" *ngIf="emailAvailable === false" style="color: #eb445a;"></i>
-      </ion-item>
-
-      <p *ngIf="(userData.email ?? '').length > 0 && !isEmailFormatValid()"
-         style="color: #eb445a; font-size: 12px; margin: 4px 0 8px 8px;">
-        <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-        Please enter a valid email address.
-      </p>
-
-      <ion-item>
-        <ion-input label="Password" labelPlacement="stacked" type="password" placeholder="Tap to enter a password"
-                   [(ngModel)]="userData.password"
-                   (ionFocus)="passwordFocused = true" (ionBlur)="passwordFocused = false" required>
-          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-        </ion-input>
-      </ion-item>
-      <ion-item>
-        <ion-input label="Confirm Password" labelPlacement="stacked" type="password" placeholder="Tap to re-enter your password"
-                   [(ngModel)]="userData.confirm_password" required>
-          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-        </ion-input>
-      </ion-item>
-    </ion-list>
-
-    <div *ngIf="(userData.password ?? '').length > 0"
-         style="background: var(--ion-color-light); padding: 12px; border-radius: 12px; margin-top: 10px; border-left: 4px solid var(--ion-color-danger);">
-      <p style="margin: 6px 0; font-size: 13px; display: flex; align-items: center;"
-         [style.color]="pwdLength ? '#2dd36f' : '#8a8a8a'">
-        <i [class]="pwdLength ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px; width: 16px;"></i>
-        Minimum 8 characters length
-      </p>
-      <p style="margin: 6px 0; font-size: 13px; display: flex; align-items: center;"
-         [style.color]="pwdUpper ? '#2dd36f' : '#8a8a8a'">
-        <i [class]="pwdUpper ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px; width: 16px;"></i>
-        Contains uppercase letter (A-Z)
-      </p>
-      <p style="margin: 6px 0; font-size: 13px; display: flex; align-items: center;"
-         [style.color]="pwdLower ? '#2dd36f' : '#8a8a8a'">
-        <i [class]="pwdLower ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px; width: 16px;"></i>
-        Contains lowercase letter (a-z)
-      </p>
-      <p style="margin: 6px 0; font-size: 13px; display: flex; align-items: center;"
-         [style.color]="pwdNum ? '#2dd36f' : '#8a8a8a'">
-        <i [class]="pwdNum ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px; width: 16px;"></i>
-        Contains at least 1 numerical digit (0-9)
-      </p>
-      <p style="margin: 6px 0; font-size: 13px; display: flex; align-items: center;"
-         [style.color]="pwdSym ? '#2dd36f' : '#8a8a8a'">
-        <i [class]="pwdSym ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px; width: 16px;"></i>
-        Contains special symbol (@$!%*#?&amp;)
-      </p>
-    </div>
-
-    <div style="margin-top: 18px; background: var(--ion-color-light); border-radius: 14px; padding: 14px;">
-      <p style="font-weight: bold; font-size: 14px; margin: 0 0 10px 0; color: var(--ion-text-color);">
-        <i class="fa-solid fa-shield-halved" style="color: var(--ion-color-danger); margin-right: 6px;"></i>
-        Verify your account via:
-      </p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div (click)="selectOtpChannel('email')"
-             [style.border]="otpChannel === 'email' ? '2px solid var(--ion-color-danger)' : '2px solid #ddd'"
-             [style.background]="otpChannel === 'email' ? '#eb445a15' : 'var(--ion-card-background, white)'"
-             style="border-radius: 12px; padding: 14px 10px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.2s;">
-          <i class="fa-solid fa-envelope" style="font-size: 22px; color: var(--ion-color-danger); margin-bottom: 6px;"></i>
-          <span style="font-weight: bold; font-size: 13px; color: var(--ion-text-color);">Email OTP</span>
-          <span style="font-size: 11px; color: gray; margin-top: 2px; text-align: center;">Sent to your email</span>
-        </div>
-        <div (click)="selectOtpChannel('sms')"
-             [style.border]="otpChannel === 'sms' ? '2px solid var(--ion-color-danger)' : '2px solid #ddd'"
-             [style.background]="otpChannel === 'sms' ? '#eb445a15' : 'var(--ion-card-background, white)'"
-             style="border-radius: 12px; padding: 14px 10px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.2s;">
-          <i class="fa-solid fa-mobile-screen" style="font-size: 22px; color: var(--ion-color-danger); margin-bottom: 6px;"></i>
-          <span style="font-weight: bold; font-size: 13px; color: var(--ion-text-color);">SMS OTP</span>
-          <span style="font-size: 11px; color: gray; margin-top: 2px; text-align: center;">Sent to your phone</span>
-        </div>
-      </div>
-    </div>
-
-    <div style="display: flex; align-items: center; gap: 10px; margin-top: 16px; padding: 12px; background: var(--ion-color-light); border-radius: 12px;">
-      <ion-checkbox [(ngModel)]="termsAccepted" style="min-width: 30px;"></ion-checkbox>
-      <span style="font-size: 13px; color: var(--ion-text-color);">
-        I agree to the <strong>Terms and Conditions</strong> and <strong>Privacy Policy</strong>
-      </span>
-    </div>
+    <app-register-account-details [userData]="userData"></app-register-account-details>
 
     <div style="display: flex; gap: 10px; margin-top: 18px;">
       <ion-button expand="block" fill="outline" color="danger" (click)="prevStep()" style="font-weight: bold; height: 45px;">
@@ -227,14 +65,14 @@
 
   <!-- ══ STEP 3: OTP VERIFICATION ══ -->
   <div *ngIf="currentStep === 3" class="ion-text-center">
-    <i [class]="otpChannel === 'sms' ? 'fa-solid fa-mobile-screen' : 'fa-solid fa-envelope-open-text'"
+    <i [class]="userData.otp_channel === 'sms' ? 'fa-solid fa-mobile-screen' : 'fa-solid fa-envelope-open-text'"
        style="font-size: 64px; color: var(--ion-color-danger); margin-bottom: 15px; display: inline-block;"></i>
     <h2 style="font-weight: bold; color: var(--ion-text-color);">
-      {{ otpChannel === 'sms' ? 'Check Your SMS' : 'Check Your Email' }}
+      {{ userData.otp_channel === 'sms' ? 'Check Your SMS' : 'Check Your Email' }}
     </h2>
     <p style="color: var(--ion-color-medium); font-weight: 500;">
       We sent a 4-digit verification code to<br>
-      <strong>{{ otpChannel === 'sms' ? userData.phone : userData.email }}</strong>
+      <strong>{{ userData.otp_channel === 'sms' ? userData.phone : userData.email }}</strong>
     </p>
     <ion-item class="ion-margin-top" fill="outline">
       <ion-input class="ion-text-center" style="font-size: 24px; letter-spacing: 10px;"
@@ -250,66 +88,6 @@
   </div>
 
 </ion-content>
-
-<!-- ══ ID CROPPER MODAL ══ -->
-<ion-modal [isOpen]="showIdCropper" [backdropDismiss]="false">
-  <ng-template>
-    <ion-header class="ion-no-border">
-      <ion-toolbar color="danger">
-        <ion-title style="color: white; font-weight: bold;">Crop Your ID Photo</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="cancelIdCrop()" style="color: white; font-weight: bold;">Cancel</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding" style="text-align: center;">
-      <p style="font-size: 13px; color: gray; margin-bottom: 12px;">Drag to reposition. Pinch or use handles to crop.</p>
-      <image-cropper
-        [imageFile]="idCropperImageFile || undefined"
-        [maintainAspectRatio]="true"
-        [aspectRatio]="16 / 9"
-        format="jpeg"
-        [output]="'base64'"
-        [roundCropper]="false"
-        (imageCropped)="onIdCropped($event)"
-        style="max-height: 60vh;">
-      </image-cropper>
-      <ion-button expand="block" color="success" (click)="confirmIdCrop()" style="font-weight: bold; height: 48px; margin-top: 16px;">
-        <i class="fa-solid fa-crop-simple" style="margin-right: 8px;"></i> Use This Crop
-      </ion-button>
-    </ion-content>
-  </ng-template>
-</ion-modal>
-
-<!-- ══ SELFIE-WITH-ID CROPPER MODAL ══ -->
-<ion-modal [isOpen]="showSelfieCropper" [backdropDismiss]="false">
-  <ng-template>
-    <ion-header class="ion-no-border">
-      <ion-toolbar color="danger">
-        <ion-title style="color: white; font-weight: bold;">Crop Your Selfie</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="cancelSelfieCrop()" style="color: white; font-weight: bold;">Cancel</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding" style="text-align: center;">
-      <p style="font-size: 13px; color: gray; margin-bottom: 12px;">Drag to reposition. Pinch or use handles to crop.</p>
-      <image-cropper
-        [imageFile]="selfieCropperImageFile || undefined"
-        [maintainAspectRatio]="true"
-        [aspectRatio]="16 / 9"
-        format="jpeg"
-        [output]="'base64'"
-        [roundCropper]="false"
-        (imageCropped)="onSelfieCropped($event)"
-        style="max-height: 60vh;">
-      </image-cropper>
-      <ion-button expand="block" color="success" (click)="confirmSelfieCrop()" style="font-weight: bold; height: 48px; margin-top: 16px;">
-        <i class="fa-solid fa-crop-simple" style="margin-right: 8px;"></i> Use This Crop
-      </ion-button>
-    </ion-content>
-  </ng-template>
-</ion-modal>
 
 <!-- ══ MEDICAL PROFILE MODAL ══ -->
 <ion-modal [isOpen]="showMedicalModal" [backdropDismiss]="false" [initialBreakpoint]="0.90" [breakpoints]="[0, 0.90, 1]">
