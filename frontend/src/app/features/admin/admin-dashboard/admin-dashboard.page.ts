@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api';
 import { UserSettingsService } from '../../../core/services/user-settings';
 import { TourService } from '../../../core/services/tour';
+import { PushNotificationsService } from '../../../core/services/push-notifications';
 import { AdminUiService } from './admin-ui.service';
 import { ProxyImageDirective } from '../../../shared/directives/proxy-image.directive';
 
@@ -61,6 +62,7 @@ export class AdminDashboardPage implements OnInit {
     private alertCtrl: AlertController,
     private userSettings: UserSettingsService,
     private tour: TourService,
+    private pushNotifications: PushNotificationsService,
     public  ui: AdminUiService,
   ) {}
 
@@ -112,6 +114,7 @@ export class AdminDashboardPage implements OnInit {
       buttons: [
         { text: 'Cancel', role: 'cancel' },
         { text: 'Logout', role: 'destructive', handler: () => {
+          this.pushNotifications.unregisterPush();
           this.api.logout().subscribe({ error: () => {} });
           this.api.clearToken();
           this.userSettings.clear();
