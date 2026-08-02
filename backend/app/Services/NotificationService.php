@@ -9,9 +9,12 @@ use App\Models\DeviceToken;
  * for all citizens. Extracted from EmergencyController so both the
  * emergency and dispatch flows share one code path.
  *
- * Behavior is identical to the private methods it replaces: same
- * device_tokens lookup, same join for the "all citizens" case, same
- * no-op when there are no tokens to send to.
+ * Fetches both `token` and `platform` per device (not just the token) so
+ * FirebasePushService can send a platform-specific payload shape — Android
+ * gets a data-only message so its own MessagingService can attach a "Got it"
+ * action button; iOS keeps the standard notification block. Same underlying
+ * device_tokens lookup and "all citizens" join as before, same no-op when
+ * there are no tokens to send to.
  */
 class NotificationService
 {
@@ -21,7 +24,7 @@ class NotificationService
 
     public function notifyUser(int $userId, string $title, string $body, array $data = []): void
     {
-        $tokens = DeviceToken::where('user_id', $userId)->pluck('token')->toArray();
+        $tokens = DeviceToken::where('user_id', $userId)->get(['token', 'platform'])->toArray();
         if (!empty($tokens)) {
             $this->push->send($tokens, $title, $body, $data);
         }
@@ -32,7 +35,7 @@ class NotificationService
         $tokens = DeviceToken::query()
             ->join('users', 'device_tokens.user_id', '=', 'users.user_id')
             ->where('users.role', 'citizen')
-            ->pluck('device_tokens.token')->toArray();
+            ->get(['device_tokens.token', 'device_tokens.platform'])->toArray();
         if (!empty($tokens)) {
             $this->push->send($tokens, $title, $body, $data);
         }
