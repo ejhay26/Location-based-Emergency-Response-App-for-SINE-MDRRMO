@@ -1,0 +1,112 @@
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;">
+  <ion-card style="margin:0;box-shadow:none;border:1px solid var(--ion-color-step-150,rgba(0,0,0,0.04));flex:1;min-height:0;display:flex;flex-direction:column;">
+    <div style="display:flex;gap:0;border-bottom:2px solid var(--ion-color-step-100,#eee);background:var(--ion-color-light);">
+      <button (click)="toggleMapStyle('street')" [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'transparent'" [style.color]="mapStyle==='street'?'white':'var(--ion-text-color)'" [style.border-bottom]="mapStyle==='street'?'3px solid var(--ion-color-danger)':'3px solid transparent'" style="flex:1;border:none;padding:12px 8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fa-solid fa-map"></i> Street</button>
+      <button (click)="toggleMapStyle('satellite')" [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'transparent'" [style.color]="mapStyle==='satellite'?'white':'var(--ion-text-color)'" [style.border-bottom]="mapStyle==='satellite'?'3px solid var(--ion-color-danger)':'3px solid transparent'" style="flex:1;border:none;padding:12px 8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fa-solid fa-satellite"></i> Satellite</button>
+    </div>
+    <ion-card-content class="ion-no-padding" style="height:100%;"><div id="dispatch-map" style="height:100%;width:100%;min-height:560px;background-color:#e5e5e5;"></div></ion-card-content>
+  </ion-card>
+</div>
+
+<div style="width:340px;flex-shrink:0;display:flex;flex-direction:column;min-width:0;">
+  <div style="flex:1;max-height:calc(100vh - 80px);overflow-y:auto;">
+
+    <!-- Active Emergencies -->
+    <ng-container *ngIf="mode === 'active'">
+      <div *ngIf="activeRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active emergencies.</p></div>
+      <div *ngFor="let request of activeRequests"
+           [id]="'request-card-' + request.request_id"
+           [ngStyle]="{'border': selectedRequestId === request.request_id && previewType === 'emergency' ? '3px solid var(--ion-color-danger)' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.04))'}"
+           style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 15px; color: var(--ion-text-color); cursor: pointer;"
+           (click)="selectedRequestId = request.request_id; previewType = 'emergency'">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+          <div style="width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center;" [style.background]="request.incident_name === 'Fire' ? '#eb445a18' : (request.incident_name === 'Flood' ? '#3880ff18' : (request.incident_name === 'Medical' ? '#2dd36f18' : '#bc6fff18'))">
+            <i [class]="request.incident_name === 'Fire' ? 'fa-solid fa-fire' : (request.incident_name === 'Flood' ? 'fa-solid fa-cloud-showers-heavy' : (request.incident_name === 'Medical' ? 'fa-solid fa-heart-pulse' : 'fa-solid fa-handcuffs'))" [style.color]="request.incident_name === 'Fire' ? '#eb445a' : (request.incident_name === 'Flood' ? '#3880ff' : (request.incident_name === 'Medical' ? '#2dd36f' : '#bc6fff'))" style="font-size: 15px;"></i>
+          </div>
+          <div><span style="font-size: 11px; font-weight: bold; color: gray;">{{ request.request_time | utcDate:'short' }}</span><h3 style="margin: 2px 0 0 0; font-weight: bold; font-size: 17px; color: var(--ion-color-danger);">{{ request.incident_name }} Emergency</h3></div>
+        </div>
+        <p style="margin: 3px 0; font-size: 14px;"><strong>Victim:</strong> {{ request.first_name }} {{ request.last_name }}</p>
+        <p style="margin: 3px 0; font-size: 14px;"><strong>Contact:</strong> {{ request.phone }}</p>
+        <p style="margin: 3px 0; font-size: 14px;" *ngIf="request.description"><strong>Notes:</strong> "{{ request.description }}"</p>
+        <div *ngIf="request.blood_type" style="margin: 6px 0;"><span style="background: #eb445a; color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 10px;">⚠️ {{ request.blood_type }} | {{ request.allergies || 'No known allergies' }}</span></div>
+
+        <div *ngIf="request.proof_files?.length" class="media-thumb-grid">
+          <div *ngFor="let filePath of request.proof_files"
+               class="media-thumb"
+               (click)="$event.stopPropagation(); ui.openLightbox(filePath, ui.isVideoFile(filePath))">
+            <ng-container *ngIf="ui.isVideoFile(filePath); else imgThumb">
+              <img [videoThumbSrc]="filePath" style="width:100%;height:100%;object-fit:cover;background:#222;" />
+              <div class="video-badge"><i class="fa-solid fa-play"></i></div>
+            </ng-container>
+            <ng-template #imgThumb>
+              <img [proxySrc]="filePath" style="width:100%;height:100%;object-fit:cover;" />
+            </ng-template>
+          </div>
+        </div>
+        <p *ngIf="!request.proof_files?.length" style="font-size: 11px; color: gray; margin: 8px 0 0 0;">No files attached</p>
+
+        <div style="display: flex; gap: 8px; margin-top: 12px;" (click)="$event.stopPropagation()">
+          <ion-button *ngIf="request.status === 'Pending'" color="warning" size="small" (click)="openDispatchModal(request.request_id)" style="font-weight: bold; flex: 1; height: 35px; margin: 0;"><i class="fa-solid fa-truck-medical" style="margin-right: 6px;"></i> Dispatch</ion-button>
+          <ion-button color="success" size="small" (click)="resolveEmergency(request.request_id)" style="font-weight: bold; flex: 1; height: 35px; margin: 0;"><i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Resolve</ion-button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Active Hazards -->
+    <ng-container *ngIf="mode === 'hazards'">
+      <div *ngIf="activeHazards.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active public hazards logged.</p></div>
+      <div *ngFor="let haz of activeHazards"
+           [id]="'hazard-card-' + haz.hazard_id"
+           [ngStyle]="{'border': selectedRequestId === haz.hazard_id && previewType === 'hazard' ? '3px solid #ffc409' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.04))'}"
+           style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 15px; color: var(--ion-text-color);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;"><i class="fa-solid fa-road-barrier" style="color: #ffc409; font-size: 18px;"></i><h4 style="margin: 0; font-weight: bold; font-size: 15px;">Public Hazard Report</h4></div>
+        <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.3;">{{ haz.description }}</p>
+        <span style="font-size: 11px; color: gray; font-weight: bold;">Source: {{ haz.first_name }} {{ haz.last_name }} | {{ haz.created_at | utcDate:'short' }}</span>
+        <div *ngIf="haz.proof_files?.length" class="media-thumb-grid">
+          <div *ngFor="let filePath of haz.proof_files"
+               class="media-thumb"
+               (click)="ui.openLightbox(filePath, ui.isVideoFile(filePath))">
+            <ng-container *ngIf="ui.isVideoFile(filePath); else hazImgThumb">
+              <img [videoThumbSrc]="filePath" style="width:100%;height:100%;object-fit:cover;background:#222;" />
+              <div class="video-badge"><i class="fa-solid fa-play"></i></div>
+            </ng-container>
+            <ng-template #hazImgThumb><img [proxySrc]="filePath" style="width:100%;height:100%;object-fit:cover;" /></ng-template>
+          </div>
+        </div>
+        <div style="margin-top: 12px;"><ion-button color="medium" fill="outline" expand="block" size="small" (click)="dismissHazard(haz.hazard_id)" style="font-weight: bold; height: 35px; margin: 0;"><i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Acknowledge</ion-button></div>
+      </div>
+    </ng-container>
+
+  </div>
+</div>
+
+<!-- Dispatch modal — only relevant to the active-emergencies list -->
+<ion-modal [isOpen]="isDispatchModalOpen" (didDismiss)="isDispatchModalOpen = false" initialBreakpoint="0.75" [breakpoints]="[0, 0.75, 1]">
+  <ng-template>
+    <ion-header class="ion-no-border"><ion-toolbar color="warning"><ion-title style="color: white; font-weight: bold; font-size: 17px;">Dispatch Response Team</ion-title><ion-buttons slot="end"><ion-button (click)="isDispatchModalOpen = false" style="color: white; font-weight: bold;">Close</ion-button></ion-buttons></ion-toolbar></ion-header>
+    <ion-content class="ion-padding">
+      <p style="font-weight: bold; font-size: 15px; margin: 0 0 10px 0; color: var(--ion-text-color);">1. Select a Responder Team</p>
+      <ion-radio-group [(ngModel)]="dispatchForm.responder_id" (ionChange)="onResponderChange()">
+        <div *ngFor="let r of availableResponders" style="display: flex; align-items: center; background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; gap: 14px;" [style.border-color]="dispatchForm.responder_id === r.responder_id ? '#ffc409' : 'var(--ion-color-step-150, #ddd)'" [style.background]="dispatchForm.responder_id === r.responder_id ? '#ffc40915' : 'var(--ion-card-background, #fff)'">
+          <ion-radio [value]="r.responder_id" style="--color-checked: #ffc409;"></ion-radio>
+          <div><p style="margin: 0; font-weight: bold; font-size: 16px; color: var(--ion-text-color);">{{ r.name }}</p><p style="margin: 2px 0 0 0; font-size: 13px; color: gray;">{{ r.role }} · {{ r.contact }}</p></div>
+        </div>
+      </ion-radio-group>
+      <p style="font-weight: bold; font-size: 15px; margin: 16px 0 10px 0; color: var(--ion-text-color);">2. Assign a Vehicle</p>
+      <div *ngIf="!dispatchForm.responder_id" style="text-align: center; padding: 16px; color: gray; font-size: 14px; border: 2px dashed var(--ion-color-step-150, #ddd); border-radius: 12px;">Select a responder first to see available vehicles.</div>
+      <ion-radio-group [(ngModel)]="dispatchForm.vehicle_id" *ngIf="dispatchForm.responder_id">
+        <div *ngFor="let v of filteredVehicles" style="display: flex; align-items: center; background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; gap: 14px;" [style.border-color]="dispatchForm.vehicle_id === v.vehicle_id ? '#ffc409' : 'var(--ion-color-step-150, #ddd)'" [style.background]="dispatchForm.vehicle_id === v.vehicle_id ? '#ffc40915' : 'var(--ion-card-background, #fff)'">
+          <ion-radio [value]="v.vehicle_id" style="--color-checked: #ffc409;"></ion-radio>
+          <div><p style="margin: 0; font-weight: bold; font-size: 16px; color: var(--ion-text-color);">{{ v.name }}</p><p style="margin: 2px 0 0 0; font-size: 13px; color: gray;">{{ v.type }} · Plate: {{ v.plate }}</p></div>
+        </div>
+      </ion-radio-group>
+      <ion-button expand="block" color="warning" class="ion-margin-top" (click)="submitDispatch()"
+          [class.btn-muted]="(!dispatchForm.responder_id || !dispatchForm.vehicle_id) && !isDispatching"
+          [class.btn-loading]="isDispatching"
+          style="font-weight: bold; height: 52px; border-radius: 12px; font-size: 17px; margin-top: 20px;">
+          <ng-container *ngIf="!isDispatching"><i class="fa-solid fa-truck-medical" style="margin-right: 10px;"></i> Confirm Dispatch</ng-container>
+          <span *ngIf="isDispatching" class="dot-loader"><span></span><span></span><span></span></span>
+        </ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>

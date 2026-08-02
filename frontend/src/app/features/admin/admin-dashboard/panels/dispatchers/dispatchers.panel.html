@@ -1,0 +1,91 @@
+<div style="width:100%;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+    <div>
+      <h2 style="margin: 0; font-weight: bold; font-size: 22px; color: var(--ion-text-color);">Dispatchers</h2>
+      <p style="margin: 2px 0 0 0; font-size: 13px; color: gray;">{{ dispatchers.length }} account{{ dispatchers.length !== 1 ? 's' : '' }} registered</p>
+    </div>
+    <ion-button color="danger" (click)="openDispatcherModal(null)" style="font-weight: bold; height: 42px; border-radius: 10px;">
+      <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Add Dispatcher
+    </ion-button>
+  </div>
+
+  <div *ngIf="dispatchers.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 16px; border: 2px dashed var(--ion-color-step-150, #ddd);">
+    <i class="fa-solid fa-users-gear" style="font-size: 48px; color: var(--ion-color-step-400, #aaa); margin-bottom: 14px;"></i>
+    <h4 style="font-weight: bold; margin: 0 0 6px 0; color: var(--ion-text-color);">No Dispatchers Yet</h4>
+    <p style="margin: 0; color: gray; font-size: 14px;">Click "Add Dispatcher" to create the first account.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+    <div *ngFor="let d of dispatchers" style="background: var(--ion-card-background, #fff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)); padding: 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+      <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; font-weight: bold; color: white; overflow: hidden; position: relative;">
+          <img *ngIf="ui.getProxyUrl(d.profile_picture)" [proxySrc]="d.profile_picture" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
+          <span style="position:relative;z-index:1;">{{ (d.first_name?.[0]||'')+(d.last_name?.[0]||'') }}</span>
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <p style="margin: 0; font-weight: bold; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.first_name }} {{ d.last_name }}</p>
+          <p style="margin: 1px 0 0 0; font-size: 12px; color: gray;">&#64;{{ d.username }}</p>
+        </div>
+        <span style="background: #2dd36f1a; color: #2dd36f; border: 1px solid #2dd36f50; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: bold; white-space: nowrap; flex-shrink: 0;">Active</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px; padding: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 10px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><i class="fa-solid fa-phone" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i><span>{{ d.phone }}</span></div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; overflow: hidden;"><i class="fa-solid fa-envelope" style="color: var(--ion-color-danger); width: 14px; text-align: center; flex-shrink: 0;"></i><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.email }}</span></div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><i class="fa-solid fa-location-dot" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i><span>{{ ui.getBarangayName(d.barangay_id) }}</span></div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <ion-button fill="outline" color="danger" size="small" (click)="openDispatcherModal(d)" style="flex: 1; font-weight: bold; height: 36px; margin: 0;"><i class="fa-solid fa-pen-to-square" style="margin-right: 6px;"></i> Edit</ion-button>
+        <ion-button fill="outline" color="medium" size="small" (click)="confirmDeactivateDispatcher(d)" style="flex: 1; font-weight: bold; height: 36px; margin: 0;"><i class="fa-solid fa-user-slash" style="margin-right: 6px;"></i> Remove</ion-button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Dispatcher modal -->
+<ion-modal [isOpen]="isDispatcherModalOpen" (didDismiss)="isDispatcherModalOpen = false" initialBreakpoint="0.92" [breakpoints]="[0, 0.92, 1]">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar color="danger">
+        <ion-title style="color: white; font-weight: bold; font-size: 17px;">{{ editingDispatcher ? 'Edit Dispatcher' : 'Add Dispatcher' }}</ion-title>
+        <ion-buttons slot="end"><ion-button (click)="isDispatcherModalOpen = false" style="color: white; font-weight: bold;">Cancel</ion-button></ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <div style="display: flex; justify-content: center; margin-bottom: 24px;">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; color: white; overflow: hidden; position: relative;">
+          <img *ngIf="editingDispatcher && ui.getProxyUrl(editingDispatcher.profile_picture)" [proxySrc]="editingDispatcher.profile_picture" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
+          <span style="position:relative;z-index:1;">{{ ((dispatcherForm.first_name||'?')[0])+((dispatcherForm.last_name||'')[0]||'') }}</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; gap: 10px;">
+          <ion-item fill="outline" style="flex: 1;"><ion-input label="First Name" labelPlacement="floating" [(ngModel)]="dispatcherForm.first_name"></ion-input></ion-item>
+          <ion-item fill="outline" style="flex: 1;"><ion-input label="Last Name" labelPlacement="floating" [(ngModel)]="dispatcherForm.last_name"></ion-input></ion-item>
+        </div>
+        <ion-item fill="outline"><ion-input label="Phone Number" labelPlacement="floating" type="tel" [(ngModel)]="dispatcherForm.phone"></ion-input></ion-item>
+        <ion-item fill="outline"><ion-input label="Username" labelPlacement="floating" type="text" [(ngModel)]="dispatcherForm.username" [readonly]="!!editingDispatcher"></ion-input></ion-item>
+        <ion-item fill="outline">
+          <ion-select label="Assigned Barangay" labelPlacement="floating" [(ngModel)]="dispatcherForm.barangay_id">
+            <ion-select-option [value]="1">Alua</ion-select-option>
+            <ion-select-option [value]="2">Calaba</ion-select-option>
+            <ion-select-option [value]="3">Malapit</ion-select-option>
+            <ion-select-option [value]="4">Mangga</ion-select-option>
+            <ion-select-option [value]="5">Poblacion</ion-select-option>
+            <ion-select-option [value]="6">Pulo</ion-select-option>
+            <ion-select-option [value]="7">San Roque</ion-select-option>
+            <ion-select-option [value]="8">Santo Cristo</ion-select-option>
+            <ion-select-option [value]="9">Tabon</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item fill="outline"><ion-input label="Email Address" labelPlacement="floating" type="email" [(ngModel)]="dispatcherForm.email"></ion-input></ion-item>
+        <ion-item fill="outline"><ion-input [label]="editingDispatcher ? 'New Password (leave blank to keep)' : 'Password'" labelPlacement="floating" type="password" [(ngModel)]="dispatcherForm.password"></ion-input></ion-item>
+      </div>
+      <ion-button expand="block" color="danger" (click)="saveDispatcherForm()"
+        [class.btn-loading]="isSavingDispatcher"
+        style="font-weight: bold; height: 50px; border-radius: 12px; margin-top: 24px; font-size: 16px;">
+        <ng-container *ngIf="!isSavingDispatcher"><i [class]="editingDispatcher ? 'fa-solid fa-floppy-disk' : 'fa-solid fa-user-plus'" style="margin-right: 10px;"></i>{{ editingDispatcher ? 'Save Changes' : 'Create Account' }}</ng-container>
+        <span *ngIf="isSavingDispatcher" class="dot-loader"><span></span><span></span><span></span></span>
+      </ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>

@@ -1,0 +1,28 @@
+<div style="width:100%;">
+  <ion-card color="light" style="margin: 0; box-shadow: none; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.04));">
+    <ion-card-header><ion-card-title style="font-weight: bold; font-size: 16px;">Send Alert to All Citizens</ion-card-title></ion-card-header>
+    <ion-card-content>
+      <ion-item fill="outline" class="ion-margin-bottom ion-margin-top">
+        <ion-input label="Alert Message" labelPlacement="floating" [(ngModel)]="broadcastForm.message" placeholder="e.g. Flood warning in Barangay Pulo..."></ion-input>
+      </ion-item>
+      <ion-button expand="block" color="danger" (click)="submitBroadcast()"
+        [class.btn-muted]="!broadcastForm.message && !isBroadcasting"
+        [class.btn-loading]="isBroadcasting"
+        style="font-weight: bold; height: 45px;">
+        <ng-container *ngIf="!isBroadcasting"><i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Send Alert</ng-container>
+        <span *ngIf="isBroadcasting" class="dot-loader"><span></span><span></span><span></span></span>
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="recentBroadcast" class="ion-margin-top" style="border: 2px solid var(--ion-color-danger); margin-left: 0; margin-right: 0; box-shadow: none;">
+    <ion-card-header style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0;">
+      <ion-card-subtitle style="font-weight: bold; color: var(--ion-color-danger);">Active Alert</ion-card-subtitle>
+      <ion-button fill="clear" color="medium" size="small" (click)="endBroadcast()" style="font-weight: bold;"><i class="fa-solid fa-circle-stop" style="margin-right: 6px;"></i> Stop Alert</ion-button>
+    </ion-card-header>
+    <ion-card-content>
+      <h3 style="color: var(--ion-color-danger); font-weight: bold; margin-bottom: 5px;">{{ recentBroadcast.message }}</h3>
+      <p style="font-size: 11px; color: var(--ion-color-medium);">Sent: {{ recentBroadcast.created_at | utcDate:'medium' }}</p>
+    </ion-card-content>
+  </ion-card>
+</div>

@@ -1,0 +1,50 @@
+<div style="width:100%;">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+    <div>
+      <h2 style="margin: 0; font-weight: bold; font-size: 22px; color: var(--ion-text-color);">Citizens</h2>
+      <p style="margin: 2px 0 0 0; font-size: 13px; color: gray;">{{ filteredCitizens.length }} of {{ citizens.length }} shown</p>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <div style="position: relative;">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: gray; font-size: 13px; pointer-events: none;"></i>
+        <input id="citizenSearch" name="citizenSearch" [(ngModel)]="citizenSearch" placeholder="Search name, email…" style="padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); min-width: 200px;" />
+      </div>
+      <select id="citizenFilterStatus" name="citizenFilterStatus" [(ngModel)]="citizenFilterStatus" style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color);">
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="suspended">Suspended</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="citizens.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 16px; border: 2px dashed var(--ion-color-step-150, #ddd);">
+    <i class="fa-solid fa-users" style="font-size: 48px; color: var(--ion-color-step-400, #aaa); margin-bottom: 14px;"></i>
+    <h4 style="font-weight: bold; margin: 0 0 6px 0; color: var(--ion-text-color);">No Citizens Yet</h4>
+    <p style="margin: 0; color: gray; font-size: 14px;">Registered citizens will appear here.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+    <div *ngFor="let c of filteredCitizens" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: 0 1px 4px rgba(0,0,0,0.06);" [style.border]="c.account_status === 'banned' ? '2px solid #eb445a' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.07))'">
+      <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--ion-color-step-150, #ddd); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
+          <i class="fa-solid fa-circle-user" style="font-size: 40px; color: var(--ion-color-step-400, #aaa);"></i>
+          <img *ngIf="ui.getProxyUrl(c.profile_picture)"
+               [proxySrc]="c.profile_picture"
+               style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;border-radius:50%;" />
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <p style="margin: 0; font-weight: bold; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.first_name }} {{ c.last_name }}</p>
+          <p style="margin: 1px 0 0 0; font-size: 12px; color: gray;">&#64;{{ c.username }}</p>
+        </div>
+        <span style="border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: bold; white-space: nowrap; flex-shrink: 0;" [style.background]="c.account_status === 'banned' ? '#eb445a1a' : (c.account_status === 'active' ? '#2dd36f1a' : '#ffc4091a')" [style.color]="c.account_status === 'banned' ? '#eb445a' : (c.account_status === 'active' ? '#2dd36f' : '#e0ac00')" [style.border]="c.account_status === 'banned' ? '1px solid #eb445a50' : (c.account_status === 'active' ? '1px solid #2dd36f50' : '1px solid #ffc40950')">{{ c.account_status === 'banned' ? 'Suspended' : (c.account_status === 'active' ? 'Active' : 'Pending') }}</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 10px; margin-bottom: 12px; font-size: 13px;">
+        <div style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-phone" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i><span>{{ c.phone }}</span></div>
+        <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;"><i class="fa-solid fa-envelope" style="color: var(--ion-color-danger); width: 14px; text-align: center; flex-shrink: 0;"></i><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.email }}</span></div>
+        <div style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-location-dot" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i><span>{{ ui.getBarangayName(c.barangay_id) }}</span></div>
+        <div style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-calendar" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i><span>Joined {{ c.created_at | utcDate:'mediumDate' }}</span></div>
+      </div>
+      <ion-button [color]="c.account_status === 'banned' ? 'success' : 'danger'" fill="outline" size="small" expand="block" (click)="suspendCitizen(c)" style="font-weight: bold; height: 36px; margin: 0;"><i class="fa-solid" [class.fa-user-check]="c.account_status === 'banned'" [class.fa-user-slash]="c.account_status !== 'banned'" style="margin-right: 6px;"></i>{{ c.account_status === 'banned' ? 'Reinstate Account' : 'Suspend Account' }}</ion-button>
+    </div>
+  </div>
+</div>

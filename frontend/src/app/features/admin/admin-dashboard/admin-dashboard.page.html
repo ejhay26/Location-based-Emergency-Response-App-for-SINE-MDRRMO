@@ -1,0 +1,95 @@
+<ion-content class="ion-padding" style="--padding-top: 0; --padding-bottom: 0; --padding-start: 0; --padding-end: 0;">
+  <div style="display: flex; height: 100vh; width: 100%;">
+
+    <!-- ── SIDEBAR ── -->
+    <div [style.width]="isSidebarCollapsed ? '75px' : '280px'" style="background: var(--ion-card-background, #fff); border-right: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.1)); display: flex; flex-direction: column; justify-content: space-between; padding: 15px 10px; z-index: 10; transition: width 0.25s ease;">
+      <div>
+        <div style="display: flex; margin-bottom: 10px;" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-end'">
+          <button (click)="toggleSidebar()" style="background: transparent; border: none; font-size: 22px; cursor: pointer; color: var(--ion-text-color); width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-bars"></i></button>
+        </div>
+        <div style="padding-bottom: 15px; border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;">
+          <i class="fa-solid fa-shield-halved" style="font-size: 28px; color: var(--ion-color-danger); flex-shrink: 0;"></i>
+          <h5 *ngIf="!isSidebarCollapsed" style="margin: 0; font-weight: bold; color: var(--ion-text-color); letter-spacing: 0.5px; font-size: 15px;">MDRRMO</h5>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <button (click)="viewMode = 'active'" class="menu-capsule-link" [style.background]="viewMode === 'active' ? 'var(--ion-color-danger)' : 'transparent'" [style.color]="viewMode === 'active' ? 'white' : 'var(--ion-text-color)'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-map-location-dot" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'active' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Incident Map</span></button>
+          <button (click)="viewMode = 'hazards'" class="menu-capsule-link" [style.background]="viewMode === 'hazards' ? 'var(--ion-color-danger)' : 'transparent'" [style.color]="viewMode === 'hazards' ? 'white' : 'var(--ion-text-color)'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-road-barrier" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'hazards' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Public Hazards</span></button>
+          <button *ngIf="currentRole === 'admin'" (click)="viewMode = 'verifications'" class="menu-capsule-link" [style.background]="viewMode === 'verifications' ? 'var(--ion-color-danger)' : 'transparent'" [style.color]="viewMode === 'verifications' ? 'white' : 'var(--ion-text-color)'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-id-card-clip" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'verifications' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">ID Verifications</span></button>
+          <button (click)="viewMode = 'archive'" class="menu-capsule-link" [style.background]="viewMode === 'archive' ? 'var(--ion-color-danger)' : 'transparent'" [style.color]="viewMode === 'archive' ? 'white' : 'var(--ion-text-color)'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-box-archive" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'archive' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Log Archive</span></button>
+          <button (click)="viewMode = 'analytics'" class="menu-capsule-link" [style.background]="viewMode === 'analytics' ? 'var(--ion-color-danger)' : 'transparent'" [style.color]="viewMode === 'analytics' ? 'white' : 'var(--ion-text-color)'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-chart-pie" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'analytics' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Analytics</span></button>
+          <button (click)="viewMode = 'broadcast'" class="menu-capsule-link" [style.background]="viewMode === 'broadcast' ? 'var(--ion-color-danger)' : 'transparent'" [style.color]="viewMode === 'broadcast' ? 'white' : 'var(--ion-text-color)'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-bullhorn" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'broadcast' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Alert Broadcast</span></button>
+          <button *ngIf="currentRole === 'admin'" (click)="viewMode = 'feedback'" class="menu-capsule-link" [style.background]="viewMode === 'feedback' ? 'var(--ion-color-danger)' : 'transparent'" [style.color]="viewMode === 'feedback' ? 'white' : 'var(--ion-text-color)'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-comment-dots" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'feedback' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Feedback</span></button>
+          <div *ngIf="currentRole === 'admin'" style="display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; justify-content: center; padding: 10px 12px 4px 12px;" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+              <span *ngIf="!isSidebarCollapsed" style="font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ion-color-medium);">Accounts</span>
+              <i *ngIf="isSidebarCollapsed" class="fa-solid fa-users" style="font-size: 11px; color: var(--ion-color-medium);"></i>
+            </div>
+            <button (click)="viewMode = 'dispatchers'" class="menu-capsule-link" [style.background]="viewMode === 'dispatchers' ? 'var(--ion-color-danger)' : 'transparent'" [style.color]="viewMode === 'dispatchers' ? 'white' : 'var(--ion-text-color)'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-user-gear" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'dispatchers' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Dispatchers</span></button>
+            <button (click)="viewMode = 'citizens'" class="menu-capsule-link" [style.background]="viewMode === 'citizens' ? 'var(--ion-color-danger)' : 'transparent'" [style.color]="viewMode === 'citizens' ? 'white' : 'var(--ion-text-color)'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-users" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" [style.color]="viewMode === 'citizens' ? 'white' : 'var(--ion-color-danger)'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Citizens</span></button>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding-top: 12px;">
+        <ion-item lines="none" style="--background: transparent; --padding-start: 6px;" *ngIf="!isSidebarCollapsed">
+          <i class="fa-solid fa-moon" slot="start" style="color: var(--ion-color-danger); font-size: 16px; margin-right: 10px;"></i>
+          <ion-label style="font-size: 13px; font-weight: bold; color: var(--ion-text-color);">Dark Mode</ion-label>
+          <ion-toggle slot="end" color="danger" (ionChange)="toggleDarkMode($event)" [checked]="isDarkMode"></ion-toggle>
+        </ion-item>
+        <button (click)="logout()" class="menu-capsule-link" style="color: var(--ion-color-danger);" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-right-from-bracket" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Logout</span></button>
+      </div>
+    </div>
+
+    <!-- ── MAIN CONTENT ── -->
+    <div style="flex: 1; min-width: 0; overflow-y: auto; background: var(--ion-background-color, #f4f5f8); padding: 20px; display: flex; flex-direction: column;">
+      <div style="flex: 1; display: flex; gap: 15px; min-width: 0; overflow: hidden;">
+
+        <!-- incident-map.panel.ts renders BOTH the map and its own right-hand
+             list (:host is flex:1 two-column), so it fills this whole row by
+             itself — same for analytics.panel.ts. -->
+        <app-incident-map-panel *ngIf="isMapView" [mode]="viewMode === 'hazards' ? 'hazards' : 'active'"></app-incident-map-panel>
+
+        <app-analytics-panel *ngIf="viewMode === 'analytics'"></app-analytics-panel>
+
+        <!-- Single-column panels share one scrollable full-width host. -->
+        <div *ngIf="!isMapView && viewMode !== 'analytics'" style="width: 100%; max-height: calc(100vh - 80px); overflow-y: auto;">
+          <app-verifications-panel *ngIf="viewMode === 'verifications'"></app-verifications-panel>
+          <app-log-archive-panel   *ngIf="viewMode === 'archive'"></app-log-archive-panel>
+          <app-broadcast-panel     *ngIf="viewMode === 'broadcast'"></app-broadcast-panel>
+          <app-dispatchers-panel   *ngIf="viewMode === 'dispatchers'"></app-dispatchers-panel>
+          <app-citizens-panel      *ngIf="viewMode === 'citizens'"></app-citizens-panel>
+          <app-feedback-panel      *ngIf="viewMode === 'feedback'"></app-feedback-panel>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- end outer flex row -->
+
+  <!-- ── SHARED CONFIRM DIALOG (AdminUiService) ── -->
+  <div *ngIf="ui.confirmDialog().open" class="c-overlay" style="z-index: 99999;">
+    <div class="c-overlay-bg" (click)="ui.closeConfirm()"></div>
+    <div class="c-panel" style="width: min(400px, 90vw); border-radius: 22px; overflow: hidden;">
+      <div style="padding: 32px 28px; text-align: center;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;" [style.background]="ui.confirmDialog().iconColor + '18'"><i [class]="ui.confirmDialog().icon" style="font-size: 26px;" [style.color]="ui.confirmDialog().iconColor"></i></div>
+        <h3 style="margin: 0 0 10px 0; font-weight: bold; font-size: 19px; color: var(--ion-text-color);">{{ ui.confirmDialog().title }}</h3>
+        <p style="margin: 0 0 28px 0; font-size: 14px; color: gray; line-height: 1.5;">{{ ui.confirmDialog().message }}</p>
+        <div style="display: flex; gap: 10px;">
+          <button (click)="ui.closeConfirm()" style="flex: 1; padding: 14px; background: var(--ion-color-light); border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; color: var(--ion-text-color);">Cancel</button>
+          <button (click)="ui.runConfirm()" style="flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; color: white;" [style.background]="ui.confirmDialog().confirmColor">{{ ui.confirmDialog().confirmLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SHARED MEDIA LIGHTBOX (AdminUiService) ── -->
+  <div *ngIf="ui.lightboxOpen()" class="lightbox-overlay" (click)="ui.closeLightbox()">
+    <button class="lightbox-close" (click)="ui.closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
+    <video *ngIf="ui.lightboxIsVideo()" class="lightbox-video"
+           [proxySrc]="ui.lightboxUrl()" controls autoplay playsinline
+           (click)="$event.stopPropagation()">
+    </video>
+    <img *ngIf="!ui.lightboxIsVideo()" class="lightbox-img"
+         [proxySrc]="ui.lightboxUrl()" (click)="$event.stopPropagation()" />
+  </div>
+
+</ion-content>

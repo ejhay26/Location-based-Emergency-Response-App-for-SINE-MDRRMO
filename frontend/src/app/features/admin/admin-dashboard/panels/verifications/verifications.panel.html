@@ -1,0 +1,36 @@
+<div style="width:100%;">
+  <div *ngIf="pendingVerifications.length === 0" style="background: var(--ion-card-background, white); border-radius: 16px; border: 1px solid var(--ion-color-step-150, #ddd); color: var(--ion-text-color); padding: 48px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%;">
+    <i class="fa-solid fa-user-shield" style="font-size: 52px; color: #2dd36f; margin-bottom: 14px;"></i>
+    <h4 style="font-weight: bold; margin: 0; font-size: 18px;">Verification Queue Empty</h4>
+    <p style="color: gray; margin: 8px 0 0 0; font-size: 14px;">All citizen accounts are verified.</p>
+  </div>
+
+  <div *ngFor="let user of pendingVerifications" style="background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); border-radius: 12px; margin-bottom: 16px; overflow: hidden;">
+    <div style="padding: 18px; color: var(--ion-text-color);">
+      <h4 style="font-weight: bold; font-size: 16px; margin: 0 0 14px 0; color: var(--ion-color-danger);">
+        <i class="fa-solid fa-id-card-clip" style="margin-right: 8px;"></i>Review: {{ user.first_name }} {{ user.last_name }}
+      </h4>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+        <div style="flex: 1; min-width: 220px;">
+          <p style="margin: 6px 0; font-size: 14px;"><b>Username:</b> {{ user.username }}</p>
+          <p style="margin: 6px 0; font-size: 14px;"><b>Phone:</b> {{ user.phone }}</p>
+          <p style="margin: 6px 0; font-size: 14px;"><b>Email:</b> {{ user.email }}</p>
+          <p style="margin: 6px 0; font-size: 14px;"><b>Barangay:</b> {{ ui.getBarangayName(user.barangay_id) }}</p>
+          <p style="margin: 6px 0; font-size: 14px;"><b>ID Type:</b> {{ user.valid_id_type }}</p>
+          <div style="margin-top: 16px; display: flex; gap: 10px;">
+            <ion-button color="success" (click)="approveCitizen(user.user_id)" style="font-weight: bold; height: 42px;"><i class="fa-solid fa-user-check" style="margin-right: 8px;"></i> Approve</ion-button>
+            <ion-button color="danger" fill="outline" (click)="rejectCitizen(user.user_id)" style="font-weight: bold; height: 42px;"><i class="fa-solid fa-user-xmark" style="margin-right: 8px;"></i> Deny</ion-button>
+          </div>
+        </div>
+        <div style="flex: 2; min-width: 280px; border-radius: 10px; overflow: hidden; border: 1px solid var(--ion-color-step-150, #ddd); background: #111; display: flex; align-items: center; justify-content: center; min-height: 180px; cursor: pointer;"
+             (click)="ui.openLightbox(user.valid_id_proof, false)">
+          <img [proxySrc]="user.valid_id_proof" style="max-height: 200px; object-fit: contain; max-width: 100%;" />
+        </div>
+        <div style="flex: 2; min-width: 280px; border-radius: 10px; overflow: hidden; border: 1px solid var(--ion-color-step-150, #ddd); background: #111; display: flex; align-items: center; justify-content: center; min-height: 180px; cursor: pointer;"
+             (click)="ui.openLightbox(user.selfie_with_id_proof, false)">
+          <img [proxySrc]="user.selfie_with_id_proof" style="max-height: 200px; object-fit: contain; max-width: 100%;" />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
