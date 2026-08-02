@@ -59,7 +59,7 @@ XAMPP doesn't have a built-in "update PHP" button — you have to swap the `php`
 2. **Back up what you'll need again.** Before deleting anything, copy out the files you'll want to reuse — mainly `php.ini` (so you don't lose your extension settings and custom config) and any custom extensions you added by hand.
 3. **Remove the old PHP folder.** Delete (or rename, if you want a safety net) the existing `xampp/php` folder.
 4. **Unzip the new PHP version.** Download the matching PHP zip package (same architecture — usually x64 — and thread-safe build if that's what XAMPP expects), then extract it into `xampp/php`, replacing the folder you removed.
-5. **Restore your settings.** Copy your backed-up `php.ini` back in, or manually re-apply the extension lines you had uncommented before (see [Required PHP extensions — Windows](./installation.md#required-php-extensions--windows-xampp)).
+5. **Restore your settings.** Copy your backed-up `php.ini` back in, or manually re-apply the extension lines you had uncommented before — see the "Required PHP extensions — Windows (XAMPP)" section in the [Installation Guide](./installation.md).
 6. **Restart Apache and MySQL** and confirm the version with `php -v` or by checking the phpMyAdmin footer.
 
 If something breaks after the swap, it's almost always a missing extension or a mismatched `php.ini` — compare it against a fresh copy of `php.ini-production`/`php.ini-development` from the new PHP package to spot what's missing.
