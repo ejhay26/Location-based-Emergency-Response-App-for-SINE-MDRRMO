@@ -57,7 +57,7 @@ php artisan storage:link
 
 - A `t2.micro`/`t3.micro` instance is enough to run this one container comfortably at capstone/pilot scale — it's not built for heavy production traffic.
 - Keep the database off the same instance if you can (or watch memory closely if MariaDB and the app share one free-tier box).
-- If you move media storage to S3 later, the `AWS_*` variables in `.env` are already there for it — see [Environment Variables — AWS](../setup/environment.md#aws-optional--production-storage).
+- If you move media storage to S3 later, the `AWS_*` variables in `.env` are already there for it — see [Environment Variables — AWS](../setup/environment.md#aws-optional-production-storage).
 
 ## Frontend Deployment
 
