@@ -2,7 +2,7 @@
 
 ## How It's Put Together
 
-The app is a client-server setup: a mobile/web/desktop client talking to a JSON API.
+The app is a client-server setup: a mobile/desktop client talking to a JSON API. There's no separate hosted web frontend — the citizen app ships as native Android/iOS builds, and the admin/dispatcher app ships as a native desktop app (Electron). Only the backend API needs to be hosted somewhere reachable.
 
 ```
 ┌─────────────────────────────┐        HTTPS / JSON        ┌──────────────────────────┐
@@ -74,7 +74,7 @@ Angular 20 **standalone components** are used throughout — no `NgModule` decla
 
 ## A Few Design Choices Worth Knowing
 
-- **Sanctum tokens instead of sessions** — since the frontend runs as a mobile app, a web app, and a desktop app, a bearer token fits better across all three than cookie-based sessions.
+- **Sanctum tokens instead of sessions** — since the frontend runs as a mobile app and a desktop app, with no browser-based version, a bearer token fits better across both than cookie-based sessions.
 - **Real boundary shapes, not a bounding box** — the map uses actual GeoJSON polygons of San Isidro's borders (checked with a ray-casting method) to keep pins and the camera view inside the town, instead of a rough rectangle.
 - **Polling instead of WebSockets** — the dashboard checks the API for new emergencies/hazards/broadcasts on a timer instead of keeping a live socket open. A little slower, but much simpler to run — which matters given the AWS free-tier deployment target (see [Production Deployment](../deployment/production.md)).
 - **`[hidden]` instead of `*ngIf` for the Leaflet map** — avoids a Leaflet bug where the map goes blank if its container gets destroyed and rebuilt by Angular when switching tabs.
