@@ -18,13 +18,7 @@ Also needed on the device:
 
 ## Admin / Dispatcher Dashboard
 
-Runs two ways — pick whichever fits how your staff work:
-
-### Option 1: Web browser
-Any recent version of a modern browser works: Chrome, Edge, Firefox, or Safari. No OS restriction here — if the browser is up to date, Windows, macOS, or Linux all work fine.
-
-### Option 2: Desktop app (Electron)
-Built with `electron-builder`, targeting:
+This is a **native desktop app only** — there's no hosted web version, and no browser access. That's a deliberate choice: it avoids paying for frontend hosting, since the app is distributed as a downloadable install rather than served from a public URL. It's built with Electron (`electron-builder`), targeting:
 
 | OS | Package formats |
 |---|---|
@@ -33,6 +27,8 @@ Built with `electron-builder`, targeting:
 | Linux | AppImage, `.deb`, `.tar.gz` |
 
 There's no strict "minimum Windows version" pinned in the project — Electron itself (currently v42) generally needs **Windows 10 or later**, **macOS 11+**, or a reasonably modern Linux distro. If a dispatcher asks whether their older Windows machine can run the desktop app, Windows 10/11 is the safe answer; anything older isn't guaranteed to work.
+
+The backend API still needs to be reachable over the internet for the desktop app to talk to it (see [Production Deployment](../deployment/production.md)) — only the *frontend* skips hosting, not the API.
 
 ## Backend Server (for whoever's hosting it)
 
@@ -49,5 +45,5 @@ There's no strict "minimum Windows version" pinned in the project — Electron i
 |---|---|
 | "Does my Android phone support this?" | Android 7.0 or newer — yes |
 | "Does my iPhone support this?" | iOS 15 or newer — yes |
-| "Can I use this on my office Windows PC?" | Yes, either through a browser or the desktop app (Windows 10+) |
-| "Can I use this on Mac/Linux as an admin?" | Yes — browser always works, and there's a native desktop build for both too |
+| "Can I use this on my office Windows PC?" | Yes, via the desktop app install (Windows 10+) — no browser version exists |
+| "Can I use this on Mac/Linux as an admin?" | Yes — native desktop builds exist for both too |
