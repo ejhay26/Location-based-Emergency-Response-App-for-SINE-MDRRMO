@@ -17,7 +17,7 @@ Bachelor of Science in Information Technology Capstone Project — Nueva Ecija U
 The app has two sides:
 
 - **Citizen App** — residents sign up, manage their profile, send a one-tap SOS with live GPS + photo/video proof, and report road hazards.
-- **Admin/Dispatcher Dashboard** — a real-time, auto-updating map where MDRRMO staff can see incoming emergencies, send out the right responder unit, and manage citizen accounts. Runs as a web dashboard for staff, and also as a desktop app (Electron) for admins.
+- **Admin/Dispatcher Dashboard** — a real-time, auto-updating map where MDRRMO staff can see incoming emergencies, send out the right responder unit, and manage citizen accounts. Ships as a native desktop app (Electron) for Windows/macOS/Linux — there's no hosted web version, so there's nothing to pay for hosting on the admin side either.
 
 ## Tech Stack
 
