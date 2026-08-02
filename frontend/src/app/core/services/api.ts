@@ -72,6 +72,7 @@ export class ApiService {
   // ── Authenticated ────────────────────────────────────────────────────
   logout(): Observable<any>                        { return this.http.post(`${this.url}/logout`, {}, this.opts(true)); }
   savePushToken(data: any): Observable<any>        { return this.http.post(`${this.url}/save-push-token`, data, this.opts(true)); }
+  deletePushToken(data: { token: string }): Observable<any> { return this.http.post(`${this.url}/delete-push-token`, data, this.opts(true)); }
 
   // Profile
   updateProfilePicture(data: any): Observable<any>    { return this.http.post(`${this.url}/update-profile-picture`, data, this.opts(true)); }
