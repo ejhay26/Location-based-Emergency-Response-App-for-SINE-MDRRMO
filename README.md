@@ -66,6 +66,7 @@ The app has two sides:
 | Section | Description |
 |---|---|
 | [Installation Guide](./docs/setup/installation.md) | Local setup — database, backend, frontend |
+| [System Requirements](./docs/setup/system-requirements.md) | Minimum Android/iOS versions, desktop OS support |
 | [Environment Variables](./docs/setup/environment.md) | `.env` reference for the backend |
 | [Troubleshooting](./docs/setup/troubleshooting.md) | Fixes for common setup issues |
 | [Architecture Overview](./docs/architecture/overview.md) | How the system's put together |
