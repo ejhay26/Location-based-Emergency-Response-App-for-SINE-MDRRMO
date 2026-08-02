@@ -87,4 +87,18 @@ class ProfileController extends Controller
         );
         return response()->json(['message' => 'Token saved.']);
     }
+
+    /**
+     * Deletes only the single device_tokens row matching this exact token
+     * (i.e. this device), not every token belonging to the user — so
+     * logging out on one phone doesn't silence broadcasts on the user's
+     * other devices. Called on logout so a signed-out device stops
+     * receiving push notifications.
+     */
+    public function deletePushToken(Request $request)
+    {
+        $request->validate(['token' => 'required|string']);
+        DeviceToken::where('token', $request->token)->delete();
+        return response()->json(['message' => 'Token removed.']);
+    }
 }
