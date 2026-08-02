@@ -41,7 +41,7 @@ The app has two sides:
 <tr>
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/chartdotjs/FF6384" width="40" height="40" alt="Chart.js"/><br/><sub><b>Chart.js</b></sub></td>
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/firebase/FFCA28" width="40" height="40" alt="Firebase"/><br/><sub><b>Firebase (push)</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/amazonaws/232F3E" width="40" height="40" alt="AWS"/><br/><sub><b>AWS</b></sub></td>
+<!-- <td align="center" width="110"><img src="https://cdn.simpleicons.org/amazonaws/232F3E" width="40" height="40" alt="AWS"/><br/><sub><b>AWS</b></sub></td> -->
 <td align="center" width="110"></td>
 <td align="center" width="110"></td>
 <td align="center" width="110"></td>
