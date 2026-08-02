@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonButton, IonItem, IonInput, AlertController } from '@ionic/angular/standalone';
+import { IonButton, IonItem, IonInput, IonCard, IonCardContent, AlertController } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { OtpAutofillService } from '../../../../../core/services/otp-autofill';
 import { ToastRequest } from '../profile-shared-types';
@@ -16,7 +16,7 @@ import { ToastRequest } from '../profile-shared-types';
 @Component({
   selector: 'app-profile-password',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonButton, IonItem, IonInput],
+  imports: [CommonModule, FormsModule, IonButton, IonItem, IonInput, IonCard, IonCardContent],
   templateUrl: './profile-password.component.html',
 })
 export class ProfilePasswordComponent implements OnDestroy {
@@ -37,6 +37,7 @@ export class ProfilePasswordComponent implements OnDestroy {
   pwdVerifying = false;
   pwdFocused = false;
   passwords = { new: '', confirm: '' };
+  isUpdatingPassword = false;
 
   checkLength(): boolean { return this.passwords.new?.length >= 8; }
   checkUpper(): boolean  { return /[A-Z]/.test(this.passwords.new); }
@@ -102,6 +103,4 @@ export class ProfilePasswordComponent implements OnDestroy {
     });
     await alert.present();
   }
-
-  isUpdatingPassword = false;
 }
