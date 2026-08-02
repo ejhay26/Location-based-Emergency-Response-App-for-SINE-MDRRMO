@@ -89,10 +89,10 @@ export class ProfilePhotoComponent implements OnChanges {
     this.api.updateProfilePicture({ user_id: this.userId, image: imagePayload }).subscribe({
       next: async (res: any) => {
         this.isCropping = false;
-        localStorage.setItem('user', JSON.stringify(res.user)); this.imageCache.clear();
+        this.imageCache.clear();
         this.resolvedAvatarUrl = await this.imageCache.resolve(res.user.profile_picture);
-        window.dispatchEvent(new Event('storage'));
         this.userUpdated.emit(res.user);
+        window.dispatchEvent(new Event('storage'));
         this.toast.emit({ msg: 'Profile picture updated!', color: 'success' });
       },
       error: (err: any) => { this.isCropping = false; this.toast.emit({ msg: err?.error?.message || 'Failed to update photo.', color: 'danger' }); }
