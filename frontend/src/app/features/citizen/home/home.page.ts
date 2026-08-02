@@ -14,7 +14,6 @@ import { TourService } from '../../../core/services/tour';
 export class HomePage implements OnInit {
   userFirstName = '';
   activeBroadcast: any = null;
-  broadcastDismissed = false;
 
   constructor(private router: Router, private api: ApiService, public tour: TourService) {}
 
@@ -26,12 +25,10 @@ export class HomePage implements OnInit {
 
   fetchBroadcast() {
     this.api.getActiveBroadcast().subscribe({
-      next: (res: any) => { this.activeBroadcast = res?.message ? res : null; this.broadcastDismissed = false; },
+      next: (res: any) => { this.activeBroadcast = res?.message ? res : null; },
       error: () => {}
     });
   }
-
-  dismissBroadcast() { this.broadcastDismissed = true; }
 
   timeAgo(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
