@@ -1,0 +1,139 @@
+/* Four panels form the dim — they block touches on dark areas only.
+   The spotlight hole between them is untouched so the element is tappable. */
+.tour-dim-top,
+.tour-dim-bottom,
+.tour-dim-left,
+.tour-dim-right {
+  position: fixed;
+  /* Lighter dim + backdrop blur for a polished feel */
+  background: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 98000;
+  pointer-events: all; /* block taps on the dark area */
+}
+
+.tour-dim-top    { top: 0; left: 0; right: 0; }
+.tour-dim-bottom { left: 0; right: 0; bottom: 0; }
+.tour-dim-left   { left: 0; }
+.tour-dim-right  { right: 0; }
+
+/* Callout card */
+.tour-callout {
+  position: fixed;
+  z-index: 99000;
+  background: white;
+  border-radius: 20px;
+  padding: 20px 20px 16px;
+  width: min(340px, calc(100vw - 32px));
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.28);
+  animation: calloutPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: all;
+}
+
+@keyframes calloutPop {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.tour-step-counter {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ion-color-danger, #eb445a);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
+.tour-dots {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.tour-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: background 0.2s, transform 0.2s;
+}
+.tour-dot.active {
+  background: var(--ion-color-danger, #eb445a);
+  transform: scale(1.4);
+}
+
+.tour-callout-main {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px;
+  line-height: 1.4;
+}
+.tour-callout-sub {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tour-btn-skip {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: #999;
+  cursor: pointer;
+  padding: 8px 4px;
+  font-weight: 600;
+}
+
+.tour-btn-next {
+  background: var(--ion-color-danger, #eb445a);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: transform 0.15s;
+}
+.tour-btn-next:active { transform: scale(0.96); }
+
+.tour-btn-finish {
+  background: #2dd36f;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tour-tap-hint {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ion-color-danger, #eb445a);
+  animation: hintPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
