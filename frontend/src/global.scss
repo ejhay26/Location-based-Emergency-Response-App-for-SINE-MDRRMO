@@ -360,6 +360,90 @@ html.reduce-animations .sos-ring {
 }
 
 /* =========================================
+   ADMIN DASHBOARD: SHARED ACROSS PANELS
+   Leaflet marker/popup styles are injected as raw HTML strings by Leaflet
+   itself (not through Angular's template engine), so they sit outside any
+   component's view encapsulation and must live globally. The media-thumb
+   and lightbox classes are shared by multiple panels (incident-map,
+   log-archive, dispatchers, citizens) so they live here rather than being
+   duplicated per panel.
+   ========================================= */
+.leaflet-blank-div-icon { background: transparent !important; border: none !important; }
+.custom-fa-marker-wrapper { position: relative; width: 45px; height: 60px; display: flex; justify-content: center; align-items: flex-start; }
+.vector-pin-shape { width: 45px; height: 60px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+.pin-inner-fa-icon { position: absolute; top: 7px; left: 0; width: 45px; height: 29px; display: flex; align-items: center; justify-content: center; font-size: 13px; z-index: 10; }
+.sos-pulse-ripple::before {
+  content: ''; position: absolute; top: 8px; left: 8px; width: 28px; height: 28px;
+  border-radius: 50%; background: rgba(235, 68, 90, 0.4);
+  box-shadow: 0 0 18px rgba(235, 68, 90, 0.9);
+  animation: radarRipplePulse 1.6s infinite ease-out; z-index: 1;
+}
+@keyframes radarRipplePulse {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(3.5); opacity: 0; }
+}
+.accessible-popup-box { padding: 5px; min-width: 260px; }
+.leaflet-popup-content { margin: 12px 16px !important; line-height: 1.4; }
+
+.media-thumb-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.media-thumb {
+  width: 80px; height: 80px; border-radius: 8px; overflow: hidden; cursor: pointer;
+  background: #111; position: relative; flex-shrink: 0;
+  border: 2px solid var(--ion-color-step-150, rgba(0,0,0,0.1));
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.media-thumb:hover { transform: scale(1.05); border-color: var(--ion-color-danger); }
+.media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.media-thumb .video-badge {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.65); border-radius: 50%; width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;
+}
+
+.lightbox-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 99998;
+  display: flex; align-items: center; justify-content: center;
+  animation: adminLightboxFadeIn 0.2s ease;
+}
+@keyframes adminLightboxFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.lightbox-close {
+  position: absolute; top: 18px; right: 22px;
+  background: rgba(255,255,255,0.12); border: none; color: white;
+  font-size: 22px; width: 44px; height: 44px; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.lightbox-close:hover { background: rgba(255,255,255,0.25); }
+.lightbox-img { max-width: 90vw; max-height: 88vh; object-fit: contain; border-radius: 8px; }
+.lightbox-video { max-width: 90vw; max-height: 88vh; border-radius: 8px; outline: none; }
+
+/* Confirm dialog — shared by AdminUiService.confirmDialog, hosted once at
+   the admin-dashboard shell level. Previously referenced by class name only
+   with no backing styles; adding the actual overlay/panel rules here so the
+   dialog renders as a centered modal instead of inline page content. */
+.c-overlay {
+  position: fixed; inset: 0; z-index: 99999;
+  display: flex; align-items: center; justify-content: center;
+}
+.c-overlay-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+.c-panel {
+  position: relative;
+  background: var(--ion-card-background, #fff);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+  animation: cPanelPopIn 0.18s ease;
+}
+@keyframes cPanelPopIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.menu-capsule-link {
+  background: transparent; border: none; text-align: left; padding: 14px 16px;
+  font-weight: bold; font-size: 15px; width: 100%; cursor: pointer;
+  display: flex; align-items: center; border-radius: 12px; transition: all 0.2s ease;
+}
+
+/* =========================================
    TOUR HIGHLIGHT
    Applied to the element currently being
    spotlighted by the tutorial overlay.
