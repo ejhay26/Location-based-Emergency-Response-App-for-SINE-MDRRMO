@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
-import { TourOverlayComponent } from './components/tour-overlay/tour-overlay.component';
-import { UserSettingsService } from './services/user-settings';
-import { LocationService } from './services/location';
+import { TourOverlayComponent } from './shared/components/index';
+import { UserSettingsService } from './core/services/user-settings';
+import { LocationService } from './core/services/location';
 
 @Component({
   selector: 'app-root',
