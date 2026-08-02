@@ -6,7 +6,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@a
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 
-import { ErrorInterceptorService } from './app/services/error-interceptor';
+import { ErrorInterceptorService } from './app/core/services/error-interceptor';
 
 bootstrapApplication(AppComponent, {
   providers: [
