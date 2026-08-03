@@ -437,6 +437,31 @@ html.reduce-animations .sos-ring {
   to   { opacity: 1; transform: scale(1); }
 }
 
+/* =========================================
+   ADMIN DASHBOARD: SLIM SCROLL CONTAINER
+   Shared by every single-column admin panel (log-archive, broadcast,
+   dispatchers, citizens, feedback, verifications) via the host div in
+   admin-dashboard.page.html. Replaces the bulky default OS scrollbar with a
+   slim themed one, and fades the bottom edge so the last visible card
+   trails off smoothly instead of getting hard-clipped by max-height.
+   ========================================= */
+.admin-scroll-panel {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--ion-color-step-300, rgba(0,0,0,0.25)) transparent;
+  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
+          mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
+  padding-bottom: 28px; /* keeps real content clear of the fade zone */
+}
+.admin-scroll-panel::-webkit-scrollbar { width: 6px; }
+.admin-scroll-panel::-webkit-scrollbar-track { background: transparent; }
+.admin-scroll-panel::-webkit-scrollbar-thumb {
+  background: var(--ion-color-step-300, rgba(0,0,0,0.25));
+  border-radius: 10px;
+}
+.admin-scroll-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--ion-color-step-400, rgba(0,0,0,0.35));
+}
+
 .menu-capsule-link {
   background: transparent; border: none; text-align: left; padding: 14px 16px;
   font-weight: bold; font-size: 15px; width: 100%; cursor: pointer;
