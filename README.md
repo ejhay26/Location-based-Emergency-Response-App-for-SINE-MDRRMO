@@ -87,4 +87,4 @@ The app has two sides:
 
 This project is proprietary and **not open source**. You're welcome to view it and reference it academically with credit — copying, modifying, redistributing, or deploying it isn't allowed without the Author's written permission. Full terms: [LICENSE](./LICENSE).
 
-© 2025 Emmanuel John C. Perez. All rights reserved.
+© 2026 Emmanuel John C. Perez. All rights reserved.
