@@ -51,7 +51,7 @@
         <app-analytics-panel *ngIf="viewMode === 'analytics'"></app-analytics-panel>
 
         <!-- Single-column panels share one scrollable full-width host. -->
-        <div *ngIf="!isMapView && viewMode !== 'analytics'" style="width: 100%; max-height: calc(100vh - 80px); overflow-y: auto;">
+        <div *ngIf="!isMapView && viewMode !== 'analytics'" class="admin-scroll-panel" style="width: 100%; max-height: calc(100vh - 80px); overflow-y: auto;">
           <app-verifications-panel *ngIf="viewMode === 'verifications'"></app-verifications-panel>
           <app-log-archive-panel   *ngIf="viewMode === 'archive'"></app-log-archive-panel>
           <app-broadcast-panel     *ngIf="viewMode === 'broadcast'"></app-broadcast-panel>
