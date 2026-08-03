@@ -40,4 +40,22 @@ class NotificationService
             $this->push->send($tokens, $title, $body, $data);
         }
     }
+
+    /**
+     * Same as notifyAllCitizens() but scoped to citizens whose barangay_id
+     * is in $barangayIds — used for barangay-targeted broadcasts.
+     */
+    public function notifyCitizensInBarangays(array $barangayIds, string $title, string $body, array $data = []): void
+    {
+        if (empty($barangayIds)) return;
+
+        $tokens = DeviceToken::query()
+            ->join('users', 'device_tokens.user_id', '=', 'users.user_id')
+            ->where('users.role', 'citizen')
+            ->whereIn('users.barangay_id', $barangayIds)
+            ->get(['device_tokens.token', 'device_tokens.platform'])->toArray();
+        if (!empty($tokens)) {
+            $this->push->send($tokens, $title, $body, $data);
+        }
+    }
 }
