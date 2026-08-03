@@ -69,37 +69,40 @@
       <span style="font-size:11px;color:var(--ion-color-medium);font-weight:600;">from MDRRMO</span>
     </div>
 
-    <div *ngIf="activeBroadcast"
-         id="tour-announcement-pane"
-         [class.tour-highlight]="tour.targetId() === 'tour-announcement-pane'"
-         style="border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#c62828,#eb445a);box-shadow:0 6px 24px rgba(235,68,90,0.32);">
-      <div style="padding:16px 16px 12px;">
-        <div style="display:flex;align-items:flex-start;gap:12px;">
-          <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
-            <i class="fa-solid fa-triangle-exclamation" style="color:white;font-size:18px;"></i>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
-              <span style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.8px;">Official Notice</span>
-              <span style="width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,0.4);"></span>
-              <span style="font-size:10px;color:rgba(255,255,255,0.6);">{{ timeAgo(activeBroadcast.created_at) }}</span>
+    <div id="tour-announcement-pane"
+         [class.tour-highlight]="tour.targetId() === 'tour-announcement-pane'">
+
+      <div *ngFor="let broadcast of activeBroadcasts"
+           style="border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#c62828,#eb445a);box-shadow:0 6px 24px rgba(235,68,90,0.32);margin-bottom:12px;">
+        <div style="padding:16px 16px 12px;">
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+              <i class="fa-solid fa-triangle-exclamation" style="color:white;font-size:18px;"></i>
             </div>
-            <p style="color:white;font-weight:600;font-size:14px;margin:0;line-height:1.5;">{{ activeBroadcast.message }}</p>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">
+                <span style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.8px;">Official Notice</span>
+                <span style="width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,0.4);"></span>
+                <span style="font-size:10px;color:rgba(255,255,255,0.6);">{{ timeAgo(broadcast.created_at) }}</span>
+                <span style="margin-left:auto;font-size:9px;font-weight:800;color:white;background:rgba(255,255,255,0.22);padding:3px 8px;border-radius:8px;text-transform:uppercase;letter-spacing:0.4px;">
+                  <i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>{{ broadcast.location }}
+                </span>
+              </div>
+              <p style="color:white;font-weight:600;font-size:14px;margin:0;line-height:1.5;">{{ broadcast.message }}</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div *ngIf="!activeBroadcast"
-         id="tour-announcement-pane"
-         [class.tour-highlight]="tour.targetId() === 'tour-announcement-pane'"
-         style="border-radius:18px;padding:20px;background:var(--ion-card-background,white);border:1.5px dashed var(--ion-color-step-200,#ccc);display:flex;align-items:center;gap:14px;">
-      <div style="width:44px;height:44px;border-radius:12px;background:var(--ion-color-step-50,rgba(0,0,0,0.04));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <i class="fa-solid fa-bullhorn" style="font-size:18px;color:var(--ion-color-step-400,#aaa);"></i>
-      </div>
-      <div>
-        <p style="margin:0;font-weight:700;font-size:14px;color:var(--ion-text-color);">No Announcements</p>
-        <p style="margin:3px 0 0;font-size:12px;color:var(--ion-color-medium);line-height:1.4;">MDRRMO will post important notices and alerts here when there is something you need to know.</p>
+      <div *ngIf="activeBroadcasts.length === 0"
+           style="border-radius:18px;padding:20px;background:var(--ion-card-background,white);border:1.5px dashed var(--ion-color-step-200,#ccc);display:flex;align-items:center;gap:14px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:var(--ion-color-step-50,rgba(0,0,0,0.04));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fa-solid fa-bullhorn" style="font-size:18px;color:var(--ion-color-step-400,#aaa);"></i>
+        </div>
+        <div>
+          <p style="margin:0;font-weight:700;font-size:14px;color:var(--ion-text-color);">No Announcements</p>
+          <p style="margin:3px 0 0;font-size:12px;color:var(--ion-color-medium);line-height:1.4;">MDRRMO will post important notices and alerts here when there is something you need to know.</p>
+        </div>
       </div>
     </div>
   </div>
