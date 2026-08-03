@@ -4,10 +4,9 @@
     <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;">
       <button *ngFor="let f of [{v:'all',l:'All'},{v:'resolved',l:'Resolved'},{v:'false_alarm',l:'False Alarms'},{v:'cancelled',l:'Cancelled'}]"
         (click)="archiveFilter = $any(f.v)"
-        [style.background]="archiveFilter === f.v ? 'var(--ion-color-danger)' : 'var(--ion-card-background, #fff)'"
+        [style.background]="archiveFilter === f.v ? 'var(--ion-color-danger)' : 'var(--ion-color-light)'"
         [style.color]="archiveFilter === f.v ? 'white' : 'var(--ion-text-color)'"
-        [style.border]="archiveFilter === f.v ? 'none' : '1px solid var(--ion-color-step-200, #ccc)'"
-        style="padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;">{{f.l}}</button>
+        style="flex:1;border:none;border-radius:10px;padding:8px 10px;font-weight:bold;cursor:pointer;font-size:13px;transition:all 0.15s;">{{f.l}}</button>
     </div>
     <div style="display:flex;gap:6px;">
       <select id="archiveTypeFilter" name="archiveTypeFilter" [(ngModel)]="archiveTypeFilter"
