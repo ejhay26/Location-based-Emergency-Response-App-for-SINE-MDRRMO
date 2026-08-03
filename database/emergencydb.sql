@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 02, 2026 at 03:57 AM
+-- Generation Time: Aug 03, 2026 at 03:10 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -67,7 +67,23 @@ CREATE TABLE `broadcasts` (
 INSERT INTO `broadcasts` (`broadcast_id`, `message`, `is_active`, `created_at`) VALUES
 (1, 'Evacuate now', 0, '2026-05-09 21:21:36'),
 (2, 'Flooding in Tabon', 0, '2026-07-19 19:14:48'),
-(3, 'Broken Roads in Pulo', 1, '2026-07-30 00:33:40');
+(3, 'Broken Roads in Pulo', 0, '2026-07-30 00:33:40'),
+(4, 'test', 0, '2026-08-02 06:33:00'),
+(5, 'test', 0, '2026-08-02 06:34:00'),
+(6, 'test', 0, '2026-08-02 06:34:20'),
+(7, 'test', 0, '2026-08-02 06:35:03'),
+(8, 'alert', 1, '2026-08-02 06:48:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `broadcast_barangays`
+--
+
+CREATE TABLE `broadcast_barangays` (
+  `broadcast_id` int(11) NOT NULL,
+  `barangay_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -126,7 +142,10 @@ INSERT INTO `device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`)
 (12, 1, 'cRD7ZxfJRhiLlxIQT54RJT:APA91bED4hNP2TuK1mIo6CuSoLhMc3UFYRmOxzQIr8V1PeMG20KUJ0uffmIaoLbRiwm3Os9AtrxR5zepSXvBg5a58T0l97MOULbAe6_Tf8gwwsbPHuGWAL4', 'android', '2026-07-20 21:37:23'),
 (13, 1, 'cAPIAcU7Tmm_p1eyFWK8xe:APA91bFKCDoyOdGi-5OMXfoX9JM-wHjWiZTS16kk6blMM7tXzjyKV_EA0uA1OmmR9IlNMzHwpKTDjNI4ONgsxMpLQVRXC6SuasdWvz2CXUEO4eWqPeubpjY', 'android', '2026-07-22 20:27:37'),
 (14, 1, 'dJOqm3mLSOa66CvIcfwrZP:APA91bEtPVuZ6j72fyhNcbib_DIXG2vHSHe_yiEv4e3l7ux1hwIOutz2FMb5DpuNqrSSE3aJJ42k4aqFS71h1MZ9rj6Qz2Kj8mAAXSK12RH59PM9bvMB-qo', 'android', '2026-07-23 00:06:29'),
-(15, 1, 'fBDjUwHYRFeugXeZuE5J2i:APA91bHgdDvBK-qlR_BlnqJj85ZJBtrlRv3QOxz0abax6N3hqwlTIO9B7DQG061bJVaindPsbPYHrEMQlSk2z-myfoQG8VunG4zPs9LbASQ4OjEMYMR7s34', 'android', '2026-07-28 19:32:44');
+(15, 1, 'fBDjUwHYRFeugXeZuE5J2i:APA91bHgdDvBK-qlR_BlnqJj85ZJBtrlRv3QOxz0abax6N3hqwlTIO9B7DQG061bJVaindPsbPYHrEMQlSk2z-myfoQG8VunG4zPs9LbASQ4OjEMYMR7s34', 'android', '2026-07-28 19:32:44'),
+(16, 1, 'dgk0RMRxRD6jSTK2a5ikEB:APA91bG3fbdL5teSc4Df_fDA5HomUlxJ_kDT7t2JpdscV-HWcoF665zU7M-LMpc_aD0bLhVFHDgzjo9UWSbybSj78Tzo0T2epzYhENAm_LKflNkCSILl7uQ', 'android', '2026-08-01 23:06:53'),
+(17, 1, 'ekwVJ7sXRw6Bivg1uHUb8x:APA91bGFFLU77Xx5tazTsTRyAfAYbDXx139-2b7S_43k1pGRuTJNNWGNier_Nn4ef8NdLWwaUghGWV8t3rh6iZLef3FoPkyQJ9532RztOBZcCkXWFuijedw', 'android', '2026-08-02 06:33:37'),
+(18, 1, 'cJPBNlStRcyGFas4AESv5y:APA91bHtqHJ1kd0zNr2ST1oK610sDjeTcGdhmzh35M-2htQV6gPdWcUlAHzCizJXRxfhmeLjT4bSXXZn2_VlzJPDwcCpykyuOtYl2d0PHa0NsZiyKwK2Ck4', 'android', '2026-08-02 06:48:12');
 
 -- --------------------------------------------------------
 
@@ -355,6 +374,14 @@ CREATE TABLE `personal_access_tokens` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `personal_access_tokens`
+--
+
+INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
+(46, 'App\\Models\\User', 4, 'app-token', 'ac282307ca629727b478fd2efe136ec308b79b184bdf42a3c93974bf10847b24', '[\"admin\",\"dispatcher\",\"citizen\"]', '2026-08-02 17:10:06', NULL, '2026-08-01 18:17:27', '2026-08-02 17:10:06'),
+(49, 'App\\Models\\User', 1, 'app-token', '2e5463c9dc1e5763107ce871e920ab80bcc851854f5b5e13b9b72e4e2d1fc1aa', '[\"citizen\"]', '2026-08-02 06:59:34', NULL, '2026-08-02 06:48:11', '2026-08-02 06:59:34');
+
 -- --------------------------------------------------------
 
 --
@@ -460,12 +487,12 @@ CREATE TABLE `user_settings` (
 --
 
 INSERT INTO `user_settings` (`id`, `user_id`, `key`, `value`, `updated_at`, `save_media_to_device`) VALUES
-(1, 1, 'dark_mode', 'true', '2026-07-28 22:33:52', 0),
+(1, 1, 'dark_mode', 'false', '2026-08-02 06:59:33', 0),
 (2, 1, 'location_auto_fetch', 'true', '2026-07-25 04:15:55', 0),
 (3, 1, 'map_default_style', 'street', '2026-07-20 01:02:21', 0),
 (4, 1, 'reduce_animations', 'false', '2026-07-19 15:50:53', 0),
 (5, 4, 'dark_mode', 'true', '2026-07-21 04:39:27', 0),
-(6, 1, 'save_media_to_device', 'false', '2026-07-25 16:21:36', 0);
+(6, 1, 'save_media_to_device', 'false', '2026-08-01 23:07:13', 0);
 
 -- --------------------------------------------------------
 
@@ -507,6 +534,13 @@ ALTER TABLE `barangays`
 --
 ALTER TABLE `broadcasts`
   ADD PRIMARY KEY (`broadcast_id`);
+
+--
+-- Indexes for table `broadcast_barangays`
+--
+ALTER TABLE `broadcast_barangays`
+  ADD PRIMARY KEY (`broadcast_id`,`barangay_id`),
+  ADD KEY `broadcast_barangays_barangay_id_idx` (`barangay_id`);
 
 --
 -- Indexes for table `cache`
@@ -655,13 +689,13 @@ ALTER TABLE `barangays`
 -- AUTO_INCREMENT for table `broadcasts`
 --
 ALTER TABLE `broadcasts`
-  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `device_tokens`
 --
 ALTER TABLE `device_tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `dispatch`
@@ -715,7 +749,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT for table `responders`
@@ -744,6 +778,13 @@ ALTER TABLE `vehicles`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `broadcast_barangays`
+--
+ALTER TABLE `broadcast_barangays`
+  ADD CONSTRAINT `broadcast_barangays_barangay_id_fk` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `broadcast_barangays_broadcast_id_fk` FOREIGN KEY (`broadcast_id`) REFERENCES `broadcasts` (`broadcast_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `device_tokens`
