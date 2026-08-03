@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonList, IonItem, IonSelect, IonSelectOption, IonInput, IonInputPasswordToggle, IonChip, IonCheckbox } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
+import { BARANGAYS } from '../../../../../shared/constants/barangays';
 
 /**
  * RegisterAccountDetailsComponent — step 2 body of registration (barangay,
@@ -30,11 +31,7 @@ export class RegisterAccountDetailsComponent implements OnDestroy {
 
   @Input() userData: any;
 
-  barangays = [
-    { id: 1, name: 'Alua' }, { id: 2, name: 'Calaba' }, { id: 3, name: 'Malapit' },
-    { id: 4, name: 'Mangga' }, { id: 5, name: 'Poblacion' }, { id: 6, name: 'Pulo' },
-    { id: 7, name: 'San Roque' }, { id: 8, name: 'Santo Cristo' }, { id: 9, name: 'Tabon' }
-  ];
+  barangays = BARANGAYS;
 
   passwordFocused = false;
   termsAccepted   = false;
