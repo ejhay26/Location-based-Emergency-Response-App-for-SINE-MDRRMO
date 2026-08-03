@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import { ApiService } from './api';
+import { BroadcastRefreshService } from './broadcast-refresh';
 
 @Injectable({ providedIn: 'root' })
 export class PushNotificationsService {
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private broadcastRefresh: BroadcastRefreshService) {}
 
   async registerPush(userId: number): Promise<void> {
     if (!Capacitor.isNativePlatform()) return; // skip on web/Electron
@@ -31,7 +32,9 @@ export class PushNotificationsService {
     // App is in foreground — notification received silently
     PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
       console.log('Foreground notification:', notification);
-      // Optionally show an in-app toast here
+      if (notification.data?.['type'] === 'broadcast') {
+        this.broadcastRefresh.trigger();
+      }
     });
 
     // User tapped a notification
