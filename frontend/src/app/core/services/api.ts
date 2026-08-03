@@ -96,8 +96,8 @@ export class ApiService {
   resolveHazard(data: any): Observable<any>       { return this.http.post(`${this.url}/resolve-hazard`, data, this.opts(true)); }
 
   // Broadcasts
-  createBroadcast(data: any): Observable<any>     { return this.http.post(`${this.url}/create-broadcast`, data, this.opts(true)); }
-  clearBroadcast(): Observable<any>               { return this.http.post(`${this.url}/clear-broadcast`, {}, this.opts(true)); }
+  createBroadcast(data: { message: string; barangay_ids?: number[] }): Observable<any> { return this.http.post(`${this.url}/create-broadcast`, data, this.opts(true)); }
+  clearBroadcast(broadcastId: number): Observable<any> { return this.http.post(`${this.url}/clear-broadcast`, { broadcast_id: broadcastId }, this.opts(true)); }
 
   // Admin / dispatcher
   getPendingVerifications(): Observable<any>      { return this.http.get(`${this.url}/pending-verifications`, this.opts(true)); }
