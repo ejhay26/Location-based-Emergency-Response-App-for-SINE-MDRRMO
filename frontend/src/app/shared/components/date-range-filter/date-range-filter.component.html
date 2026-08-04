@@ -1,0 +1,41 @@
+<ion-button [id]="triggerId" fill="outline" [color]="hasValue ? 'danger' : 'medium'" size="small"
+  style="font-weight:bold;--border-radius:10px;height:36px;margin:0;white-space:nowrap;">
+  <i class="fa-solid fa-calendar-days" style="margin-right:6px;"></i>{{ displayLabel }}
+</ion-button>
+
+<ion-popover [trigger]="triggerId" [dismissOnSelect]="false" alignment="start" (didPresent)="onOpen()"
+  style="--width:360px;--max-width:94vw;">
+  <ng-template>
+    <div style="padding:14px;width:100%;box-sizing:border-box;">
+      <ion-segment [value]="pendingMode" (ionChange)="onModeChange($event)" style="margin-bottom:10px;">
+        <ion-segment-button value="single"><ion-label style="font-size:11px;">One Day</ion-label></ion-segment-button>
+        <ion-segment-button value="multiple"><ion-label style="font-size:11px;">Several Days</ion-label></ion-segment-button>
+        <ion-segment-button value="range"><ion-label style="font-size:11px;">Date Range</ion-label></ion-segment-button>
+      </ion-segment>
+
+      <p *ngIf="pendingMode === 'multiple'" style="font-size:11px;color:var(--ion-color-medium);margin:0 2px 6px;">Tap as many days as you need.</p>
+      <p *ngIf="pendingMode === 'range'" style="font-size:11px;color:var(--ion-color-medium);margin:0 2px 6px;">
+        <ng-container *ngIf="!pendingRangeStart">Tap a Start day, then an End day.</ng-container>
+        <ng-container *ngIf="pendingRangeStart && !pendingRangeEnd">Start: {{ pendingRangeStart }} - now tap an End day.</ng-container>
+        <ng-container *ngIf="pendingRangeStart && pendingRangeEnd">{{ pendingRangeStart }} to {{ pendingRangeEnd }}</ng-container>
+      </p>
+
+      <!-- One persistent calendar for all three modes - see component doc for how
+           mode-switches, reopening, and clearing all reset it via reset() rather
+           than unmounting it (which previously caused a visible flash). -->
+      <ion-datetime
+        presentation="date"
+        size="cover"
+        [multiple]="isMultipleCalendar"
+        [value]="calendarValue"
+        [highlightedDates]="pendingMode === 'range' ? rangeHighlight : undefined"
+        (ionChange)="onCalendarChange($event)">
+      </ion-datetime>
+
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <ion-button fill="clear" color="medium" size="small" style="flex:1;margin:0;font-weight:bold;" (click)="onClear()">Clear</ion-button>
+        <ion-button color="danger" size="small" style="flex:1;margin:0;font-weight:bold;" [disabled]="!canApply" (click)="onApply()">Apply</ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-popover>
