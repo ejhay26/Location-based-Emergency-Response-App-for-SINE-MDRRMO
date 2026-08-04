@@ -8,6 +8,9 @@ import {
 import Chart from 'chart.js/auto';
 import { ApiService } from '../../../../../core/services/api';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
+import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
+import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
+import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 
 @Component({
   selector: 'app-analytics-panel',
@@ -17,7 +20,7 @@ import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
     IonButton,
     IonList, IonItem, IonLabel, IonPopover, IonBadge,
-    UtcDatePipe
+    UtcDatePipe, DateRangeFilterComponent, FilterSummaryBarComponent,
   ],
   templateUrl: './analytics.panel.html',
   styleUrl: './analytics.panel.scss',
@@ -26,10 +29,13 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
 
   analyticsData: any = { daily_stats: [], type_stats: [], recent_records: [], hazard_stats: [], hazard_daily_stats: [] };
   analyticsTab: 'emergency' | 'hazard' = 'emergency';
-  filteredAnalyticsRecords: any[] = [];
   trendChartType: 'bar' | 'line' = 'bar';
-  chartRange = 7;
-  currentFilterLabel = 'All Records';
+  chartRange = 1;
+
+  // Type-click (chart/popover) and date filters are independent and combine
+  // (AND) - e.g. "Fire" + "Aug 1-3" narrows to fires reported in that window.
+  activeTypeFilter: string | null = null;
+  analyticsDateFilter: DateFilterValue | null = null;
 
   private trendChartInstance: any;
   private typeChartInstance: any;
@@ -51,14 +57,23 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
 
   setChartRange(days: number) {
     this.chartRange = days;
-    this.loadAnalytics();
+    this.loadAnalytics(); // loadAnalytics() clears analyticsDateFilter, re-focusing the preset row
+  }
+
+  /** Applying a custom date from the calendar re-focuses the calendar chip and deselects the Today/7/30/90 presets (handled reactively in the template). Clearing it falls back to "Today", not whatever preset happened to be active before. */
+  onAnalyticsDateFilterChange(value: DateFilterValue | null) {
+    if (value === null) {
+      this.setChartRange(1);
+    } else {
+      this.analyticsDateFilter = value;
+    }
   }
 
   loadAnalytics() {
     this.api.getAnalytics(this.chartRange).subscribe((res: any) => {
       this.analyticsData = res;
-      this.filteredAnalyticsRecords = res.recent_records;
-      this.currentFilterLabel = 'All Records';
+      this.activeTypeFilter = null;
+      this.analyticsDateFilter = null;
       this.analyticsTab === 'emergency' ? this.renderCharts() : this.renderHazardCharts();
     });
   }
@@ -75,19 +90,35 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
     this.analyticsTab === 'emergency' ? this.renderCharts() : this.renderHazardCharts();
   }
 
-  clearFilter() {
-    this.filteredAnalyticsRecords = this.analyticsData.recent_records;
-    this.currentFilterLabel = 'All Records';
+  /** The visible record list: recent_records narrowed by whichever filters (type/date) are active, combined with AND. */
+  get filteredAnalyticsRecords(): any[] {
+    return (this.analyticsData.recent_records || []).filter((r: any) => {
+      const matchType = !this.activeTypeFilter || r.incident_name === this.activeTypeFilter;
+      const matchDate = matchesDateFilter(r.request_time, this.analyticsDateFilter);
+      return matchType && matchDate;
+    });
+  }
+
+  /** Chip labels for the active-filters summary bar; empty array hides the bar. */
+  get activeFilterChips(): string[] {
+    const chips: string[] = [];
+    if (this.activeTypeFilter)   chips.push(this.activeTypeFilter);
+    if (this.analyticsDateFilter) chips.push(formatDateFilterLabel(this.analyticsDateFilter));
+    return chips;
   }
 
   filterListByType(type: string) {
-    this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter((r: any) => r.incident_name === type);
-    this.currentFilterLabel = `Filtered: ${type} Emergencies`;
+    this.activeTypeFilter = type;
   }
 
+  /** Quick filter triggered by clicking a bar/point on the trend chart - narrows to that single day. */
   filterListByDate(date: string) {
-    this.filteredAnalyticsRecords = this.analyticsData.recent_records.filter((r: any) => r.request_time.startsWith(date));
-    this.currentFilterLabel = `Filtered: Activity on ${date}`;
+    this.analyticsDateFilter = { mode: 'single', dates: [date] };
+  }
+
+  clearAllFilters() {
+    this.activeTypeFilter = null;
+    this.analyticsDateFilter = null;
   }
 
   renderCharts() {
