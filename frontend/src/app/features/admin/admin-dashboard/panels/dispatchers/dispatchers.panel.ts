@@ -8,6 +8,10 @@ import {
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
+import { BARANGAYS } from '../../../../../shared/constants/barangays';
+import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
+import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
+import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 
 interface DispatcherForm {
   first_name: string;
@@ -31,13 +35,19 @@ interface DispatcherForm {
     CommonModule, FormsModule,
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
-    ProxyImageDirective,
+    ProxyImageDirective, DateRangeFilterComponent, FilterSummaryBarComponent,
   ],
   templateUrl: './dispatchers.panel.html',
 })
 export class DispatchersPanel implements OnInit {
 
   dispatchers: any[] = [];
+
+  dispatcherSearch = '';
+  dispatcherBarangayFilter: number | 'all' = 'all';
+  dispatcherDateFilter: DateFilterValue | null = null;
+
+  readonly barangays = BARANGAYS;
 
   isDispatcherModalOpen = false;
   isSavingDispatcher = false;
@@ -54,6 +64,33 @@ export class DispatchersPanel implements OnInit {
 
   loadDispatchers() {
     this.api.getDispatchers().subscribe((res: any) => { this.dispatchers = res; });
+  }
+
+  get filteredDispatchers(): any[] {
+    const search = this.dispatcherSearch.trim().toLowerCase();
+    return this.dispatchers.filter(d => {
+      const matchSearch = !search ||
+        `${d.first_name} ${d.last_name} ${d.username} ${d.email} ${d.phone}`
+          .toLowerCase().includes(search);
+      const matchBarangay = this.dispatcherBarangayFilter === 'all' || d.barangay_id === this.dispatcherBarangayFilter;
+      const matchDate = matchesDateFilter(d.created_at, this.dispatcherDateFilter);
+      return matchSearch && matchBarangay && matchDate;
+    });
+  }
+
+  /** Chip labels for the active-filters summary bar; empty array hides the bar. */
+  get activeFilterChips(): string[] {
+    const chips: string[] = [];
+    if (this.dispatcherSearch.trim())            chips.push(`"${this.dispatcherSearch.trim()}"`);
+    if (this.dispatcherBarangayFilter !== 'all')  chips.push(this.barangays.find(b => b.id === this.dispatcherBarangayFilter)?.name ?? 'Unknown Barangay');
+    if (this.dispatcherDateFilter)                chips.push(formatDateFilterLabel(this.dispatcherDateFilter));
+    return chips;
+  }
+
+  clearAllFilters(): void {
+    this.dispatcherSearch = '';
+    this.dispatcherBarangayFilter = 'all';
+    this.dispatcherDateFilter = null;
   }
 
   openDispatcherModal(dispatcher: any | null) {
