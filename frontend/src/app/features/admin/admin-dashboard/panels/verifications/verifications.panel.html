@@ -1,11 +1,41 @@
 <div style="width:100%;">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+    <div>
+      <h2 style="margin: 0; font-weight: bold; font-size: 22px; color: var(--ion-text-color);">ID Verifications</h2>
+      <p style="margin: 2px 0 0 0; font-size: 13px; color: gray;">{{ filteredVerifications.length }} of {{ pendingVerifications.length }} shown</p>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <div style="position: relative;">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: gray; font-size: 13px; pointer-events: none;"></i>
+        <input id="verificationSearch" name="verificationSearch" [(ngModel)]="verificationSearch" placeholder="Search name, email…" style="padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); min-width: 200px;" />
+      </div>
+      <select id="verificationBarangayFilter" name="verificationBarangayFilter" [ngModel]="verificationBarangayFilter" (ngModelChange)="verificationBarangayFilter = $event === 'all' ? 'all' : +$event"
+        style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color);">
+        <option value="all">All Barangays</option>
+        <option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</option>
+      </select>
+      <select id="verificationIdTypeFilter" name="verificationIdTypeFilter" [(ngModel)]="verificationIdTypeFilter"
+        style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color);">
+        <option value="all">All ID Types</option>
+        <option *ngFor="let t of verificationIdTypes" [value]="t">{{ t }}</option>
+      </select>
+      <app-date-range-filter [value]="verificationDateFilter" (valueChange)="verificationDateFilter = $event"></app-date-range-filter>
+    </div>
+  </div>
+
+  <app-filter-summary-bar [chips]="activeFilterChips" (clearAll)="clearAllFilters()"></app-filter-summary-bar>
+
   <div *ngIf="pendingVerifications.length === 0" style="background: var(--ion-card-background, white); border-radius: 16px; border: 1px solid var(--ion-color-step-150, #ddd); color: var(--ion-text-color); padding: 48px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%;">
     <i class="fa-solid fa-user-shield" style="font-size: 52px; color: #2dd36f; margin-bottom: 14px;"></i>
     <h4 style="font-weight: bold; margin: 0; font-size: 18px;">Verification Queue Empty</h4>
     <p style="color: gray; margin: 8px 0 0 0; font-size: 14px;">All citizen accounts are verified.</p>
   </div>
 
-  <div *ngFor="let user of pendingVerifications" style="background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); border-radius: 12px; margin-bottom: 16px; overflow: hidden;">
+  <div *ngIf="pendingVerifications.length > 0 && filteredVerifications.length === 0" class="ion-text-center ion-padding ion-color-medium">
+    <p>No pending verifications match the current filters.</p>
+  </div>
+
+  <div *ngFor="let user of filteredVerifications" style="background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); border-radius: 12px; margin-bottom: 16px; overflow: hidden;">
     <div style="padding: 18px; color: var(--ion-text-color);">
       <h4 style="font-weight: bold; font-size: 16px; margin: 0 0 14px 0; color: var(--ion-color-danger);">
         <i class="fa-solid fa-id-card-clip" style="margin-right: 8px;"></i>Review: {{ user.first_name }} {{ user.last_name }}
