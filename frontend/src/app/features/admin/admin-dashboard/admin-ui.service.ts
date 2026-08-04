@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { signal } from '@angular/core';
 import { ToastController } from '@ionic/angular';
 import { ApiService } from '../../../core/services/api';
+import { BARANGAYS } from '../../../shared/constants/barangays';
 
 export interface ConfirmDialogConfig {
   title: string;
@@ -65,10 +66,14 @@ export class AdminUiService {
   }
 
   // ── Barangay names ───────────────────────────────────────────────────────
-  private barangayNames: Record<number, string> = {
-    1: 'Alua', 2: 'Calaba', 3: 'Malapit', 4: 'Mangga', 5: 'Poblacion',
-    6: 'Pulo', 7: 'San Roque', 8: 'Santo Cristo', 9: 'Tabon'
-  };
+  // Single source of truth is shared/constants/barangays.ts — mirrored here
+  // only as a fast id→name lookup map so callers don't re-scan the array.
+  // Keyed by string: array.reduce() (rather than Object.fromEntries(), which
+  // needs an ES2019+ lib target this project's ES2018 tsconfig doesn't set).
+  private barangayNames: Record<string, string> = BARANGAYS.reduce((map, b) => {
+    map[String(b.id)] = b.name;
+    return map;
+  }, {} as Record<string, string>);
   getBarangayName(id: number): string { return this.barangayNames[id] || `Barangay #${id}`; }
 
   // ── File / media helpers ─────────────────────────────────────────────────
