@@ -6,6 +6,10 @@ import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
+import { BARANGAYS } from '../../../../../shared/constants/barangays';
+import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
+import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
+import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 
 /**
  * CitizensPanel — Accounts › Citizens. Search/filter over a card grid, plus
@@ -16,7 +20,10 @@ import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 @Component({
   selector: 'app-citizens-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonButton, ProxyImageDirective, UtcDatePipe],
+  imports: [
+    CommonModule, FormsModule, IonButton, ProxyImageDirective, UtcDatePipe,
+    DateRangeFilterComponent, FilterSummaryBarComponent,
+  ],
   templateUrl: './citizens.panel.html',
 })
 export class CitizensPanel implements OnInit {
@@ -24,6 +31,10 @@ export class CitizensPanel implements OnInit {
   citizens: any[] = [];
   citizenSearch = '';
   citizenFilterStatus: 'all' | 'active' | 'suspended' = 'all';
+  citizenBarangayFilter: number | 'all' = 'all';
+  citizenDateFilter: DateFilterValue | null = null;
+
+  readonly barangays = BARANGAYS;
 
   constructor(public api: ApiService, public ui: AdminUiService) {}
 
@@ -39,8 +50,27 @@ export class CitizensPanel implements OnInit {
           .toLowerCase().includes(search);
       const matchStatus = this.citizenFilterStatus === 'all' ||
         (this.citizenFilterStatus === 'suspended' ? c.account_status === 'banned' : c.account_status === 'active');
-      return matchSearch && matchStatus;
+      const matchBarangay = this.citizenBarangayFilter === 'all' || c.barangay_id === this.citizenBarangayFilter;
+      const matchDate = matchesDateFilter(c.created_at, this.citizenDateFilter);
+      return matchSearch && matchStatus && matchBarangay && matchDate;
     });
+  }
+
+  /** Chip labels for the active-filters summary bar; empty array hides the bar. */
+  get activeFilterChips(): string[] {
+    const chips: string[] = [];
+    if (this.citizenSearch.trim())            chips.push(`"${this.citizenSearch.trim()}"`);
+    if (this.citizenFilterStatus !== 'all')    chips.push(this.citizenFilterStatus === 'suspended' ? 'Suspended' : 'Active');
+    if (this.citizenBarangayFilter !== 'all')  chips.push(this.barangays.find(b => b.id === this.citizenBarangayFilter)?.name ?? 'Unknown Barangay');
+    if (this.citizenDateFilter)                chips.push(formatDateFilterLabel(this.citizenDateFilter));
+    return chips;
+  }
+
+  clearAllFilters(): void {
+    this.citizenSearch = '';
+    this.citizenFilterStatus = 'all';
+    this.citizenBarangayFilter = 'all';
+    this.citizenDateFilter = null;
   }
 
   loadCitizens() {

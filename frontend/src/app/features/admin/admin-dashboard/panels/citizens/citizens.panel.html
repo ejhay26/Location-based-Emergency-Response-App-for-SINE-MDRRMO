@@ -14,13 +14,25 @@
         <option value="active">Active</option>
         <option value="suspended">Suspended</option>
       </select>
+      <select id="citizenBarangayFilter" name="citizenBarangayFilter" [ngModel]="citizenBarangayFilter" (ngModelChange)="citizenBarangayFilter = $event === 'all' ? 'all' : +$event"
+        style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color);">
+        <option value="all">All Barangays</option>
+        <option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</option>
+      </select>
+      <app-date-range-filter [value]="citizenDateFilter" (valueChange)="citizenDateFilter = $event"></app-date-range-filter>
     </div>
   </div>
+
+  <app-filter-summary-bar [chips]="activeFilterChips" (clearAll)="clearAllFilters()"></app-filter-summary-bar>
 
   <div *ngIf="citizens.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 16px; border: 2px dashed var(--ion-color-step-150, #ddd);">
     <i class="fa-solid fa-users" style="font-size: 48px; color: var(--ion-color-step-400, #aaa); margin-bottom: 14px;"></i>
     <h4 style="font-weight: bold; margin: 0 0 6px 0; color: var(--ion-text-color);">No Citizens Yet</h4>
     <p style="margin: 0; color: gray; font-size: 14px;">Registered citizens will appear here.</p>
+  </div>
+
+  <div *ngIf="citizens.length > 0 && filteredCitizens.length === 0" class="ion-text-center ion-padding ion-color-medium">
+    <p>No citizens match the current filters.</p>
   </div>
 
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
