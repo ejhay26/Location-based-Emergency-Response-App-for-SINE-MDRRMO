@@ -7,11 +7,21 @@ import { AdminUiService } from '../../admin-ui.service';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
 import { VideoThumbnailDirective } from '../../../../../shared/directives/video-thumbnail.directive';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
+import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
+import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
+import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
+
+const ARCHIVE_FILTER_LABELS: Record<string, string> = {
+  resolved: 'Resolved', false_alarm: 'False Alarms', cancelled: 'Cancelled',
+};
 
 @Component({
   selector: 'app-log-archive-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonButton, IonBadge, ProxyImageDirective, VideoThumbnailDirective, UtcDatePipe],
+  imports: [
+    CommonModule, FormsModule, IonButton, IonBadge, ProxyImageDirective, VideoThumbnailDirective, UtcDatePipe,
+    DateRangeFilterComponent, FilterSummaryBarComponent,
+  ],
   templateUrl: './log-archive.panel.html',
 })
 export class LogArchivePanel implements OnInit {
@@ -21,6 +31,7 @@ export class LogArchivePanel implements OnInit {
   archiveFilter: 'all' | 'resolved' | 'false_alarm' | 'cancelled' = 'all';
   archiveSort: 'newest' | 'oldest' | 'type' = 'newest';
   archiveTypeFilter = 'all';
+  archiveDateFilter: DateFilterValue | null = null;
 
   constructor(public api: ApiService, public ui: AdminUiService) {}
 
@@ -38,6 +49,7 @@ export class LogArchivePanel implements OnInit {
     if (this.archiveFilter === 'false_alarm') list = list.filter(r => r.is_false_alarm);
     if (this.archiveFilter === 'cancelled')   list = list.filter(r => r.status === 'Cancelled');
     if (this.archiveTypeFilter !== 'all')     list = list.filter(r => r.incident_name === this.archiveTypeFilter);
+    list = list.filter(r => matchesDateFilter(r.request_time, this.archiveDateFilter));
     if (this.archiveSort === 'newest') list.sort((a, b) => new Date(b.request_time).getTime() - new Date(a.request_time).getTime());
     if (this.archiveSort === 'oldest') list.sort((a, b) => new Date(a.request_time).getTime() - new Date(b.request_time).getTime());
     if (this.archiveSort === 'type')   list.sort((a, b) => a.incident_name.localeCompare(b.incident_name));
@@ -46,6 +58,21 @@ export class LogArchivePanel implements OnInit {
 
   get archiveIncidentTypes(): string[] {
     return [...new Set(this.archivedRequests.map(r => r.incident_name))].sort();
+  }
+
+  /** Chip labels for the active-filters summary bar; empty array hides the bar. */
+  get activeFilterChips(): string[] {
+    const chips: string[] = [];
+    if (this.archiveFilter !== 'all')     chips.push(ARCHIVE_FILTER_LABELS[this.archiveFilter]);
+    if (this.archiveTypeFilter !== 'all') chips.push(this.archiveTypeFilter);
+    if (this.archiveDateFilter)           chips.push(formatDateFilterLabel(this.archiveDateFilter));
+    return chips;
+  }
+
+  clearAllFilters(): void {
+    this.archiveFilter = 'all';
+    this.archiveTypeFilter = 'all';
+    this.archiveDateFilter = null;
   }
 
   markFalseAlarm(requestId: number, citizenName: string) {
