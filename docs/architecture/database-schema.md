@@ -7,6 +7,8 @@ Database: `emergencydb` (MariaDB / MySQL). Schema source: `database/emergencydb.
 ```mermaid
 erDiagram
     BARANGAYS ||--o{ USERS : "has"
+    BARANGAYS ||--o{ BROADCAST_BARANGAYS : "targeted by"
+    BROADCASTS ||--o{ BROADCAST_BARANGAYS : "scoped to"
     USERS ||--o{ EMERGENCY_REQUESTS : "files"
     USERS ||--o{ HAZARDS : "reports"
     USERS ||--o{ FEEDBACK : "submits"
@@ -75,6 +77,10 @@ erDiagram
         text message
         tinyint is_active
     }
+    BROADCAST_BARANGAYS {
+        int broadcast_id FK
+        int barangay_id FK
+    }
     FEEDBACK {
         bigint id PK
         int user_id FK
@@ -129,7 +135,7 @@ erDiagram
 | `barangay_id` | `int` PK |
 | `barangay_name` | `varchar` |
 
-Seeded with San Isidro's 9 barangays (Alua, Calaba, Malapit, Mangga, Poblacion, Pulo, San Roque, Santo Cristo, Tabon).
+Seeded with San Isidro's 9 barangays (Alua, Calaba, Malapit, Mangga, Poblacion, Pulo, San Roque, Santo Cristo, Tabon). Used both for a user's home barangay (`users.barangay_id`) and for scoping broadcasts (`broadcast_barangays`).
 
 </details>
 
@@ -222,6 +228,20 @@ Seeded units: San Isidro BFP (Firefighter), San Isidro PNP (Police), MDRRMO Resc
 | `message` | `text` |
 | `is_active` | `tinyint(1)`, default `1` |
 | `created_at` | `timestamp` |
+
+A broadcast with no rows in `broadcast_barangays` is **town-wide**; one or more rows there scopes it to those barangays (`Broadcast::isTownWide()` checks this). Multiple broadcasts can be active at once.
+
+</details>
+
+<details>
+<summary><b>broadcast_barangays</b></summary>
+
+| Column | Type |
+|---|---|
+| `broadcast_id` | `int` FK → `broadcasts.broadcast_id` |
+| `barangay_id` | `int` FK → `barangays.barangay_id` |
+
+Pivot table for many-to-many broadcast ↔ barangay targeting. A broadcast with zero rows here is town-wide.
 
 </details>
 
