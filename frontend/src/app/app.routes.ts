@@ -21,6 +21,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register.page').then(m => m.RegisterPage),
     canActivate: [GuestGuard],
   },
+  {
+    path: 'pending-verification',
+    loadComponent: () => import('./features/auth/pending-verification/pending-verification.page').then(m => m.PendingVerificationPage),
+    canActivate: [GuestGuard],
+  },
 
   // ── Admin / Dispatcher ──────────────────────────────────────────────────
   {
