@@ -6,11 +6,10 @@ import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
   IonSelect, IonSelectOption,
-  IonButton, IonModal
+  IonButton
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api';
-import { TourService } from '../../../core/services/tour';
 import { RegisterIdCaptureComponent } from './components/register-id-capture/register-id-capture.component';
 import { RegisterAccountDetailsComponent } from './components/register-account-details/register-account-details.component';
 
@@ -23,7 +22,7 @@ import { RegisterAccountDetailsComponent } from './components/register-account-d
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
     IonSelect, IonSelectOption,
-    IonButton, IonModal,
+    IonButton,
     RegisterIdCaptureComponent, RegisterAccountDetailsComponent
   ],
 })
@@ -33,8 +32,6 @@ export class RegisterPage {
   otpCode = '';
   isRegistering   = false;
   isVerifyingOtp  = false;
-  isSavingMedical = false;
-  showMedicalModal = false;
 
   @ViewChild(RegisterAccountDetailsComponent) accountDetailsCmp?: RegisterAccountDetailsComponent;
 
@@ -47,13 +44,10 @@ export class RegisterPage {
     otp_channel: 'email' as 'email' | 'sms'
   };
 
-  medicalData = { blood_type: '', allergies: '', medical_conditions: '', pwd_status: '' };
-
   constructor(
     private router: Router,
     private api: ApiService,
     private toastController: ToastController,
-    private tour: TourService
   ) {}
 
   nextStep(): void {
@@ -109,40 +103,16 @@ export class RegisterPage {
     if (this.isVerifyingOtp) return;
     this.isVerifyingOtp = true;
     this.api.verifyOtp({ email: this.userData.email, otp: this.otpCode }).subscribe({
-      next: (res: any) => {
+      next: () => {
         this.isVerifyingOtp = false;
-        localStorage.setItem('user', JSON.stringify(res.user));
-        localStorage.setItem('role', res.role);
-        this.showMedicalModal = true;
+        // Account is verified but still `unverified` account_status — no
+        // token comes back from this endpoint, so we don't touch
+        // localStorage['user']/['role'] here (that's only ever set on a
+        // real login). Medical profile info can be added later from the
+        // real Profile page once the account is approved.
+        this.router.navigate(['/pending-verification'], { queryParams: { login: this.userData.email } });
       },
       error: () => { this.isVerifyingOtp = false; this.showToast('Invalid verification code.'); }
-    });
-  }
-
-  saveMedicalAndProceed(): void {
-    const user = (() => { try { return JSON.parse(localStorage.getItem('user') ?? '{}'); } catch { return {}; } })();
-    if (!user?.user_id) { this.showToast('Session error. Please try again.'); return; }
-    this.isSavingMedical = true;
-    this.api.updateMedicalProfile({ user_id: user.user_id, ...this.medicalData }).subscribe({
-      next: (res: any) => {
-        this.isSavingMedical = false;
-        localStorage.setItem('user', JSON.stringify(res.user));
-        this.showMedicalModal = false;
-        this.promptTourIfNew();
-      },
-      error: () => {
-        this.isSavingMedical = false;
-        this.showToast('Failed to save. You can update this from your Profile later.');
-        this.skipMedical();
-      }
-    });
-  }
-
-  skipMedical(): void { this.showMedicalModal = false; this.promptTourIfNew(); }
-
-  private promptTourIfNew(): void {
-    this.router.navigate(['/tabs/home']).then(() => {
-      if (!this.tour.hasSeenTour()) setTimeout(() => this.tour.promptStart(), 600);
     });
   }
 
