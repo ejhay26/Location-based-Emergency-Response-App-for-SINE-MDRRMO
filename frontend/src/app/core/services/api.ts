@@ -56,6 +56,7 @@ export class ApiService {
   loginVerifyOtp(data: any): Observable<any>        { return this.http.post(`${this.url}/login-verify-otp`, data, this.opts()); }
   register(data: any): Observable<any>             { return this.http.post(`${this.url}/register`, data, this.opts()); }
   verifyOtp(data: any): Observable<any>            { return this.http.post(`${this.url}/verify-otp`, data, this.opts()); }
+  checkVerificationStatus(identifier: string): Observable<any> { return this.http.post(`${this.url}/check-verification-status`, { login: identifier }, this.opts()); }
   checkUsername(username: string): Observable<any> { return this.http.get(`${this.url}/check-username?username=${username}`, this.opts()); }
   checkEmail(email: string): Observable<any>       { return this.http.get(`${this.url}/check-email?email=${email}`, this.opts()); }
   forgotPassword(data: any): Observable<any>       { return this.http.post(`${this.url}/forgot-password`, data, this.opts()); }
