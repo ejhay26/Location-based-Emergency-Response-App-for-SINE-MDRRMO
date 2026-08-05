@@ -4,7 +4,13 @@
 
 Auth uses **Laravel Sanctum** with tokens — no server-side session/cookie auth for the API. Every protected request needs a bearer token, sent after login.
 
-Endpoints that don't need a token: registration, login, OTP checks, username/email availability checks, and forgot/reset password. Everything else needs `auth:sanctum`.
+Endpoints that don't need a token: registration, login, OTP checks, username/email availability checks, forgot/reset password, and the verification-status check described below. Everything else needs `auth:sanctum`.
+
+## New Accounts Start Locked (Pending Verification)
+
+A new citizen registration doesn't get a token or a working login right away. `AuthController::register()` creates the account with `account_status = 'unverified'`, and `login()` / `loginSendOtp()` both reject unverified accounts with a **403** until an admin approves the citizen's submitted ID from the ID Verifications panel (`approveUser` → `active`). Rejecting an ID (`rejectUser`) doesn't ban the account — it **permanently deletes** it, ID/selfie files included, so there's no "rejected but recoverable" state.
+
+Since a pending account has no token, checking on approval status can't go through an authenticated route. `POST /check-verification-status` (public, throttled) exists for exactly this — it takes just an email and returns a bare `{ "status": "unverified" | "active" | "banned" | "not_found" }`, nothing else about the account. The app's Pending Verification screen polls this every 20–30 seconds after registration (or after a login attempt on a still-pending account) rather than opening a WebSocket connection for it — the screen isn't time-critical enough to justify running a broadcast server just for this, unlike the live emergency map.
 
 ## Token Abilities (how roles are enforced)
 
@@ -13,7 +19,7 @@ When someone logs in, their Sanctum token comes with abilities matching their ro
 | Role | Token abilities |
 |---|---|
 | Citizen | `['citizen']` |
-| Dispatcher | `['dispatcher', 'citizen']` |
+| Dispatcher | `['dispatcher']` |
 | Admin | `['admin', 'dispatcher', 'citizen']` |
 
 Routes in `routes/api.php` are grouped and locked accordingly:
@@ -28,7 +34,9 @@ Route::middleware('ability:dispatcher')->group(function () {
 });
 ```
 
-Since admin tokens also carry `dispatcher` and `citizen`, an admin can still hit dispatcher/citizen routes. But a dispatcher token doesn't have `admin`, so it gets a **403** on admin-only routes instead of slipping through. That was a deliberate fix — earlier, dispatcher/citizen tokens could reach some admin-only routes by mistake.
+Since admin tokens also carry `dispatcher` and `citizen`, an admin can still hit dispatcher-only routes. But a dispatcher token doesn't have `admin`, so it gets a **403** on admin-only routes instead of slipping through. That was a deliberate fix — earlier, dispatcher/citizen tokens could reach some admin-only routes by mistake.
+
+Worth noting: none of the citizen-facing routes (`submit-sos`, `active-broadcast`, `update-medical-profile`, etc.) are actually gated by an `ability:citizen` middleware today — they only require `auth:sanctum`. So a dispatcher's `['dispatcher']`-only token can technically still call them, since nothing currently checks for the `citizen` ability specifically. This hasn't caused a problem in practice (dispatchers have no reason to call citizen routes), but it's worth knowing if you're auditing what a given token can actually reach.
 
 ## OTP Flows
 
