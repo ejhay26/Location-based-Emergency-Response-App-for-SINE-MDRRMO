@@ -12,6 +12,7 @@ import { ApiService } from '../../../core/services/api';
 import { PushNotificationsService } from '../../../core/services/push-notifications';
 import { UserSettingsService } from '../../../core/services/user-settings';
 import { LocationService } from '../../../core/services/location';
+import { TourService } from '../../../core/services/tour';
 
 @Component({
   selector: 'app-login',
@@ -89,7 +90,14 @@ export class LoginPage {
       error: (err: any) => {
         this.isSendingOtp = false;
         if (err.status === 403) {
-          this.showToast('Your account is pending admin verification.', 'warning');
+          // Phone-channel OTP requests can't be resolved by the status-check
+          // endpoint below (it only looks up by email/username), so those
+          // just get the toast; email-channel ones go to the Pending screen.
+          if (err.error?.reason === 'unverified' && this.loginOtpChannel === 'email') {
+            this.router.navigate(['/pending-verification'], { queryParams: { login: this.emailOtpData.email } });
+          } else {
+            this.showToast('Your account is pending admin verification.', 'warning');
+          }
         } else if (err.status === 500) {
           this.showToast(err.error?.message || 'Failed to send SMS OTP. Try email instead.', 'danger');
         } else {
@@ -154,6 +162,11 @@ export class LoginPage {
         requestAnimationFrame(() => { this.settings.applyToDom(); });
         if (res.role !== 'admin' && res.role !== 'dispatcher') {
           this.pushNotificationsService.registerPush(res.user.user_id);
+          // First real login is the earliest point a citizen is actually
+          // inside the authenticated app (registration no longer lands
+          // here directly — see the Pending Verification screen), so this
+          // is where the first-run tour prompt now belongs.
+          if (!this.tour.hasSeenTour()) setTimeout(() => this.tour.promptStart(), 600);
         }
       });
     });
@@ -191,6 +204,7 @@ export class LoginPage {
     private pushNotificationsService: PushNotificationsService,
     private settings: UserSettingsService,
     private locationSvc: LocationService,
+    private tour: TourService,
   ) {}
 
   ionViewWillEnter() {
@@ -237,7 +251,11 @@ export class LoginPage {
             if (this.lockoutSecsRemaining === 0) clearInterval(this.lockoutInterval);
           }, 500);
         } else if (err.status === 403) {
-          this.showToast('Your account has been suspended. Contact the admin.', 'danger');
+          if (err.error?.reason === 'unverified') {
+            this.router.navigate(['/pending-verification'], { queryParams: { login: this.credentials.login } });
+          } else {
+            this.showToast('Your account has been suspended. Contact the admin.', 'danger');
+          }
         } else {
           this.showToast(`Invalid credentials. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`, 'danger');
         }
