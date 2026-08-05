@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 03, 2026 at 03:10 AM
+-- Generation Time: Aug 04, 2026 at 01:50 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -72,7 +72,9 @@ INSERT INTO `broadcasts` (`broadcast_id`, `message`, `is_active`, `created_at`) 
 (5, 'test', 0, '2026-08-02 06:34:00'),
 (6, 'test', 0, '2026-08-02 06:34:20'),
 (7, 'test', 0, '2026-08-02 06:35:03'),
-(8, 'alert', 1, '2026-08-02 06:48:27');
+(8, 'alert', 1, '2026-08-02 06:48:27'),
+(9, 'test', 1, '2026-08-02 17:13:15'),
+(10, 'Flooding', 1, '2026-08-02 17:43:57');
 
 -- --------------------------------------------------------
 
@@ -84,6 +86,13 @@ CREATE TABLE `broadcast_barangays` (
   `broadcast_id` int(11) NOT NULL,
   `barangay_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `broadcast_barangays`
+--
+
+INSERT INTO `broadcast_barangays` (`broadcast_id`, `barangay_id`) VALUES
+(10, 9);
 
 -- --------------------------------------------------------
 
@@ -145,7 +154,8 @@ INSERT INTO `device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`)
 (15, 1, 'fBDjUwHYRFeugXeZuE5J2i:APA91bHgdDvBK-qlR_BlnqJj85ZJBtrlRv3QOxz0abax6N3hqwlTIO9B7DQG061bJVaindPsbPYHrEMQlSk2z-myfoQG8VunG4zPs9LbASQ4OjEMYMR7s34', 'android', '2026-07-28 19:32:44'),
 (16, 1, 'dgk0RMRxRD6jSTK2a5ikEB:APA91bG3fbdL5teSc4Df_fDA5HomUlxJ_kDT7t2JpdscV-HWcoF665zU7M-LMpc_aD0bLhVFHDgzjo9UWSbybSj78Tzo0T2epzYhENAm_LKflNkCSILl7uQ', 'android', '2026-08-01 23:06:53'),
 (17, 1, 'ekwVJ7sXRw6Bivg1uHUb8x:APA91bGFFLU77Xx5tazTsTRyAfAYbDXx139-2b7S_43k1pGRuTJNNWGNier_Nn4ef8NdLWwaUghGWV8t3rh6iZLef3FoPkyQJ9532RztOBZcCkXWFuijedw', 'android', '2026-08-02 06:33:37'),
-(18, 1, 'cJPBNlStRcyGFas4AESv5y:APA91bHtqHJ1kd0zNr2ST1oK610sDjeTcGdhmzh35M-2htQV6gPdWcUlAHzCizJXRxfhmeLjT4bSXXZn2_VlzJPDwcCpykyuOtYl2d0PHa0NsZiyKwK2Ck4', 'android', '2026-08-02 06:48:12');
+(18, 1, 'cJPBNlStRcyGFas4AESv5y:APA91bHtqHJ1kd0zNr2ST1oK610sDjeTcGdhmzh35M-2htQV6gPdWcUlAHzCizJXRxfhmeLjT4bSXXZn2_VlzJPDwcCpykyuOtYl2d0PHa0NsZiyKwK2Ck4', 'android', '2026-08-02 06:48:12'),
+(20, 1, 'drCxVuXfTUy-okW8L7P7sF:APA91bHYlbNW5PpYO_jxBuolkBxU19_8X_lhkH6M6FVMVy0XqT5FhaThqEZ3p9ZPRSQAE-KJn3ASWTPuzuZLaR_PLSrxQo2EtrfGFn4RpqeUXjnMwoSufvs', 'android', '2026-08-02 17:35:50');
 
 -- --------------------------------------------------------
 
@@ -379,8 +389,7 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
-(46, 'App\\Models\\User', 4, 'app-token', 'ac282307ca629727b478fd2efe136ec308b79b184bdf42a3c93974bf10847b24', '[\"admin\",\"dispatcher\",\"citizen\"]', '2026-08-02 17:10:06', NULL, '2026-08-01 18:17:27', '2026-08-02 17:10:06'),
-(49, 'App\\Models\\User', 1, 'app-token', '2e5463c9dc1e5763107ce871e920ab80bcc851854f5b5e13b9b72e4e2d1fc1aa', '[\"citizen\"]', '2026-08-02 06:59:34', NULL, '2026-08-02 06:48:11', '2026-08-02 06:59:34');
+(57, 'App\\Models\\User', 1, 'app-token', '4c5d79c94139c8fc3ec1db0b6b2013ea02f838db7f85aa5ae622796db70ca918', '[\"citizen\"]', '2026-08-04 02:48:08', NULL, '2026-08-04 02:48:02', '2026-08-04 02:48:08');
 
 -- --------------------------------------------------------
 
@@ -438,7 +447,7 @@ CREATE TABLE `users` (
   `email` varchar(100) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `role` enum('citizen','dispatcher','admin') NOT NULL DEFAULT 'citizen',
-  `account_status` enum('active','banned') NOT NULL DEFAULT 'active',
+  `account_status` enum('unverified','active','banned') NOT NULL DEFAULT 'active',
   `barangay_id` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -491,7 +500,7 @@ INSERT INTO `user_settings` (`id`, `user_id`, `key`, `value`, `updated_at`, `sav
 (2, 1, 'location_auto_fetch', 'true', '2026-07-25 04:15:55', 0),
 (3, 1, 'map_default_style', 'street', '2026-07-20 01:02:21', 0),
 (4, 1, 'reduce_animations', 'false', '2026-07-19 15:50:53', 0),
-(5, 4, 'dark_mode', 'true', '2026-07-21 04:39:27', 0),
+(5, 4, 'dark_mode', 'true', '2026-08-02 17:44:27', 0),
 (6, 1, 'save_media_to_device', 'false', '2026-08-01 23:07:13', 0);
 
 -- --------------------------------------------------------
@@ -689,13 +698,13 @@ ALTER TABLE `barangays`
 -- AUTO_INCREMENT for table `broadcasts`
 --
 ALTER TABLE `broadcasts`
-  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `device_tokens`
 --
 ALTER TABLE `device_tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `dispatch`
@@ -749,7 +758,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `responders`
