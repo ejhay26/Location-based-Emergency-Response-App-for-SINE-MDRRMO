@@ -58,7 +58,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'If that account exists, an OTP was sent.'], 200);
         }
         if ($user->account_status === 'unverified') {
-            return response()->json(['message' => 'Your account is pending admin verification.'], 403);
+            return response()->json(['message' => 'Your account is pending admin verification.', 'reason' => 'unverified'], 403);
         }
 
         $identifier = $channel === 'phone' ? $user->phone : $user->email;
@@ -130,10 +130,10 @@ class AuthController extends Controller
         $user = User::where($fieldType, $request->login)->first();
 
         if ($user && $user->account_status === 'unverified') {
-            return response()->json(['message' => 'Your account registration is currently pending admin verification review.'], 403);
+            return response()->json(['message' => 'Your account registration is currently pending admin verification review.', 'reason' => 'unverified'], 403);
         }
         if ($user && $user->account_status === 'banned') {
-            return response()->json(['message' => 'This account has been suspended.'], 403);
+            return response()->json(['message' => 'This account has been suspended.', 'reason' => 'banned'], 403);
         }
         if (!$user || !Hash::check($request->password, $user->password)) {
             RateLimiter::hit($throttleKey, 60);
@@ -252,6 +252,36 @@ class AuthController extends Controller
     {
         $exists = User::where('username', $request->query('username'))->exists();
         return response()->json(['available' => !$exists]);
+    }
+
+    /**
+     * Public, tokenless status check for the Pending Verification screen.
+     * Accepts either an email or a username (same lookup logic as login()),
+     * since a citizen might reach this screen via the register flow (always
+     * has an email) or via the login screen (could be either). Deliberately
+     * returns only a bare status string — no user id, tokens, or ID/selfie
+     * paths — since this endpoint requires no authentication.
+     */
+    public function checkVerificationStatus(Request $request)
+    {
+        $request->validate([
+            'email' => 'nullable|email',
+            'login' => 'nullable|string',
+        ]);
+
+        $identifier = $request->input('email') ?: $request->input('login');
+        if (!$identifier) {
+            return response()->json(['message' => 'Email or username is required.'], 422);
+        }
+
+        $fieldType = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $user = User::where($fieldType, $identifier)->first();
+
+        if (!$user) {
+            return response()->json(['status' => 'not_found']);
+        }
+
+        return response()->json(['status' => $user->account_status]);
     }
 
     public function checkEmail(Request $request)
