@@ -17,7 +17,9 @@ export class WelcomePage implements OnInit {
 
   isFirstTime = false;
   currentSlide = 0;
-  readonly TOTAL_SLIDES = 5;
+  readonly TOTAL_SLIDES = 3;
+  /** Backing array for the dot indicators; length must track TOTAL_SLIDES. */
+  readonly slideIndices = Array.from({ length: this.TOTAL_SLIDES }, (_, i) => i);
 
   locationGranted  = false;
   cameraGranted    = false;
@@ -59,8 +61,14 @@ export class WelcomePage implements OnInit {
   get isFirstSlide(): boolean { return this.currentSlide === 0; }
   next() { if (this.currentSlide < this.TOTAL_SLIDES - 1) this.currentSlide++; }
   prev() { if (this.currentSlide > 0) this.currentSlide--; }
-  goToSlide(index: number) { this.currentSlide = index; }
+  goToSlide(index: number) {
+    if (index < 0 || index >= this.TOTAL_SLIDES) return;
+    this.currentSlide = index;
+  }
 
+  // Permission requests all live on the same "All Permissions" slide now,
+  // so granting one no longer auto-advances to the next slide — the user
+  // moves on via the Next button once they're done with all three.
   async requestLocation() {
     this.locationLoading = true;
     try {
@@ -69,7 +77,6 @@ export class WelcomePage implements OnInit {
     } catch { this.locationGranted = false; }
     this.locationRequested = true;
     this.locationLoading = false;
-    if (this.locationGranted) setTimeout(() => this.next(), 800);
   }
 
   async requestCamera() {
@@ -80,7 +87,6 @@ export class WelcomePage implements OnInit {
     } catch { this.cameraGranted = false; }
     this.cameraRequested = true;
     this.cameraLoading = false;
-    if (this.cameraGranted) setTimeout(() => this.next(), 800);
   }
 
   async requestNotifications() {
@@ -95,7 +101,6 @@ export class WelcomePage implements OnInit {
     } catch { this.notifGranted = false; }
     this.notifRequested = true;
     this.notifLoading = false;
-    if (this.notifGranted) setTimeout(() => this.next(), 800);
   }
 
   goToLogin() { localStorage.setItem('welcomeSeen', 'true'); this.router.navigate(['/login']); }

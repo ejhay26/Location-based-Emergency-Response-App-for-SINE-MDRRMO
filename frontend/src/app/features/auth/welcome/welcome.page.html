@@ -7,12 +7,12 @@
     position: relative;
   ">
     <div style="
-      display: flex; width: 500%; height: 100%;
+      display: flex; width: 300%; height: 100%;
       transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    " [style.transform]="'translateX(-' + (currentSlide * 20) + '%)'">
+    " [style.transform]="'translateX(-' + (currentSlide * 33.3333) + '%)'">
 
       <!-- SLIDE 1: Welcome -->
-      <div style="width: 20%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 32px 28px; text-align: center;">
+      <div style="width: 33.3333%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 32px 28px; text-align: center;">
         <div style="width: 100px; height: 100px; background: rgba(255,255,255,0.15); border-radius: 28px; display: flex; align-items: center; justify-content: center; margin-bottom: 28px;">
           <img src="assets/icon/logo.jpg" style="width: 70px; height: 70px; object-fit: contain; border-radius: 16px;" alt="MDRRMO Logo" />
         </div>
@@ -32,74 +32,72 @@
         </div>
       </div>
 
-      <!-- SLIDE 2: Location -->
-      <div style="width: 20%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 32px 32px 32px; text-align: center;">
-        <div style="width: 100px; height: 100px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px;">
-          <i class="fa-solid fa-location-dot" style="font-size: 52px; color: white;"></i>
+      <!-- SLIDE 2: All Permissions -->
+      <div style="width: 33.3333%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px 32px 24px; text-align: center; overflow-y: auto;">
+        <div style="width: 84px; height: 84px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; flex-shrink: 0;">
+          <i class="fa-solid fa-shield-halved" style="font-size: 40px; color: white;"></i>
         </div>
-        <h2 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 800; color: white;">Location Access</h2>
-        <p style="margin: 0 0 32px 0; font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.7; max-width: 290px;">To show your position on the map and help responders find you quickly during an emergency.</p>
-        <button *ngIf="!locationGranted" (click)="requestLocation()" [disabled]="locationLoading"
-          style="background: white; color: var(--ion-color-danger); border: none; border-radius: 14px; padding: 14px 32px; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%; max-width: 300px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-height: 50px;">
-          <ng-container *ngIf="!locationLoading">
-            <i class="fa-solid fa-location-crosshairs"></i>
-            {{ locationRequested ? 'Permission Denied — Tap to Retry' : 'Allow Location Access' }}
-          </ng-container>
-          <span *ngIf="locationLoading" class="dot-loader"><span></span><span></span><span></span></span>
-        </button>
-        <div *ngIf="locationGranted" style="background: rgba(45,211,111,0.2); border: 2px solid #2dd36f; border-radius: 14px; padding: 14px 32px; width: 100%; max-width: 300px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-          <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 20px;"></i>
-          <span style="color: white; font-weight: 700; font-size: 15px;">Location Access Granted</span>
+        <h2 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 800; color: white;">App Permissions</h2>
+        <p style="margin: 0 0 26px 0; font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.6; max-width: 320px;">We use these to keep you safe and help responders find you. You can skip and enable them later in Settings.</p>
+
+        <div style="width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px;">
+
+          <!-- Location -->
+          <div style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px; text-align: left;">
+            <div style="width: 44px; height: 44px; flex-shrink: 0; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+              <i class="fa-solid fa-location-dot" style="font-size: 18px; color: white;"></i>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">Location</p>
+              <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">Show your position for faster response</p>
+            </div>
+            <button *ngIf="!locationGranted" (click)="requestLocation()" [disabled]="locationLoading"
+              style="background: white; color: var(--ion-color-danger); border: none; border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 800; cursor: pointer; flex-shrink: 0; min-width: 62px; min-height: 34px; display: flex; align-items: center; justify-content: center;">
+              <span *ngIf="!locationLoading">{{ locationRequested ? 'Retry' : 'Allow' }}</span>
+              <span *ngIf="locationLoading" class="dot-loader"><span></span><span></span><span></span></span>
+            </button>
+            <i *ngIf="locationGranted" class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 22px; flex-shrink: 0;"></i>
+          </div>
+
+          <!-- Camera -->
+          <div style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px; text-align: left;">
+            <div style="width: 44px; height: 44px; flex-shrink: 0; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+              <i class="fa-solid fa-camera" style="font-size: 18px; color: white;"></i>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">Camera</p>
+              <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">Attach photo or video proof to reports</p>
+            </div>
+            <button *ngIf="!cameraGranted" (click)="requestCamera()" [disabled]="cameraLoading"
+              style="background: white; color: var(--ion-color-danger); border: none; border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 800; cursor: pointer; flex-shrink: 0; min-width: 62px; min-height: 34px; display: flex; align-items: center; justify-content: center;">
+              <span *ngIf="!cameraLoading">{{ cameraRequested ? 'Retry' : 'Allow' }}</span>
+              <span *ngIf="cameraLoading" class="dot-loader"><span></span><span></span><span></span></span>
+            </button>
+            <i *ngIf="cameraGranted" class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 22px; flex-shrink: 0;"></i>
+          </div>
+
+          <!-- Notifications -->
+          <div style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px; text-align: left;">
+            <div style="width: 44px; height: 44px; flex-shrink: 0; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+              <i class="fa-solid fa-bell" style="font-size: 18px; color: white;"></i>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">Notifications</p>
+              <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">Get alerted on dispatch and MDRRMO broadcasts</p>
+            </div>
+            <button *ngIf="!notifGranted" (click)="requestNotifications()" [disabled]="notifLoading"
+              style="background: white; color: var(--ion-color-danger); border: none; border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 800; cursor: pointer; flex-shrink: 0; min-width: 62px; min-height: 34px; display: flex; align-items: center; justify-content: center;">
+              <span *ngIf="!notifLoading">{{ notifRequested ? 'Retry' : 'Allow' }}</span>
+              <span *ngIf="notifLoading" class="dot-loader"><span></span><span></span><span></span></span>
+            </button>
+            <i *ngIf="notifGranted" class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 22px; flex-shrink: 0;"></i>
+          </div>
+
         </div>
-        <p style="margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.45);">You can skip this and grant it later in Settings.</p>
       </div>
 
-      <!-- SLIDE 3: Camera -->
-      <div style="width: 20%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 32px 32px 32px; text-align: center;">
-        <div style="width: 100px; height: 100px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px;">
-          <i class="fa-solid fa-camera" style="font-size: 52px; color: white;"></i>
-        </div>
-        <h2 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 800; color: white;">Camera Access</h2>
-        <p style="margin: 0 0 32px 0; font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.7; max-width: 290px;">To capture photos and videos as proof when reporting emergencies or road hazards.</p>
-        <button *ngIf="!cameraGranted" (click)="requestCamera()" [disabled]="cameraLoading"
-          style="background: white; color: var(--ion-color-danger); border: none; border-radius: 14px; padding: 14px 32px; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%; max-width: 300px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-height: 50px;">
-          <ng-container *ngIf="!cameraLoading">
-            <i class="fa-solid fa-camera"></i>
-            {{ cameraRequested ? 'Permission Denied — Tap to Retry' : 'Allow Camera Access' }}
-          </ng-container>
-          <span *ngIf="cameraLoading" class="dot-loader"><span></span><span></span><span></span></span>
-        </button>
-        <div *ngIf="cameraGranted" style="background: rgba(45,211,111,0.2); border: 2px solid #2dd36f; border-radius: 14px; padding: 14px 32px; width: 100%; max-width: 300px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-          <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 20px;"></i>
-          <span style="color: white; font-weight: 700; font-size: 15px;">Camera Access Granted</span>
-        </div>
-        <p style="margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.45);">You can skip this and grant it later in Settings.</p>
-      </div>
-
-      <!-- SLIDE 4: Notifications -->
-      <div style="width: 20%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 32px 32px 32px; text-align: center;">
-        <div style="width: 100px; height: 100px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px;">
-          <i class="fa-solid fa-bell" style="font-size: 52px; color: white;"></i>
-        </div>
-        <h2 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 800; color: white;">Notifications</h2>
-        <p style="margin: 0 0 32px 0; font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.7; max-width: 290px;">Get notified when responders are dispatched to your location or when the MDRRMO sends an emergency alert.</p>
-        <button *ngIf="!notifGranted" (click)="requestNotifications()" [disabled]="notifLoading"
-          style="background: white; color: var(--ion-color-danger); border: none; border-radius: 14px; padding: 14px 32px; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%; max-width: 300px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-height: 50px;">
-          <ng-container *ngIf="!notifLoading">
-            <i class="fa-solid fa-bell"></i>
-            {{ notifRequested ? 'Permission Denied — Tap to Retry' : 'Allow Notifications' }}
-          </ng-container>
-          <span *ngIf="notifLoading" class="dot-loader"><span></span><span></span><span></span></span>
-        </button>
-        <div *ngIf="notifGranted" style="background: rgba(45,211,111,0.2); border: 2px solid #2dd36f; border-radius: 14px; padding: 14px 32px; width: 100%; max-width: 300px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-          <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 20px;"></i>
-          <span style="color: white; font-weight: 700; font-size: 15px;">Notifications Enabled</span>
-        </div>
-        <p style="margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.45);">You can skip this and enable it later in Settings.</p>
-      </div>
-
-      <!-- SLIDE 5: Get Started -->
-      <div style="width: 20%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 32px 28px; text-align: center;">
+      <!-- SLIDE 3: Get Started -->
+      <div style="width: 33.3333%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 32px 28px; text-align: center;">
         <div style="width: 100px; height: 100px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px;">
           <img src="assets/icon/logo.jpg" style="width: 70px; height: 70px; object-fit: contain; border-radius: 16px;" alt="MDRRMO Logo" />
         </div>
@@ -120,7 +118,7 @@
     <!-- Bottom nav -->
     <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 28px 36px 28px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
       <div *ngIf="currentSlide > 0" style="display: flex; gap: 8px; align-items: center;">
-        <div *ngFor="let s of [0,1,2,3,4]; let i = index" (click)="goToSlide(i)"
+        <div *ngFor="let s of slideIndices; let i = index" (click)="goToSlide(i)"
              [style.width]="i === currentSlide ? '24px' : '8px'"
              [style.background]="i === currentSlide ? 'white' : 'rgba(255,255,255,0.4)'"
              style="height: 8px; border-radius: 4px; cursor: pointer; transition: all 0.3s;"></div>
