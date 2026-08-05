@@ -37,7 +37,8 @@ Base path: `/api`. All endpoints below require `auth:sanctum` **and** the `admin
 |---|---|---|---|
 | `POST` | `/update-profile-picture` | `ProfileController@updateProfilePicture` | |
 | `POST` | `/update-medical-profile` | `ProfileController@updateMedicalProfile` | "Golden Minute" data — blood type, allergies, conditions, PWD status |
-| `POST` | `/save-push-token` | `ProfileController@savePushToken` | Registers an FCM device token |
+| `POST` | `/save-push-token` | `ProfileController@savePushToken` | Registers an FCM device token — called from the Profile page once push permission is granted |
+| `POST` | `/delete-push-token` | `ProfileController@deletePushToken` | Removes the device's token — called on logout so a signed-out device stops receiving pushes |
 | `GET` | `/settings/{user_id}` | `UserSettingsController@get` | |
 | `POST` | `/settings` | `UserSettingsController@set` | |
 
