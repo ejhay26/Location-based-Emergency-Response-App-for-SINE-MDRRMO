@@ -24,7 +24,7 @@ Three roles: **citizen**, **dispatcher**, **admin** (the `role` column on `users
 
 This is enforced in two places:
 
-1. **Backend — Sanctum token abilities.** When someone logs in, they get a token with abilities matching their role. Admin tokens carry `['admin', 'dispatcher', 'citizen']`; dispatcher tokens carry `['dispatcher', 'citizen']`; citizen tokens carry `['citizen']`. Routes in `routes/api.php` are locked behind `->middleware('ability:admin')` or `->middleware('ability:dispatcher')`, so an admin can still reach dispatcher routes, but a dispatcher can't reach admin-only ones. Full details in [Security Model](./security.md).
+1. **Backend — Sanctum token abilities.** When someone logs in, they get a token with abilities matching their role. Admin tokens carry `['admin', 'dispatcher', 'citizen']`; dispatcher tokens carry `['dispatcher']` only; citizen tokens carry `['citizen']`. Routes in `routes/api.php` are locked behind `->middleware('ability:admin')` or `->middleware('ability:dispatcher')`, so an admin can still reach dispatcher routes, but a dispatcher can't reach admin-only ones. Full details in [Security Model](./security.md).
 2. **Frontend — route guards.** `core/guards/auth-guard.ts` and `core/guards/guest-guard.ts` block navigation based on login state and role, so someone without access never even sees a restricted page. This is just for a smoother experience though — the backend checks above are what actually keeps things secure.
 
 <details>
@@ -75,6 +75,7 @@ Angular 20 **standalone components** are used throughout — no `NgModule` decla
 ## A Few Design Choices Worth Knowing
 
 - **Sanctum tokens instead of sessions** — since the frontend runs as a mobile app and a desktop app, with no browser-based version, a bearer token fits better across both than cookie-based sessions.
+- **Locked accounts for new citizen registrations** — a new citizen can't log in until an admin approves their submitted ID (see [Security Model](./security.md#new-accounts-start-locked-pending-verification)); they land on a dedicated Pending Verification screen instead of the app itself.
 - **Real boundary shapes, not a bounding box** — the map uses actual GeoJSON polygons of San Isidro's borders (checked with a ray-casting method) to keep pins and the camera view inside the town, instead of a rough rectangle.
 - **Polling instead of WebSockets** — the dashboard checks the API for new emergencies/hazards/broadcasts on a timer instead of keeping a live socket open. A little slower, but much simpler to run — which matters given the AWS free-tier deployment target (see [Production Deployment](../deployment/production.md)).
 - **`[hidden]` instead of `*ngIf` for the Leaflet map** — avoids a Leaflet bug where the map goes blank if its container gets destroyed and rebuilt by Angular when switching tabs.
