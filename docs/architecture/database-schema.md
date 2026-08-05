@@ -117,7 +117,7 @@ erDiagram
 | `email` | `varchar` | |
 | `password` | `varchar` | bcrypt hash |
 | `role` | `enum('citizen','dispatcher','admin')` | default `citizen` |
-| `account_status` | `enum('active','banned')` | default `active` |
+| `account_status` | `enum('unverified','active','banned')` | default `active`; new citizen registrations are created as `unverified` explicitly (see `AuthController::register()`) and stay locked out of login until an admin approves them |
 | `barangay_id` | `int` FK → `barangays.barangay_id` | |
 | `valid_id_proof`, `valid_id_type`, `selfie_with_id_proof` | `varchar` | ID check during registration |
 | `blood_type`, `allergies`, `medical_conditions`, `pwd_status` | `varchar`/`text` | "Golden Minute" medical profile, attached to SOS |
