@@ -57,9 +57,19 @@ The app has two sides:
 - **Smart Unit Assignment** — dropdowns that link each responder (Fire, Police, Rescue, RHU) to their assigned vehicle, so dispatchers can't pick a mismatched pair.
 - **"Golden Minute" Medical Profile** — citizens can save blood type, allergies, and PWD status ahead of time, so it's attached automatically when they send an SOS.
 - **Hazard Reporting** — residents can report road hazards (floods, fallen trees, etc.) with photo proof, so dispatchers can route around them.
-- **Public Broadcast Alerts** — the Master Admin can push an alert banner to every citizen's dashboard, e.g. for severe weather.
+- **Barangay-Targeted Broadcast Alerts** — the Master Admin can push an alert banner either town-wide or to specific barangays, and citizens only see alerts that apply to them (town-wide + their own barangay).
 - **OTP-Based Password Recovery & Changes** — a one-time-code flow over email, required even for changing your password while already logged in.
 - **Analytics Dashboard** — filterable emergency trends (7/30/90 days) with charts you can click into for details.
+- **Search & Filter Everywhere** — every admin list (Citizens, Dispatchers, ID Verifications, Log Archive, Analytics) supports search plus a shared date-range filter (single day / several days / a range), with a summary bar showing which filters are active.
+- **Guided Onboarding Tour** — a first-run walkthrough overlay for new users.
+
+## User Guides
+
+| Guide | For |
+|---|---|
+| [Citizen Guide](./docs/guides/citizen-guide.md) | Registering, logging in, sending an SOS, reporting hazards, settings |
+| [Dispatcher Guide](./docs/guides/dispatcher-guide.md) | Dispatching responders, log archive, analytics, broadcasts |
+| [Admin Guide](./docs/guides/admin-guide.md) | ID verification, managing citizens/dispatchers, feedback |
 
 ## Documentation
 
@@ -81,7 +91,7 @@ The app has two sides:
 ## What's Next
 
 1. **Offline Support** — queue SOS requests on the device during an outage and send them automatically once back online.
-2. **Push Notifications** — Firebase Cloud Messaging alerts when a responder is on the way.
+2. **Dispatch-Status Push Notifications** — Firebase alerts when a responder is on the way (push infra already exists and powers broadcast alerts; this would extend it to per-dispatch updates).
 
 ## License
 
