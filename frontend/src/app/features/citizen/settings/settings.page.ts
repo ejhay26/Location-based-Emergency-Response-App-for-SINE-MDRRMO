@@ -7,6 +7,7 @@ import {
 } from '@ionic/angular/standalone';
 import { UserSettingsService, SettingKey } from '../../../core/services/user-settings';
 import { LocationService } from '../../../core/services/location';
+import { TourService } from '../../../core/services/tour';
 
 interface SettingToggle { key: SettingKey; label: string; hint: (val: boolean) => string; value: boolean; }
 interface SettingSelect { key: SettingKey; label: string; hint: string; value: string; options: { value: string; label: string }[]; }
@@ -41,7 +42,7 @@ export class SettingsPage implements OnInit {
     { key: 'save_media_to_device', label: 'Save Captured Media to Device', hint: v => v ? 'Photos and videos captured while reporting will be saved to your device gallery.' : 'Captured media is used only for the report and not saved to your device.', value: false }
   ];
 
-  constructor(private settings: UserSettingsService, private locationSvc: LocationService) {}
+  constructor(private settings: UserSettingsService, private locationSvc: LocationService, public tour: TourService) {}
 
   ngOnInit() {
     this.appearance.forEach(s => s.value = this.settings.getBool(s.key));
