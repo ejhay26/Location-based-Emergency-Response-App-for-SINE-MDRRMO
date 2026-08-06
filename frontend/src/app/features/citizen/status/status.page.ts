@@ -7,6 +7,7 @@ import {
   IonLabel, IonBadge, IonRefresher, IonRefresherContent, IonSkeletonText, IonList
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
+import { TourService } from '../../../core/services/tour';
 
 type DateFilter = 'all' | 'week' | 'month';
 
@@ -25,7 +26,7 @@ export class StatusPage {
   isLoading = false;
   dateFilter: DateFilter = 'all';
 
-  constructor(private api: ApiService, private toastCtrl: ToastController, private router: Router) {}
+  constructor(private api: ApiService, private toastCtrl: ToastController, private router: Router, public tour: TourService) {}
 
   ngOnInit() { this.load(); }
 
