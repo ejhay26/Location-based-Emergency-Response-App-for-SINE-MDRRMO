@@ -215,7 +215,10 @@ export class TourService {
     this.applyStep();
   }
 
-  cancel()       { this.isActive.set(false); this.targetId.set(''); this.stepIndex.set(0); }
+  // User explicitly exited mid-tour — treat this the same as finishing: don't nag them again.
+  cancel()       { this.isActive.set(false); this.targetId.set(''); this.stepIndex.set(0); this.markSeen(); }
+  // Tour was interrupted by unrelated navigation (not a deliberate exit) — don't mark as seen,
+  // so it can still be resumed/prompted normally later.
   cancelSilent() { this.isActive.set(false); this.targetId.set(''); this.stepIndex.set(0); }
 
   finish() {
