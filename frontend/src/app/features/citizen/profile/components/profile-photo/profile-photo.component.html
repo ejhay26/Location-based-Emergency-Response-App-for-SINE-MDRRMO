@@ -1,7 +1,7 @@
 <input id="profileGalleryInput" type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" (change)="onPhotoFileSelected($event)" />
 <input id="profileCameraInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none;" (change)="onPhotoFileSelected($event)" />
 
-<div class="ion-text-center ion-margin-vertical">
+<div id="tour-avatar-area" [class.tour-highlight]="tour.targetId() === 'tour-avatar-area'" class="ion-text-center ion-margin-vertical">
   <div style="width:120px;height:120px;margin:0 auto;border-radius:50%;overflow:hidden;border:4px solid var(--ion-color-danger);background:var(--ion-color-light);display:flex;align-items:center;justify-content:center;">
     <img *ngIf="resolvedAvatarUrl" [src]="resolvedAvatarUrl" style="width:100%;height:100%;object-fit:cover;" />
     <i *ngIf="!resolvedAvatarUrl" class="fa-solid fa-circle-user" style="font-size:80px;color:var(--ion-color-medium);"></i>

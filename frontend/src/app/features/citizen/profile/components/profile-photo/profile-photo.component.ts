@@ -4,6 +4,7 @@ import { IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonCo
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { ApiService } from '../../../../../core/services/api';
 import { ImageCacheService } from '../../../../../core/services/image-cache';
+import { TourService } from '../../../../../core/services/tour';
 import { ToastRequest } from '../profile-shared-types';
 
 /**
@@ -22,6 +23,7 @@ export class ProfilePhotoComponent implements OnChanges {
   private api        = inject(ApiService);
   private alertCtrl  = inject(AlertController);
   private imageCache = inject(ImageCacheService);
+  public  tour        = inject(TourService);
 
   @Input() profilePicturePath: string | null | undefined = null;
   @Input() userId: number | null = null;
