@@ -1,4 +1,4 @@
-<ion-card color="light" style="margin:10px 0 0 0;">
+<ion-card id="tour-medical-section" [class.tour-highlight]="tour.targetId() === 'tour-medical-section'" color="light" style="margin:10px 0 0 0;">
   <ion-card-content>
     <p style="margin-bottom:15px;color:var(--ion-color-medium);font-weight:500;font-size:13px;">Optional — helps responders prepare before arriving at your location.</p>
     <ion-item class="ion-margin-bottom" fill="outline"><ion-select label="Blood Type" labelPlacement="stacked" placeholder="Tap to select your blood type" [(ngModel)]="formData.blood_type"><ion-select-option value="A+">A+</ion-select-option><ion-select-option value="A-">A-</ion-select-option><ion-select-option value="B+">B+</ion-select-option><ion-select-option value="B-">B-</ion-select-option><ion-select-option value="AB+">AB+</ion-select-option><ion-select-option value="AB-">AB-</ion-select-option><ion-select-option value="O+">O+</ion-select-option><ion-select-option value="O-">O-</ion-select-option></ion-select></ion-item>

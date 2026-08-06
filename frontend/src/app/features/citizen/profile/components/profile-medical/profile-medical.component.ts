@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonItem, IonSelect, IonSelectOption, IonInput, IonButton, IonCard, IonCardContent } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
+import { TourService } from '../../../../../core/services/tour';
 import { ToastRequest } from '../profile-shared-types';
 
 export interface MedicalData {
@@ -27,6 +28,7 @@ export interface MedicalData {
 })
 export class ProfileMedicalComponent {
   private api = inject(ApiService);
+  public  tour = inject(TourService);
 
   @Input() userId: number | null = null;
 
