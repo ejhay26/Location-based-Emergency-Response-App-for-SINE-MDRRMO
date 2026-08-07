@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MenuController, AlertController } from '@ionic/angular';
+import { MenuController } from '@ionic/angular';
 import { IonContent, IonItem, IonLabel, IonToggle } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api';
@@ -8,7 +8,6 @@ import { UserSettingsService } from '../../../core/services/user-settings';
 import { TourService } from '../../../core/services/tour';
 import { PushNotificationsService } from '../../../core/services/push-notifications';
 import { AdminUiService } from './admin-ui.service';
-import { ProxyImageDirective } from '../../../shared/directives/proxy-image.directive';
 
 import { IncidentMapPanel } from './panels/incident-map/incident-map.panel';
 import { AnalyticsPanel } from './panels/analytics/analytics.panel';
@@ -25,11 +24,12 @@ type ViewMode =
 
 /**
  * AdminDashboardPage — thin shell. Owns the sidebar nav, dark mode toggle,
- * logout, and the ONE shared media lightbox + confirm dialog (driven by
- * AdminUiService's signals). Everything else is a panel that loads and
- * manages its own state; switching viewMode mounts/unmounts the relevant
- * panel component via *ngIf, matching how each panel's own OnInit/OnDestroy
- * was already written.
+ * and logout. The confirm dialog and media lightbox are now rendered once
+ * at the true app root (<app-dialogs>, fed by the shared DialogService) —
+ * this page just triggers them via AdminUiService the same way every panel
+ * does. Everything else is a panel that loads and manages its own state;
+ * switching viewMode mounts/unmounts the relevant panel component via
+ * *ngIf, matching how each panel's own OnInit/OnDestroy was already written.
  */
 @Component({
   selector: 'app-admin-dashboard',
@@ -38,7 +38,6 @@ type ViewMode =
   imports: [
     CommonModule,
     IonContent, IonItem, IonLabel, IonToggle,
-    ProxyImageDirective,
     IncidentMapPanel, AnalyticsPanel, LogArchivePanel, BroadcastPanel,
     VerificationsPanel, DispatchersPanel, CitizensPanel, FeedbackPanel,
   ],
@@ -59,7 +58,6 @@ export class AdminDashboardPage implements OnInit {
     private router: Router,
     public  api: ApiService,
     private menuCtrl: MenuController,
-    private alertCtrl: AlertController,
     private userSettings: UserSettingsService,
     private tour: TourService,
     private pushNotifications: PushNotificationsService,
@@ -108,21 +106,19 @@ export class AdminDashboardPage implements OnInit {
     document.documentElement.classList.toggle('ion-palette-dark', event.detail.checked);
   }
 
-  async logout() {
-    const alert = await this.alertCtrl.create({
-      header: 'Logout', message: 'Are you sure you want to logout?',
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        { text: 'Logout', role: 'destructive', handler: () => {
-          this.pushNotifications.unregisterPush();
-          this.api.logout().subscribe({ error: () => {} });
-          this.api.clearToken();
-          this.userSettings.clear();
-          localStorage.clear();
-          this.router.navigate(['/login']);
-        }}
-      ]
+  logout() {
+    this.ui.showConfirm({
+      title: 'Logout', message: 'Are you sure you want to logout?',
+      icon: 'fa-solid fa-right-from-bracket', iconColor: 'var(--ion-color-danger)',
+      confirmLabel: 'Logout', confirmColor: 'var(--ion-color-danger)',
+      action: () => {
+        this.pushNotifications.unregisterPush();
+        this.api.logout().subscribe({ error: () => {} });
+        this.api.clearToken();
+        this.userSettings.clear();
+        localStorage.clear();
+        this.router.navigate(['/login']);
+      },
     });
-    await alert.present();
   }
 }

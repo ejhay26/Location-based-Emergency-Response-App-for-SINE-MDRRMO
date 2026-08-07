@@ -65,31 +65,4 @@
 
   </div><!-- end outer flex row -->
 
-  <!-- ── SHARED CONFIRM DIALOG (AdminUiService) ── -->
-  <div *ngIf="ui.confirmDialog().open" class="c-overlay" style="z-index: 99999;">
-    <div class="c-overlay-bg" (click)="ui.closeConfirm()"></div>
-    <div class="c-panel" style="width: min(400px, 90vw); border-radius: 22px; overflow: hidden;">
-      <div style="padding: 32px 28px; text-align: center;">
-        <div style="width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;" [style.background]="ui.confirmDialog().iconColor + '18'"><i [class]="ui.confirmDialog().icon" style="font-size: 26px;" [style.color]="ui.confirmDialog().iconColor"></i></div>
-        <h3 style="margin: 0 0 10px 0; font-weight: bold; font-size: 19px; color: var(--ion-text-color);">{{ ui.confirmDialog().title }}</h3>
-        <p style="margin: 0 0 28px 0; font-size: 14px; color: gray; line-height: 1.5;">{{ ui.confirmDialog().message }}</p>
-        <div style="display: flex; gap: 10px;">
-          <button (click)="ui.closeConfirm()" style="flex: 1; padding: 14px; background: var(--ion-color-light); border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; color: var(--ion-text-color);">Cancel</button>
-          <button (click)="ui.runConfirm()" style="flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; color: white;" [style.background]="ui.confirmDialog().confirmColor">{{ ui.confirmDialog().confirmLabel }}</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── SHARED MEDIA LIGHTBOX (AdminUiService) ── -->
-  <div *ngIf="ui.lightboxOpen()" class="lightbox-overlay" (click)="ui.closeLightbox()">
-    <button class="lightbox-close" (click)="ui.closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
-    <video *ngIf="ui.lightboxIsVideo()" class="lightbox-video"
-           [proxySrc]="ui.lightboxUrl()" controls autoplay playsinline
-           (click)="$event.stopPropagation()">
-    </video>
-    <img *ngIf="!ui.lightboxIsVideo()" class="lightbox-img"
-         [proxySrc]="ui.lightboxUrl()" (click)="$event.stopPropagation()" />
-  </div>
-
 </ion-content>
