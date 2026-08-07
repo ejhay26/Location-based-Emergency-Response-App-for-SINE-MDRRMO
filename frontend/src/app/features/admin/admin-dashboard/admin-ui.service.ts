@@ -1,63 +1,41 @@
 import { Injectable } from '@angular/core';
-import { signal } from '@angular/core';
 import { ToastController } from '@ionic/angular';
 import { ApiService } from '../../../core/services/api';
+import { DialogService, ConfirmDialogConfig } from '../../../core/services/dialog.service';
 import { BARANGAYS } from '../../../shared/constants/barangays';
 
-export interface ConfirmDialogConfig {
-  title: string;
-  message: string;
-  icon: string;
-  iconColor: string;
-  confirmLabel: string;
-  confirmColor: string;
-  action: () => void;
-}
+export type { ConfirmDialogConfig };
 
 /**
  * AdminUiService — cross-cutting UI concerns shared by every admin-dashboard
  * panel: the media lightbox, the confirm dialog, toasts, and the storage
  * proxy-URL / file-type helpers used throughout the old monolithic page.
  *
- * One instance, one lightbox, one confirm dialog — panels call these methods
- * instead of each owning a duplicate overlay.
+ * The confirm dialog and lightbox delegate to the app-wide DialogService
+ * (rendered once by <app-dialogs> at the true app root) so admin shares the
+ * exact same dialog implementation as the citizen and auth screens, rather
+ * than owning a second copy. Panels' call sites (`ui.showConfirm({...})`,
+ * `ui.openLightbox(...)`) are unchanged — only what backs them moved.
  */
 @Injectable({ providedIn: 'root' })
 export class AdminUiService {
 
-  constructor(private toastController: ToastController, private api: ApiService) {}
+  constructor(private toastController: ToastController, private api: ApiService, private dialog: DialogService) {}
 
-  // ── Media lightbox ──────────────────────────────────────────────────────
-  lightboxOpen    = signal(false);
-  lightboxUrl     = signal('');
-  lightboxIsVideo = signal(false);
+  // ── Media lightbox (delegates to DialogService) ──────────────────────────
+  get lightboxOpen()    { return this.dialog.lightboxOpen; }
+  get lightboxUrl()     { return this.dialog.lightboxUrl; }
+  get lightboxIsVideo() { return this.dialog.lightboxIsVideo; }
 
-  openLightbox(url: string, isVideo: boolean) {
-    this.lightboxUrl.set(url);
-    this.lightboxIsVideo.set(isVideo);
-    this.lightboxOpen.set(true);
-  }
-  closeLightbox() {
-    this.lightboxOpen.set(false);
-    this.lightboxUrl.set('');
-    this.lightboxIsVideo.set(false);
-  }
+  openLightbox(url: string, isVideo: boolean) { this.dialog.openLightbox(url, isVideo); }
+  closeLightbox() { this.dialog.closeLightbox(); }
 
-  // ── Confirm dialog ───────────────────────────────────────────────────────
-  confirmDialog = signal<ConfirmDialogConfig & { open: boolean }>({
-    open: false, title: '', message: '', icon: '', iconColor: '', confirmLabel: '', confirmColor: '', action: () => {}
-  });
-
-  showConfirm(cfg: ConfirmDialogConfig) {
-    this.confirmDialog.set({ open: true, ...cfg });
+  // ── Confirm dialog (delegates to DialogService, action-callback flavor) ──
+  showConfirm(cfg: ConfirmDialogConfig & { action: () => void }) {
+    this.dialog.confirm(cfg).then(confirmed => { if (confirmed) cfg.action(); });
   }
-  runConfirm() {
-    this.confirmDialog().action();
-    this.confirmDialog.update(d => ({ ...d, open: false }));
-  }
-  closeConfirm() {
-    this.confirmDialog.update(d => ({ ...d, open: false }));
-  }
+  runConfirm()   { this.dialog.runConfirm(); }
+  closeConfirm() { this.dialog.closeConfirm(); }
 
   // ── Toast ────────────────────────────────────────────────────────────────
   async showToast(msg: string, color = 'danger') {
