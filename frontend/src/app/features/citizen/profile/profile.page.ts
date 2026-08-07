@@ -2,10 +2,11 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonList, IonListHeader,
-  IonLabel, IonItem, IonToast, AlertController,
+  IonLabel, IonItem, IonToast,
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api';
+import { DialogService } from '../../../core/services/dialog.service';
 import { UserSettingsService } from '../../../core/services/user-settings';
 import { LocationService } from '../../../core/services/location';
 import { ImageCacheService } from '../../../core/services/image-cache';
@@ -29,7 +30,7 @@ import { ToastRequest } from './components/profile-shared-types';
 export class ProfilePage implements OnInit, OnDestroy {
 
   private api        = inject(ApiService);
-  private alertCtrl  = inject(AlertController);
+  private dialog     = inject(DialogService);
   private router     = inject(Router);
   private settings   = inject(UserSettingsService);
   private locationSvc = inject(LocationService);
@@ -100,21 +101,18 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   async logout() {
-    const alert = await this.alertCtrl.create({
-      header: 'Logout', message: 'Are you sure you want to log out?',
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        { text: 'Logout', role: 'confirm', cssClass: 'alert-button-danger', handler: () => {
-          this.pushNotifications.unregisterPush();
-          this.api.logout().subscribe({ error: () => {} });
-          this.locationSvc.stop(); this.api.clearToken(); this.imageCache.clear(); this.settings.clear();
-          localStorage.removeItem('user'); localStorage.removeItem('role');
-          document.documentElement.classList.remove('ion-palette-dark');
-          this.router.navigate(['/login']);
-        }}
-      ]
+    const confirmed = await this.dialog.confirm({
+      title: 'Logout', message: 'Are you sure you want to log out?',
+      icon: 'fa-solid fa-right-from-bracket', iconColor: 'var(--ion-color-danger)',
+      confirmLabel: 'Logout', confirmColor: 'var(--ion-color-danger)',
     });
-    await alert.present();
+    if (!confirmed) return;
+    this.pushNotifications.unregisterPush();
+    this.api.logout().subscribe({ error: () => {} });
+    this.locationSvc.stop(); this.api.clearToken(); this.imageCache.clear(); this.settings.clear();
+    localStorage.removeItem('user'); localStorage.removeItem('role');
+    document.documentElement.classList.remove('ion-palette-dark');
+    this.router.navigate(['/login']);
   }
 
   calculateAge(birthdateStr: string) {
