@@ -5,9 +5,10 @@ import { Router, ActivatedRoute } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonCard,
   IonCardContent, IonItem, IonButton, IonInput, IonBackButton, IonButtons,
-  ToastController, AlertController, IonTextarea, IonRow, IonCol
+  ToastController, IonTextarea, IonRow, IonCol
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
+import { DialogService } from '../../../core/services/dialog.service';
 import { TourService } from '../../../core/services/tour';
 import { ReportTypeSelectorComponent } from './components/report-type-selector/report-type-selector.component';
 import { ReportMapComponent, ReportCoords } from './components/report-map/report-map.component';
@@ -29,7 +30,7 @@ export class ReportPage implements OnDestroy {
   private router      = inject(Router);
   private route       = inject(ActivatedRoute);
   private toastCtrl   = inject(ToastController);
-  private alertCtrl   = inject(AlertController);
+  private dialog      = inject(DialogService);
   private api         = inject(ApiService);
   public  tour        = inject(TourService);
 
@@ -91,11 +92,11 @@ export class ReportPage implements OnDestroy {
     if (!this.isFormReady) { this.showToast('Please fill out all required fields.', 'warning'); return; }
     const label = this.reportType === 'emergency' ? 'Send Emergency SOS' : 'Submit Hazard Report';
     const msg   = this.reportType === 'emergency' ? 'Only submit for real emergencies. False reports are legally actionable.' : 'Are you sure you want to submit this hazard report?';
-    const confirmed = await new Promise<boolean>(resolve => {
-      this.alertCtrl.create({
-        header: label, message: msg,
-        buttons: [{ text: 'Cancel', role: 'cancel', handler: () => resolve(false) }, { text: 'Confirm', role: 'destructive', handler: () => resolve(true) }]
-      }).then(a => { a.present(); a.onDidDismiss().then(r => resolve(r.role === 'destructive')); });
+    const confirmed = await this.dialog.confirm({
+      title: label, message: msg,
+      icon: this.reportType === 'emergency' ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-road-barrier',
+      iconColor: 'var(--ion-color-danger)',
+      confirmLabel: 'Confirm', confirmColor: 'var(--ion-color-danger)',
     });
     if (!confirmed) return;
     this.isSubmitting = true;
