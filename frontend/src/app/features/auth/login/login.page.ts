@@ -156,17 +156,19 @@ export class LoginPage {
     localStorage.setItem('role', res.role);
     this.settings.loadFromServer(res.user.user_id).then(() => {
       this.locationSvc.start();
+      const isCitizen = res.role !== 'admin' && res.role !== 'dispatcher';
+      // First-login citizens (server-persisted flag, not device localStorage)
+      // go through the Account Setup flow first; it offers the tour itself
+      // at its final step, so the old promptStart() alert is no longer
+      // fired from here.
+      const needsSetup = isCitizen && !res.user.setup_completed;
       const target = (res.role === 'admin' || res.role === 'dispatcher')
-        ? '/admin-dashboard' : '/tabs/home';
+        ? '/admin-dashboard'
+        : (needsSetup ? '/account-setup' : '/tabs/home');
       this.router.navigate([target]).then(() => {
         requestAnimationFrame(() => { this.settings.applyToDom(); });
-        if (res.role !== 'admin' && res.role !== 'dispatcher') {
+        if (isCitizen) {
           this.pushNotificationsService.registerPush(res.user.user_id);
-          // First real login is the earliest point a citizen is actually
-          // inside the authenticated app (registration no longer lands
-          // here directly — see the Pending Verification screen), so this
-          // is where the first-run tour prompt now belongs.
-          if (!this.tour.hasSeenTour()) setTimeout(() => this.tour.promptStart(), 600);
         }
       });
     });
