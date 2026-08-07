@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/send-password-change-otp',   [PasswordController::class, 'sendPasswordChangeOtp']);
     Route::post('/verify-password-change-otp', [PasswordController::class, 'verifyPasswordChangeOtp']);
     Route::post('/update-medical-profile',     [ProfileController::class, 'updateMedicalProfile']);
+    Route::post('/complete-account-setup',     [ProfileController::class, 'completeAccountSetup']);
 
     // Settings
     Route::get('/settings/{user_id}', [UserSettingsController::class, 'get']);
