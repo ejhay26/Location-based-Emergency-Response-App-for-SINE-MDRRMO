@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
-import { TourOverlayComponent } from './shared/components/index';
+import { TourOverlayComponent, AppDialogsComponent } from './shared/components/index';
 import { UserSettingsService } from './core/services/user-settings';
 import { LocationService } from './core/services/location';
 
@@ -8,7 +8,7 @@ import { LocationService } from './core/services/location';
   selector: 'app-root',
   templateUrl: 'app.component.html',
   standalone: true,
-  imports: [IonApp, IonRouterOutlet, TourOverlayComponent],
+  imports: [IonApp, IonRouterOutlet, TourOverlayComponent, AppDialogsComponent],
 })
 export class AppComponent implements OnInit {
   constructor(
