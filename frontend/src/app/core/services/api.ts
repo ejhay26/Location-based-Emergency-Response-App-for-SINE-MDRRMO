@@ -81,6 +81,7 @@ export class ApiService {
   verifyPasswordChangeOtp(data: any): Observable<any> { return this.http.post(`${this.url}/verify-password-change-otp`, data, this.opts(true)); }
   updatePassword(data: any): Observable<any>          { return this.http.post(`${this.url}/update-password`, data, this.opts(true)); }
   updateMedicalProfile(data: any): Observable<any>    { return this.http.post(`${this.url}/update-medical-profile`, data, this.opts(true)); }
+  completeAccountSetup(userId: number): Observable<any> { return this.http.post(`${this.url}/complete-account-setup`, { user_id: userId }, this.opts(true)); }
 
   // Settings
   getSettings(userId: number): Observable<any>    { return this.http.get(`${this.url}/settings/${userId}`, this.opts(true)); }
