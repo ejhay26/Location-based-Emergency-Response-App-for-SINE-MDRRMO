@@ -51,6 +51,12 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'account-setup',
+    loadComponent: () => import('./features/auth/account-setup/account-setup.page').then(m => m.AccountSetupPage),
+    canActivate: [AuthGuard],
+    data: { roles: ['citizen'] },
+  },
+  {
     path: 'report',
     loadComponent: () => import('./features/citizen/index').then(m => m.ReportPage),
     canActivate: [AuthGuard],
