@@ -1,5 +1,12 @@
 import { Injectable, signal } from '@angular/core';
 
+/** One label/value row shown in a confirm dialog's optional details summary (e.g. "Type: Fire", "Photos: 2"). */
+export interface ConfirmDialogDetail {
+  label: string;
+  value: string;
+  icon?: string;
+}
+
 /** Configuration for a themed confirm dialog (shared app-wide — citizen, auth, and admin). */
 export interface ConfirmDialogConfig {
   title: string;
@@ -9,13 +16,15 @@ export interface ConfirmDialogConfig {
   confirmLabel: string;
   confirmColor: string;
   cancelLabel?: string;
+  /** Optional "here's what you're about to submit" summary rows, rendered between the message and the action buttons. */
+  details?: ConfirmDialogDetail[];
 }
 
 type ConfirmDialogState = ConfirmDialogConfig & { open: boolean };
 
 const CLOSED_STATE: ConfirmDialogState = {
   open: false, title: '', message: '', icon: '', iconColor: '',
-  confirmLabel: '', confirmColor: '', cancelLabel: 'Cancel',
+  confirmLabel: '', confirmColor: '', cancelLabel: 'Cancel', details: undefined,
 };
 
 /**
