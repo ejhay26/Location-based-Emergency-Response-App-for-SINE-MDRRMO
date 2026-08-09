@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 06, 2026 at 10:15 AM
+-- Generation Time: Aug 08, 2026 at 09:59 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -157,7 +157,8 @@ INSERT INTO `device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`)
 (18, 1, 'cJPBNlStRcyGFas4AESv5y:APA91bHtqHJ1kd0zNr2ST1oK610sDjeTcGdhmzh35M-2htQV6gPdWcUlAHzCizJXRxfhmeLjT4bSXXZn2_VlzJPDwcCpykyuOtYl2d0PHa0NsZiyKwK2Ck4', 'android', '2026-08-02 06:48:12'),
 (20, 1, 'drCxVuXfTUy-okW8L7P7sF:APA91bHYlbNW5PpYO_jxBuolkBxU19_8X_lhkH6M6FVMVy0XqT5FhaThqEZ3p9ZPRSQAE-KJn3ASWTPuzuZLaR_PLSrxQo2EtrfGFn4RpqeUXjnMwoSufvs', 'android', '2026-08-02 17:35:50'),
 (21, 3, 'dvW_kOHbR7KNykLVnQd55X:APA91bHoPbkdk2XX-9unAn3zku8f4aKkCEb4FuZ5xW5HnL1bfZ_sVjOGS9kd42XLu3Yx0IN2bfVNXnUH9aZPeT_BJ_D56fVOXdXlnJ49pF9lOdNIOBY_MB8', 'android', '2026-08-05 00:51:28'),
-(25, 3, 'cYQcX-GFTHCTv2pK-M8C8x:APA91bEtMN-q6bnkusba9ad9--kVft7qBoKBB_GrskD5rJ0Fu4cUxsPdi7GwbFZ_dAo44na8lcdYSDza8ThuhTIV6acWhaL_qCBUE4cuT3k839I8W-Jgijo', 'android', '2026-08-05 06:24:24');
+(26, 1, 'cYQcX-GFTHCTv2pK-M8C8x:APA91bEtMN-q6bnkusba9ad9--kVft7qBoKBB_GrskD5rJ0Fu4cUxsPdi7GwbFZ_dAo44na8lcdYSDza8ThuhTIV6acWhaL_qCBUE4cuT3k839I8W-Jgijo', 'android', '2026-08-07 01:51:43'),
+(27, 1, 'cRVoECQDTd-FlFmKUpW3JJ:APA91bHmFfXLRmdVCXGD2kSuh1epegTcwfTv0sPuljFW3ecIzHCMsN4pDirdKbxn2I1uiAPH3mQHGcNEOJuaaZ7s9MTn4xWIcFT0dXFojUje7ppmv80HlEc', 'android', '2026-08-08 05:33:19');
 
 -- --------------------------------------------------------
 
@@ -391,7 +392,9 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
-(63, 'App\\Models\\User', 1, 'app-token', '4592844d2d832501afedecdde1a5fdcd87723be9e1157a5230dbfdfde43cbe1f', '[\"citizen\"]', '2026-08-05 18:36:59', NULL, '2026-08-05 18:29:19', '2026-08-05 18:36:59');
+(72, 'App\\Models\\User', 3, 'app-token', '1e2de155149a5540b82a2fdd9670cc157981bec2e26ca3a011530ae9c62bc654', '[\"citizen\"]', '2026-08-08 11:59:47', NULL, '2026-08-08 04:28:10', '2026-08-08 11:59:47'),
+(73, 'App\\Models\\User', 4, 'app-token', 'bfdcce50eb5de1710be6eb7b74e0129e7ac51fe0936f723b27aa436c8dfaca86', '[\"admin\",\"dispatcher\",\"citizen\"]', NULL, NULL, '2026-08-08 05:32:30', '2026-08-08 05:32:30'),
+(74, 'App\\Models\\User', 1, 'app-token', '5215b85e73c47933a60549dfa08c08d16581fe62181d167c38a76c453171e8d4', '[\"citizen\"]', '2026-08-08 05:37:06', NULL, '2026-08-08 05:33:18', '2026-08-08 05:37:06');
 
 -- --------------------------------------------------------
 
@@ -472,8 +475,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `phone`, `birthdate`, `profile_picture`, `email`, `password`, `role`, `account_status`, `setup_completed`, `barangay_id`, `created_at`, `updated_at`, `deleted_at`, `valid_id_proof`, `valid_id_type`, `selfie_with_id_proof`, `blood_type`, `allergies`, `medical_conditions`, `pwd_status`, `ban_reason`, `banned_at`, `false_alarm_strikes`) VALUES
-(1, 'Emmanuel John', 'Perez', 'user1', '09123456789', NULL, 'storage/profiles/profile_1784451005_1.png', 'ejperez623@gmail.com', '$2y$12$tf9EDu5GrXqwEi0Mu8KZau/9MnLwEYanOtozFMKQ6Wfs7OPK29U0a', 'citizen', 'active', 0, 9, '2026-05-07 05:45:17', '2026-07-20 03:04:38', NULL, NULL, NULL, NULL, 'AB+', '', '', '', NULL, NULL, 0),
-(3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 0, 1, '2026-05-07 05:45:17', '2026-05-07 17:33:20', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(1, 'Emmanuel John', 'Perez', 'user1', '09123456789', NULL, 'storage/profiles/profile_1784451005_1.png', 'ejperez623@gmail.com', '$2y$12$tf9EDu5GrXqwEi0Mu8KZau/9MnLwEYanOtozFMKQ6Wfs7OPK29U0a', 'citizen', 'active', 1, 9, '2026-05-07 05:45:17', '2026-08-07 17:11:41', NULL, NULL, NULL, NULL, 'AB+', '', '', '', NULL, NULL, 0),
+(3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 1, 1, '2026-05-07 05:45:17', '2026-08-08 12:39:35', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
 (4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 0, 1, '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
 (8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', 0, 3, '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
 (9, 'dispatcher', '2', 'dispatcher2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis2@mail.com', '$2y$12$WuAbG0j2AFQjlMC/RttG4OF5qv2k372lv6qeIOfjJue5FnBJ8Eml.', 'dispatcher', 'active', 0, 4, '2026-05-08 09:28:54', '2026-05-08 09:28:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
@@ -499,10 +502,10 @@ CREATE TABLE `user_settings` (
 --
 
 INSERT INTO `user_settings` (`id`, `user_id`, `key`, `value`, `updated_at`, `save_media_to_device`) VALUES
-(1, 1, 'dark_mode', 'false', '2026-08-05 06:24:42', 0),
-(2, 1, 'location_auto_fetch', 'true', '2026-07-25 04:15:55', 0),
+(1, 1, 'dark_mode', 'false', '2026-08-07 01:48:51', 0),
+(2, 1, 'location_auto_fetch', 'true', '2026-08-08 05:33:51', 0),
 (3, 1, 'map_default_style', 'street', '2026-07-20 01:02:21', 0),
-(4, 1, 'reduce_animations', 'false', '2026-07-19 15:50:53', 0),
+(4, 1, 'reduce_animations', 'false', '2026-08-07 01:48:43', 0),
 (5, 4, 'dark_mode', 'true', '2026-08-02 17:44:27', 0),
 (6, 1, 'save_media_to_device', 'false', '2026-08-01 23:07:13', 0);
 
@@ -707,7 +710,7 @@ ALTER TABLE `broadcasts`
 -- AUTO_INCREMENT for table `device_tokens`
 --
 ALTER TABLE `device_tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `dispatch`
@@ -761,7 +764,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT for table `responders`
