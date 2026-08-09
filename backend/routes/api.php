@@ -60,10 +60,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/delete-push-token', [ProfileController::class, 'deletePushToken']);
 
     // Citizen actions
-    Route::post('/submit-sos',              [SosController::class, 'submitSos'])->middleware('throttle:5,1');
-    Route::post('/cancel-sos',              [SosController::class, 'cancelEmergency']);
-    Route::post('/submit-hazard',           [HazardController::class, 'submitHazard'])->middleware('throttle:5,1');
-    Route::get('/my-emergencies/{user_id}', [SosController::class, 'getMyEmergencies']);
+    Route::post('/submit-sos',                 [SosController::class, 'submitSos'])->middleware('throttle:5,1');
+    Route::post('/cancel-sos',                 [SosController::class, 'cancelEmergency']);
+    Route::post('/submit-hazard',              [HazardController::class, 'submitHazard'])->middleware('throttle:5,1');
+    Route::get('/my-emergencies/{user_id}',    [SosController::class, 'getMyEmergencies']);
 
     // Feedback
     Route::post('/feedback',         [FeedbackController::class, 'store']);
