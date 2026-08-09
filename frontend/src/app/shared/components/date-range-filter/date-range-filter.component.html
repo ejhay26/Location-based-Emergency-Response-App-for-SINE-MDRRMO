@@ -1,16 +1,16 @@
-<ion-button [id]="triggerId" fill="outline" [color]="hasValue ? 'danger' : 'medium'" size="small"
-  style="font-weight:bold;--border-radius:10px;height:36px;margin:0;white-space:nowrap;">
-  <i class="fa-solid fa-calendar-days" style="margin-right:6px;"></i>{{ displayLabel }}
+<ion-button [id]="triggerId" [fill]="hasValue ? 'solid' : 'outline'" [color]="hasValue ? 'danger' : 'medium'" size="small"
+  style="font-weight:700;--border-radius:20px;height:32px;margin:0;white-space:nowrap;font-size:12px;--padding-start:12px;--padding-end:12px;">
+  <i class="fa-solid fa-calendar-days" style="margin-right:5px;font-size:11px;"></i>{{ displayLabel }}
 </ion-button>
 
-<ion-popover [trigger]="triggerId" [dismissOnSelect]="false" alignment="start" (didPresent)="onOpen()"
-  style="--width:360px;--max-width:94vw;">
+<ion-popover [trigger]="triggerId" [dismissOnSelect]="false" side="bottom" alignment="center" (didPresent)="onOpen()"
+  style="--width:min(340px, 92vw);">
   <ng-template>
-    <div style="padding:14px;width:100%;box-sizing:border-box;">
+    <div style="padding:12px;width:100%;box-sizing:border-box;">
       <ion-segment [value]="pendingMode" (ionChange)="onModeChange($event)" style="margin-bottom:10px;">
-        <ion-segment-button value="single"><ion-label style="font-size:11px;">One Day</ion-label></ion-segment-button>
-        <ion-segment-button value="multiple"><ion-label style="font-size:11px;">Several Days</ion-label></ion-segment-button>
-        <ion-segment-button value="range"><ion-label style="font-size:11px;">Date Range</ion-label></ion-segment-button>
+        <ion-segment-button value="single"><ion-label style="font-size:10.5px;white-space:normal;text-transform:none;line-height:1.15;">One Day</ion-label></ion-segment-button>
+        <ion-segment-button value="multiple"><ion-label style="font-size:10.5px;white-space:normal;text-transform:none;line-height:1.15;">Several Days</ion-label></ion-segment-button>
+        <ion-segment-button value="range"><ion-label style="font-size:10.5px;white-space:normal;text-transform:none;line-height:1.15;">Date Range</ion-label></ion-segment-button>
       </ion-segment>
 
       <p *ngIf="pendingMode === 'multiple'" style="font-size:11px;color:var(--ion-color-medium);margin:0 2px 6px;">Tap as many days as you need.</p>
