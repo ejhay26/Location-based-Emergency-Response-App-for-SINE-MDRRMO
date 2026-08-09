@@ -43,7 +43,7 @@ export const routes: Routes = [
     data: { roles: ['citizen'] },
     children: [
       { path: 'home',     loadComponent: () => import('./features/citizen/index').then(m => m.HomePage) },
-      { path: 'status',   loadComponent: () => import('./features/citizen/index').then(m => m.StatusPage) },
+      { path: 'history',  loadComponent: () => import('./features/citizen/index').then(m => m.HistoryPage) },
       { path: 'profile',  loadComponent: () => import('./features/citizen/index').then(m => m.ProfilePage) },
       { path: 'settings', loadComponent: () => import('./features/citizen/index').then(m => m.SettingsPage) },
       { path: 'help',     loadComponent: () => import('./features/citizen/index').then(m => m.HelpPage) },
@@ -67,6 +67,7 @@ export const routes: Routes = [
   { path: 'home',     redirectTo: 'tabs/home',     pathMatch: 'full' },
   { path: 'profile',  redirectTo: 'tabs/profile',  pathMatch: 'full' },
   { path: 'settings', redirectTo: 'tabs/settings', pathMatch: 'full' },
-  { path: 'status',   redirectTo: 'tabs/status',   pathMatch: 'full' },
+  { path: 'status',   redirectTo: 'tabs/history',  pathMatch: 'full' },
+  { path: 'history',  redirectTo: 'tabs/history',  pathMatch: 'full' },
   { path: 'help',     redirectTo: 'tabs/help',     pathMatch: 'full' },
 ];
