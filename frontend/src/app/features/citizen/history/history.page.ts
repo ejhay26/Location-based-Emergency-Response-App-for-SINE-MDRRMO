@@ -53,6 +53,8 @@ export class HistoryPage {
 
   /** Accordion behavior — only one card expanded at a time. */
   expandedId: number | null = null;
+  /** Card(s) still mounted and playing their close tween after being deselected (see toggleExpand). */
+  closingIds = new Set<number>();
 
   constructor(
     private api: ApiService,
@@ -105,7 +107,18 @@ export class HistoryPage {
 
   /** Tap the card body to expand/retract (toggle) — accordion, so expanding one collapses any other. */
   toggleExpand(requestId: number) {
+    const previouslyExpanded = this.expandedId;
     this.expandedId = this.expandedId === requestId ? null : requestId;
+    // Whichever card just lost its expanded state (if any) stays mounted,
+    // driven by [appRevealAnimate]="false", until its close tween finishes.
+    if (previouslyExpanded !== null && previouslyExpanded !== this.expandedId) {
+      this.closingIds.add(previouslyExpanded);
+    }
+  }
+
+  /** RevealAnimateDirective (closed) callback — safe to actually unmount now. */
+  onCardCollapsed(requestId: number) {
+    this.closingIds.delete(requestId);
   }
 
   isVideoFile(path: string): boolean {
