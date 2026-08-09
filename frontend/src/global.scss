@@ -323,7 +323,7 @@ html.ion-palette-dark .leaflet-popup-tip {
    the custom floating pill tab bar.
    ========================================= */
 .tab-page-content {
-  --padding-bottom: 96px;
+  --padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 
 /* =========================================
