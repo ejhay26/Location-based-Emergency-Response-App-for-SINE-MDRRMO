@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Traits\MediaHandling;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Services\SemaphoreService;
+use App\Services\PhilSmsService;
 use App\Services\OtpService;
 use App\Rules\CommonRules;
 use Illuminate\Support\Facades\Hash;
@@ -24,7 +24,7 @@ class AuthController extends Controller
     use MediaHandling;
 
     public function __construct(
-        private SemaphoreService $semaphore,
+        private PhilSmsService $sms,
         private OtpService $otp
     ) {
     }
@@ -66,7 +66,7 @@ class AuthController extends Controller
         $otp        = $this->otp->generateAndStore($cacheKey);
 
         if ($channel === 'phone') {
-            $sent = $this->semaphore->sendOtp($user->phone, (string) $otp);
+            $sent = $this->sms->sendOtp($user->phone, (string) $otp);
             if (!$sent) {
                 return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
             }
@@ -210,12 +210,12 @@ class AuthController extends Controller
         $ext        = $this->mimeToExtension($mime);
         $idFileName = 'id_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $ext;
         $idPath     = 'verification_ids/' . $request->username . '/' . $idFileName;
-        $this->storePublic($idPath, $id_base64);
+        $idUrl      = $this->storePublic($idPath, $id_base64);
 
         $selfieExt      = $this->mimeToExtension($selfieMime);
         $selfieFileName = 'selfie_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $selfieExt;
         $selfiePath     = 'verification_ids/' . $request->username . '/' . $selfieFileName;
-        $this->storePublic($selfiePath, $selfie_base64);
+        $selfieUrl      = $this->storePublic($selfiePath, $selfie_base64);
 
         $user = User::create([
             'first_name'     => $request->first_name,
@@ -228,16 +228,16 @@ class AuthController extends Controller
             'barangay_id'    => $request->barangay_id,
             'role'           => 'citizen',
             'account_status' => 'unverified',
-            'valid_id_proof' => 'storage/' . $idPath,
+            'valid_id_proof' => $idUrl,
             'valid_id_type'  => $request->valid_id_type,
-            'selfie_with_id_proof' => 'storage/' . $selfiePath,
+            'selfie_with_id_proof' => $selfieUrl,
         ]);
 
         $channel = $request->input('otp_channel', 'email');
         $otp     = $this->otp->generateAndStore('otp_' . $user->email);
 
         if ($channel === 'sms') {
-            $sent = $this->semaphore->sendOtp($user->phone, (string) $otp);
+            $sent = $this->sms->sendOtp($user->phone, (string) $otp);
             if (!$sent) {
                 return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
             }
@@ -319,7 +319,7 @@ class AuthController extends Controller
         $cacheKey = 'reset_otp_' . $channel . '_' . ($channel === 'email' ? $request->email : $request->phone);
         $otp      = $this->otp->generateAndStore($cacheKey);
         if ($channel === 'phone') {
-            $sent = $this->semaphore->sendOtp($request->phone, (string) $otp);
+            $sent = $this->sms->sendOtp($request->phone, (string) $otp);
             if (!$sent) return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
         } else {
             Mail::raw("Your MDRRMO San Isidro Password Reset Code is: {$otp}. It will expire in 10 minutes.", function ($m) use ($request) {
