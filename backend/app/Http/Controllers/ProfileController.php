@@ -45,17 +45,26 @@ class ProfileController extends Controller
         $ext      = $this->mimeToExtension($mime);
         $fileName = $this->makeFilename('profile', $user->user_id, $ext);
         $filePath = 'profiles/' . $user->user_id . '/' . $fileName;
-        $this->storePublic($filePath, $image_base64);
+        $newUrl   = $this->storePublic($filePath, $image_base64);
 
-        // Only delete old file after new one is safely written.
-        if ($user->profile_picture && str_starts_with($user->profile_picture, 'storage/')) {
-            $oldDiskPath = substr($user->profile_picture, strlen('storage/'));
+        // Only delete the old file after the new one is safely written.
+        // Two possible shapes for the old value, handled separately:
+        //   - legacy local file: "storage/profiles/..." served off the public disk
+        //   - current R2 file: a full https://<AWS_URL>/... URL
+        $old = $user->profile_picture;
+        if ($old && str_starts_with($old, 'storage/')) {
+            $oldDiskPath = substr($old, strlen('storage/'));
             if (Storage::disk('public')->exists($oldDiskPath)) {
                 Storage::disk('public')->delete($oldDiskPath);
             }
+        } elseif ($old) {
+            $s3PublicBase = rtrim((string) config('filesystems.disks.s3.url'), '/') . '/';
+            if ($s3PublicBase !== '/' && str_starts_with($old, $s3PublicBase)) {
+                Storage::disk('s3')->delete(substr($old, strlen($s3PublicBase)));
+            }
         }
 
-        $user->profile_picture = 'storage/' . $filePath;
+        $user->profile_picture = $newUrl;
         $user->save();
 
         return response()->json(['message' => 'Photo updated!', 'user' => $user->fresh()]);
