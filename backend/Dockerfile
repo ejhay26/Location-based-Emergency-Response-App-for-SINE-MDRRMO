@@ -30,8 +30,12 @@ WORKDIR /var/www/html
 COPY . .
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# ── Storage permissions ───────────────────────────────────────────────────
-RUN mkdir -p storage/logs storage/framework/{cache,sessions,views} bootstrap/cache \
+# ── Storage permissions + public disk symlink ─────────────────────────────
+# public/storage lives outside the storage/ volume mount used by
+# docker-compose (Podman/Docker local dev), so it's safe to create here at
+# build time — it will NOT be wiped when storage/ is bind-mounted at runtime.
+RUN mkdir -p storage/logs storage/framework/{cache,sessions,views} storage/app/public bootstrap/cache \
+ && ln -sfn ../storage/app/public public/storage \
  && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
@@ -39,7 +43,13 @@ RUN mkdir -p storage/logs storage/framework/{cache,sessions,views} bootstrap/cac
 COPY docker/nginx/nginx.conf      /etc/nginx/nginx.conf
 COPY docker/php/php.ini           /usr/local/etc/php/conf.d/99-app.ini
 COPY docker/supervisord.conf      /etc/supervisord.conf
+COPY docker/entrypoint.sh         /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 80
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -f http://127.0.0.1/up || exit 1
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

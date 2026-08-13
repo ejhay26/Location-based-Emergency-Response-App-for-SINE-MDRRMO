@@ -1,17 +1,74 @@
+# Local dev stack only (podman-compose up / docker compose up).
+# Hosting platforms (Northflank, Fly.io, etc.) build straight from the
+# Dockerfile and inject their own env vars in their dashboard — this file
+# is never used there.
+#
+# MinIO is optional and only starts with the "dev-storage" profile, so this
+# file still works if you'd rather point .env straight at real R2 locally:
+#   podman-compose up                        -> app only, uses AWS_* from .env
+#   podman-compose --profile dev-storage up   -> app + local MinIO
+#                                                (put MinIO's AWS_* overrides
+#                                                in .env.local, see below)
+
+networks:
+  mdrrmo_net:
+    driver: bridge
+
 services:
   app:
     build: .
     container_name: mdrrmo_backend
     restart: unless-stopped
     ports:
-      - "80:80"
+      # Host port 8080 -> container port 80. Rootless Podman cannot bind
+      # host ports < 1024 without extra privileges, so avoid "80:80" here.
+      - "8080:80"
+    env_file:
+      # DB_* (Aiven) always comes from .env — reachable over the public
+      # internet, so no host.docker.internal / extra_hosts bridging needed.
+      - .env
+      # Optional local-only overrides (gitignored). Put MinIO's AWS_* block
+      # here (AWS_ENDPOINT=http://minio:9000, AWS_ACCESS_KEY_ID=minioadmin,
+      # etc.) so real R2 credentials never need to touch a dev machine.
+      # `required: false` means this file simply doesn't apply if absent.
+      - path: .env.local
+        required: false
+    networks:
+      - mdrrmo_net
+    depends_on:
+      minio:
+        condition: service_healthy
+        required: false
     volumes:
-      - ./storage:/var/www/html/storage
-      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+      # :Z relabels the bind mount for SELinux (default on Podman machine's
+      # Fedora CoreOS VM and on Fedora/RHEL hosts). Harmless no-op on
+      # non-SELinux systems, so it's safe to leave on for both Docker and Podman.
+      - ./storage:/var/www/html/storage:Z
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache:Z
+
+  # Local S3-compatible storage so nobody needs real R2 credentials just to
+  # run the app on their machine. Only starts with --profile dev-storage.
+  minio:
+    image: docker.io/minio/minio:latest
+    container_name: mdrrmo_minio
+    profiles: ["dev-storage"]
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
     environment:
-      APP_ENV: production
-      APP_DEBUG: "false"
-      DB_HOST: host.docker.internal   # reaches your host MySQL from inside Docker
-      DB_PORT: "3306"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"  # Linux only — not needed on Docker Desktop
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web console
+    volumes:
+      - minio_data:/data:Z
+    networks:
+      - mdrrmo_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  minio_data:
