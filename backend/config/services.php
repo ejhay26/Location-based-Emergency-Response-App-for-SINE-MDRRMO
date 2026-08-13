@@ -35,9 +35,14 @@ return [
         ],
     ],
 
-    'semaphore' => [
-        'key'    => env('SEMAPHORE_API_KEY'),
-        'sender' => env('SEMAPHORE_SENDER_NAME', 'MDRRMO SAN ISIDRO NUEVA ECIJA'),
+    // Semaphore retired in favor of PhilSMS (cheaper per-SMS rate).
+    // Kept only as a comment for history — SemaphoreService.php can stay
+    // in the repo unused, or be deleted once you're confident PhilSMS is
+    // stable in production; nothing references config('services.semaphore')
+    // anymore.
+    'philsms' => [
+        'token'  => env('PHILSMS_API_TOKEN'),
+        'sender' => env('PHILSMS_SENDER_NAME', 'PhilSMS'),
     ],
     
     'firebase' => [
