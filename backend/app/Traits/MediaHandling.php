@@ -100,17 +100,33 @@ trait MediaHandling
     // ── 5. Store helpers ─────────────────────────────────────────────────────
 
     /**
-     * Write to public disk. Returns the DB-storable path ("storage/...").
+     * Write to the public cloud disk (Cloudflare R2, via the 's3' driver).
+     * Returns the DB-storable value — the file's full public URL, built
+     * from AWS_URL by Storage::url(). Callers must persist this return
+     * value verbatim; do not re-derive a path from $diskPath yourself,
+     * or the stored value won't match what was actually written.
+     *
+     * Note: files uploaded before this disk was R2 still have legacy
+     * "storage/..." paths in the DB, served locally through the Laravel
+     * app instead of R2. resolveFileUrl() on the frontend handles both
+     * shapes — this method only controls what NEW uploads look like.
      */
     protected function storePublic(string $diskPath, string $binary): string
     {
-        Storage::disk('public')->put($diskPath, $binary);
-        return 'storage/' . $diskPath;
+        Storage::disk('s3')->put($diskPath, $binary, 'public');
+        return Storage::disk('s3')->url($diskPath);
     }
 
     /**
      * Write to private (local) disk — NOT web-accessible.
      * Returns the DB-storable path ("private/...").
+     *
+     * Intentionally still local, not R2: nothing currently calls this
+     * (see AuthController::register()'s TODO — ID proofs are on the
+     * public disk "for now"). Move this to R2 only once a signed/
+     * presigned retrieval endpoint exists for private files; a public
+     * R2 URL for a private document would defeat the point of this
+     * method.
      */
     protected function storePrivate(string $diskPath, string $binary): string
     {
