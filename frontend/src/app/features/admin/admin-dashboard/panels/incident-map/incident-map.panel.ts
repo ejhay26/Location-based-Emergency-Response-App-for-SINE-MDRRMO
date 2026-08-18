@@ -11,7 +11,9 @@ import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
 import { VideoThumbnailDirective } from '../../../../../shared/directives/video-thumbnail.directive';
+import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
+import { BARANGAYS } from '../../../../../shared/constants/barangays';
 
 // @ts-ignore — tile layer with local cache-first fetch (unchanged from the original monolith)
 const CachedTileLayer = L.TileLayer.extend({
@@ -51,7 +53,7 @@ const CachedTileLayer = L.TileLayer.extend({
 @Component({
   selector: 'app-incident-map-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, ProxyImageDirective, VideoThumbnailDirective, UtcDatePipe],
+  imports: [CommonModule, FormsModule, IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, ProxyImageDirective, VideoThumbnailDirective, ListEnterDirective, UtcDatePipe],
   templateUrl: './incident-map.panel.html',
   styleUrl: './incident-map.panel.scss',
 })
@@ -59,6 +61,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   /** Which list is shown in the right-hand column — the map itself always shows both layers. */
   @Input() mode: 'active' | 'hazards' = 'active';
+
+  /** Options for the barangay filter dropdown — the 9 San Isidro barangays, same reference list used elsewhere (registration, admin broadcast targeting). */
+  readonly barangayOptions = BARANGAYS;
+  /** Selected barangay_id, or 'all'. Filters both the plotted map markers and the right-hand list — a report with a null barangay_id (unresolved location) never matches a specific barangay filter. */
+  barangayFilter: number | 'all' = 'all';
 
   activeRequests: any[] = [];
   activeHazards: any[] = [];
@@ -121,6 +128,23 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     setTimeout(() => this.map.invalidateSize(), 260);
   }
 
+  /** Report matches the current barangay filter — 'all' always matches; a null barangay_id (unresolved location) only matches 'all'. */
+  matchesBarangayFilter(r: any): boolean {
+    return this.barangayFilter === 'all' || r.barangay_id === this.barangayFilter;
+  }
+
+  get filteredActiveRequests(): any[] {
+    return this.activeRequests.filter(r => this.matchesBarangayFilter(r));
+  }
+
+  get filteredActiveHazards(): any[] {
+    return this.activeHazards.filter(h => this.matchesBarangayFilter(h));
+  }
+
+  onBarangayFilterChange() {
+    this.plotMarkers();
+  }
+
   toggleMapStyle(style: 'street' | 'satellite') {
     if (style === this.mapStyle || !this.map) return;
     [this.streetLayer, this.satelliteLayer].forEach(l => { if (l) this.map.removeLayer(l); });
@@ -136,7 +160,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.streetLayer    = new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
     this.satelliteLayer = L.layerGroup([
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 17, attribution: '© Esri' }),
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 13, opacity: 0.9 })
+      // maxZoom capped to maxNativeZoom (13) — see report-map.component.ts's
+      // identical fix for why: beyond a layer's maxNativeZoom, Leaflet
+      // reuses/upscales the last-fetched tile instead of stopping, which is
+      // what caused blurry/oversized place-name labels at high zoom.
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 13, maxNativeZoom: 13, opacity: 0.9 })
     ]);
     this.streetLayer.addTo(this.map);
     this.map.on('popupopen',  (e: any) => { document.getElementById('dispatch-map')?.classList.add('map-has-selection');    if (e.popup._source?._icon) e.popup._source._icon.classList.add('selected-pin'); });
@@ -161,7 +189,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       'Medical': { class: 'fa-solid fa-heart-pulse',         color: '#2dd36f' },
       'Crime':   { class: 'fa-solid fa-handcuffs',           color: '#bc6fff' }
     };
-    this.activeRequests.forEach(req => {
+    this.filteredActiveRequests.forEach(req => {
       const cfg        = iconConfig[req.incident_name] || { class: 'fa-solid fa-triangle-exclamation', color: '#eb445a' };
       const pulseClass = req.status === 'Pending' ? 'sos-pulse-ripple' : '';
       const icon = L.divIcon({
@@ -173,6 +201,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         <p style="font-size:15px;margin:4px 0;"><b>Citizen:</b> ${req.first_name} ${req.last_name}</p>
         <p style="font-size:15px;margin:4px 0;"><b>Contact:</b> ${req.phone}</p>
         <p style="font-size:13px;margin:4px 0;color:gray;background:var(--ion-color-light);padding:4px;border-radius:4px;"><b>Coords:</b> ${req.latitude}, ${req.longitude}</p>
+        <p style="font-size:13px;margin:4px 0;"><b>Barangay:</b> ${req.barangay_name || 'Unresolved'}</p>
         <div style="margin-top:12px;display:flex;gap:8px;">
           <button onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${req.request_id}}))" style="background:#ffc409;color:black;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">DISPATCH UNIT</button>
           <button onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${req.request_id}}))"  style="background:#2dd36f;color:white;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">RESOLVE</button>
@@ -187,7 +216,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     window.addEventListener('map-dispatch', (e: any) => { this.map.closePopup(); this.openDispatchModal(e.detail); }, { once: true });
     window.addEventListener('map-resolve',  (e: any) => { this.map.closePopup(); this.resolveEmergency(e.detail); }, { once: true });
 
-    this.activeHazards.forEach(haz => {
+    this.filteredActiveHazards.forEach(haz => {
       const icon = L.divIcon({
         html: `<div class="custom-fa-marker-wrapper"><svg viewBox="0 0 30 42" class="vector-pin-shape"><path d="M15 0C6.7 0 0 6.7 0 15c0 10.5 15 27 15 27s15-16.5 15-27C30 6.7 23.3 0 15 0z" fill="#ffc409"/><circle cx="15" cy="15" r="10" fill="white"/></svg><i class="fa-solid fa-road-barrier pin-inner-fa-icon" style="color:#e0ac00;"></i></div>`,
         className: 'leaflet-blank-div-icon', iconSize: [45,60], iconAnchor: [22.5,60], popupAnchor: [0,-52]
@@ -195,7 +224,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       const popup = `<div class="accessible-popup-box">
         <h2 style="color:#e0ac00;font-size:17px;font-weight:bold;margin:0 0 6px 0;border-bottom:2px solid #ffc40930;padding-bottom:4px;">⚠️ PUBLIC HAZARD LOG</h2>
         <p style="font-size:15px;margin:4px 0;line-height:1.4;background:var(--ion-color-light);padding:8px;border-radius:6px;border-left:4px solid #ffc409;">"${haz.description}"</p>
-        <p style="font-size:12px;color:gray;margin:6px 0 0 0;">Reported by: ${haz.first_name} ${haz.last_name}</p></div>`;
+        <p style="font-size:12px;color:gray;margin:6px 0 0 0;">Reported by: ${haz.first_name} ${haz.last_name}</p>
+        <p style="font-size:12px;color:gray;margin:2px 0 0 0;"><b>Barangay:</b> ${haz.barangay_name || 'Unresolved'}</p></div>`;
       const marker = L.marker([haz.latitude, haz.longitude], { icon }).bindPopup(popup).addTo(this.map);
       marker.on('click', () => {
         this.selectedRequestId = haz.hazard_id; this.previewType = 'hazard';
@@ -246,5 +276,13 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.ui.showConfirm({ title: 'Acknowledge Hazard', message: 'Remove this hazard from the map? This confirms it has been addressed.', icon: 'fa-solid fa-road-barrier', iconColor: '#ffc409', confirmLabel: 'Acknowledge', confirmColor: '#ffc409',
       action: () => { this.api.resolveHazard({ hazard_id: hazardId }).subscribe({ next: () => { this.ui.showToast('Hazard acknowledged.', 'medium'); this.loadData(); } }); }
     });
+  }
+
+  trackByRequestId(_index: number, r: any): number {
+    return r.request_id;
+  }
+
+  trackByHazardId(_index: number, h: any): number {
+    return h.hazard_id;
   }
 }

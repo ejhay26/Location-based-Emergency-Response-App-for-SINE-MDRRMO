@@ -9,13 +9,25 @@
 </div>
 
 <div style="width:340px;flex-shrink:0;display:flex;flex-direction:column;min-width:0;">
+  <div style="padding:0 0 10px 0;">
+    <select
+      id="incidentMapBarangayFilter"
+      name="incidentMapBarangayFilter"
+      [(ngModel)]="barangayFilter"
+      (ngModelChange)="onBarangayFilterChange()"
+      style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
+      <option [ngValue]="'all'">All Barangays</option>
+      <option *ngFor="let b of barangayOptions" [ngValue]="b.id">{{ b.name }}</option>
+    </select>
+  </div>
   <div style="flex:1;max-height:calc(100vh - 80px);overflow-y:auto;">
 
     <!-- Active Emergencies -->
     <ng-container *ngIf="mode === 'active'">
-      <div *ngIf="activeRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active emergencies.</p></div>
-      <div *ngFor="let request of activeRequests"
+      <div *ngIf="filteredActiveRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active emergencies.</p></div>
+      <div *ngFor="let request of filteredActiveRequests; let i = index; trackBy: trackByRequestId"
            [id]="'request-card-' + request.request_id"
+           [appAnnouncementEnter]="i"
            [ngStyle]="{'border': selectedRequestId === request.request_id && previewType === 'emergency' ? '3px solid var(--ion-color-danger)' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.04))'}"
            style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 15px; color: var(--ion-text-color); cursor: pointer;"
            (click)="selectedRequestId = request.request_id; previewType = 'emergency'">
@@ -27,6 +39,7 @@
         </div>
         <p style="margin: 3px 0; font-size: 14px;"><strong>Victim:</strong> {{ request.first_name }} {{ request.last_name }}</p>
         <p style="margin: 3px 0; font-size: 14px;"><strong>Contact:</strong> {{ request.phone }}</p>
+        <p style="margin: 3px 0; font-size: 14px;"><strong>Barangay:</strong> {{ request.barangay_name || 'Unresolved' }}</p>
         <p style="margin: 3px 0; font-size: 14px;" *ngIf="request.description"><strong>Notes:</strong> "{{ request.description }}"</p>
         <div *ngIf="request.blood_type" style="margin: 6px 0;"><span style="background: #eb445a; color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 10px;">⚠️ {{ request.blood_type }} | {{ request.allergies || 'No known allergies' }}</span></div>
 
@@ -54,14 +67,16 @@
 
     <!-- Active Hazards -->
     <ng-container *ngIf="mode === 'hazards'">
-      <div *ngIf="activeHazards.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active public hazards logged.</p></div>
-      <div *ngFor="let haz of activeHazards"
+      <div *ngIf="filteredActiveHazards.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No active public hazards logged.</p></div>
+      <div *ngFor="let haz of filteredActiveHazards; let i = index; trackBy: trackByHazardId"
            [id]="'hazard-card-' + haz.hazard_id"
+           [appAnnouncementEnter]="i"
            [ngStyle]="{'border': selectedRequestId === haz.hazard_id && previewType === 'hazard' ? '3px solid #ffc409' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.04))'}"
            style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 15px; color: var(--ion-text-color);">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;"><i class="fa-solid fa-road-barrier" style="color: #ffc409; font-size: 18px;"></i><h4 style="margin: 0; font-weight: bold; font-size: 15px;">Public Hazard Report</h4></div>
         <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.3;">{{ haz.description }}</p>
         <span style="font-size: 11px; color: gray; font-weight: bold;">Source: {{ haz.first_name }} {{ haz.last_name }} | {{ haz.created_at | utcDate:'short' }}</span>
+        <p style="font-size: 11px; color: gray; margin: 2px 0 0 0;"><strong>Barangay:</strong> {{ haz.barangay_name || 'Unresolved' }}</p>
         <div *ngIf="haz.proof_files?.length" class="media-thumb-grid">
           <div *ngFor="let filePath of haz.proof_files"
                class="media-thumb"
