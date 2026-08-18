@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * emergency_requests table: request_id (PK), user_id, incident_type_id,
- * proof_files (JSON string), description, latitude, longitude, status,
+ * proof_files (JSON string), description, latitude, longitude, barangay_id
+ * (server-resolved incident-location barangay — see App\Services\BarangayResolver;
+ * distinct from users.barangay_id, the citizen's home barangay), status,
  * request_time, created_at, updated_at (ON UPDATE CURRENT_TIMESTAMP),
  * deleted_at, is_false_alarm.
  */
@@ -22,6 +24,7 @@ class EmergencyRequest extends Model
         'description',
         'latitude',
         'longitude',
+        'barangay_id',
         'status',
         'request_time',
         'is_false_alarm',
