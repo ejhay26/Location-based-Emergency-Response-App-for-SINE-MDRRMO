@@ -5,6 +5,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@a
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
+import { bouncyPageTransition } from './app/core/animations/bouncy-page-transition';
 
 import { ErrorInterceptorService } from './app/core/services/error-interceptor';
 
@@ -13,7 +14,8 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     // Pass your config object directly inside provideIonicAngular!
     provideIonicAngular({
-      mode: 'md'
+      mode: 'md',
+      navAnimation: bouncyPageTransition,
     }),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(withInterceptorsFromDi()),
