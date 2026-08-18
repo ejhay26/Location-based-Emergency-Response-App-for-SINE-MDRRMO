@@ -4,4 +4,14 @@
     <string name="title_activity_main">frontend</string>
     <string name="package_name">io.ionic.starter</string>
     <string name="custom_url_scheme">io.ionic.starter</string>
+
+    <!-- Stage 3a: home screen widgets — each rendered as a two-line circle
+         (small caption + large label), mirroring home.page.html's actual
+         SOS button treatment. -->
+    <string name="widget_report_caption">Emergency</string>
+    <string name="widget_report_label">SOS</string>
+    <string name="widget_report_full_label">Emergency SOS</string>
+    <string name="widget_hazard_caption">Report</string>
+    <string name="widget_hazard_label">Hazard</string>
+    <string name="widget_hazard_full_label">Report Hazard</string>
 </resources>

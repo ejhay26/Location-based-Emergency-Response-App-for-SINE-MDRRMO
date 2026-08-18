@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Stage 3a: AppWidgetProviderInfo for the circular "Emergency SOS" home
+  screen widget. Square 1x1 cell (minWidth == minHeight) so the oval
+  background in widget_report_bg.xml renders as a true circle rather than
+  a squashed ellipse — this replaces the earlier 2x1 pill sizing.
+  Static launcher shortcut, no periodic auto-update needed
+  (updatePeriodMillis="0"), only reacts to user taps.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="72dp"
+    android:minHeight="72dp"
+    android:targetCellWidth="1"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/widget_report"
+    android:resizeMode="none"
+    android:widgetCategory="home_screen"
+    android:previewLayout="@layout/widget_report" />

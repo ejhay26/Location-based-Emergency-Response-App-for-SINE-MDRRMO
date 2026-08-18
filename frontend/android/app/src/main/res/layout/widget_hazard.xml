@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Stage 3a: circular "Report Hazard" home screen widget layout. Mirrors
+  widget_report.xml's structure/pattern exactly (small caption + large
+  label, oval background sized to a square, contentDescription on the root)
+  but with its own ids/background/strings so both widgets can be placed
+  independently without id collisions. The whole root is the tap target;
+  the click PendingIntent is attached to @+id/widget_hazard_root by
+  ReportHazardWidgetProvider.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_hazard_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/widget_hazard_bg"
+    android:contentDescription="@string/widget_hazard_full_label">
+
+    <TextView
+        android:id="@+id/widget_hazard_caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/widget_hazard_caption"
+        android:textColor="#DEFFFFFF"
+        android:textSize="9sp"
+        android:textStyle="bold"
+        android:singleLine="true"
+        android:letterSpacing="0.08"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/widget_hazard_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:text="@string/widget_hazard_label"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:singleLine="true"
+        android:importantForAccessibility="no" />
+
+</LinearLayout>

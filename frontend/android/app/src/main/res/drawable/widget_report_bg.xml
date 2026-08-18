@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Stage 3a: circular red gradient background for the Emergency SOS widget,
+  matching home.page.html's actual SOS button gradient
+  (linear-gradient(145deg,#ff6b6b,#eb445a,#c62828)) for visual consistency
+  with the in-app button. android:angle="315" is the closest RemoteViews-
+  supported 45°-step angle to CSS's 145deg (shape gradient angles must be
+  multiples of 45). Drawn as an oval sized to the widget's square bounds
+  (see hazard_widget_info.xml/report_widget_info.xml minWidth==minHeight)
+  so it renders as a true circle, not an ellipse.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:type="linear"
+        android:angle="315"
+        android:startColor="#FF6B6B"
+        android:centerColor="#EB445A"
+        android:endColor="#C62828" />
+</shape>

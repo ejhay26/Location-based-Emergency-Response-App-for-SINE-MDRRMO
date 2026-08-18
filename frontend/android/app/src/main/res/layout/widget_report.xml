@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Stage 3a: circular "Emergency SOS" home screen widget layout — redesigned
+  to match home.page.html's actual SOS button treatment (small uppercase
+  "EMERGENCY" caption above a large bold "SOS"), instead of a single-line
+  pill that truncated ("Emergency SOS" -> "Emergency SO" at the widget's
+  actual on-device size). Root is a square LinearLayout (see
+  report_widget_info.xml: minWidth == minHeight) with an oval background,
+  so it renders as a true circle. Kept to RemoteViews-supported views only
+  (LinearLayout, TextView). The whole root is the tap target; the click
+  PendingIntent is attached to @+id/widget_report_root by
+  ReportWidgetProvider. contentDescription lives on the root (the actual
+  tap target) rather than either individual TextView, since it needs to
+  describe the combined two-line label as one accessible name.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_report_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/widget_report_bg"
+    android:contentDescription="@string/widget_report_full_label">
+
+    <TextView
+        android:id="@+id/widget_report_caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/widget_report_caption"
+        android:textColor="#DEFFFFFF"
+        android:textSize="9sp"
+        android:textStyle="bold"
+        android:singleLine="true"
+        android:letterSpacing="0.08"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/widget_report_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:text="@string/widget_report_label"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:singleLine="true"
+        android:importantForAccessibility="no" />
+
+</LinearLayout>
