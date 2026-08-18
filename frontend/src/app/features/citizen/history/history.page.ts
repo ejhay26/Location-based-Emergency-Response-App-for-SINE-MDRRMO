@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
@@ -41,7 +41,7 @@ const STATUS_FILTERS: StatusFilterOption[] = [
     ProxyImageDirective, VideoThumbnailDirective, RevealAnimateDirective,
   ],
 })
-export class HistoryPage {
+export class HistoryPage implements OnDestroy {
   /** Exposed to the template so the status-filter row can be rendered from one source of truth. */
   readonly statusFilters = STATUS_FILTERS;
 
@@ -53,8 +53,35 @@ export class HistoryPage {
 
   /** Accordion behavior — only one card expanded at a time. */
   expandedId: number | null = null;
+  /**
+   * Drives [appRevealAnimate] on the expanded content div. Deliberately
+   * separate from `expandedId`: the div is mounted (via *ngIf) the instant
+   * `expandedId` changes, but RevealAnimateDirective always treats an
+   * element's FIRST bound value (in ngAfterViewInit) as the resting state
+   * with no animation — by design, so permanently-mounted filtered lists
+   * don't animate on initial page load. If we bound [appRevealAnimate]
+   * straight to `expandedId === req.request_id`, a freshly-*ngIf-mounted
+   * card would mount already-open and skip the open animation entirely
+   * (this was the original "instantly expands" bug). Mounting with this
+   * flag still false, then flipping it true one frame later, makes the
+   * directive see a genuine change via ngOnChanges instead — which is the
+   * path that actually plays the animation.
+   */
+  openAnimateId: number | null = null;
   /** Card(s) still mounted and playing their close tween after being deselected (see toggleExpand). */
   closingIds = new Set<number>();
+
+  /**
+   * Fixing a visible bug: the "No reports match your filters" empty state
+   * used to appear the instant a filter changed, while the now-non-matching
+   * cards were still mid-collapse underneath it — so it read as the empty
+   * message "teleporting" as the still-tall card(s) beneath it kept shrinking
+   * for another ~200ms. Setting this true for the duration of the close
+   * animation keeps the empty state hidden until the collapse has actually
+   * finished, so nothing is left visibly resolving underneath it.
+   */
+  filterSettling = false;
+  private filterSettleTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private api: ApiService,
@@ -77,13 +104,25 @@ export class HistoryPage {
     });
   }
 
-  setStatusFilter(f: StatusFilter) { this.statusFilter = f; }
+  ngOnDestroy() {
+    clearTimeout(this.filterSettleTimer);
+  }
 
-  onDateFilterChange(v: DateFilterValue | null) { this.dateFilter = v; }
+  /** Delays the empty-state message just long enough for RevealAnimateDirective's close tween (~220ms) to actually finish — see the filterSettling doc comment above. */
+  private markFilterSettling() {
+    this.filterSettling = true;
+    clearTimeout(this.filterSettleTimer);
+    this.filterSettleTimer = setTimeout(() => { this.filterSettling = false; }, 260);
+  }
+
+  setStatusFilter(f: StatusFilter) { this.statusFilter = f; this.markFilterSettling(); }
+
+  onDateFilterChange(v: DateFilterValue | null) { this.dateFilter = v; this.markFilterSettling(); }
 
   clearAllFilters() {
     this.statusFilter = 'All';
     this.dateFilter = null;
+    this.markFilterSettling();
   }
 
   get filterChips(): string[] {
@@ -105,15 +144,59 @@ export class HistoryPage {
     return 'You have not submitted any reports yet.';
   }
 
+  /**
+   * Post-Stage-5 follow-up (filter shrink-and-reflow) — whether a given
+   * report currently matches the active filters. The template now iterates
+   * the full, unfiltered `emergencies` list and drives each card's
+   * `[appRevealAnimate]` from this, instead of iterating the derived
+   * `filteredEmergencies` array directly — a card that stops matching
+   * stays mounted and collapses to a true zero height+margin in place, so
+   * the cards below it slide up to fill the gap as an ordinary side effect
+   * of block layout, rather than vanishing instantly.
+   */
+  matchesFilter(req: any): boolean {
+    return (this.statusFilter === 'All' || req.status === this.statusFilter) &&
+      matchesDateFilter(req.request_time, this.dateFilter);
+  }
+
+  trackByRequestId(_index: number, req: any): number {
+    return req.request_id;
+  }
+
   /** Tap the card body to expand/retract (toggle) — accordion, so expanding one collapses any other. */
   toggleExpand(requestId: number) {
     const previouslyExpanded = this.expandedId;
-    this.expandedId = this.expandedId === requestId ? null : requestId;
+    const opening = this.expandedId !== requestId;
+    this.expandedId = opening ? requestId : null;
+
     // Whichever card just lost its expanded state (if any) stays mounted,
     // driven by [appRevealAnimate]="false", until its close tween finishes.
     if (previouslyExpanded !== null && previouslyExpanded !== this.expandedId) {
       this.closingIds.add(previouslyExpanded);
     }
+
+    if (!opening) {
+      this.openAnimateId = null;
+      return;
+    }
+
+    // Mount this tick with openAnimateId still null (=> [appRevealAnimate]
+    // false), so RevealAnimateDirective's ngAfterViewInit collapses it
+    // immediately with no animation — the correct "resting" starting point.
+    // Two rAFs later (matching the double-rAF pattern documented in
+    // flip-reflow.util.ts: first for Angular to commit the *ngIf mount +
+    // the directive's immediate-collapse, second for the browser to have
+    // actually painted that collapsed frame), flip openAnimateId to this
+    // card's id — a real isOpen change RevealAnimateDirective picks up via
+    // ngOnChanges, which is the path that plays the open tween.
+    this.openAnimateId = null;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Guard: user may have tapped a different card again before this
+        // fired — only apply if this card is still the one being opened.
+        if (this.expandedId === requestId) this.openAnimateId = requestId;
+      });
+    });
   }
 
   /** RevealAnimateDirective (closed) callback — safe to actually unmount now. */

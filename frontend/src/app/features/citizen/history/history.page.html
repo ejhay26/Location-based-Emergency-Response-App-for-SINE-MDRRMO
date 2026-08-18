@@ -25,15 +25,17 @@
   <div id="tour-history-page" [class.tour-highlight]="tour.targetId() === 'tour-history-page'">
     <ng-container *ngIf="isLoading"><ion-card *ngFor="let i of [1,2,3]" style="margin:10px 0;"><ion-item lines="none"><ion-label><h2><ion-skeleton-text [animated]="true" style="width:60%;"></ion-skeleton-text></h2><p><ion-skeleton-text [animated]="true" style="width:40%;"></ion-skeleton-text></p></ion-label></ion-item></ion-card></ng-container>
 
-    <div *ngIf="!isLoading && filteredEmergencies.length === 0" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;text-align:center;">
+    <div *ngIf="!isLoading && filteredEmergencies.length === 0 && !filterSettling" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;text-align:center;">
       <i class="fa-solid fa-clipboard-list" style="font-size:52px;color:var(--ion-color-step-400,#bbb);margin-bottom:14px;"></i>
       <p style="color:var(--ion-color-medium);font-size:14px;margin-bottom:20px;">{{ emptyLabel }}</p>
       <ion-button color="danger" (click)="goToSos()" style="font-weight:bold;margin-bottom:8px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:8px;"></i>Send Emergency SOS</ion-button>
       <ion-button fill="outline" color="danger" (click)="goToHazard()" style="font-weight:bold;"><i class="fa-solid fa-road-barrier" style="margin-right:8px;"></i>Report a Hazard</ion-button>
     </div>
 
-    <ion-list *ngIf="!isLoading && filteredEmergencies.length > 0" style="background:transparent;">
-      <ion-card *ngFor="let req of filteredEmergencies" style="margin:10px 0;">
+    <ion-list *ngIf="!isLoading && emergencies.length > 0" style="background:transparent;">
+      <ion-card *ngFor="let req of emergencies; trackBy: trackByRequestId"
+                [appRevealAnimate]="matchesFilter(req)"
+                style="margin:10px 0;">
         <!-- Tap the card body (not the ion-item chrome) to expand/retract — accordion, no persistent outline. -->
         <div (click)="toggleExpand(req.request_id)" style="cursor:pointer;">
           <ion-item lines="none">
@@ -51,7 +53,7 @@
 
           <!-- Expanded state: full description + tappable proof-file media. -->
           <div *ngIf="expandedId === req.request_id || closingIds.has(req.request_id)"
-               [appRevealAnimate]="expandedId === req.request_id"
+               [appRevealAnimate]="openAnimateId === req.request_id"
                (closed)="onCardCollapsed(req.request_id)"
                style="padding:0 16px 14px;">
             <p *ngIf="req.description" style="font-size:13px;color:var(--ion-text-color);line-height:1.5;margin:0 0 4px;">{{ req.description }}</p>
