@@ -33,9 +33,14 @@
         <ion-item lines="none" style="--background: transparent; --padding-start: 6px;" *ngIf="!isSidebarCollapsed">
           <i class="fa-solid fa-moon" slot="start" style="color: var(--ion-color-danger); font-size: 16px; margin-right: 10px;"></i>
           <ion-label style="font-size: 13px; font-weight: bold; color: var(--ion-text-color);">Dark Mode</ion-label>
-          <ion-toggle slot="end" color="danger" (ionChange)="toggleDarkMode($event)" [checked]="isDarkMode"></ion-toggle>
+          <ion-toggle mode="ios" slot="end" color="danger" (ionChange)="toggleDarkMode($event)" [checked]="isDarkMode"></ion-toggle>
         </ion-item>
-        <button (click)="logout()" class="menu-capsule-link" style="color: var(--ion-color-danger);" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'"><i class="fa-solid fa-right-from-bracket" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Logout</span></button>
+        <button (click)="logout()" [disabled]="loggingOut" class="menu-capsule-link" style="color: var(--ion-color-danger);" [style.opacity]="loggingOut ? 0.6 : 1" [style.cursor]="loggingOut ? 'not-allowed' : 'pointer'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+          <ng-container *ngIf="!loggingOut">
+            <i class="fa-solid fa-right-from-bracket" [style.margin-right]="isSidebarCollapsed ? '0' : '14px'" style="font-size: 18px; width: 22px; text-align: center;"></i><span *ngIf="!isSidebarCollapsed">Logout</span>
+          </ng-container>
+          <span *ngIf="loggingOut" class="dot-loader" [style.margin]="isSidebarCollapsed ? '0 auto' : '0'"><span></span><span></span><span></span></span>
+        </button>
       </div>
     </div>
 
