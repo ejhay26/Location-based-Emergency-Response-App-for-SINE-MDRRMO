@@ -5,6 +5,8 @@ import {
   IonLabel, IonItem, IonToast,
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
+import { of } from 'rxjs';
+import { catchError, timeout } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api';
 import { DialogService } from '../../../core/services/dialog.service';
 import { UserSettingsService } from '../../../core/services/user-settings';
@@ -39,6 +41,9 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   userData: any = {};
   calculatedAge: string | number = 'N/A';
+
+  /** Drives the Logout button's .btn-loading state while the logout request is in flight. */
+  loggingOut = false;
 
   medicalData: MedicalData = { blood_type: '', allergies: '', medical_conditions: '', pwd_status: '' };
 
@@ -101,18 +106,32 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   async logout() {
+    if (this.loggingOut) return; // guards a double-tap firing two overlapping logout flows
     const confirmed = await this.dialog.confirm({
       title: 'Logout', message: 'Are you sure you want to log out?',
       icon: 'fa-solid fa-right-from-bracket', iconColor: 'var(--ion-color-danger)',
       confirmLabel: 'Logout', confirmColor: 'var(--ion-color-danger)',
     });
     if (!confirmed) return;
+    this.loggingOut = true;
     this.pushNotifications.unregisterPush();
-    this.api.logout().subscribe({ error: () => {} });
-    this.locationSvc.stop(); this.api.clearToken(); this.imageCache.clear(); this.settings.clear();
-    localStorage.removeItem('user'); localStorage.removeItem('role');
-    document.documentElement.classList.remove('ion-palette-dark');
-    this.router.navigate(['/login']);
+    // Local cleanup + navigation now runs AFTER the server round-trip settles
+    // instead of firing immediately, so the button's loading state reflects
+    // real work rather than just a flash. timeout(6000) + catchError(of(null))
+    // guarantee finishLogout still fires even on a hung/offline connection —
+    // there's no global HTTP timeout configured (see error-interceptor.ts),
+    // so without this a bad connection could leave the button spinning
+    // forever instead of logging the user out locally.
+    const finishLogout = () => {
+      this.locationSvc.stop(); this.api.clearToken(); this.imageCache.clear(); this.settings.clear();
+      localStorage.removeItem('user'); localStorage.removeItem('role');
+      document.documentElement.classList.remove('ion-palette-dark');
+      this.router.navigate(['/login']);
+    };
+    this.api.logout().pipe(
+      timeout(6000),
+      catchError(() => of(null)),
+    ).subscribe({ next: finishLogout });
   }
 
   calculateAge(birthdateStr: string) {

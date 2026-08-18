@@ -6,7 +6,7 @@
 
 <ion-toast [isOpen]="toastOpen" [message]="toastMessage" [color]="toastColor" [duration]="3000" position="bottom" (didDismiss)="toastOpen = false"></ion-toast>
 
-<ion-content class="ion-padding" style="--padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));">
+<ion-content class="ion-padding tab-page-content">
   <app-profile-photo
     [profilePicturePath]="userData.profile_picture"
     [userId]="userData.user_id"
@@ -47,7 +47,10 @@
     </app-profile-password>
 
     <div style="padding:24px 0 8px 0;">
-      <ion-button expand="block" color="danger" fill="outline" (click)="logout()" style="font-weight:bold;height:48px;"><i class="fa-solid fa-right-from-bracket" style="margin-right:8px;"></i> Logout</ion-button>
+      <ion-button expand="block" color="danger" fill="outline" (click)="logout()" [class.btn-loading]="loggingOut" style="font-weight:bold;height:48px;">
+        <ng-container *ngIf="!loggingOut"><i class="fa-solid fa-right-from-bracket" style="margin-right:8px;"></i> Logout</ng-container>
+        <span *ngIf="loggingOut" class="dot-loader"><span></span><span></span><span></span></span>
+      </ion-button>
     </div>
   </ion-list>
 </ion-content>
