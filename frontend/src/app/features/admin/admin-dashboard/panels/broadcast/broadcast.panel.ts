@@ -8,6 +8,7 @@ import {
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
+import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 import { BARANGAYS, Barangay } from '../../../../../shared/constants/barangays';
 
 /**
@@ -19,7 +20,7 @@ import { BARANGAYS, Barangay } from '../../../../../shared/constants/barangays';
 @Component({
   selector: 'app-broadcast-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonItem, IonInput, IonButton, UtcDatePipe],
+  imports: [CommonModule, FormsModule, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonItem, IonInput, IonButton, UtcDatePipe, ListEnterDirective],
   templateUrl: './broadcast.panel.html',
 })
 export class BroadcastPanel implements OnInit {
@@ -92,5 +93,9 @@ export class BroadcastPanel implements OnInit {
         });
       }
     });
+  }
+
+  trackByBroadcastId(_index: number, b: any): number {
+    return b.broadcast_id;
   }
 }

@@ -23,7 +23,7 @@
       </div>
       <p style="font-size: 11px; color: var(--ion-color-medium); margin: 8px 0 0;">
         <i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i>
-        {{ isTownWide ? 'This alert will be sent to every citizen.' : 'Tap "Town-wide" to clear barangay selection.' }}
+        {{ isTownWide ? 'This alert will be sent to every citizen.' : 'Tap "All" to clear barangay selection.' }}
       </p>
 
       <ion-button expand="block" color="danger" (click)="submitBroadcast()"
@@ -36,7 +36,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngFor="let broadcast of activeBroadcasts" class="ion-margin-top" style="border: 2px solid var(--ion-color-danger); margin-left: 0; margin-right: 0; box-shadow: none;">
+  <ion-card *ngFor="let broadcast of activeBroadcasts; let i = index; trackBy: trackByBroadcastId" [appAnnouncementEnter]="i" class="ion-margin-top" style="border: 2px solid var(--ion-color-danger); margin-left: 0; margin-right: 0; box-shadow: none;">
     <ion-card-header style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0;">
       <div>
         <ion-card-subtitle style="font-weight: bold; color: var(--ion-color-danger);">Active Alert</ion-card-subtitle>
