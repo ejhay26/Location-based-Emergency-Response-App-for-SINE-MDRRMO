@@ -7,12 +7,12 @@
     position: relative;
   ">
     <div style="
-      display: flex; width: 400%; height: 100%;
+      display: flex; height: 100%;
       transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    " [style.transform]="'translateX(-' + (currentSlide * 25) + '%)'">
+    " [style.width.%]="TOTAL_SLIDES * 100" [style.transform]="'translateX(-' + (currentSlide * (100 / TOTAL_SLIDES)) + '%)'">
 
       <!-- SLIDE 1: Welcome + optional profile photo -->
-      <div style="width: 25%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 32px 28px; text-align: center; overflow-y: auto;">
+      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 150px 28px; text-align: center; overflow-y: auto; box-sizing: border-box;">
         <p style="margin: 0 0 4px 0; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 2px; text-transform: uppercase;">Account Setup</p>
         <h1 style="margin: 0 0 12px 0; font-size: 26px; font-weight: 900; color: white; line-height: 1.2;">Welcome, {{ userData.first_name }}! 🎉</h1>
         <p style="margin: 0 0 28px 0; font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.6; max-width: 300px;">Let's get your account set up — takes about 30 seconds. Everything here is optional and can always be changed later.</p>
@@ -28,35 +28,74 @@
       </div>
 
       <!-- SLIDE 2: Quick settings -->
-      <div style="width: 25%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px 32px 24px; text-align: center; overflow-y: auto;">
+      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px 150px 24px; text-align: center; overflow-y: auto; box-sizing: border-box;">
         <div style="width: 84px; height: 84px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; flex-shrink: 0;">
           <i class="fa-solid fa-sliders" style="font-size: 36px; color: white;"></i>
         </div>
         <h2 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 800; color: white;">Your Preferences</h2>
-        <p style="margin: 0 0 26px 0; font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.6; max-width: 320px;">A couple of quick settings — the rest are always available later in the Settings tab.</p>
+        <p style="margin: 0 0 22px 0; font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.6; max-width: 320px;">Same settings you'll find later in the Settings tab — set them now or skip and change them anytime.</p>
 
-        <div style="width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px; text-align: left;">
-          <div *ngFor="let s of appearance" style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
-            <div style="flex: 1; min-width: 0;">
-              <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">{{ s.label }}</p>
-              <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+        <div style="width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 18px; text-align: left;">
+          <div>
+            <p style="margin: 0 0 8px 2px; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.8px;">Appearance</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div *ngFor="let s of appearance" style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+                <div style="flex: 1; min-width: 0;">
+                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">{{ s.label }}</p>
+                  <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+                </div>
+                <span style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); min-width: 26px;">{{ s.value ? 'ON' : 'OFF' }}</span>
+                <ion-toggle color="light" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+              </div>
             </div>
-            <span style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); min-width: 26px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-            <ion-toggle color="light" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
           </div>
-          <div *ngFor="let s of notifications" style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
-            <div style="flex: 1; min-width: 0;">
-              <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">{{ s.label }}</p>
-              <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+
+          <div>
+            <p style="margin: 0 0 8px 2px; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.8px;">Map &amp; Location</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div *ngFor="let s of location" style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+                <div style="flex: 1; min-width: 0;">
+                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">{{ s.label }}</p>
+                  <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+                </div>
+                <span style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); min-width: 26px;">{{ s.value ? 'ON' : 'OFF' }}</span>
+                <ion-toggle color="light" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+              </div>
             </div>
-            <span style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); min-width: 26px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-            <ion-toggle color="light" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+          </div>
+
+          <div>
+            <p style="margin: 0 0 8px 2px; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.8px;">Notifications</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div *ngFor="let s of notifications" style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+                <div style="flex: 1; min-width: 0;">
+                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">{{ s.label }}</p>
+                  <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+                </div>
+                <span style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); min-width: 26px;">{{ s.value ? 'ON' : 'OFF' }}</span>
+                <ion-toggle color="light" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p style="margin: 0 0 8px 2px; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.8px;">Reporting</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div *ngFor="let s of reporting" style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+                <div style="flex: 1; min-width: 0;">
+                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">{{ s.label }}</p>
+                  <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+                </div>
+                <span style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); min-width: 26px;">{{ s.value ? 'ON' : 'OFF' }}</span>
+                <ion-toggle color="light" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- SLIDE 3: Medical profile -->
-      <div style="width: 25%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px 32px 24px; text-align: center; overflow-y: auto;">
+      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px 150px 24px; text-align: center; overflow-y: auto; box-sizing: border-box;">
         <div style="width: 84px; height: 84px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; flex-shrink: 0;">
           <i class="fa-solid fa-notes-medical" style="font-size: 36px; color: white;"></i>
         </div>
@@ -72,8 +111,25 @@
         </div>
       </div>
 
-      <!-- SLIDE 4: All set + tour offer -->
-      <div style="width: 25%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 32px 28px; text-align: center;">
+      <!-- SLIDE 4: Report widget (Android only — see widgetAvailable in the component) -->
+      <div *ngIf="widgetAvailable" [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 150px 28px; text-align: center; overflow-y: auto; box-sizing: border-box;">
+        <div style="width: 84px; height: 84px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; flex-shrink: 0;">
+          <i class="fa-solid fa-table-cells-large" style="font-size: 36px; color: white;"></i>
+        </div>
+        <h2 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 800; color: white;">One More Thing</h2>
+        <p style="margin: 0 0 28px 0; font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.7; max-width: 300px;">In an emergency, every second counts. Add a "Report Emergency" widget to your home screen so it's one tap away — no unlocking through the app, no digging for the right screen. Add it now, or skip and turn it on anytime later from Settings.</p>
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 14px; max-width: 340px;">
+          <ion-button expand="block" (click)="addWidgetNow()" style="--background: white; --color: var(--ion-color-danger); --border-radius: 14px; --box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-weight: 800; font-size: 16px; height: 54px;">
+            <i class="fa-solid fa-table-cells-large" style="margin-right: 10px;"></i>Add to Home Screen
+          </ion-button>
+          <ion-button expand="block" fill="outline" (click)="next()" style="--border-color: rgba(255,255,255,0.5); --color: white; --border-radius: 14px; font-weight: 700; font-size: 15px; height: 50px;">
+            Skip for now
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- SLIDE 5: All set + tour offer -->
+      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 150px 28px; text-align: center; overflow-y: auto; box-sizing: border-box;">
         <div style="width: 100px; height: 100px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px;">
           <img src="assets/icon/logo.jpg" style="width: 70px; height: 70px; object-fit: contain; border-radius: 16px;" alt="MDRRMO Logo" />
         </div>
@@ -99,14 +155,12 @@
              [style.background]="i === currentSlide ? 'white' : 'rgba(255,255,255,0.4)'"
              style="height: 8px; border-radius: 4px; cursor: pointer; transition: all 0.3s;"></div>
       </div>
-      <div *ngIf="!isLastSlide" style="width: 100%; display: flex; justify-content: flex-end; max-width: 380px;">
-        <button (click)="next()" style="background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); border-radius: 14px; color: white; font-size: 15px; font-weight: 700; padding: 12px 28px; cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(4px);">
-          Continue <i class="fa-solid fa-arrow-right"></i>
-        </button>
-      </div>
-      <div *ngIf="!isFirstSlide && !isLastSlide" style="position: absolute; bottom: 36px; left: 28px;">
-        <button (click)="prev()" style="background: transparent; border: none; color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 12px 0;">
+      <div *ngIf="!isLastSlide" style="width: 100%; display: flex; align-items: center; max-width: 380px;">
+        <button *ngIf="!isFirstSlide" (click)="prev()" style="background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.35); border-radius: 14px; color: white; font-size: 15px; font-weight: 700; padding: 12px 22px; cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(4px);">
           <i class="fa-solid fa-arrow-left"></i> Back
+        </button>
+        <button (click)="next()" style="margin-left: auto; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); border-radius: 14px; color: white; font-size: 15px; font-weight: 700; padding: 12px 28px; cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(4px);">
+          Continue <i class="fa-solid fa-arrow-right"></i>
         </button>
       </div>
     </div>
