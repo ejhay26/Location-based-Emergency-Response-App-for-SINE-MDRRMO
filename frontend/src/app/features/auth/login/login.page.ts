@@ -9,10 +9,15 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { ApiService } from '../../../core/services/api';
+import { DialogService } from '../../../core/services/dialog.service';
 import { PushNotificationsService } from '../../../core/services/push-notifications';
 import { UserSettingsService } from '../../../core/services/user-settings';
 import { LocationService } from '../../../core/services/location';
 import { TourService } from '../../../core/services/tour';
+import { DeepLinkService } from '../../../core/services/deep-link';
+import { formatPhoneLocalPart, isValidPhonePH } from '../../../shared/utils/phone.util';
+import { OtpAutofillService } from '../../../core/services/otp-autofill';
+import { OtpBoxInputComponent } from '../../../shared/components/otp-box-input/otp-box-input.component';
 
 @Component({
   selector: 'app-login',
@@ -21,21 +26,27 @@ import { TourService } from '../../../core/services/tour';
   imports: [
     CommonModule, FormsModule, RouterModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem,
-    IonInput, IonButton, IonInputPasswordToggle, IonToast
+    IonInput, IonButton, IonInputPasswordToggle, IonToast,
+    OtpBoxInputComponent
   ],
 })
 export class LoginPage {
 
   credentials = { login: '', password: '' };
   showPassword = false;
-  viewMode: 'login' | 'login-otp-choose' | 'email-otp' | 'forgot-choose' | 'forgot-input' | 'reset' = 'login';
+  viewMode: 'login' | 'login-otp-choose' | 'email-otp' | 'forgot-choose' | 'forgot-input' = 'login';
   otpChannel: 'email' | 'phone' | null = null;
-  resetData = { email: '', phone: '', otp: '', new_password: '' };
+  resetData = { email: '', phone: '', otp: '', new_password: '', confirm_password: '' };
+  /** True once a recovery OTP has been sent for the current forgot-password attempt; reveals the 4-box code entry. */
+  resetOtpSent = false;
+  /** True once that code has actually been verified against the backend; only then are the new-password fields shown. */
+  resetOtpVerified = false;
 
-  isLoggingIn    = false;
-  isSendingOtp   = false;
-  isVerifyingOtp = false;
-  isResettingPwd = false;
+  isLoggingIn        = false;
+  isSendingOtp       = false;
+  isVerifyingOtp     = false;
+  isVerifyingResetOtp = false;
+  isResettingPwd     = false;
 
   // ── OTP login (email or phone) ──────────────────────────────────────────
   loginOtpChannel: 'email' | 'phone' | null = null;
@@ -44,12 +55,31 @@ export class LoginPage {
   otpResendSecs   = 0;
   private resendInterval: any;
 
+  /**
+   * 10-digit local parts only, bound directly to their respective inputs.
+   * emailOtpData.phone / resetData.phone hold the full "63XXXXXXXXXX"
+   * canonical value used for actual submission — see onOtpPhoneInput() /
+   * onResetPhoneInput(). Same split-state pattern as register.page.ts.
+   */
+  otpPhoneLocal   = '';
+  resetPhoneLocal = '';
+
+  onOtpPhoneInput(raw: string | null | undefined): void {
+    this.otpPhoneLocal = formatPhoneLocalPart(raw ?? '');
+    this.emailOtpData.phone = this.otpPhoneLocal.length === 10 ? '63' + this.otpPhoneLocal : '';
+  }
+
+  onResetPhoneInput(raw: string | null | undefined): void {
+    this.resetPhoneLocal = formatPhoneLocalPart(raw ?? '');
+    this.resetData.phone = this.resetPhoneLocal.length === 10 ? '63' + this.resetPhoneLocal : '';
+  }
+
   get emailValid(): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.emailOtpData.email);
   }
 
   get loginPhoneValid(): boolean {
-    return /^(\+63|0)9\d{9}$/.test(this.emailOtpData.phone.replace(/[\s-]/g, ''));
+    return isValidPhonePH(this.emailOtpData.phone);
   }
 
   /** Whichever identifier field is relevant for the currently chosen login-OTP channel. */
@@ -86,6 +116,10 @@ export class LoginPage {
         this.otpSent = true;
         this.startResendCountdown();
         this.showToast(`OTP sent — check your ${channelLabel}.`, 'success');
+        // Only meaningful on native Android — listen() silently no-ops
+        // everywhere else (iOS, web, desktop), so it's harmless to always
+        // call this rather than branch on loginOtpChannel.
+        this.otpAutofill.listen(code => { this.emailOtpData.otp = code; this.verifyLoginOtp(); });
       },
       error: (err: any) => {
         this.isSendingOtp = false;
@@ -118,7 +152,7 @@ export class LoginPage {
       : { otp_channel: 'email', email: this.emailOtpData.email, otp: this.emailOtpData.otp };
     this.isVerifyingOtp = true;
     this.api.loginVerifyOtp(payload).subscribe({
-      next: (res: any) => { this.isVerifyingOtp = false; this.handleLoginSuccess(res); },
+      next: (res: any) => { this.isVerifyingOtp = false; this.otpAutofill.stop(); this.handleLoginSuccess(res); },
       error: (err: any) => {
         this.isVerifyingOtp = false;
         this.showToast(err.error?.message || 'Invalid or expired code.', 'danger');
@@ -131,17 +165,21 @@ export class LoginPage {
     this.viewMode = 'login-otp-choose';
     this.loginOtpChannel = null;
     this.emailOtpData = { email: '', phone: '', otp: '' };
+    this.otpPhoneLocal = '';
     this.otpSent = false;
     this.otpResendSecs = 0;
     clearInterval(this.resendInterval);
+    this.otpAutofill.stop();
   }
 
   chooseLoginOtpChannel(channel: 'email' | 'phone') {
     this.loginOtpChannel = channel;
     this.emailOtpData = { email: '', phone: '', otp: '' };
+    this.otpPhoneLocal = '';
     this.otpSent = false;
     this.otpResendSecs = 0;
     clearInterval(this.resendInterval);
+    this.otpAutofill.stop();
     this.viewMode = 'email-otp';
   }
 
@@ -162,10 +200,18 @@ export class LoginPage {
       // at its final step, so the old promptStart() alert is no longer
       // fired from here.
       const needsSetup = isCitizen && !res.user.setup_completed;
+      // A widget/external-launch deep link (e.g. Report) takes priority over
+      // the default home tab, but never over first-time Account Setup — a
+      // brand-new citizen still has to complete setup before anything else.
+      const pendingDeepLink = isCitizen && !needsSetup ? this.deepLink.consumePendingDeepLink() : null;
       const target = (res.role === 'admin' || res.role === 'dispatcher')
         ? '/admin-dashboard'
-        : (needsSetup ? '/account-setup' : '/tabs/home');
-      this.router.navigate([target]).then(() => {
+        : (needsSetup ? '/account-setup' : (pendingDeepLink ?? '/tabs/home'));
+      // navigateByUrl (not navigate([target])) — target may carry a query
+      // string (e.g. '/report?type=hazard' from a deferred widget deep
+      // link), and router.navigate() with an array only parses path
+      // segments, not embedded '?' query strings.
+      this.router.navigateByUrl(target).then(() => {
         requestAnimationFrame(() => { this.settings.applyToDom(); });
         if (isCitizen) {
           this.pushNotificationsService.registerPush(res.user.user_id);
@@ -202,11 +248,14 @@ export class LoginPage {
   constructor(
     private router: Router,
     private api: ApiService,
+    private dialog: DialogService,
     private menuCtrl: MenuController,
     private pushNotificationsService: PushNotificationsService,
     private settings: UserSettingsService,
     private locationSvc: LocationService,
     private tour: TourService,
+    private otpAutofill: OtpAutofillService,
+    private deepLink: DeepLinkService,
   ) {}
 
   ionViewWillEnter() {
@@ -222,6 +271,7 @@ export class LoginPage {
     this.menuCtrl.enable(true);
     clearInterval(this.lockoutInterval);
     clearInterval(this.resendInterval);
+    this.otpAutofill.stop();
   }
 
   login() {
@@ -259,7 +309,7 @@ export class LoginPage {
             this.showToast('Your account has been suspended. Contact the admin.', 'danger');
           }
         } else {
-          this.showToast(`Invalid credentials. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`, 'danger');
+          this.showToast(`Invalid email or password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`, 'danger');
         }
       }
     });
@@ -267,16 +317,40 @@ export class LoginPage {
 
   chooseOtpChannel(channel: 'email' | 'phone') {
     this.otpChannel = channel;
+    this.resetData = { email: '', phone: '', otp: '', new_password: '', confirm_password: '' };
+    this.resetPhoneLocal = '';
+    this.resetOtpSent = false;
+    this.resetOtpVerified = false;
+    this.otpResendSecs = 0;
+    clearInterval(this.resendInterval);
     this.viewMode = 'forgot-input';
   }
 
+  get resetIdentifierValid(): boolean {
+    return this.otpChannel === 'phone' ? isValidPhonePH(this.resetData.phone) : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.resetData.email);
+  }
+
+  /** Masked identifier shown as a locked/verified summary once resetOtpVerified — same masking shape as profile.page.ts's maskEmail/maskPhone. */
+  get maskedResetIdentifier(): string {
+    if (this.otpChannel === 'phone') {
+      const p = this.resetPhoneLocal;
+      return p.length < 4 ? p : '+63 ' + p.slice(0, 3) + '*'.repeat(Math.max(p.length - 4, 0)) + p.slice(-1);
+    }
+    const [local, domain] = this.resetData.email.split('@');
+    if (!domain) return this.resetData.email;
+    const maskedLocal = local.length <= 2
+      ? local[0] + '*'.repeat(Math.max(local.length - 1, 1))
+      : local[0] + '*'.repeat(local.length - 2) + local[local.length - 1];
+    return maskedLocal + '@' + domain;
+  }
+
   requestReset() {
-    if (this.otpChannel === 'email' && !this.resetData.email) {
-      this.showToast('Please enter your email.', 'warning'); return;
+    if (!this.resetIdentifierValid) {
+      this.showToast(
+        this.otpChannel === 'phone' ? 'Please enter a valid phone number.' : 'Please enter a valid email address.', 'warning'
+      ); return;
     }
-    if (this.otpChannel === 'phone' && !this.resetData.phone) {
-      this.showToast('Please enter your phone number.', 'warning'); return;
-    }
+    if (this.otpResendSecs > 0) return;
     const payload = this.otpChannel === 'email'
       ? { email: this.resetData.email, otp_channel: 'email' }
       : { phone: this.resetData.phone, otp_channel: 'phone' };
@@ -284,12 +358,16 @@ export class LoginPage {
     this.api.forgotPassword(payload).subscribe({
       next: () => {
         this.isSendingOtp = false;
+        this.resetOtpSent = true;
+        this.resetOtpVerified = false;
+        this.startResendCountdown();
         this.showToast('Recovery OTP sent.', 'success');
-        this.viewMode = 'reset';
+        this.resetData.otp = '';
         this.resetData.new_password = '';
+        this.resetData.confirm_password = '';
         this.onResetPasswordInput();
       },
-      error: () => {
+      error: (err: any) => {
         this.isSendingOtp = false;
         this.showToast(
           this.otpChannel === 'email' ? 'Email not found.' : 'Phone number not found.', 'danger'
@@ -298,28 +376,80 @@ export class LoginPage {
     });
   }
 
-  confirmReset() {
-    if (!this.resetData.otp) { this.showToast('Please enter the OTP code.', 'warning'); return; }
+  /** Confirms the entered code is correct before revealing the new-password fields — see AuthController::verifyResetOtp(). */
+  verifyResetOtp() {
+    if (!this.resetData.otp || this.resetData.otp.length < 4) {
+      this.showToast('Please enter the 4-digit code.', 'warning'); return;
+    }
+    const payload = this.otpChannel === 'email'
+      ? { email: this.resetData.email, otp: this.resetData.otp, otp_channel: 'email' }
+      : { phone: this.resetData.phone, otp: this.resetData.otp, otp_channel: 'phone' };
+    this.isVerifyingResetOtp = true;
+    this.api.verifyResetOtp(payload).subscribe({
+      next: () => {
+        this.isVerifyingResetOtp = false;
+        this.resetOtpVerified = true;
+        clearInterval(this.resendInterval);
+        this.otpResendSecs = 0;
+      },
+      error: (err: any) => {
+        this.isVerifyingResetOtp = false;
+        this.showToast(err.error?.message || 'Invalid or expired code.', 'danger');
+      }
+    });
+  }
+
+  /** True once new_password meets all requirements AND confirm_password matches it exactly. */
+  get resetPwdMatch(): boolean {
+    return this.resetData.new_password.length > 0 && this.resetData.new_password === this.resetData.confirm_password;
+  }
+
+  async confirmReset() {
+    if (!this.resetOtpVerified) { this.showToast('Please verify the OTP code first.', 'warning'); return; }
     if (!this.resetData.new_password) { this.showToast('Please enter a new password.', 'warning'); return; }
     if (!this.resetPwdLength || !this.resetPwdUpper || !this.resetPwdLower || !this.resetPwdNum || !this.resetPwdSym) {
       this.showToast('Password does not meet all requirements.', 'warning'); return;
     }
+    if (!this.resetData.confirm_password) { this.showToast('Please confirm your new password.', 'warning'); return; }
+    if (this.resetData.new_password !== this.resetData.confirm_password) {
+      this.showToast('Passwords do not match.', 'warning'); return;
+    }
+
+    const confirmed = await this.dialog.confirm({
+      title: 'Reset Password',
+      message: 'You are about to set a new password for this account. You will need to log in again with it afterward.',
+      icon: 'fa-solid fa-lock-open', iconColor: 'var(--ion-color-danger)',
+      confirmLabel: 'Reset Password', confirmColor: 'var(--ion-color-danger)',
+    });
+    if (!confirmed) return;
+
     const payload = this.otpChannel === 'email'
-      ? { email: this.resetData.email, otp: this.resetData.otp, new_password: this.resetData.new_password, otp_channel: 'email' }
-      : { phone: this.resetData.phone, otp: this.resetData.otp, new_password: this.resetData.new_password, otp_channel: 'phone' };
+      ? { email: this.resetData.email, new_password: this.resetData.new_password, otp_channel: 'email' }
+      : { phone: this.resetData.phone, new_password: this.resetData.new_password, otp_channel: 'phone' };
     this.isResettingPwd = true;
     this.api.resetPassword(payload).subscribe({
       next: () => {
         this.isResettingPwd = false;
         this.showToast('Password reset! You can now log in.', 'success');
         this.viewMode = 'login';
-        this.resetData = { email: '', phone: '', otp: '', new_password: '' };
+        this.resetData = { email: '', phone: '', otp: '', new_password: '', confirm_password: '' };
         this.otpChannel = null;
+        this.resetOtpSent = false;
+        this.resetOtpVerified = false;
+        this.otpResendSecs = 0;
+        clearInterval(this.resendInterval);
         this.onResetPasswordInput();
       },
       error: (err: any) => {
         this.isResettingPwd = false;
-        this.showToast(err.error?.message || 'Invalid OTP or weak password.', 'danger');
+        // A 403 here means the 5-minute verified window (set by
+        // verifyResetOtp) lapsed before Confirm was pressed — send them
+        // back to re-verify rather than showing a generic error.
+        if (err.status === 403) {
+          this.resetOtpVerified = false;
+          this.resetData.otp = '';
+        }
+        this.showToast(err.error?.message || 'Failed to reset password.', 'danger');
       }
     });
   }

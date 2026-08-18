@@ -115,14 +115,40 @@
                    [(ngModel)]="emailOtpData.email"
                    (ionInput)="emailOtpData.otp = ''; otpSent = false;"
                    [disabled]="isSendingOtp"></ion-input>
+        <ion-button slot="end" fill="solid" color="danger" size="small" type="button"
+                    [class.btn-muted]="otpResendSecs > 0"
+                    [class.btn-loading]="isSendingOtp"
+                    (click)="sendLoginOtp()"
+                    style="font-weight: bold; margin: 0; --border-radius: 8px; min-width: 76px;">
+          <ng-container *ngIf="!isSendingOtp">
+            <ng-container *ngIf="!otpSent">Send</ng-container>
+            <ng-container *ngIf="otpSent && otpResendSecs > 0">{{ otpResendSecs }}s</ng-container>
+            <ng-container *ngIf="otpSent && otpResendSecs === 0">Resend</ng-container>
+          </ng-container>
+          <i *ngIf="isSendingOtp" class="fa-solid fa-spinner fa-spin"></i>
+        </ion-button>
       </ion-item>
       <ion-item *ngIf="loginOtpChannel === 'phone'">
         <i class="fa-solid fa-mobile-screen" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
         <ion-input label="Registered Phone Number" labelPlacement="stacked"
-                   type="tel" inputmode="tel" autocomplete="tel" placeholder="Tap to enter your registered phone number"
-                   [(ngModel)]="emailOtpData.phone"
-                   (ionInput)="emailOtpData.otp = ''; otpSent = false;"
-                   [disabled]="isSendingOtp"></ion-input>
+                   type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="9XXXXXXXXX"
+                   [ngModel]="otpPhoneLocal"
+                   (ionInput)="onOtpPhoneInput($event.detail.value); emailOtpData.otp = ''; otpSent = false;"
+                   [disabled]="isSendingOtp">
+          <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:600;">+63</div>
+        </ion-input>
+        <ion-button slot="end" fill="solid" color="danger" size="small" type="button"
+                    [class.btn-muted]="otpResendSecs > 0"
+                    [class.btn-loading]="isSendingOtp"
+                    (click)="sendLoginOtp()"
+                    style="font-weight: bold; margin: 0; --border-radius: 8px; min-width: 76px;">
+          <ng-container *ngIf="!isSendingOtp">
+            <ng-container *ngIf="!otpSent">Send</ng-container>
+            <ng-container *ngIf="otpSent && otpResendSecs > 0">{{ otpResendSecs }}s</ng-container>
+            <ng-container *ngIf="otpSent && otpResendSecs === 0">Resend</ng-container>
+          </ng-container>
+          <i *ngIf="isSendingOtp" class="fa-solid fa-spinner fa-spin"></i>
+        </ion-button>
       </ion-item>
     </ion-list>
 
@@ -137,31 +163,8 @@
       Enter a valid phone number (e.g. 09XXXXXXXXX).
     </div>
 
-    <ion-button expand="block" color="danger" class="ion-margin-top"
-                [class.btn-muted]="!loginOtpIdentifierValid || otpResendSecs > 0"
-                [class.btn-loading]="isSendingOtp"
-                (click)="sendLoginOtp()"
-                style="font-weight: bold; height: 45px;">
-      <ng-container *ngIf="!isSendingOtp">
-        <i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i>
-        <ng-container *ngIf="!otpSent">Send OTP</ng-container>
-        <ng-container *ngIf="otpSent && otpResendSecs > 0">Resend in {{ otpResendSecs }}s</ng-container>
-        <ng-container *ngIf="otpSent && otpResendSecs === 0">Resend OTP</ng-container>
-      </ng-container>
-      <span *ngIf="isSendingOtp" class="dot-loader"><span></span><span></span><span></span></span>
-    </ion-button>
-
     <div *ngIf="otpSent" style="margin-top: 20px;">
-      <ion-list style="background: transparent;">
-        <ion-item>
-          <i class="fa-solid fa-key" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-          <ion-input label="4-Digit Code" labelPlacement="stacked"
-                     type="tel" inputmode="numeric" autocomplete="one-time-code"
-                     maxlength="4" placeholder="0000"
-                     [(ngModel)]="emailOtpData.otp"
-                     (ionInput)="emailOtpData.otp.length === 4 && verifyLoginOtp()"></ion-input>
-        </ion-item>
-      </ion-list>
+      <app-otp-box-input [code]="emailOtpData.otp" (codeChange)="emailOtpData.otp = $event" (completed)="verifyLoginOtp()"></app-otp-box-input>
 
       <ion-button expand="block" color="danger" class="ion-margin-top"
                   [class.btn-muted]="emailOtpData.otp.length < 4"
@@ -203,50 +206,93 @@
     </ion-button>
   </div>
 
-  <!-- ── Forgot: enter value ── -->
+  <!-- ── Forgot: enter identifier, send/resend, then code + new password ── -->
   <div *ngIf="viewMode === 'forgot-input'">
     <h3 style="font-weight: bold; color: var(--ion-text-color);">Reset Password</h3>
-    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
-      Enter your {{ otpChannel === 'email' ? 'email' : 'phone number' }} to receive a recovery OTP.
+    <p *ngIf="!resetOtpVerified" style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
+      Enter your registered {{ otpChannel === 'email' ? 'email' : 'phone number' }} to receive a recovery OTP.
     </p>
-    <ion-list style="background: transparent;">
+
+    <div *ngIf="resetOtpVerified" class="ion-margin-bottom"
+         style="display: flex; align-items: center; gap: 10px; background: var(--ion-color-light); border-radius: 12px; padding: 12px 16px; opacity: 0.75;">
+      <i class="fa-solid" [class.fa-envelope]="otpChannel !== 'phone'" [class.fa-mobile-screen]="otpChannel === 'phone'"
+         style="color: var(--ion-color-medium); font-size: 16px;"></i>
+      <span style="font-weight: 600; color: var(--ion-color-medium); flex: 1; text-align: left;">{{ maskedResetIdentifier }}</span>
+      <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 16px;"></i>
+    </div>
+
+    <ion-list style="background: transparent;" *ngIf="!resetOtpVerified">
       <ion-item *ngIf="otpChannel === 'email'">
         <i class="fa-solid fa-envelope" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
         <ion-input label="Registered Email Address" labelPlacement="stacked"
-                   type="email" placeholder="Tap to enter your registered email" [(ngModel)]="resetData.email"></ion-input>
+                   type="email" inputmode="email" autocomplete="email" placeholder="Tap to enter your registered email"
+                   [(ngModel)]="resetData.email"
+                   (ionInput)="resetData.otp = ''; resetOtpSent = false;"
+                   [disabled]="isSendingOtp"></ion-input>
+        <ion-button slot="end" fill="solid" color="danger" size="small" type="button"
+                    [class.btn-muted]="otpResendSecs > 0"
+                    [class.btn-loading]="isSendingOtp"
+                    (click)="requestReset()"
+                    style="font-weight: bold; margin: 0; --border-radius: 8px; min-width: 76px;">
+          <ng-container *ngIf="!isSendingOtp">
+            <ng-container *ngIf="!resetOtpSent">Send</ng-container>
+            <ng-container *ngIf="resetOtpSent && otpResendSecs > 0">{{ otpResendSecs }}s</ng-container>
+            <ng-container *ngIf="resetOtpSent && otpResendSecs === 0">Resend</ng-container>
+          </ng-container>
+          <i *ngIf="isSendingOtp" class="fa-solid fa-spinner fa-spin"></i>
+        </ion-button>
       </ion-item>
       <ion-item *ngIf="otpChannel === 'phone'">
         <i class="fa-solid fa-mobile-screen" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
         <ion-input label="Registered Phone Number" labelPlacement="stacked"
-                   type="tel" placeholder="Tap to enter your registered phone number" [(ngModel)]="resetData.phone"></ion-input>
+                   type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="9XXXXXXXXX"
+                   [ngModel]="resetPhoneLocal"
+                   (ionInput)="onResetPhoneInput($event.detail.value); resetData.otp = ''; resetOtpSent = false;"
+                   [disabled]="isSendingOtp">
+          <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:600;">+63</div>
+        </ion-input>
+        <ion-button slot="end" fill="solid" color="danger" size="small" type="button"
+                    [class.btn-muted]="otpResendSecs > 0"
+                    [class.btn-loading]="isSendingOtp"
+                    (click)="requestReset()"
+                    style="font-weight: bold; margin: 0; --border-radius: 8px; min-width: 76px;">
+          <ng-container *ngIf="!isSendingOtp">
+            <ng-container *ngIf="!resetOtpSent">Send</ng-container>
+            <ng-container *ngIf="resetOtpSent && otpResendSecs > 0">{{ otpResendSecs }}s</ng-container>
+            <ng-container *ngIf="resetOtpSent && otpResendSecs === 0">Resend</ng-container>
+          </ng-container>
+          <i *ngIf="isSendingOtp" class="fa-solid fa-spinner fa-spin"></i>
+        </ion-button>
       </ion-item>
     </ion-list>
-    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="requestReset()"
-                [disabled]="isSendingOtp" style="font-weight: bold; height: 45px;">
-      <ng-container *ngIf="!isSendingOtp">Send Recovery OTP</ng-container>
-      <span *ngIf="isSendingOtp" style="display:flex;align-items:center;gap:8px;">
-        <i class="fa-solid fa-spinner fa-spin"></i> Sending…
-      </span>
-    </ion-button>
-    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
-                (click)="viewMode = 'forgot-choose'" style="font-weight: bold;">
-      Back
-    </ion-button>
-  </div>
 
-  <!-- ── Reset: OTP + new password ── -->
-  <div *ngIf="viewMode === 'reset'">
-    <h3 style="font-weight: bold; color: var(--ion-text-color);">Set New Password</h3>
-    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
-      Enter the 4-digit code sent to your {{ otpChannel === 'phone' ? 'phone number' : 'email' }}.
-    </p>
-    <ion-list style="background: transparent;">
-      <ion-item>
-        <i class="fa-solid fa-key" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-        <ion-input label="4-Digit OTP" labelPlacement="stacked"
-                   type="tel" inputmode="numeric" autocomplete="one-time-code" placeholder="0000"
-                   [(ngModel)]="resetData.otp"></ion-input>
-      </ion-item>
+    <div *ngIf="otpChannel === 'phone' && resetPhoneLocal.length > 0 && !resetIdentifierValid"
+         style="text-align: left; padding: 6px 16px; font-size: 12px; color: var(--ion-color-danger);">
+      <i class="fa-solid fa-circle-exclamation" style="margin-right: 5px;"></i>
+      Enter a valid phone number (e.g. 09XXXXXXXXX).
+    </div>
+
+    <div *ngIf="resetOtpSent && !resetOtpVerified" style="margin-top: 20px;">
+      <h3 style="font-weight: bold; color: var(--ion-text-color); text-align: left; font-size: 16px;">Enter Code</h3>
+      <p style="color: var(--ion-color-medium); font-weight: 500; text-align: left;" class="ion-margin-bottom">
+        Enter the 4-digit code sent to your {{ otpChannel === 'phone' ? 'phone number' : 'email' }}.
+      </p>
+      <app-otp-box-input [code]="resetData.otp" (codeChange)="resetData.otp = $event" (completed)="verifyResetOtp()"></app-otp-box-input>
+
+      <ion-button expand="block" color="danger" class="ion-margin-top"
+                  [class.btn-muted]="resetData.otp.length < 4"
+                  [class.btn-loading]="isVerifyingResetOtp"
+                  (click)="verifyResetOtp()"
+                  style="font-weight: bold; height: 45px;">
+        <ng-container *ngIf="!isVerifyingResetOtp">
+          <i class="fa-solid fa-check" style="margin-right: 8px;"></i>
+          Verify Code
+        </ng-container>
+        <span *ngIf="isVerifyingResetOtp" class="dot-loader"><span></span><span></span><span></span></span>
+      </ion-button>
+    </div>
+
+    <ion-list *ngIf="resetOtpVerified" style="background: transparent;" class="ion-margin-top">
       <ion-item>
         <i class="fa-solid fa-lock-open" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
         <ion-input label="New Password" labelPlacement="stacked" placeholder="Tap to enter a new password"
@@ -255,9 +301,22 @@
           <ion-input-password-toggle slot="end"></ion-input-password-toggle>
         </ion-input>
       </ion-item>
+      <ion-item>
+        <i class="fa-solid fa-lock-open" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+        <ion-input label="Confirm New Password" labelPlacement="stacked" placeholder="Re-enter your new password"
+                   type="password" [(ngModel)]="resetData.confirm_password">
+          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+        </ion-input>
+      </ion-item>
     </ion-list>
 
-    <div *ngIf="resetData.new_password.length > 0"
+    <div *ngIf="resetOtpVerified && resetData.confirm_password.length > 0 && resetData.new_password !== resetData.confirm_password"
+         style="text-align: left; padding: 6px 16px; font-size: 12px; color: var(--ion-color-danger);">
+      <i class="fa-solid fa-circle-exclamation" style="margin-right: 5px;"></i>
+      Passwords do not match.
+    </div>
+
+    <div *ngIf="resetOtpVerified && resetData.new_password.length > 0"
          style="background: var(--ion-color-light); padding: 12px; border-radius: var(--app-radius); margin-top: 10px; border-left: 4px solid var(--app-red); text-align: left;">
       <p style="margin: 5px 0; font-size: 12px; display: flex; align-items: center;"
          [style.color]="resetPwdLength ? '#2dd36f' : '#8a8a8a'">
@@ -286,16 +345,17 @@
       </p>
     </div>
 
-    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="confirmReset()"
-                [disabled]="isResettingPwd" style="font-weight: bold; height: 45px;">
+    <ion-button *ngIf="resetOtpVerified" expand="block" color="danger" class="ion-margin-top" (click)="confirmReset()"
+                [disabled]="isResettingPwd || !resetPwdMatch" style="font-weight: bold; height: 45px;">
       <ng-container *ngIf="!isResettingPwd">Confirm New Password</ng-container>
       <span *ngIf="isResettingPwd" style="display:flex;align-items:center;gap:8px;">
         <i class="fa-solid fa-spinner fa-spin"></i> Updating…
       </span>
     </ion-button>
     <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
-                (click)="viewMode = 'login'" style="font-weight: bold;">
-      Cancel
+                (click)="viewMode = 'forgot-choose'" style="font-weight: bold;">
+      <i class="fa-solid fa-arrow-left" style="margin-right: 6px;"></i>
+      Back
     </ion-button>
   </div>
 
