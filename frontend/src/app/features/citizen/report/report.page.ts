@@ -1,16 +1,20 @@
-import { Component, OnDestroy, ViewChild, inject } from '@angular/core';
+import { Component, Input, OnDestroy, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonCard,
-  IonCardContent, IonItem, IonButton, IonInput, IonBackButton, IonButtons,
-  ToastController, IonTextarea, IonRow, IonCol
+  IonCardContent, IonItem, IonButton, IonInput, IonButtons,
+  ToastController, IonTextarea, IonRow, IonCol, ModalController
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
+import { NetworkService } from '../../../core/services/network';
+import { OfflineQueueService } from '../../../core/services/offline-queue';
 import { DialogService } from '../../../core/services/dialog.service';
 import { TourService } from '../../../core/services/tour';
+import { PressFeedbackDirective } from '../../../shared/directives/press-feedback.directive';
 import { ReportTypeSelectorComponent } from './components/report-type-selector/report-type-selector.component';
+import type { ConfirmDialogDetail } from '../../../core/services/dialog.service';
 import { ReportMapComponent, ReportCoords } from './components/report-map/report-map.component';
 import { ReportMediaComponent, MediaFile } from './components/report-media/report-media.component';
 
@@ -20,8 +24,8 @@ import { ReportMediaComponent, MediaFile } from './components/report-media/repor
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonTitle, IonContent,
-    IonCard, IonCardContent, IonItem, IonButton, IonInput, IonBackButton, IonButtons,
-    IonTextarea, IonRow, IonCol,
+    IonCard, IonCardContent, IonItem, IonButton, IonInput, IonButtons,
+    IonTextarea, IonRow, IonCol, PressFeedbackDirective,
     ReportTypeSelectorComponent, ReportMapComponent, ReportMediaComponent
   ]
 })
@@ -31,14 +35,27 @@ export class ReportPage implements OnDestroy {
   private route       = inject(ActivatedRoute);
   private toastCtrl   = inject(ToastController);
   private dialog      = inject(DialogService);
-  private api         = inject(ApiService);
+  private api          = inject(ApiService);
+  private network      = inject(NetworkService);
+  private offlineQueue = inject(OfflineQueueService);
+  private modalCtrl    = inject(ModalController);
   public  tour        = inject(TourService);
 
   @ViewChild(ReportMapComponent) reportMapCmp?: ReportMapComponent;
+  @ViewChild(ReportTypeSelectorComponent) typeSelectorCmp?: ReportTypeSelectorComponent;
 
-  reportType: 'emergency' | 'hazard' = 'emergency';
+  /**
+   * Set via ModalController's componentProps when opened from Home (see
+   * home.page.ts/openReport) — that's the primary path now. The `/report`
+   * ROUTE still exists as a fallback (direct link, anything else that might
+   * still reference it) and is untouched: when presentedAsModal is false,
+   * reportType/close() behave exactly as they did before this changed.
+   */
+  @Input() presentedAsModal = false;
+  @Input() reportType: 'emergency' | 'hazard' = 'emergency';
 
   ngOnInit() {
+    if (this.presentedAsModal) return; // reportType already set via componentProps
     const type = this.route.snapshot.queryParamMap.get('type');
     this.reportType = type === 'hazard' ? 'hazard' : 'emergency';
   }
@@ -52,6 +69,8 @@ export class ReportPage implements OnDestroy {
   });
 
   isSubmitting = false;
+  /** Captured from ReportMapComponent's live preview via onCoordsChanged — shown in the pre-submit confirmation dialog. Preview only: never sent to the backend, which resolves barangay_id independently (see BarangayResolver) before persisting. */
+  resolvedBarangayName: string | null = null;
 
   get isFormReady(): boolean {
     if (!this.reportForm.value.latitude || !this.reportForm.value.longitude) return false;
@@ -63,6 +82,15 @@ export class ReportPage implements OnDestroy {
 
   ionViewDidEnter() {
     setTimeout(() => this.reportMapCmp?.tryInit(), 250);
+    // The per-page fade+rise this used to do here is now redundant with (and
+    // was visually competing against) the app-wide bouncyPageTransition
+    // slide-up-and-cover registered in main.ts: that already animates the
+    // WHOLE page container in. Since ionViewDidEnter fires only after that
+    // page transition has fully settled, this form-only animation was
+    // starting from a still, fully-visible page and briefly re-fading/
+    // re-offsetting the form on top of it — reading as an unwanted flicker,
+    // like the page had reloaded. Removed rather than tuned down further,
+    // since the page-level transition already covers the "entrance" job.
   }
 
   ionViewWillLeave() {
@@ -76,9 +104,56 @@ export class ReportPage implements OnDestroy {
   onCoordsChanged(coords: ReportCoords | null) {
     if (coords) {
       this.reportForm.patchValue({ latitude: coords.latitude, longitude: coords.longitude });
+      this.resolvedBarangayName = coords.barangayName;
     } else {
       this.reportForm.patchValue({ latitude: '', longitude: '' });
+      this.resolvedBarangayName = null;
     }
+  }
+
+  /** Summarizes what's about to be submitted, shown inside the confirm dialog so the person can double-check before sending. */
+  private buildConfirmDetails(): ConfirmDialogDetail[] {
+    const details: ConfirmDialogDetail[] = [];
+    if (this.reportType === 'emergency') {
+      details.push({ label: 'Type', value: this.typeSelectorCmp?.selectedIncidentName || 'None', icon: 'fa-solid fa-triangle-exclamation' });
+    } else {
+      details.push({ label: 'Hazard', value: this.typeSelectorCmp?.selectedHazardName || 'None', icon: 'fa-solid fa-road-barrier' });
+    }
+    const desc = (this.reportForm.value.description || '').trim();
+    details.push({
+      label: 'Details',
+      value: desc ? (desc.length > 60 ? desc.slice(0, 57) + '…' : desc) : 'None provided',
+      icon: 'fa-solid fa-align-left',
+    });
+    details.push({
+      label: 'Attachments',
+      value: this.mediaFiles.length > 0 ? `${this.mediaFiles.length} file${this.mediaFiles.length !== 1 ? 's' : ''}` : 'None',
+      icon: 'fa-solid fa-paperclip',
+    });
+    details.push({
+      label: 'Barangay',
+      value: this.resolvedBarangayName || 'Unresolved',
+      icon: 'fa-solid fa-map-location-dot',
+    });
+    const lat = this.reportForm.value.latitude, lng = this.reportForm.value.longitude;
+    details.push({
+      label: 'Location',
+      value: lat && lng ? `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}` : 'Not set',
+      icon: 'fa-solid fa-location-dot',
+    });
+    return details;
+  }
+
+  /** Header back/close button — dismisses the modal when presented that way, otherwise falls back to the old route-based navigation. */
+  close() {
+    if (this.presentedAsModal) { this.modalCtrl.dismiss(null, 'cancel'); }
+    else { this.router.navigate(['/tabs/home']); }
+  }
+
+  /** Same dismiss-vs-navigate branch, used after a successful submission. */
+  private goHome() {
+    if (this.presentedAsModal) { this.modalCtrl.dismiss({ submitted: true }, 'submitted'); }
+    else { this.router.navigate(['/tabs/home']); }
   }
 
   async showToast(msg: string, color = 'danger') {
@@ -97,21 +172,72 @@ export class ReportPage implements OnDestroy {
       icon: this.reportType === 'emergency' ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-road-barrier',
       iconColor: 'var(--ion-color-danger)',
       confirmLabel: 'Confirm', confirmColor: 'var(--ion-color-danger)',
+      details: this.buildConfirmDetails(),
     });
     if (!confirmed) return;
     this.isSubmitting = true;
     const user       = JSON.parse(localStorage.getItem('user')!);
     const proofFiles = this.mediaFiles.map(m => m.preview);
-    if (this.reportType === 'emergency') {
-      this.api.submitSos({ user_id: user.user_id, incident_type_id: this.reportForm.value.incident_type_id, description: this.reportForm.value.description, latitude: this.reportForm.value.latitude, longitude: this.reportForm.value.longitude, proof_files: proofFiles }).subscribe({
-        next: () => { this.isSubmitting = false; this.showToast('Emergency SOS sent!', 'success'); this.router.navigate(['/tabs/home']); },
-        error: (err: any) => { this.isSubmitting = false; this.showToast(err.error?.message || 'Submission failed.', 'danger'); }
-      });
-    } else {
-      this.api.submitHazard({ user_id: user.user_id, description: this.reportForm.value.description || '', hazard_type: this.reportForm.value.hazard_type, latitude: this.reportForm.value.latitude, longitude: this.reportForm.value.longitude, proof_files: proofFiles }).subscribe({
-        next: () => { this.isSubmitting = false; this.showToast('Hazard reported!', 'success'); this.router.navigate(['/tabs/home']); },
-        error: (err: any) => { this.isSubmitting = false; this.showToast(err.error?.message || 'Submission failed.', 'danger'); }
-      });
+    const payload = this.reportType === 'emergency'
+      ? { user_id: user.user_id, incident_type_id: this.reportForm.value.incident_type_id, description: this.reportForm.value.description, latitude: this.reportForm.value.latitude, longitude: this.reportForm.value.longitude, proof_files: proofFiles }
+      : { user_id: user.user_id, description: this.reportForm.value.description || '', hazard_type: this.reportForm.value.hazard_type, latitude: this.reportForm.value.latitude, longitude: this.reportForm.value.longitude, proof_files: proofFiles };
+
+    // Skip the live attempt entirely when we already know we're offline —
+    // no point waiting out a doomed request's timeout first. `isOnline` is
+    // the last-known state from NetworkService's listeners; queueLiveOrOffline
+    // still re-verifies with a real probe before trusting either path (see
+    // NetworkService doc comment on why navigator.onLine alone isn't enough).
+    await this.submitOrQueue(payload);
+  }
+
+  /**
+   * Tries a live submission first; on a genuine network failure (not a
+   * validation/business-rule rejection — those still surface as errors
+   * normally) falls back to the offline queue instead of just failing the
+   * user's report outright. Either path ends with goHome() — from the
+   * user's perspective the report was accepted either way, just with a
+   * different toast explaining which happened.
+   */
+  private async submitOrQueue(payload: Record<string, unknown>) {
+    const kind = this.reportType === 'emergency' ? 'sos' : 'hazard';
+    const reachable = this.network.isOnline() ? await this.network.recheck() : false;
+
+    if (!reachable) {
+      await this.queueAndNotify(kind, payload);
+      return;
     }
+
+    const submit$ = kind === 'sos' ? this.api.submitSos(payload) : this.api.submitHazard(payload);
+    submit$.subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.showToast(kind === 'sos' ? 'Emergency SOS sent!' : 'Hazard reported!', 'success');
+        this.goHome();
+      },
+      error: async (err: any) => {
+        // status 0 = no HTTP response reached us at all — a genuine network
+        // failure (connection dropped mid-request, DNS failure, etc), as
+        // opposed to the server actually responding with a rejection (422
+        // validation, 429 duplicate-SOS, etc), which should still surface
+        // as a normal error, not silently queue a report the server has
+        // already told us is invalid.
+        if (err?.status === 0) {
+          await this.queueAndNotify(kind, payload);
+          return;
+        }
+        this.isSubmitting = false;
+        this.showToast(err.error?.message || 'Submission failed.', 'danger');
+      }
+    });
+  }
+
+  private async queueAndNotify(kind: 'sos' | 'hazard', payload: Record<string, unknown>) {
+    await this.offlineQueue.enqueue(kind, payload);
+    this.isSubmitting = false;
+    this.showToast(
+      'No connection — your report is saved and will send automatically once you\'re back online.',
+      'warning'
+    );
+    this.goHome();
   }
 }
