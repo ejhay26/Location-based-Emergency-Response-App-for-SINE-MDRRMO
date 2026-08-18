@@ -100,21 +100,30 @@ trait MediaHandling
     // ── 5. Store helpers ─────────────────────────────────────────────────────
 
     /**
-     * Write to the public cloud disk (Cloudflare R2, via the 's3' driver).
-     * Returns the DB-storable value — the file's full public URL, built
-     * from AWS_URL by Storage::url(). Callers must persist this return
-     * value verbatim; do not re-derive a path from $diskPath yourself,
-     * or the stored value won't match what was actually written.
+     * Write to the app's configured PUBLIC-facing disk. WHICH disk that
+     * actually is — local disk (storage/app/public) or R2 — is controlled
+     * entirely by FILESYSTEM_DISK in .env, read here via
+     * config('filesystems.default'). Never hardcode a disk name in this
+     * method again: that's what silently broke the R2 <-> local switch
+     * before (this method used to call Storage::disk('s3') as a literal
+     * string, which ignored FILESYSTEM_DISK entirely).
      *
-     * Note: files uploaded before this disk was R2 still have legacy
-     * "storage/..." paths in the DB, served locally through the Laravel
-     * app instead of R2. resolveFileUrl() on the frontend handles both
-     * shapes — this method only controls what NEW uploads look like.
+     * Returns the DB-storable value — the file's full public URL via
+     * Storage::url(). Callers must persist this return value verbatim;
+     * do not re-derive a path from $diskPath yourself, or the stored
+     * value won't match what was actually written.
+     *
+     * Note: files uploaded under a PREVIOUS FILESYSTEM_DISK setting keep
+     * whatever URL shape that disk produced (local "storage/..." vs a
+     * full R2 URL) — this method only controls what NEW uploads look
+     * like. resolveFileUrl()/ImageCacheService on the frontend already
+     * handles both shapes.
      */
     protected function storePublic(string $diskPath, string $binary): string
     {
-        Storage::disk('s3')->put($diskPath, $binary, 'public');
-        return Storage::disk('s3')->url($diskPath);
+        $disk = config('filesystems.default');
+        Storage::disk($disk)->put($diskPath, $binary, 'public');
+        return Storage::disk($disk)->url($diskPath);
     }
 
     /**
