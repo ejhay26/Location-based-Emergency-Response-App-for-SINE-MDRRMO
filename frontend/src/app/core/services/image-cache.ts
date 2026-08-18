@@ -6,17 +6,43 @@ export class ImageCacheService {
 
   private cache = new Map<string, string>();
 
+  /**
+   * Resolves a stored file reference to a directly-usable <img>/background
+   * URL. Two fundamentally different paths depending on the shape:
+   *
+   * 1. LEGACY local-disk proxy ("storage/profiles/file.png") — routed
+   *    through Laravel's /storage-proxy/ route via fetch()+blob(), because
+   *    that route (and ngrok tunnels generally) need the
+   *    'ngrok-skip-browser-warning' header and don't reliably set CORS
+   *    headers for a plain <img> load.
+   *
+   * 2. EVERYTHING ELSE (R2 URLs, or any other external URL) — used
+   *    directly, no fetch/blob involved. This is deliberate, not a
+   *    shortcut: a plain <img src="https://...">/background-image loads
+   *    cross-origin images fine with ZERO CORS headers required — CORS
+   *    only gates JS-level access to the pixel data (fetch, canvas), which
+   *    this app never needs for an avatar/proof photo. Routing these
+   *    through fetch()+blob() was a real bug (fixed here) that broke any
+   *    URL without a CORS policy, including third-party ones like a
+   *    seeded placeholder avatar — those were never going to need blob
+   *    conversion, so attempting it only added a failure mode with zero
+   *    benefit.
+   */
   async resolve(path: string | null | undefined): Promise<string> {
     if (!path || path.trim() === '') return '';
     if (path.startsWith('blob:') || path.startsWith('data:')) return path;
 
-    const url = this.toProxyUrl(path);
-    if (!url) return '';
+    const legacyUrl = this.toLegacyProxyUrl(path);
+    if (!legacyUrl) {
+      // Not our legacy proxy shape — R2 or any other external URL passes
+      // straight through untouched, no network round-trip through here.
+      return path;
+    }
 
-    if (this.cache.has(url)) return this.cache.get(url)!;
+    if (this.cache.has(legacyUrl)) return this.cache.get(legacyUrl)!;
 
     try {
-      const res = await fetch(url, {
+      const res = await fetch(legacyUrl, {
         headers: { 'ngrok-skip-browser-warning': 'true' },
         mode: 'cors',
       });
@@ -24,50 +50,52 @@ export class ImageCacheService {
       const blob = await res.blob();
       if (blob.size === 0) return '';
       const blobUrl = URL.createObjectURL(blob);
-      this.cache.set(url, blobUrl);
+      this.cache.set(legacyUrl, blobUrl);
       return blobUrl;
     } catch {
       return '';
     }
   }
 
+  /** Synchronous best-effort lookup — instant for non-legacy URLs (no fetch needed at all), cache-only for the legacy proxy path. */
   getCached(path: string | null | undefined): string {
     if (!path) return '';
     if (path.startsWith('blob:') || path.startsWith('data:')) return path;
-    const url = this.toProxyUrl(path);
-    return url ? (this.cache.get(url) ?? '') : '';
+    const legacyUrl = this.toLegacyProxyUrl(path);
+    if (!legacyUrl) return path; // R2/external — always immediately usable, nothing to cache
+    return this.cache.get(legacyUrl) ?? '';
   }
 
   /**
-   * Converts a storage path to a proxy URL.
-   *
-   * "storage/profiles/file.png"
-   *   → "https://ngrok-url/storage-proxy/profiles/file.png"
-   *
-   * The /storage-proxy/ route in web.php adds CORS headers explicitly,
-   * bypassing ngrok's interstitial and Laravel's CORS middleware gap.
+   * Returns the /storage-proxy/... URL ONLY for the legacy local-disk
+   * shape ("storage/profiles/file.png", bare or embedded in an absolute
+   * URL). Returns null for anything else (R2 URLs, arbitrary external
+   * URLs) — callers must treat null as "use the path directly, no proxy".
    */
-  private toProxyUrl(path: string): string {
+  private toLegacyProxyUrl(path: string): string | null {
     try {
-      const apiUrl = environment.apiUrl || '';
-      if (!apiUrl) return '';
-      const origin = apiUrl.replace(/\/api\/?$/, '');
-      if (!origin) return '';
+      const isAbsoluteUrl = /^https?:\/\//i.test(path);
+      let relative: string;
 
-      // Strip any absolute URL prefix — extract just the storage/... part.
-      let relative = path;
-      if (/^https?:\/\//i.test(path)) {
-        const match = path.match(/\/(storage\/.+)$/);
-        if (!match) return '';
-        relative = match[1];
+      if (isAbsoluteUrl) {
+        const storageMatch = path.match(/\/(storage\/.+)$/);
+        if (!storageMatch) return null; // R2 / external — not our legacy shape
+        relative = storageMatch[1];
+      } else if (path.startsWith('storage/')) {
+        relative = path;
+      } else {
+        return null; // not a recognizable legacy path at all
       }
 
-      // relative is now "storage/profiles/file.png"
-      // strip the "storage/" prefix to get "profiles/file.png"
+      const apiUrl = environment.apiUrl || '';
+      if (!apiUrl) return null;
+      const origin = apiUrl.replace(/\/api\/?$/, '');
+      if (!origin) return null;
+
       const filePart = relative.replace(/^storage\//, '');
       return `${origin}/storage-proxy/${filePart}`;
     } catch {
-      return '';
+      return null;
     }
   }
 
