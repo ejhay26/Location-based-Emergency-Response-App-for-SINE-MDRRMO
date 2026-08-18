@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Mail\WelcomeMail;
+use App\Services\NotificationService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -13,6 +17,10 @@ use Illuminate\Support\Facades\Storage;
  */
 class CitizenController extends Controller
 {
+    public function __construct(private NotificationService $notifications)
+    {
+    }
+
     public function getCitizens(Request $request)
     {
         $query = User::where('role', 'citizen');
@@ -72,8 +80,37 @@ class CitizenController extends Controller
     public function approveUser(Request $request)
     {
         $request->validate(['user_id' => 'required|integer']);
-        User::where('user_id', $request->user_id)->update(['account_status' => 'active']);
-        return response()->json(['message' => 'User approved successfully.']);
+        $user = User::where('user_id', $request->user_id)->where('role', 'citizen')->first();
+        if (!$user) return response()->json(['message' => 'Citizen not found.'], 404);
+
+        $user->account_status = 'active';
+        $user->save();
+
+        // Best-effort welcome notification — a failure here must not undo
+        // the approval that already succeeded above, so both are wrapped
+        // and only logged on failure rather than surfaced to the admin.
+        try {
+            Mail::to($user->email)->send(new WelcomeMail($user));
+        } catch (\Throwable $e) {
+            Log::error('CitizenController: failed to send WelcomeMail on approval.', [
+                'user_id' => $user->user_id,
+                'error'   => $e->getMessage(),
+            ]);
+        }
+        try {
+            $this->notifications->notifyUser(
+                $user->user_id,
+                'Welcome to MDRRMO San Isidro!',
+                "Hi {$user->first_name}, your account has been approved. You're all set to use the app."
+            );
+        } catch (\Throwable $e) {
+            Log::error('CitizenController: failed to send welcome push notification.', [
+                'user_id' => $user->user_id,
+                'error'   => $e->getMessage(),
+            ]);
+        }
+
+        return response()->json(['message' => 'User approved successfully.', 'user' => $user->fresh()]);
     }
 
     public function rejectUser(Request $request)
