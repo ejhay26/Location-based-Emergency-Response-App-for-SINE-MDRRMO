@@ -1,145 +1,506 @@
-import { Directive, ElementRef, Input, Output, EventEmitter, AfterViewInit, OnChanges, OnDestroy, SimpleChanges, inject } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  Input,
+  Output,
+  EventEmitter,
+  AfterViewInit,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  inject,
+} from '@angular/core';
 import { animate, type AnimationPlaybackControls } from 'motion';
 import { UserSettingsService } from '../../core/services/user-settings';
 
 /**
- * Stage 5 (+ post-Stage-5 close-animation follow-up) — plays a fade +
- * height-reveal animation both when this element opens AND when it closes.
+ * Reveal / collapse animation directive.
  *
- * Usage — the host component keeps the element mounted for the duration of
- * the close animation instead of yanking it out via `*ngIf` the instant the
- * state flips. The standard pattern (see History cards / Help FAQ / Profile
- * password-security for reference implementations):
+ * Responsibilities:
  *
- *   <div *ngIf="isOpen || isClosing"
- *        [appRevealAnimate]="isOpen"
- *        (closed)="onCollapsed()">
- *     ...
- *   </div>
+ * - Open an element with a fade + height/padding/margin animation.
+ * - Close an element with a fade + height/padding/margin animation.
+ * - When used on permanently-mounted filtered items, collapse the entire
+ *   vertical layout footprint so siblings can reclaim the space.
+ * - Safely handle rapid state changes such as:
  *
- * - `[appRevealAnimate]="isOpen"` (true) plays the open tween (unchanged
- *   from the original Stage 5 behavior).
- * - Flipping the input to `false` while still mounted plays a close tween
- *   (height + opacity back down to 0) and emits `(closed)` once it
- *   finishes, which is the host's cue to flip `isClosing` back to `false`
- *   so `*ngIf` actually unmounts the element.
- * - If `reduce_animations` is on, both directions resolve instantly
- *   (`closed` still fires, synchronously via a microtask, so callers don't
- *   need to special-case the disabled-animation path).
+ *      All -> Resolved -> All -> Resolved
  *
- * Used for: History card expand bodies, Help FAQ answers, and the Profile
- * password-change step transitions.
+ *   without stale animation callbacks corrupting the current layout.
+ *
+ * This directive does NOT perform FLIP reflow.
+ * FLIP is handled separately by flip-reflow.util.ts.
  */
 @Directive({
   selector: '[appRevealAnimate]',
   standalone: true,
 })
-export class RevealAnimateDirective implements AfterViewInit, OnChanges, OnDestroy {
+export class RevealAnimateDirective
+  implements AfterViewInit, OnChanges, OnDestroy {
+
   private readonly el = inject(ElementRef<HTMLElement>);
   private readonly settings = inject(UserSettingsService);
 
-  /** true = animate open (or start open on first render); false = animate closed. */
+  /** true = open/visible, false = collapsed/hidden. */
   @Input('appRevealAnimate') isOpen = true;
-  /** Fires once the close tween (or its instant no-animation equivalent) has finished. */
+
+  /** Emitted after a close transition has completed. */
   @Output() closed = new EventEmitter<void>();
 
-  private rafId?: number;
-  private controls?: AnimationPlaybackControls;
   private viewReady = false;
+
+  private controls?: AnimationPlaybackControls;
+
+  private rafId?: number;
+
+  /**
+   * Animation generation.
+   *
+   * Every open/close transition gets a new generation number.
+   * Old animation callbacks are ignored if a newer transition has started.
+   */
+  private animationGeneration = 0;
+
+  /**
+   * Original CSS spacing.
+   *
+   * IMPORTANT:
+   * These values are captured ONLY ONCE.
+   *
+   * We must never recapture them while the directive has already collapsed
+   * the element, otherwise 0px would incorrectly become the new "resting"
+   * padding/margin.
+   */
+  private spacingCaptured = false;
+
+  private restingMarginTop = '';
+  private restingMarginBottom = '';
+
+  private restingPaddingTop = '';
+  private restingPaddingBottom = '';
 
   ngAfterViewInit(): void {
     this.viewReady = true;
-    if (this.isOpen) this.playOpen();
-    // If the element is created already-closed (shouldn't normally happen
-    // given the `*ngIf="isOpen || isClosing"` usage pattern, but guarded
-    // defensively), there's nothing to animate — it's already collapsed.
+
+    /**
+     * Capture the real stylesheet spacing BEFORE this directive modifies it.
+     */
+    this.captureRestingSpacing();
+
+    if (this.isOpen) {
+      this.setOpenImmediately();
+    } else {
+      this.setClosedImmediately();
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Skip the very first change (handled by ngAfterViewInit instead, so we
-    // don't race the initial-height measurement against a not-yet-rendered
-    // node) and any change that fires before the view is actually ready.
-    if (!this.viewReady || changes['isOpen']?.firstChange) return;
-    this.isOpen ? this.playOpen() : this.playClose();
+    if (!this.viewReady) return;
+
+    if (!changes['isOpen']) return;
+
+    /**
+     * Initial state is handled by ngAfterViewInit().
+     */
+    if (changes['isOpen'].firstChange) return;
+
+    if (this.isOpen) {
+      this.playOpen();
+    } else {
+      this.playClose();
+    }
   }
 
-  private cancelPending(): void {
-    if (this.rafId !== undefined) { cancelAnimationFrame(this.rafId); this.rafId = undefined; }
-    this.controls?.stop();
+  // ===========================================================================
+  // ORIGINAL SPACING
+  // ===========================================================================
+
+  /**
+   * Capture the element's original vertical spacing ONCE.
+   *
+   * This is intentionally NOT called during every open/close transition.
+   *
+   * If we captured it after a close, the computed styles would already be:
+   *
+   *     margin = 0
+   *     padding = 0
+   *
+   * and the directive would permanently lose the card's original spacing.
+   */
+  private captureRestingSpacing(): void {
+    if (this.spacingCaptured) return;
+
+    const node = this.el.nativeElement;
+    const computed = getComputedStyle(node);
+
+    this.restingMarginTop = computed.marginTop;
+    this.restingMarginBottom = computed.marginBottom;
+
+    this.restingPaddingTop = computed.paddingTop;
+    this.restingPaddingBottom = computed.paddingBottom;
+
+    this.spacingCaptured = true;
   }
+
+  // ===========================================================================
+  // ANIMATION CONTROL
+  // ===========================================================================
+
+  /**
+   * Start a new animation generation and invalidate all previous animations.
+   */
+  private beginNewAnimation(): number {
+    this.animationGeneration++;
+
+    const generation = this.animationGeneration;
+
+    if (this.rafId !== undefined) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = undefined;
+    }
+
+    this.controls?.stop();
+    this.controls = undefined;
+
+    return generation;
+  }
+
+  private isCurrentGeneration(generation: number): boolean {
+    return generation === this.animationGeneration;
+  }
+
+  // ===========================================================================
+  // IMMEDIATE STATES
+  // ===========================================================================
+
+  /**
+   * Put the element into a genuine zero-footprint state.
+   */
+  private setClosedImmediately(): void {
+    const node = this.el.nativeElement;
+
+    node.style.overflow = 'hidden';
+
+    node.style.height = '0px';
+
+    node.style.marginTop = '0px';
+    node.style.marginBottom = '0px';
+
+    node.style.paddingTop = '0px';
+    node.style.paddingBottom = '0px';
+
+    node.style.opacity = '0';
+  }
+
+  /**
+   * Restore the element to its original CSS-defined state.
+   */
+  private setOpenImmediately(): void {
+    const node = this.el.nativeElement;
+
+    node.style.height = 'auto';
+
+    node.style.marginTop = this.restingMarginTop;
+    node.style.marginBottom = this.restingMarginBottom;
+
+    node.style.paddingTop = this.restingPaddingTop;
+    node.style.paddingBottom = this.restingPaddingBottom;
+
+    node.style.opacity = '1';
+
+    node.style.overflow = '';
+  }
+
+  // ===========================================================================
+  // OPEN
+  // ===========================================================================
 
   private playOpen(): void {
     const node = this.el.nativeElement;
-    this.cancelPending();
+
+    const generation = this.beginNewAnimation();
+
+    /**
+     * DO NOT recapture spacing here.
+     *
+     * The original spacing was already captured during ngAfterViewInit().
+     */
 
     if (!this.settings.shouldAnimate()) {
-      node.style.height = '';
-      node.style.opacity = '';
-      node.style.overflow = '';
+      this.setOpenImmediately();
       return;
     }
 
-    const targetHeight = node.scrollHeight;
+    /**
+     * Restore the original spacing first so we can measure the actual open
+     * card correctly.
+     */
     node.style.overflow = 'hidden';
+
+    node.style.height = 'auto';
+
+    node.style.marginTop = this.restingMarginTop;
+    node.style.marginBottom = this.restingMarginBottom;
+
+    node.style.paddingTop = this.restingPaddingTop;
+    node.style.paddingBottom = this.restingPaddingBottom;
+
+    node.style.opacity = '1';
+
+    /**
+     * Force layout measurement of the fully-open card.
+     */
+    const targetHeight = node.getBoundingClientRect().height;
+
+    /**
+     * Now collapse the card before starting the animation.
+     */
     node.style.height = '0px';
+
+    node.style.marginTop = '0px';
+    node.style.marginBottom = '0px';
+
+    node.style.paddingTop = '0px';
+    node.style.paddingBottom = '0px';
+
     node.style.opacity = '0';
 
-    // Defer to next frame so the browser paints the collapsed (0px) state
-    // first, instead of jumping straight from full height to 0 with no
-    // visible starting frame.
+    /**
+     * Let the browser commit the collapsed state first.
+     */
     this.rafId = requestAnimationFrame(() => {
+      this.rafId = undefined;
+
+      if (!this.isCurrentGeneration(generation)) return;
+
       this.controls = animate(
         node,
-        { height: ['0px', `${targetHeight}px`], opacity: [0, 1] },
-        { duration: 0.22, ease: 'easeOut' }
+        {
+          height: [
+            '0px',
+            `${targetHeight}px`,
+          ],
+
+          opacity: [0, 1],
+
+          marginTop: [
+            '0px',
+            this.restingMarginTop,
+          ],
+
+          marginBottom: [
+            '0px',
+            this.restingMarginBottom,
+          ],
+
+          paddingTop: [
+            '0px',
+            this.restingPaddingTop,
+          ],
+
+          paddingBottom: [
+            '0px',
+            this.restingPaddingBottom,
+          ],
+        },
+        {
+          duration: 0.22,
+          ease: 'easeOut',
+        }
       );
-      this.controls.finished
+
+      const currentAnimation = this.controls;
+
+      currentAnimation.finished
         .then(() => {
-          // Release back to 'auto' once settled so the element still
-          // reflows correctly if its content changes size afterward
-          // (e.g. an image finishing its own async load).
+          /**
+           * Ignore an old animation if the filter has already changed again.
+           */
+          if (!this.isCurrentGeneration(generation)) return;
+
+          /**
+           * Restore the real resting state.
+           */
           node.style.height = 'auto';
+
+          node.style.marginTop = this.restingMarginTop;
+          node.style.marginBottom = this.restingMarginBottom;
+
+          node.style.paddingTop = this.restingPaddingTop;
+          node.style.paddingBottom = this.restingPaddingBottom;
+
+          node.style.opacity = '1';
+
           node.style.overflow = '';
+
+          this.controls = undefined;
         })
-        .catch(() => { /* interrupted — nothing to clean up */ });
+        .catch(() => {
+          /**
+           * Only recover if this is still the current animation.
+           */
+          if (!this.isCurrentGeneration(generation)) return;
+
+          this.setOpenImmediately();
+
+          this.controls = undefined;
+        });
     });
   }
+
+  // ===========================================================================
+  // CLOSE
+  // ===========================================================================
 
   private playClose(): void {
     const node = this.el.nativeElement;
-    this.cancelPending();
+
+    const generation = this.beginNewAnimation();
+
+    /**
+     * DO NOT recapture spacing here.
+     *
+     * The original margin/padding values must remain unchanged.
+     */
 
     if (!this.settings.shouldAnimate()) {
-      // Resolve on a microtask rather than synchronously — emitting during
-      // the same change-detection pass that produced this ngOnChanges call
-      // risks an ExpressionChangedAfterItHasBeenCheckedError if the host
-      // reads `isClosing` in its own template.
-      Promise.resolve().then(() => this.closed.emit());
+      this.setClosedImmediately();
+
+      Promise.resolve().then(() => {
+        if (this.isCurrentGeneration(generation)) {
+          this.closed.emit();
+        }
+      });
+
       return;
     }
 
-    // Measure the currently-rendered (open) height as the animation's
-    // start point, since the node may already be at 'auto' from a prior
-    // open tween settling.
-    const startHeight = node.scrollHeight;
+    /**
+     * Restore the original open state before measuring.
+     *
+     * This makes sure a previous interrupted transition cannot leave us
+     * measuring a partially-collapsed card.
+     */
     node.style.overflow = 'hidden';
+
+    node.style.height = 'auto';
+
+    node.style.marginTop = this.restingMarginTop;
+    node.style.marginBottom = this.restingMarginBottom;
+
+    node.style.paddingTop = this.restingPaddingTop;
+    node.style.paddingBottom = this.restingPaddingBottom;
+
+    node.style.opacity = '1';
+
+    /**
+     * Measure the fully-open rendered height.
+     */
+    const startHeight = node.getBoundingClientRect().height;
+
+    /**
+     * Lock that height before beginning the collapse.
+     */
     node.style.height = `${startHeight}px`;
 
     this.rafId = requestAnimationFrame(() => {
+      this.rafId = undefined;
+
+      if (!this.isCurrentGeneration(generation)) return;
+
       this.controls = animate(
         node,
-        { height: [`${startHeight}px`, '0px'], opacity: [1, 0] },
-        { duration: 0.2, ease: 'easeIn' }
+        {
+          height: [
+            `${startHeight}px`,
+            '0px',
+          ],
+
+          opacity: [1, 0],
+
+          marginTop: [
+            this.restingMarginTop,
+            '0px',
+          ],
+
+          marginBottom: [
+            this.restingMarginBottom,
+            '0px',
+          ],
+
+          paddingTop: [
+            this.restingPaddingTop,
+            '0px',
+          ],
+
+          paddingBottom: [
+            this.restingPaddingBottom,
+            '0px',
+          ],
+        },
+        {
+          duration: 0.20,
+          ease: 'easeIn',
+        }
       );
-      this.controls.finished
-        .then(() => this.closed.emit())
-        .catch(() => this.closed.emit()); // interrupted (e.g. host destroyed) — still let the host know
+
+      const currentAnimation = this.controls;
+
+      currentAnimation.finished
+        .then(() => {
+          /**
+           * Ignore stale close completions.
+           */
+          if (!this.isCurrentGeneration(generation)) return;
+
+          /**
+           * Leave the card completely collapsed.
+           */
+          node.style.height = '0px';
+
+          node.style.marginTop = '0px';
+          node.style.marginBottom = '0px';
+
+          node.style.paddingTop = '0px';
+          node.style.paddingBottom = '0px';
+
+          node.style.opacity = '0';
+
+          node.style.overflow = 'hidden';
+
+          this.controls = undefined;
+
+          this.closed.emit();
+        })
+        .catch(() => {
+          /**
+           * If this close was interrupted by a newer state change,
+           * the newer animation owns the DOM now.
+           */
+          if (!this.isCurrentGeneration(generation)) return;
+
+          this.setClosedImmediately();
+
+          this.controls = undefined;
+
+          this.closed.emit();
+        });
     });
   }
 
+  // ===========================================================================
+  // DESTROY
+  // ===========================================================================
+
   ngOnDestroy(): void {
-    // Memory-safety: cancel a still-pending rAF and stop a running tween so
-    // neither can go on to touch a detached DOM node after removal.
-    this.cancelPending();
+    this.animationGeneration++;
+
+    if (this.rafId !== undefined) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = undefined;
+    }
+
+    this.controls?.stop();
+    this.controls = undefined;
   }
 }
