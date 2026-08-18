@@ -149,6 +149,12 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
     </span>
   </ion-button>
 
+  <ion-button expand="block" fill="outline" color="medium" style="font-weight:bold;height:44px;margin-top:8px;"
+              [disabled]="isExporting || !metaReady"
+              (click)="skipTrim()">
+    <i class="fa-solid fa-forward" style="margin-right:8px;"></i>Skip — Use First {{ MAX_DURATION }}s
+  </ion-button>
+
 </ion-content>
   `
 })
@@ -344,6 +350,21 @@ export class VideoTrimmerComponent implements AfterViewInit, OnDestroy {
       reader.onload = () => { this.modalCtrl.dismiss({ dataUrl: reader.result as string }); };
       reader.readAsDataURL(blob);
     } catch { this.isExporting = false; }
+  }
+
+  /**
+   * Skip — resets the selection to the default window (first MAX_DURATION
+   * seconds, or the whole clip if shorter) and immediately runs the same
+   * exportTrim() pipeline, so the 10s cap is still enforced and the output
+   * is still a normal re-encoded clip. Lets a reporter in a hurry attach a
+   * video without having to touch the trim handles at all.
+   */
+  skipTrim() {
+    if (this.isExporting || !this.metaReady) return;
+    this.startTime = 0;
+    this.endTime   = Math.min(this.MAX_DURATION, this.videoDuration);
+    this.currentTime = 0;
+    this.exportTrim();
   }
 
   private trimVideoSegment(): Promise<Blob> {
