@@ -1,4 +1,4 @@
-<div style="width:100%;">
+<div style="width:100%;" #archiveListContainer>
   <!-- Filter & Sort toolbar -->
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center;">
     <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;align-items:center;">
@@ -7,15 +7,37 @@
         [style.background]="archiveFilter === f.v ? 'var(--ion-color-danger)' : 'var(--ion-color-light)'"
         [style.color]="archiveFilter === f.v ? 'white' : 'var(--ion-text-color)'"
         style="flex:1;border:none;border-radius:10px;padding:8px 10px;font-weight:bold;cursor:pointer;font-size:13px;transition:all 0.15s;">{{f.l}}</button>
-      <app-date-range-filter [value]="archiveDateFilter" (valueChange)="archiveDateFilter = $event"></app-date-range-filter>
+
+      <app-date-range-filter
+        [value]="archiveDateFilter"
+        (valueChange)="archiveDateFilter = $event">
+      </app-date-range-filter>
     </div>
+
     <div style="display:flex;gap:6px;">
-      <select id="archiveTypeFilter" name="archiveTypeFilter" [(ngModel)]="archiveTypeFilter"
+      <select
+        id="archiveTypeFilter"
+        name="archiveTypeFilter"
+        [(ngModel)]="archiveTypeFilter"
         style="padding:6px 10px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
         <option value="all">All Types</option>
         <option *ngFor="let t of archiveIncidentTypes" [value]="t">{{t}}</option>
       </select>
-      <select id="archiveSort" name="archiveSort" [(ngModel)]="archiveSort"
+
+      <select
+        id="archiveBarangayFilter"
+        name="archiveBarangayFilter"
+        [(ngModel)]="archiveBarangayFilter"
+        style="padding:6px 10px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
+        <option [ngValue]="'all'">All Barangays</option>
+        <option *ngFor="let b of barangayOptions" [ngValue]="b.id">{{b.name}}</option>
+      </select>
+
+      <select
+        id="archiveSort"
+        name="archiveSort"
+        [ngModel]="archiveSort"
+        (ngModelChange)="onSortChange($event)"
         style="padding:6px 10px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
         <option value="newest">Newest First</option>
         <option value="oldest">Oldest First</option>
@@ -24,42 +46,119 @@
     </div>
   </div>
 
-  <app-filter-summary-bar [chips]="activeFilterChips" (clearAll)="clearAllFilters()"></app-filter-summary-bar>
+  <app-filter-summary-bar
+    [chips]="activeFilterChips"
+    (clearAll)="clearAllFilters()">
+  </app-filter-summary-bar>
 
   <!-- Count -->
-  <p style="font-size:12px;color:var(--ion-color-medium);margin:0 0 10px 0;font-weight:600;">{{ filteredArchivedRequests.length }} of {{ archivedRequests.length }} records</p>
+  <p style="font-size:12px;color:var(--ion-color-medium);margin:0 0 10px 0;font-weight:600;">
+    {{ filteredArchivedRequests.length }} of {{ archivedRequests.length }} records
+  </p>
 
-  <div *ngIf="filteredArchivedRequests.length === 0" class="ion-text-center ion-padding ion-color-medium"><p>No matching log entries.</p></div>
-  <div *ngFor="let req of filteredArchivedRequests"
-       style="margin: 0 0 10px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 14px; color: var(--ion-text-color);"
-       [style.border-left]="req.is_false_alarm ? '4px solid #eb445a' : req.status === 'Resolved' ? '4px solid #2dd36f' : '4px solid var(--ion-color-step-200,#ccc)'">
+  <div
+    *ngIf="filteredArchivedRequests.length === 0"
+    class="ion-text-center ion-padding ion-color-medium">
+    <p>No matching log entries.</p>
+  </div>
+
+  <!-- Archive cards -->
+  <div
+    *ngFor="let req of sortedArchivedRequests; let i = index; trackBy: trackByRequestId"
+    [attr.data-flip-id]="req.request_id"
+    [appRevealAnimate]="matchesArchiveFilter(req)"
+    [appAnnouncementEnter]="i"
+    style="margin: 0 0 10px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 14px; color: var(--ion-text-color);"
+    [style.border-left]="req.is_false_alarm ? '4px solid #eb445a' : req.status === 'Resolved' ? '4px solid #2dd36f' : '4px solid var(--ion-color-step-200,#ccc)'">
+
     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <i [class]="req.incident_name === 'Fire' ? 'fa-solid fa-fire' : req.incident_name === 'Flood' ? 'fa-solid fa-cloud-showers-heavy' : req.incident_name === 'Medical' ? 'fa-solid fa-heart-pulse' : 'fa-solid fa-handcuffs'"
-           [style.color]="req.incident_name === 'Fire' ? '#eb445a' : req.incident_name === 'Flood' ? '#3880ff' : req.incident_name === 'Medical' ? '#2dd36f' : '#bc6fff'"
-           style="font-size:15px;width:18px;text-align:center;"></i>
-        <h4 style="margin: 0; font-weight: bold; font-size: 15px;">{{ req.incident_name }} Log</h4>
+        <i
+          [class]="req.incident_name === 'Fire' ? 'fa-solid fa-fire' : req.incident_name === 'Flood' ? 'fa-solid fa-cloud-showers-heavy' : req.incident_name === 'Medical' ? 'fa-solid fa-heart-pulse' : 'fa-solid fa-handcuffs'"
+          [style.color]="req.incident_name === 'Fire' ? '#eb445a' : req.incident_name === 'Flood' ? '#3880ff' : req.incident_name === 'Medical' ? '#2dd36f' : '#bc6fff'"
+          style="font-size:15px;width:18px;text-align:center;">
+        </i>
+
+        <h4 style="margin: 0; font-weight: bold; font-size: 15px;">
+          {{ req.incident_name }} Log
+        </h4>
       </div>
+
       <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
-        <span *ngIf="req.is_false_alarm" style="background: #eb445a18; color: #eb445a; border: 1px solid #eb445a50; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 800; white-space: nowrap;">FALSE ALARM</span>
-        <ion-badge [color]="req.status === 'Resolved' ? 'success' : 'medium'" style="font-weight: bold;">{{ req.status }}</ion-badge>
+        <span
+          *ngIf="req.is_false_alarm"
+          style="background: #eb445a18; color: #eb445a; border: 1px solid #eb445a50; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 800; white-space: nowrap;">
+          FALSE ALARM
+        </span>
+
+        <ion-badge
+          [color]="req.status === 'Resolved' ? 'success' : 'medium'"
+          style="font-weight: bold;">
+          {{ req.status }}
+        </ion-badge>
       </div>
     </div>
-    <p style="margin: 2px 0; font-size: 12px; color: gray;">Citizen: {{ req.first_name }} {{ req.last_name }} | {{ req.request_time | utcDate:'medium' }}</p>
-    <p *ngIf="req.false_alarm_strikes > 0" style="margin: 5px 0 0 0; font-size: 11px; color: #eb445a; font-weight: 700;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 4px;"></i>{{ req.false_alarm_strikes }} false alarm strike{{ req.false_alarm_strikes > 1 ? 's' : '' }}</p>
+
+    <p style="margin: 2px 0; font-size: 12px; color: gray;">
+      Citizen: {{ req.first_name }} {{ req.last_name }} |
+      {{ req.request_time | utcDate:'medium' }}
+    </p>
+    <p style="margin: 2px 0; font-size: 12px; color: gray;">
+      Barangay: {{ req.barangay_name || 'Unresolved' }}
+    </p>
+
+    <p
+      *ngIf="req.false_alarm_strikes > 0"
+      style="margin: 5px 0 0 0; font-size: 11px; color: #eb445a; font-weight: 700;">
+      <i
+        class="fa-solid fa-triangle-exclamation"
+        style="margin-right: 4px;">
+      </i>
+      {{ req.false_alarm_strikes }}
+      false alarm strike{{ req.false_alarm_strikes > 1 ? 's' : '' }}
+    </p>
+
     <div *ngIf="req.proof_files?.length" class="media-thumb-grid">
-      <div *ngFor="let filePath of req.proof_files" class="media-thumb" (click)="ui.openLightbox(filePath, ui.isVideoFile(filePath))">
-      <ng-container *ngIf="ui.isVideoFile(filePath); else archImgThumb">
-      <img [videoThumbSrc]="filePath" style="width:100%;height:100%;object-fit:cover;background:#1a1a1a;" />
-      <div class="video-badge"><i class="fa-solid fa-play"></i></div>
-      </ng-container>
-      <ng-template #archImgThumb>
-      <img [proxySrc]="filePath" style="width:100%;height:100%;object-fit:cover;" />
-      </ng-template>
+      <div
+        *ngFor="let filePath of req.proof_files"
+        class="media-thumb"
+        (click)="ui.openLightbox(filePath, ui.isVideoFile(filePath))">
+
+        <ng-container *ngIf="ui.isVideoFile(filePath); else archImgThumb">
+          <img
+            [videoThumbSrc]="filePath"
+            style="width:100%;height:100%;object-fit:cover;background:#1a1a1a;" />
+
+          <div class="video-badge">
+            <i class="fa-solid fa-play"></i>
+          </div>
+        </ng-container>
+
+        <ng-template #archImgThumb>
+          <img
+            [proxySrc]="filePath"
+            style="width:100%;height:100%;object-fit:cover;" />
+        </ng-template>
+
       </div>
     </div>
-    <div *ngIf="req.status === 'Resolved' && !req.is_false_alarm" style="margin-top: 10px;">
-      <ion-button fill="outline" color="danger" size="small" (click)="markFalseAlarm(req.request_id, req.first_name + ' ' + req.last_name)" style="font-weight: bold; height: 32px; margin: 0;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Mark False Alarm</ion-button>
+
+    <div
+      *ngIf="req.status === 'Resolved' && !req.is_false_alarm"
+      style="margin-top: 10px;">
+      <ion-button
+        fill="outline"
+        color="danger"
+        size="small"
+        (click)="markFalseAlarm(req.request_id, req.first_name + ' ' + req.last_name)"
+        style="font-weight: bold; height: 32px; margin: 0;">
+        <i
+          class="fa-solid fa-triangle-exclamation"
+          style="margin-right: 6px;">
+        </i>
+        Mark False Alarm
+      </ion-button>
     </div>
+
   </div>
 </div>
