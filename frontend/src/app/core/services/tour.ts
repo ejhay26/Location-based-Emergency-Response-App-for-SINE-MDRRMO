@@ -3,7 +3,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { AlertController } from '@ionic/angular/standalone';
 import { filter } from 'rxjs/operators';
 
-export type TourChapter = 'all' | 'home' | 'emergency' | 'hazard' | 'status' | 'profile' | 'settings';
+export type TourChapter = 'all' | 'home' | 'emergency' | 'hazard' | 'history' | 'profile' | 'settings';
 
 export interface TourStep {
   id: string;
@@ -17,7 +17,7 @@ export interface TourStep {
 
 // ── Correct logical flow ──────────────────────────────────────────────────────
 // Home intro → SOS button → Emergency report steps → back to Home → Hazard button
-// → Hazard report steps → back to Home → Announcement → Status tab → Status page
+// → Hazard report steps → back to Home → Announcement → History tab → History page
 // → Profile tab → Profile steps → Settings tab → Settings steps → Help tab → Finish
 const STEPS: TourStep[] = [
   // ── HOME: intro ───────────────────────────────────────────────────────────
@@ -85,22 +85,22 @@ const STEPS: TourStep[] = [
     subtext: 'When MDRRMO posts an official notice — like a flood warning or road closure — it appears here as a highlighted alert card.',
     waitForInteraction: false
   },
-  // ── STATUS ────────────────────────────────────────────────────────────────
+  // ── HISTORY ───────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-status', page: '/tabs/home', chapter: 'home',
-    callout: 'Tap the Status tab to check your submitted reports.',
+    id: 'tour-tab-history', page: '/tabs/home', chapter: 'home',
+    callout: 'Tap the History tab to check your submitted reports.',
     subtext: 'You can track whether your report is Pending, Dispatched, or Resolved in real time.',
     waitForInteraction: true, interactionHint: 'Tap the tab →'
   },
   {
-    id: 'tour-status-page', page: '/tabs/status', chapter: 'status',
+    id: 'tour-history-page', page: '/tabs/history', chapter: 'history',
     callout: 'All your submitted reports appear here.',
     subtext: 'Each card shows the report type, your location, and its current status. Tap any card to see full details.',
     waitForInteraction: false
   },
   // ── PROFILE ───────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-profile', page: '/tabs/status', chapter: 'status',
+    id: 'tour-tab-profile', page: '/tabs/history', chapter: 'history',
     callout: 'Tap the Profile tab to manage your account.',
     subtext: '',
     waitForInteraction: true, interactionHint: 'Tap the tab →'
@@ -146,7 +146,7 @@ const STEPS: TourStep[] = [
 ];
 
 const CHAPTER_START: Record<TourChapter, number> = {
-  all: 0, home: 0, emergency: 1, hazard: 7, status: 10, profile: 13, settings: 15,
+  all: 0, home: 0, emergency: 1, hazard: 7, history: 10, profile: 13, settings: 15,
 };
 
 @Injectable({ providedIn: 'root' })
