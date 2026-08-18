@@ -4,7 +4,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content style="--padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));">
+<ion-content class="tab-page-content">
 
   <div style="padding:20px 20px 4px;text-align:center;">
     <p style="margin:0;font-size:15px;font-weight:600;color:var(--ion-text-color);">
@@ -21,6 +21,8 @@
       <div class="sos-ring sos-ring-2"></div>
       <div class="sos-ring sos-ring-3"></div>
       <button id="tour-sos-button"
+              appPressFeedback
+              appImpactFeedback
               [class.tour-highlight]="tour.targetId() === 'tour-sos-button'"
               (click)="goToSos()"
               style="position:relative;z-index:2;width:200px;height:200px;border-radius:50%;border:none;cursor:pointer;
@@ -40,6 +42,9 @@
 
   <div style="padding:0 20px 16px;">
     <button id="tour-hazard-button"
+            appPressFeedback
+            appImpactFeedback
+            [impactColor]="'rgba(255,255,255,0.9)'"
             [class.tour-highlight]="tour.targetId() === 'tour-hazard-button'"
             (click)="goToHazard()"
             style="width:100%;border:none;border-radius:20px;padding:18px 20px;cursor:pointer;
@@ -58,6 +63,20 @@
     </button>
   </div>
 
+  <div *ngIf="showWidgetBanner" style="margin:0 20px 16px;border-radius:18px;padding:16px;background:var(--ion-card-background,white);border:1.5px solid var(--ion-color-step-150,#e0e0e0);display:flex;align-items:center;gap:14px;">
+    <div style="width:44px;height:44px;border-radius:12px;background:rgba(235,68,90,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="fa-solid fa-table-cells-large" style="font-size:18px;color:var(--ion-color-danger);"></i>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <p style="margin:0 0 2px;font-weight:700;font-size:14px;color:var(--ion-text-color);">Add a Report Widget</p>
+      <p style="margin:0;font-size:12px;color:var(--ion-color-medium);line-height:1.4;">Get to Report Emergency in one tap from your home screen — no unlocking through the app first. Every second counts.</p>
+    </div>
+    <button (click)="dismissWidgetBanner()" style="background:none;border:none;padding:6px;cursor:pointer;color:var(--ion-color-medium);flex-shrink:0;" aria-label="Dismiss">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <button (click)="addWidgetFromBanner()" style="background:var(--ion-color-danger);border:none;border-radius:10px;color:white;font-size:12px;font-weight:700;padding:8px 14px;cursor:pointer;flex-shrink:0;">Add</button>
+  </div>
+
   <div style="padding:0 20px 20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -72,7 +91,8 @@
     <div id="tour-announcement-pane"
          [class.tour-highlight]="tour.targetId() === 'tour-announcement-pane'">
 
-      <div *ngFor="let broadcast of activeBroadcasts"
+      <div *ngFor="let broadcast of activeBroadcasts; let i = index; trackBy: trackByBroadcastId"
+           [appAnnouncementEnter]="i"
            style="border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#c62828,#eb445a);box-shadow:0 6px 24px rgba(235,68,90,0.32);margin-bottom:12px;">
         <div style="padding:16px 16px 12px;">
           <div style="display:flex;align-items:flex-start;gap:12px;">
@@ -107,4 +127,5 @@
     </div>
   </div>
 
+  <ion-toast [isOpen]="widgetToastOpen" [message]="widgetToastMessage" color="medium" [duration]="3000" (didDismiss)="widgetToastOpen = false"></ion-toast>
 </ion-content>
