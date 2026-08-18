@@ -38,12 +38,21 @@ class AnalyticsController extends Controller
         $recentRecords = DB::table('emergency_requests')
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
+            ->leftJoin('barangays', 'emergency_requests.barangay_id', '=', 'barangays.barangay_id')
             ->where('emergency_requests.request_time', '>=', now()->subDays($days))
             ->select('emergency_requests.*', 'users.first_name', 'users.last_name',
                      'users.blood_type', 'users.allergies', 'users.medical_conditions', 'users.pwd_status',
-                     'incident_types.incident_name')
+                     'incident_types.incident_name', 'barangays.barangay_name')
             ->orderBy('emergency_requests.request_time', 'desc')->limit(100)->get()
             ->map(fn($r) => $this->decodeProofFiles($r));
+
+        // Per-barangay emergency counts (unresolved locations excluded — a
+        // null barangay_id has nothing meaningful to group under here).
+        $barangayStats = DB::table('emergency_requests')
+            ->join('barangays', 'emergency_requests.barangay_id', '=', 'barangays.barangay_id')
+            ->where('emergency_requests.request_time', '>=', now()->subDays($days))
+            ->select('barangays.barangay_name', DB::raw('COUNT(*) as total'))
+            ->groupBy('barangays.barangay_name')->orderBy('total', 'desc')->get();
 
         $hazardStats = DB::table('hazards')
             ->where('created_at', '>=', now()->subDays($days))
@@ -55,13 +64,21 @@ class AnalyticsController extends Controller
             ->where('created_at', '>=', now()->subDays($days))
             ->groupBy('date')->orderBy('date', 'asc')->get();
 
+        $hazardBarangayStats = DB::table('hazards')
+            ->join('barangays', 'hazards.barangay_id', '=', 'barangays.barangay_id')
+            ->where('hazards.created_at', '>=', now()->subDays($days))
+            ->select('barangays.barangay_name', DB::raw('COUNT(*) as total'))
+            ->groupBy('barangays.barangay_name')->orderBy('total', 'desc')->get();
+
         return response()->json([
-            'daily_stats'        => $dailyStats,
-            'type_stats'         => $typeStats,
-            'recent_records'     => $recentRecords,
-            'hazard_stats'       => $hazardStats,
-            'hazard_daily_stats' => $hazardDailyStats,
-            'timeframe'          => $days,
+            'daily_stats'           => $dailyStats,
+            'type_stats'            => $typeStats,
+            'recent_records'        => $recentRecords,
+            'barangay_stats'        => $barangayStats,
+            'hazard_stats'          => $hazardStats,
+            'hazard_daily_stats'    => $hazardDailyStats,
+            'hazard_barangay_stats' => $hazardBarangayStats,
+            'timeframe'             => $days,
         ]);
     }
 }
