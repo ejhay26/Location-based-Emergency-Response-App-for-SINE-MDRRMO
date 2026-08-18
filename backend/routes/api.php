@@ -20,11 +20,13 @@ Route::post('/login',           [AuthController::class, 'login']);
 Route::post('/login-send-otp',   [AuthController::class, 'loginSendOtp'])->middleware('throttle:3,1');
 Route::post('/login-verify-otp', [AuthController::class, 'loginVerifyOtp'])->middleware('throttle:5,1');
 Route::post('/verify-otp',      [AuthController::class, 'verifyOtp']);
+Route::post('/resend-registration-otp', [AuthController::class, 'resendRegistrationOtp'])->middleware('throttle:3,1');
 Route::post('/check-verification-status', [AuthController::class, 'checkVerificationStatus'])->middleware('throttle:10,1');
 Route::get('/check-username',   [AuthController::class, 'checkUsername']);
 Route::get('/check-email',      [AuthController::class, 'checkEmail']);
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,1');
-Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
+Route::post('/forgot-password',  [AuthController::class, 'forgotPassword'])->middleware('throttle:3,1');
+Route::post('/verify-reset-otp', [AuthController::class, 'verifyResetOtp'])->middleware('throttle:5,1');
+Route::post('/reset-password',   [AuthController::class, 'resetPassword']);
 
 // ── Sanctum-protected routes ──────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
