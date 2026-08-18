@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Emergency;
 
 use App\Http\Controllers\Controller;
+use App\Services\BarangayResolver;
 use App\Traits\MediaHandling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,10 @@ use App\Models\EmergencyRequest;
 class SosController extends Controller
 {
     use MediaHandling;
+
+    public function __construct(private readonly BarangayResolver $barangayResolver)
+    {
+    }
 
     public function submitSos(Request $request)
     {
@@ -37,6 +42,12 @@ class SosController extends Controller
             $proofFilesJson = $this->processProofFiles($request->proof_files, $request->user_id, 'sos');
         }
 
+        // Server-side, authoritative barangay resolution — see
+        // BarangayResolver's class doc for why this is never trusted from
+        // the client. Null (unresolved) is a valid, expected outcome and
+        // must never block submission — this is a life-safety path.
+        $barangayId = $this->barangayResolver->resolve((float) $request->latitude, (float) $request->longitude);
+
         $created = EmergencyRequest::create([
             'user_id'          => $request->user_id,
             'incident_type_id' => $request->incident_type_id,
@@ -44,6 +55,7 @@ class SosController extends Controller
             'proof_files'      => $proofFilesJson,
             'latitude'         => $request->latitude,
             'longitude'        => $request->longitude,
+            'barangay_id'      => $barangayId,
             'status'           => 'Pending',
             'request_time'     => now(),
         ]);
@@ -79,6 +91,7 @@ class SosController extends Controller
         $requests = DB::table('emergency_requests')
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
+            ->leftJoin('barangays', 'emergency_requests.barangay_id', '=', 'barangays.barangay_id')
             ->whereIn('emergency_requests.status', ['Pending', 'Dispatched'])
             ->orderBy('emergency_requests.request_time', 'desc')
             ->select(
@@ -86,7 +99,8 @@ class SosController extends Controller
                 'users.first_name', 'users.last_name', 'users.phone', 'users.profile_picture',
                 'users.blood_type', 'users.allergies', 'users.medical_conditions', 'users.pwd_status',
                 'users.false_alarm_strikes',
-                'incident_types.incident_name'
+                'incident_types.incident_name',
+                'barangays.barangay_name'
             )
             ->get()
             ->map(fn($r) => $this->decodeProofFiles($r));
@@ -98,6 +112,7 @@ class SosController extends Controller
         $requests = DB::table('emergency_requests')
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
+            ->leftJoin('barangays', 'emergency_requests.barangay_id', '=', 'barangays.barangay_id')
             ->whereIn('emergency_requests.status', ['Resolved', 'Cancelled'])
             ->orderBy('emergency_requests.request_time', 'desc')
             ->select(
@@ -105,7 +120,8 @@ class SosController extends Controller
                 'users.first_name', 'users.last_name', 'users.phone', 'users.profile_picture',
                 'users.blood_type', 'users.allergies', 'users.medical_conditions', 'users.pwd_status',
                 'users.false_alarm_strikes',
-                'incident_types.incident_name'
+                'incident_types.incident_name',
+                'barangays.barangay_name'
             )
             ->get()
             ->map(fn($r) => $this->decodeProofFiles($r));
