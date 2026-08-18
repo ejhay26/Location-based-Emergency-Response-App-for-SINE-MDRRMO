@@ -7,6 +7,7 @@ import {
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
 import { TourService, TourChapter } from '../../../core/services/tour';
+import { RevealAnimateDirective } from '../../../shared/directives/reveal-animate.directive';
 
 interface FaqItem { q: string; a: string; open: boolean; }
 interface TourChapterCard { chapter: TourChapter; icon: string; color: string; title: string; description: string; }
@@ -15,7 +16,7 @@ interface TourChapterCard { chapter: TourChapter; icon: string; color: string; t
   selector: 'app-help',
   templateUrl: './help.page.html',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent],
+  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, RevealAnimateDirective],
 })
 export class HelpPage implements OnInit {
   feedback = { message: '', category: 'general' };
@@ -25,7 +26,7 @@ export class HelpPage implements OnInit {
     { chapter: 'home',      icon: 'fa-solid fa-house',              color: '#eb445a', title: 'Home Screen',    description: 'Learn about the SOS button, hazard reporting, and broadcast alerts.' },
     { chapter: 'emergency', icon: 'fa-solid fa-triangle-exclamation', color: '#eb445a', title: 'Emergency SOS',  description: 'Walk through submitting an emergency report step by step.' },
     { chapter: 'hazard',    icon: 'fa-solid fa-road-barrier',        color: '#ffc409', title: 'Hazard Report',  description: 'Learn how to report flooded roads, downed wires, and other hazards.' },
-    { chapter: 'status',    icon: 'fa-solid fa-clock-rotate-left',   color: '#3880ff', title: 'My Reports',     description: 'Understand how to track the status of your submitted reports.' },
+    { chapter: 'history',   icon: 'fa-solid fa-clock-rotate-left',   color: '#3880ff', title: 'History',        description: 'Understand how to track the status of your submitted reports.' },
     { chapter: 'profile',   icon: 'fa-solid fa-circle-user',         color: '#2dd36f', title: 'My Profile',     description: 'Set your profile photo and fill in medical information for responders.' },
     { chapter: 'settings',  icon: 'fa-solid fa-sliders',             color: '#92949c', title: 'Settings',       description: 'Customize dark mode, animations, location, and notifications.' },
   ];
@@ -33,7 +34,7 @@ export class HelpPage implements OnInit {
   faqs: FaqItem[] = [
     { q: 'What happens after I press the SOS button?',         a: 'Your report — including your pinned location, emergency type, and any attached photos or videos — is sent directly to the MDRRMO dispatch team. They will assess the situation and dispatch the appropriate response team as quickly as possible.', open: false },
     { q: 'Will my exact location be shared?',                  a: 'Only the location you pin on the map is shared — not a continuous GPS feed. You can also manually drag the map crosshair to any location if you are reporting on behalf of someone else or if your GPS is inaccurate.', open: false },
-    { q: 'Can I cancel a report after submitting it?',         a: 'Yes. Go to the Status tab, find your report, and tap "Cancel Request" — but only while it still shows as Pending. Once MDRRMO has dispatched a team, the report can no longer be cancelled through the app.', open: false },
+    { q: 'Can I cancel a report after submitting it?',         a: 'Yes. Go to the History tab, find your report, and tap "Cancel Request" — but only while it still shows as Pending. Once MDRRMO has dispatched a team, the report can no longer be cancelled through the app.', open: false },
     { q: 'Why do I need to attach a photo or video?',          a: 'Visual proof helps the dispatch team verify the situation before sending resources and helps them prepare the right equipment. It also protects you — it confirms your report is genuine and helps MDRRMO respond more precisely.', open: false },
     { q: 'What if my location is wrong on the map?',           a: 'Tap "Use My Location" to jump the map to your current GPS position, or drag the map manually until the crosshair is over the correct spot. The latitude and longitude fields update in real time as you move the map.', open: false },
     { q: 'Why is the app asking for my medical information?',  a: 'Your blood type, allergies, and medical conditions are shared with responders when they are dispatched to you. This lets paramedics and first responders prepare the correct equipment and medications before they arrive.', open: false },
@@ -53,7 +54,9 @@ export class HelpPage implements OnInit {
   ) {}
 
   ngOnInit() {}
-  toggleFaq(item: FaqItem) { item.open = !item.open; }
+  toggleFaq(item: FaqItem) {
+    item.open = !item.open;
+  }
   startChapter(chapter: TourChapterCard) { this.tour.start(chapter.chapter); }
   startFullTour() { this.tour.start('all'); }
 
