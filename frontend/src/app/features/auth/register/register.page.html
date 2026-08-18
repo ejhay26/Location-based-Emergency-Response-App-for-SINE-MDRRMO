@@ -10,19 +10,29 @@
 <ion-content class="ion-padding">
 
   <div class="ion-text-center ion-margin-bottom">
-    <ion-text color="medium" style="font-weight: 500;">Step {{ currentStep }} of 3</ion-text>
-    <ion-progress-bar [value]="currentStep / 3" color="danger"></ion-progress-bar>
+    <ion-text color="medium" style="font-weight: 500;">Step {{ currentStep }} of {{ totalSteps }}</ion-text>
+    <ion-progress-bar [value]="currentStep / totalSteps" color="danger"></ion-progress-bar>
   </div>
 
-  <!-- ══ STEP 1: Personal Details + Valid ID ══ -->
+  <!-- ══ STEP 1: Personal Details ══ -->
   <div *ngIf="currentStep === 1">
     <ion-list style="background: transparent;">
       <ion-item><ion-input label="First Name" labelPlacement="stacked" placeholder="Tap to enter your first name" [(ngModel)]="userData.first_name" required></ion-input></ion-item>
       <ion-item><ion-input label="Last Name" labelPlacement="stacked" placeholder="Tap to enter your last name" [(ngModel)]="userData.last_name" required></ion-input></ion-item>
-      <ion-item><ion-input label="Phone Number" labelPlacement="stacked" placeholder="Tap to enter your phone number" type="tel" [(ngModel)]="userData.phone" required></ion-input></ion-item>
+      <ion-item>
+        <ion-input label="Phone Number" labelPlacement="stacked" placeholder="9XXXXXXXXX" type="tel" inputmode="numeric" maxlength="10"
+                   [ngModel]="phoneLocal" (ionInput)="onPhoneInput($event.detail.value)" required>
+          <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:600;">+63</div>
+        </ion-input>
+      </ion-item>
       <ion-item><ion-input label="Birthdate" labelPlacement="stacked" type="date" [(ngModel)]="userData.birthdate" required></ion-input></ion-item>
     </ion-list>
 
+    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="nextStep()" style="font-weight: bold; height: 45px;">Next</ion-button>
+  </div>
+
+  <!-- ══ STEP 2: ID Verification ══ -->
+  <div *ngIf="currentStep === 2">
     <ion-list style="background: transparent;">
       <ion-item>
         <ion-select label="Valid ID Type" labelPlacement="stacked" placeholder="Tap to select your ID type" [(ngModel)]="userData.valid_id_type" required>
@@ -41,13 +51,17 @@
     </ion-list>
 
     <app-register-id-capture variant="id" fieldName="valid_id_image" [userData]="userData" (toast)="showToast($event)"></app-register-id-capture>
+    <app-register-id-capture variant="id-back" fieldName="valid_id_image_back" [userData]="userData" (toast)="showToast($event)"></app-register-id-capture>
     <app-register-id-capture variant="selfie" fieldName="selfie_with_id_image" [userData]="userData" (toast)="showToast($event)"></app-register-id-capture>
 
-    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="nextStep()" style="font-weight: bold; height: 45px;">Next</ion-button>
+    <div style="display: flex; gap: 10px; margin-top: 18px;">
+      <ion-button expand="block" fill="outline" color="danger" (click)="prevStep()" style="font-weight: bold; height: 45px;">Back</ion-button>
+      <ion-button expand="block" color="danger" (click)="nextStep()" style="font-weight: bold; height: 45px;">Next</ion-button>
+    </div>
   </div>
 
-  <!-- ══ STEP 2: Account Details + OTP Channel ══ -->
-  <div *ngIf="currentStep === 2">
+  <!-- ══ STEP 3: Account Details + OTP Channel ══ -->
+  <div *ngIf="currentStep === 3">
     <app-register-account-details [userData]="userData"></app-register-account-details>
 
     <div style="display: flex; gap: 10px; margin-top: 18px;">
@@ -63,26 +77,44 @@
     </div>
   </div>
 
-  <!-- ══ STEP 3: OTP VERIFICATION ══ -->
-  <div *ngIf="currentStep === 3" class="ion-text-center">
-    <i [class]="userData.otp_channel === 'sms' ? 'fa-solid fa-mobile-screen' : 'fa-solid fa-envelope-open-text'"
-       style="font-size: 64px; color: var(--ion-color-danger); margin-bottom: 15px; display: inline-block;"></i>
+  <!-- ══ STEP 4: OTP VERIFICATION ══ -->
+  <div *ngIf="currentStep === 4" class="ion-text-center">
     <h2 style="font-weight: bold; color: var(--ion-text-color);">
       {{ userData.otp_channel === 'sms' ? 'Check Your SMS' : 'Check Your Email' }}
     </h2>
-    <p style="color: var(--ion-color-medium); font-weight: 500;">
-      We sent a 4-digit verification code to<br>
-      <strong>{{ userData.otp_channel === 'sms' ? userData.phone : userData.email }}</strong>
+    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
+      Enter the 4-digit verification code we sent you.
     </p>
-    <ion-item class="ion-margin-top" fill="outline">
-      <ion-input class="ion-text-center" style="font-size: 24px; letter-spacing: 10px;"
-                 type="tel" inputmode="numeric" autocomplete="one-time-code"
-                 placeholder="0000" [(ngModel)]="otpCode"></ion-input>
-    </ion-item>
+
+    <ion-list style="background: transparent;">
+      <ion-item>
+        <i [class]="userData.otp_channel === 'sms' ? 'fa-solid fa-mobile-screen' : 'fa-solid fa-envelope'"
+           slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+        <ion-input [label]="userData.otp_channel === 'sms' ? 'Registered Phone Number' : 'Registered Email'" labelPlacement="stacked"
+                   type="text" [value]="userData.otp_channel === 'sms' ? userData.phone : userData.email"
+                   readonly disabled></ion-input>
+        <ion-button slot="end" fill="solid" color="danger" size="small" type="button"
+                    [class.btn-muted]="otpResendSecs > 0"
+                    [class.btn-loading]="isResendingOtp"
+                    (click)="resendOtp()"
+                    style="font-weight: bold; margin: 0; --border-radius: 8px; min-width: 76px;">
+          <ng-container *ngIf="!isResendingOtp">
+            <ng-container *ngIf="otpResendSecs > 0">{{ otpResendSecs }}s</ng-container>
+            <ng-container *ngIf="otpResendSecs === 0">Resend</ng-container>
+          </ng-container>
+          <i *ngIf="isResendingOtp" class="fa-solid fa-spinner fa-spin"></i>
+        </ion-button>
+      </ion-item>
+    </ion-list>
+
+    <div class="ion-margin-top">
+      <app-otp-box-input [code]="otpCode" (codeChange)="otpCode = $event" (completed)="verifyOtp()"></app-otp-box-input>
+    </div>
+
     <ion-button expand="block" color="success" class="ion-margin-top" (click)="verifyOtp()"
                 [class.btn-loading]="isVerifyingOtp"
                 style="font-weight: bold; height: 50px;">
-      <ng-container *ngIf="!isVerifyingOtp">Verify Email</ng-container>
+      <ng-container *ngIf="!isVerifyingOtp">Verify {{ userData.otp_channel === 'sms' ? 'Code' : 'Email' }}</ng-container>
       <span *ngIf="isVerifyingOtp" class="dot-loader"><span></span><span></span><span></span></span>
     </ion-button>
   </div>
