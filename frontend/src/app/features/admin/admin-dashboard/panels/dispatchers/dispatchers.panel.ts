@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -7,11 +7,15 @@ import {
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
+import { UserSettingsService } from '../../../../../core/services/user-settings';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
+import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
 import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
+import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/flip-reflow.util';
+import { formatPhoneLocalPart, formatPhoneDisplayPH } from '../../../../../shared/utils/phone.util';
 
 interface DispatcherForm {
   first_name: string;
@@ -35,7 +39,7 @@ interface DispatcherForm {
     CommonModule, FormsModule,
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
-    ProxyImageDirective, DateRangeFilterComponent, FilterSummaryBarComponent,
+    ProxyImageDirective, DateRangeFilterComponent, FilterSummaryBarComponent, ListEnterDirective,
   ],
   templateUrl: './dispatchers.panel.html',
 })
@@ -55,8 +59,23 @@ export class DispatchersPanel implements OnInit {
   dispatcherForm: DispatcherForm = {
     first_name: '', last_name: '', phone: '', username: '', email: '', password: '', barangay_id: null
   };
+  /** 10-digit local part bound to the modal's phone input — dispatcherForm.phone holds the full "63XXXXXXXXXX" value actually submitted, same split-state pattern as the citizen register/login pages. */
+  dispatcherPhoneLocal = '';
 
-  constructor(public api: ApiService, public ui: AdminUiService) {}
+  onDispatcherPhoneInput(raw: string | null | undefined): void {
+    this.dispatcherPhoneLocal = formatPhoneLocalPart(raw ?? '');
+    this.dispatcherForm.phone = this.dispatcherPhoneLocal.length === 10 ? '63' + this.dispatcherPhoneLocal : '';
+  }
+
+  /** Human-readable "+63 917 123 4567" for the read-only card display. */
+  phoneDisplay(raw: string | null | undefined): string {
+    return formatPhoneDisplayPH(raw);
+  }
+
+  /** FLIP filter-reflow (see applyFilterChange) needs a live handle on the grid's DOM to measure card positions before/after a filter change. */
+  @ViewChild('dispatchersGrid') dispatchersGrid?: ElementRef<HTMLElement>;
+
+  constructor(public api: ApiService, public ui: AdminUiService, private settings: UserSettingsService) {}
 
   ngOnInit() {
     this.loadDispatchers();
@@ -87,10 +106,44 @@ export class DispatchersPanel implements OnInit {
     return chips;
   }
 
+  trackByUserId(_index: number, d: any): number {
+    return d.user_id;
+  }
+
+  /**
+   * Filter-reflow (FLIP) — Dispatchers renders as a CSS Grid, same as
+   * Citizens, so it needs the same FLIP-based reflow rather than
+   * RevealAnimateDirective's height-collapse trick (which only reflows a
+   * single-column list correctly). See shared/utils/flip-reflow.util.ts.
+   */
+  private applyFilterChange(mutate: () => void): void {
+    if (!this.settings.shouldAnimate()) { mutate(); return; }
+    const container = this.dispatchersGrid?.nativeElement;
+    const before = captureFlipRects(container);
+    mutate();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => playFlipReorder(container, before));
+    });
+  }
+
+  onSearchChange(value: string): void {
+    this.applyFilterChange(() => { this.dispatcherSearch = value; });
+  }
+
+  onBarangayFilterChange(value: number | 'all'): void {
+    this.applyFilterChange(() => { this.dispatcherBarangayFilter = value; });
+  }
+
+  onDateFilterChange(value: DateFilterValue | null): void {
+    this.applyFilterChange(() => { this.dispatcherDateFilter = value; });
+  }
+
   clearAllFilters(): void {
-    this.dispatcherSearch = '';
-    this.dispatcherBarangayFilter = 'all';
-    this.dispatcherDateFilter = null;
+    this.applyFilterChange(() => {
+      this.dispatcherSearch = '';
+      this.dispatcherBarangayFilter = 'all';
+      this.dispatcherDateFilter = null;
+    });
   }
 
   openDispatcherModal(dispatcher: any | null) {
@@ -101,6 +154,14 @@ export class DispatchersPanel implements OnInit {
           username: dispatcher.username, email: dispatcher.email, password: '', barangay_id: dispatcher.barangay_id
         }
       : { first_name: '', last_name: '', phone: '', username: '', email: '', password: '', barangay_id: null };
+    // Seed the local-part field from whatever's already stored. Existing
+    // rows are canonical ("63XXXXXXXXXX") post-migration, so stripping the
+    // leading "63" recovers the 10-digit part directly; formatPhoneLocalPart
+    // as a fallback still handles a legacy un-normalized value gracefully.
+    const existing = dispatcher?.phone ?? '';
+    this.dispatcherPhoneLocal = existing.startsWith('63') && existing.length === 12
+      ? existing.slice(2)
+      : formatPhoneLocalPart(existing);
     this.isDispatcherModalOpen = true;
   }
 
