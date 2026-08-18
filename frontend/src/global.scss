@@ -270,6 +270,40 @@ html.ion-palette-dark .leaflet-popup-tip {
   margin-top: 5px;
 }
 
+/* =========================================
+   GLOBAL TOGGLE REDESIGN — flat pill switch
+   Overrides Ionic's default ion-toggle chrome app-wide (citizen Settings
+   toggles + admin Dark Mode toggle) to match a flat reference design:
+   neutral grey track when off, --app-red when on (red, not the reference
+   image's green, to stay on-brand), plain white handle that nearly fills
+   the track height with only a slim margin — no drop shadow on the handle,
+   fully flat like the reference. Uses ion-toggle's own exposed CSS custom
+   properties (Ionic 8: --track-background / --track-background-checked /
+   --handle-*) rather than any shadow-part hack, so it keeps working across
+   point releases instead of reaching into internals. !important is needed
+   because the templates also set color="danger", and Ionic's per-color CSS
+   can otherwise win the cascade over custom properties set here.
+
+   MODE: every <ion-toggle> in the templates now carries mode="ios" explicitly
+   (not set here — Ionic mode is a component input, not something CSS can
+   force), so the iOS oval-track/round-handle shape renders on Android and
+   web too, not just actual iOS devices. The custom properties below are
+   mode-agnostic and apply the same way under either mode, so no separate
+   .ios/.md branch is needed here.
+   ========================================= */
+ion-toggle {
+  --track-background: var(--ion-color-step-250, #d1d1d6) !important;
+  --track-background-checked: var(--app-red) !important;
+  --handle-background: #ffffff !important;
+  --handle-background-checked: #ffffff !important;
+  --handle-box-shadow: none !important;
+  --border-radius: 999px !important;
+  --handle-border-radius: 999px !important;
+  --handle-spacing: 2px !important;
+  width: 50px;
+  height: 28px;
+}
+
 /* Active menu item highlight */
 .menu-item-active {
   --background: var(--app-red-light) !important;
@@ -318,12 +352,34 @@ html.ion-palette-dark .leaflet-popup-tip {
 }
 
 /* =========================================
-   TABS: BOTTOM PADDING FOR FLOATING TAB BAR
-   Prevents page content from hiding behind
-   the custom floating pill tab bar.
+   TABS: BOTTOM PADDING FOR FLUSH TAB BAR
+   Prevents page content from hiding behind the custom flush tab bar (60px
+   tall + baked-in safe-area padding, sitting flat at the screen edge — see
+   .ctab-bar in tabs.page.ts). Single source of truth: every citizen tab
+   page's <ion-content> should use this CLASS rather than duplicating the
+   --padding-bottom value inline. Only the bar's own 60px + safe-area need
+   clearing now (no floating gap above it anymore), plus a small 16px
+   breathing room so the last content item doesn't touch the bar's top edge.
    ========================================= */
 .tab-page-content {
-  --padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  --padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+}
+
+/* =========================================
+   REPORT MODAL — strips Ionic's default modal chrome entirely
+   (rounded card corners, box shadow, backdrop, iOS sheet handle) so it
+   reads as a genuine full page, not "a modal was opened". Per ion-modal's
+   own docs, custom modal styles must be global — they can't be scoped to
+   ReportPage's own stylesheet since ion-modal is appended outside the
+   presenting component. Actual open/close motion is a separate custom
+   Animation (report-modal-transition.ts), not the default Ionic transition.
+   ========================================= */
+.report-modal {
+  --width: 100%;
+  --height: 100%;
+  --border-radius: 0;
+  --box-shadow: none;
+  --backdrop-opacity: 0; /* the modal is always full-screen, so there's never a visible backdrop area to dim */
 }
 
 /* =========================================
@@ -438,28 +494,62 @@ html.reduce-animations .sos-ring {
 }
 
 /* =========================================
-   ADMIN DASHBOARD: SLIM SCROLL CONTAINER
+   GLOBAL PILL SCROLLBAR — app-wide default
+   Thin track, NO visible track background, NO up/down arrow buttons —
+   just a solid rounded pill thumb. Colors derive from the existing
+   step-300/step-400 tokens so it auto-adapts light/dark via the same
+   ion-palette-dark class everything else uses.
+   - Firefox: scrollbar-width + scrollbar-color cover it natively.
+   - Chromium/Electron (web build + admin desktop shell): ::-webkit-scrollbar.
+   - ion-content's real scroll container lives in its shadow DOM, so a plain
+     class/tag selector on <ion-content> can't reach it — Ionic exposes it
+     via the ::part(scroll) shadow part instead, which is targeted separately
+     below alongside the plain-DOM rule for every other scroll container
+     (admin sidebar, panels, modals, etc).
+   ========================================= */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ion-color-step-300, rgba(0,0,0,0.25)) transparent;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--ion-color-step-300, rgba(0,0,0,0.25));
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ion-color-step-400, rgba(0,0,0,0.35));
+}
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+ion-content::part(scroll) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ion-color-step-300, rgba(0,0,0,0.25)) transparent;
+}
+ion-content::part(scroll)::-webkit-scrollbar { width: 6px; }
+ion-content::part(scroll)::-webkit-scrollbar-track { background: transparent; }
+ion-content::part(scroll)::-webkit-scrollbar-thumb {
+  background: var(--ion-color-step-300, rgba(0,0,0,0.25));
+  border-radius: 999px;
+}
+ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
+  background: var(--ion-color-step-400, rgba(0,0,0,0.35));
+}
+ion-content::part(scroll)::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+/* =========================================
+   ADMIN DASHBOARD: SLIM SCROLL CONTAINER (fade mask only)
    Shared by every single-column admin panel (log-archive, broadcast,
    dispatchers, citizens, feedback, verifications) via the host div in
-   admin-dashboard.page.html. Replaces the bulky default OS scrollbar with a
-   slim themed one, and fades the bottom edge so the last visible card
-   trails off smoothly instead of getting hard-clipped by max-height.
+   admin-dashboard.page.html. The scrollbar itself is now the global pill
+   rule above — this class only adds the bottom fade-out so the last
+   visible card trails off smoothly instead of getting hard-clipped by
+   max-height.
    ========================================= */
 .admin-scroll-panel {
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: var(--ion-color-step-300, rgba(0,0,0,0.25)) transparent;
   -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
           mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
   padding-bottom: 28px; /* keeps real content clear of the fade zone */
-}
-.admin-scroll-panel::-webkit-scrollbar { width: 6px; }
-.admin-scroll-panel::-webkit-scrollbar-track { background: transparent; }
-.admin-scroll-panel::-webkit-scrollbar-thumb {
-  background: var(--ion-color-step-300, rgba(0,0,0,0.25));
-  border-radius: 10px;
-}
-.admin-scroll-panel::-webkit-scrollbar-thumb:hover {
-  background: var(--ion-color-step-400, rgba(0,0,0,0.35));
 }
 
 .menu-capsule-link {
