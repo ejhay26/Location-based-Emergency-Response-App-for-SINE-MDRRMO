@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
+import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 
 /**
  * FeedbackPanel — lists citizen-submitted feedback with export/clear actions.
@@ -12,7 +13,7 @@ import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 @Component({
   selector: 'app-feedback-panel',
   standalone: true,
-  imports: [CommonModule, UtcDatePipe],
+  imports: [CommonModule, UtcDatePipe, ListEnterDirective],
   templateUrl: './feedback.panel.html',
 })
 export class FeedbackPanel implements OnInit {
@@ -59,4 +60,8 @@ export class FeedbackPanel implements OnInit {
 
   categoryLabel(cat: string): string { return this.categoryLabels[cat] || cat; }
   categoryColor(cat: string): string { return this.categoryColors[cat] || '#92949c'; }
+
+  trackByFeedbackId(_index: number, fb: any): number {
+    return fb.id;
+  }
 }

@@ -21,7 +21,7 @@
   </div>
 
   <div style="display:flex;flex-direction:column;gap:12px;">
-    <div *ngFor="let fb of feedbackList" style="background:var(--ion-card-background,#fff);border-radius:14px;padding:18px;border:1px solid var(--ion-color-step-150,rgba(0,0,0,0.07));color:var(--ion-text-color);">
+    <div *ngFor="let fb of feedbackList; let i = index; trackBy: trackByFeedbackId" [appAnnouncementEnter]="i" style="background:var(--ion-card-background,#fff);border-radius:14px;padding:18px;border:1px solid var(--ion-color-step-150,rgba(0,0,0,0.07));color:var(--ion-text-color);">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="width:36px;height:36px;border-radius:50%;background:var(--ion-color-danger);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:13px;flex-shrink:0;">{{ (fb.full_name || '?')[0] }}</div>
