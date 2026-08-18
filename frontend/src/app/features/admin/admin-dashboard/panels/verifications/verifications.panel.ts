@@ -5,6 +5,8 @@ import { IonButton } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
+import { RevealAnimateDirective } from '../../../../../shared/directives/reveal-animate.directive';
+import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
 import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
@@ -15,7 +17,7 @@ import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../..
   standalone: true,
   imports: [
     CommonModule, FormsModule, IonButton, ProxyImageDirective,
-    DateRangeFilterComponent, FilterSummaryBarComponent,
+    DateRangeFilterComponent, FilterSummaryBarComponent, RevealAnimateDirective, ListEnterDirective,
   ],
   templateUrl: './verifications.panel.html',
 })
@@ -41,16 +43,31 @@ export class VerificationsPanel implements OnInit {
   }
 
   get filteredVerifications(): any[] {
+    return this.pendingVerifications.filter(u => this.matchesVerificationFilter(u));
+  }
+
+  /**
+   * Filter shrink-and-reflow (RevealAnimateDirective, permanent-mount
+   * pattern) — Verifications is a single-column list like Log Archive, so
+   * unlike Citizens/Dispatchers (CSS Grid → FLIP) it can use the simpler
+   * height-collapse reflow: the template iterates the FULL (unfiltered)
+   * list so every card stays mounted, and this predicate drives each
+   * card's [appRevealAnimate] instead of removing non-matching cards
+   * outright.
+   */
+  matchesVerificationFilter(u: any): boolean {
     const search = this.verificationSearch.trim().toLowerCase();
-    return this.pendingVerifications.filter(u => {
-      const matchSearch = !search ||
-        `${u.first_name} ${u.last_name} ${u.username} ${u.email} ${u.phone}`
-          .toLowerCase().includes(search);
-      const matchBarangay = this.verificationBarangayFilter === 'all' || u.barangay_id === this.verificationBarangayFilter;
-      const matchIdType = this.verificationIdTypeFilter === 'all' || u.valid_id_type === this.verificationIdTypeFilter;
-      const matchDate = matchesDateFilter(u.created_at, this.verificationDateFilter);
-      return matchSearch && matchBarangay && matchIdType && matchDate;
-    });
+    const matchSearch = !search ||
+      `${u.first_name} ${u.last_name} ${u.username} ${u.email} ${u.phone}`
+        .toLowerCase().includes(search);
+    const matchBarangay = this.verificationBarangayFilter === 'all' || u.barangay_id === this.verificationBarangayFilter;
+    const matchIdType = this.verificationIdTypeFilter === 'all' || u.valid_id_type === this.verificationIdTypeFilter;
+    const matchDate = matchesDateFilter(u.created_at, this.verificationDateFilter);
+    return matchSearch && matchBarangay && matchIdType && matchDate;
+  }
+
+  trackByUserId(_index: number, u: any): number {
+    return u.user_id;
   }
 
   /** Distinct ID types actually present in the current queue, for the filter dropdown. */

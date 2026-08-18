@@ -35,7 +35,10 @@
     <p>No pending verifications match the current filters.</p>
   </div>
 
-  <div *ngFor="let user of filteredVerifications" style="background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); border-radius: 12px; margin-bottom: 16px; overflow: hidden;">
+  <div *ngFor="let user of pendingVerifications; let i = index; trackBy: trackByUserId"
+       [appRevealAnimate]="matchesVerificationFilter(user)"
+       [appAnnouncementEnter]="i"
+       style="background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); border-radius: 12px; margin-bottom: 16px; overflow: hidden;">
     <div style="padding: 18px; color: var(--ion-text-color);">
       <h4 style="font-weight: bold; font-size: 16px; margin: 0 0 14px 0; color: var(--ion-color-danger);">
         <i class="fa-solid fa-id-card-clip" style="margin-right: 8px;"></i>Review: {{ user.first_name }} {{ user.last_name }}
