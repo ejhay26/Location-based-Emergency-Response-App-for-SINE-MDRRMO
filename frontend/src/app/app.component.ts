@@ -3,6 +3,7 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TourOverlayComponent, AppDialogsComponent } from './shared/components/index';
 import { UserSettingsService } from './core/services/user-settings';
 import { LocationService } from './core/services/location';
+import { DeepLinkService } from './core/services/deep-link';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ export class AppComponent implements OnInit {
   constructor(
     private settings: UserSettingsService,
     private locationSvc: LocationService,
+    private deepLink: DeepLinkService,
   ) {}
 
   ngOnInit() {
@@ -25,5 +27,10 @@ export class AppComponent implements OnInit {
       this.settings.applyToDom();
       this.locationSvc.start();
     }
+
+    // Listens for widget/external-launch deep links (native only, no-op
+    // elsewhere). Must be registered once at root so it's live regardless
+    // of which page the app happens to cold-start on.
+    this.deepLink.init();
   }
 }
