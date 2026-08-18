@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Hash;
 
 /** Admin management of dispatcher accounts. */
@@ -30,10 +31,14 @@ class DispatcherController extends Controller
             'password'    => 'required|min:6',
             'barangay_id' => 'required|integer',
         ]);
+        $normalizedPhone = PhoneNumber::normalize($request->phone);
+        if ($normalizedPhone === null) {
+            return response()->json(['message' => 'Please enter a valid Philippine mobile number.'], 422);
+        }
         User::create([
             'first_name'     => $request->first_name,
             'last_name'      => $request->last_name,
-            'phone'          => $request->phone,
+            'phone'          => $normalizedPhone,
             'username'       => $request->username,
             'email'          => $request->email,
             'password'       => Hash::make($request->password),
@@ -54,12 +59,16 @@ class DispatcherController extends Controller
             'email'       => 'required|email|unique:users,email,' . $request->user_id . ',user_id',
             'barangay_id' => 'required|integer',
         ]);
+        $normalizedPhone = PhoneNumber::normalize($request->phone);
+        if ($normalizedPhone === null) {
+            return response()->json(['message' => 'Please enter a valid Philippine mobile number.'], 422);
+        }
         $dispatcher = User::where('user_id', $request->user_id)->where('role', 'dispatcher')->first();
         if (!$dispatcher) return response()->json(['message' => 'Dispatcher not found.'], 404);
         $dispatcher->update([
             'first_name'  => $request->first_name,
             'last_name'   => $request->last_name,
-            'phone'       => $request->phone,
+            'phone'       => $normalizedPhone,
             'email'       => $request->email,
             'barangay_id' => $request->barangay_id,
         ]);
