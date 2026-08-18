@@ -8,10 +8,13 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Services\PhilSmsService;
 use App\Services\OtpService;
+use App\Support\PhoneNumber;
 use App\Rules\CommonRules;
+use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Core authentication: login (password + OTP variants), registration,
@@ -49,8 +52,15 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email is required.'], 422);
         }
 
+        // Normalize once, up front — every lookup, cache key, and outbound
+        // SMS below uses this canonical value, never $request->phone raw.
+        $normalizedPhone = $channel === 'phone' ? PhoneNumber::normalize($request->phone) : null;
+        if ($channel === 'phone' && $normalizedPhone === null) {
+            return response()->json(['message' => 'Please enter a valid Philippine mobile number.'], 422);
+        }
+
         $user = $channel === 'phone'
-            ? User::where('phone', $request->phone)->first()
+            ? User::where('phone', $normalizedPhone)->first()
             : User::where('email', $request->email)->first();
 
         // Always return the same message to avoid account enumeration.
@@ -63,17 +73,24 @@ class AuthController extends Controller
 
         $identifier = $channel === 'phone' ? $user->phone : $user->email;
         $cacheKey   = 'login_otp_' . $channel . '_' . $identifier;
-        $otp        = $this->otp->generateAndStore($cacheKey);
+        $result     = $this->otp->requestOtp($cacheKey);
+        // Enumeration-safe: a blocked (already-pending / rate-capped) request
+        // returns the exact same response as a real send — no distinct
+        // status, message, or retry_after — so probing this endpoint twice
+        // can't be used to infer whether the account exists (see
+        // forgotPassword() below for the fuller rationale).
+        if (isset($result['blocked'])) {
+            return response()->json(['message' => 'If that account exists, an OTP was sent.'], 200);
+        }
+        $otp = $result['otp'];
 
         if ($channel === 'phone') {
-            $sent = $this->sms->sendOtp($user->phone, (string) $otp);
+            $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'logging in');
             if (!$sent) {
                 return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
             }
         } else {
-            Mail::raw("Your MDRRMO San Isidro login code is: {$otp}. It expires in 10 minutes.", function ($m) use ($user) {
-                $m->to($user->email)->subject('Login Verification Code');
-            });
+            Mail::to($user->email)->send(new OtpMail($otp, 'logging in'));
         }
 
         return response()->json(['message' => 'If that account exists, an OTP was sent.']);
@@ -89,7 +106,13 @@ class AuthController extends Controller
         ]);
 
         $channel    = $request->input('otp_channel', 'email');
-        $identifier = $channel === 'phone' ? $request->phone : $request->email;
+        // Must normalize identically to how loginSendOtp derived its cache
+        // key (from $user->phone, which is always canonical since every
+        // write path normalizes before saving) — otherwise a request typed
+        // in a different shape than what's stored would build a different
+        // cache key and verification would fail even with the right OTP.
+        $normalizedPhone = $channel === 'phone' ? PhoneNumber::normalize($request->phone) : null;
+        $identifier = $channel === 'phone' ? $normalizedPhone : $request->email;
         $cacheKey   = 'login_otp_' . $channel . '_' . $identifier;
 
         if (!$identifier || !$this->otp->verify($cacheKey, $request->otp)) {
@@ -97,7 +120,7 @@ class AuthController extends Controller
         }
 
         $user = $channel === 'phone'
-            ? User::where('phone', $request->phone)->first()
+            ? User::where('phone', $normalizedPhone)->first()
             : User::where('email', $request->email)->first();
         if (!$user) return response()->json(['message' => 'Invalid or expired code.'], 400);
 
@@ -137,7 +160,12 @@ class AuthController extends Controller
         }
         if (!$user || !Hash::check($request->password, $user->password)) {
             RateLimiter::hit($throttleKey, 60);
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            // Deliberately identical whether the account doesn't exist or the
+            // password is wrong — a distinct "no account found" message would
+            // let an attacker enumerate registered emails/usernames, which
+            // matters more here than most apps given accounts are tied to
+            // verified government ID + selfie data.
+            return response()->json(['message' => 'Invalid email or password.'], 401);
         }
 
         RateLimiter::clear($throttleKey);
@@ -176,10 +204,16 @@ class AuthController extends Controller
             'email'          => 'required|email|unique:users',
             'password'       => CommonRules::strongPassword(),
             'barangay_id'    => 'required|integer',
-            'valid_id_image' => 'required|string',
+            'valid_id_image'      => 'required|string',
+            'valid_id_image_back' => 'required|string',
             'valid_id_type'  => 'required|string',
             'selfie_with_id_image' => 'required|string',
         ]);
+
+        $normalizedPhone = PhoneNumber::normalize($request->phone);
+        if ($normalizedPhone === null) {
+            return response()->json(['message' => 'Please enter a valid Philippine mobile number.'], 422);
+        }
 
         $id_base64 = $this->decodeBase64($request->valid_id_image);
         if ($id_base64 === false) {
@@ -191,6 +225,18 @@ class AuthController extends Controller
         $mime = $this->detectMime($id_base64);
         if ($mime === null || $mime === 'video/mp4') {
             return response()->json(['message' => 'ID photo must be a PNG or JPEG image.'], 422);
+        }
+
+        $idBack_base64 = $this->decodeBase64($request->valid_id_image_back);
+        if ($idBack_base64 === false) {
+            return response()->json(['message' => 'Your ID (back) photo failed to process. Please retake it and try again.'], 422);
+        }
+        if (!$this->checkSize($idBack_base64, 'id')) {
+            return response()->json(['message' => 'ID (back) photo is too large. Maximum is 10 MB.'], 422);
+        }
+        $idBackMime = $this->detectMime($idBack_base64);
+        if ($idBackMime === null || $idBackMime === 'video/mp4') {
+            return response()->json(['message' => 'ID (back) photo must be a PNG or JPEG image.'], 422);
         }
 
         $selfie_base64 = $this->decodeBase64($request->selfie_with_id_image);
@@ -212,6 +258,11 @@ class AuthController extends Controller
         $idPath     = 'verification_ids/' . $request->username . '/' . $idFileName;
         $idUrl      = $this->storePublic($idPath, $id_base64);
 
+        $idBackExt      = $this->mimeToExtension($idBackMime);
+        $idBackFileName = 'id_back_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $idBackExt;
+        $idBackPath     = 'verification_ids/' . $request->username . '/' . $idBackFileName;
+        $idBackUrl      = $this->storePublic($idBackPath, $idBack_base64);
+
         $selfieExt      = $this->mimeToExtension($selfieMime);
         $selfieFileName = 'selfie_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $selfieExt;
         $selfiePath     = 'verification_ids/' . $request->username . '/' . $selfieFileName;
@@ -220,7 +271,7 @@ class AuthController extends Controller
         $user = User::create([
             'first_name'     => $request->first_name,
             'last_name'      => $request->last_name,
-            'phone'          => $request->phone,
+            'phone'          => $normalizedPhone,
             'birthdate'      => $request->birthdate,
             'username'       => $request->username,
             'email'          => $request->email,
@@ -229,6 +280,7 @@ class AuthController extends Controller
             'role'           => 'citizen',
             'account_status' => 'unverified',
             'valid_id_proof' => $idUrl,
+            'valid_id_proof_back' => $idBackUrl,
             'valid_id_type'  => $request->valid_id_type,
             'selfie_with_id_proof' => $selfieUrl,
         ]);
@@ -237,15 +289,55 @@ class AuthController extends Controller
         $otp     = $this->otp->generateAndStore('otp_' . $user->email);
 
         if ($channel === 'sms') {
-            $sent = $this->sms->sendOtp($user->phone, (string) $otp);
+            $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'account registration');
             if (!$sent) {
                 return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
             }
         } else {
-            Mail::to($user->email)->send(new \App\Mail\OtpMail($otp));
+            Mail::to($user->email)->send(new OtpMail($otp, 'verifying your new account'));
         }
 
         return response()->json(['message' => 'Verification code sent.']);
+    }
+
+    /**
+     * Resend the registration-verification OTP. Deliberately separate from
+     * register() itself — register() creates the User row, which can only
+     * happen once (unique email/username); resend just needs to look the
+     * pending row up and re-issue a code against the same cache key
+     * verifyOtp() already checks ('otp_' . email), so a resent code
+     * verifies through the exact same path as the original one.
+     */
+    public function resendRegistrationOtp(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->where('account_status', 'unverified')->first();
+        // Enumeration-safe: identical response whether or not a pending
+        // registration exists for this email.
+        if (!$user) {
+            return response()->json(['message' => 'If a pending registration exists, a new code was sent.']);
+        }
+
+        $result = $this->otp->requestOtp('otp_' . $user->email);
+        // Enumeration-safe (see forgotPassword() below): identical response
+        // whether blocked or actually sent.
+        if (isset($result['blocked'])) {
+            return response()->json(['message' => 'If a pending registration exists, a new code was sent.']);
+        }
+        $otp     = $result['otp'];
+        $channel = $request->input('otp_channel', 'email');
+
+        if ($channel === 'sms') {
+            $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'account registration');
+            if (!$sent) {
+                return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
+            }
+        } else {
+            Mail::to($user->email)->send(new OtpMail($otp, 'verifying your new account'));
+        }
+
+        return response()->json(['message' => 'If a pending registration exists, a new code was sent.']);
     }
 
     public function checkUsername(Request $request)
@@ -312,21 +404,76 @@ class AuthController extends Controller
             'phone'       => 'required_if:otp_channel,phone|string',
         ]);
         $channel = $request->otp_channel;
+        $normalizedPhone = $channel === 'phone' ? PhoneNumber::normalize($request->phone) : null;
+        if ($channel === 'phone' && $normalizedPhone === null) {
+            // Same enumeration-safe response as "account not found" — an
+            // invalid phone shape shouldn't reveal anything about whether
+            // it would have matched an account.
+            return response()->json(['message' => 'If an account exists, an OTP was sent.'], 200);
+        }
         $user    = $channel === 'email'
             ? User::where('email', $request->email)->first()
-            : User::where('phone', $request->phone)->first();
+            : User::where('phone', $normalizedPhone)->first();
         if (!$user) return response()->json(['message' => 'If an account exists, an OTP was sent.'], 200);
-        $cacheKey = 'reset_otp_' . $channel . '_' . ($channel === 'email' ? $request->email : $request->phone);
-        $otp      = $this->otp->generateAndStore($cacheKey);
+        $cacheKey = 'reset_otp_' . $channel . '_' . ($channel === 'email' ? $request->email : $normalizedPhone);
+        $result   = $this->otp->requestOtp($cacheKey);
+        // Enumeration-safe by design: a blocked request (already-pending code,
+        // or the per-identifier hourly cap hit) returns the EXACT same 200 +
+        // generic message as a real send — same status, same wording, no
+        // retry_after. If we instead returned a distinct 429 here, sending
+        // the same identifier twice in a row would let a caller tell real
+        // accounts (429 on the 2nd try) from fake ones (always 200) apart,
+        // which defeats the enumeration protection above this block. The
+        // trade-off: a legitimate user who resends before their real
+        // cooldown expires just sees another "sent" toast with no new code
+        // actually going out — their frontend's own optimistic countdown is
+        // what actually prevents them spamming the button while the page
+        // stays open; a page refresh or a second tab can silently no-op
+        // once. Same pattern applied in loginSendOtp() and
+        // resendRegistrationOtp() above. sendPasswordChangeOtp()
+        // (PasswordController) is exempt from this — it's behind
+        // auth:sanctum, so there's no anonymous account existence to
+        // protect, and returns a real 429 + retry_after instead.
+        if (isset($result['blocked'])) {
+            return response()->json(['message' => 'If an account exists, an OTP was sent.'], 200);
+        }
+        $otp = $result['otp'];
         if ($channel === 'phone') {
-            $sent = $this->sms->sendOtp($request->phone, (string) $otp);
+            $sent = $this->sms->sendOtp($normalizedPhone, (string) $otp, 'resetting your password');
             if (!$sent) return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
         } else {
-            Mail::raw("Your MDRRMO San Isidro Password Reset Code is: {$otp}. It will expire in 10 minutes.", function ($m) use ($request) {
-                $m->to($request->email)->subject('Password Reset Request');
-            });
+            Mail::to($request->email)->send(new OtpMail($otp, 'resetting your password'));
         }
         return response()->json(['message' => 'If an account exists, an OTP was sent.'], 200);
+    }
+
+    /**
+     * Verify-only step for the forgot-password flow — confirms the OTP is
+     * correct and marks a short-lived "verified" flag, without changing the
+     * password yet. Mirrors PasswordController::verifyPasswordChangeOtp's
+     * verify-then-flag pattern so resetPassword() below only has to trust
+     * the flag (like updatePassword() trusts pwd_change_verified_) instead
+     * of re-validating the OTP itself — this lets the frontend show the new
+     * password fields only after a real verified code, not just a
+     * client-side length check.
+     */
+    public function verifyResetOtp(Request $request)
+    {
+        $request->validate([
+            'otp_channel' => 'required|in:email,phone',
+            'email'       => 'required_if:otp_channel,email|email',
+            'phone'       => 'required_if:otp_channel,phone|string',
+            'otp'         => 'required|numeric',
+        ]);
+        $channel = $request->otp_channel;
+        $normalizedPhone = $channel === 'phone' ? PhoneNumber::normalize($request->phone) : null;
+        $identifier = $channel === 'email' ? $request->email : $normalizedPhone;
+        $cacheKey   = 'reset_otp_' . $channel . '_' . $identifier;
+        if (!$identifier || !$this->otp->verify($cacheKey, $request->otp)) {
+            return response()->json(['message' => 'Invalid or expired OTP'], 400);
+        }
+        Cache::put('reset_verified_' . $channel . '_' . $identifier, true, now()->addMinutes(5));
+        return response()->json(['message' => 'OTP verified.']);
     }
 
     public function resetPassword(Request $request)
@@ -335,21 +482,21 @@ class AuthController extends Controller
             'otp_channel'  => 'required|in:email,phone',
             'email'        => 'required_if:otp_channel,email|email',
             'phone'        => 'required_if:otp_channel,phone|string',
-            'otp'          => 'required|numeric',
             'new_password' => CommonRules::strongPassword(),
         ]);
         $channel    = $request->otp_channel;
-        $identifier = $channel === 'email' ? $request->email : $request->phone;
-        $cacheKey   = 'reset_otp_' . $channel . '_' . $identifier;
-        if ($this->otp->verify($cacheKey, $request->otp)) {
-            $user = $channel === 'email'
-                ? User::where('email', $request->email)->first()
-                : User::where('phone', $request->phone)->first();
-            if (!$user) return response()->json(['message' => 'Invalid or expired OTP'], 400);
-            $user->password = Hash::make($request->new_password);
-            $user->save();
-            return response()->json(['message' => 'Password reset successfully!']);
+        $normalizedPhone = $channel === 'phone' ? PhoneNumber::normalize($request->phone) : null;
+        $identifier = $channel === 'email' ? $request->email : $normalizedPhone;
+        if (!$identifier || !Cache::get('reset_verified_' . $channel . '_' . $identifier)) {
+            return response()->json(['message' => 'Identity verification required before resetting password.'], 403);
         }
-        return response()->json(['message' => 'Invalid or expired OTP'], 400);
+        $user = $channel === 'email'
+            ? User::where('email', $request->email)->first()
+            : User::where('phone', $normalizedPhone)->first();
+        if (!$user) return response()->json(['message' => 'Invalid or expired OTP'], 400);
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+        Cache::forget('reset_verified_' . $channel . '_' . $identifier);
+        return response()->json(['message' => 'Password reset successfully!']);
     }
 }

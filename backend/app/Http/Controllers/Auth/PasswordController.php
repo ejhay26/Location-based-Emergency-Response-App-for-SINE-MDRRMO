@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Services\SemaphoreService;
+use App\Services\PhilSmsService;
 use App\Services\OtpService;
 use App\Rules\CommonRules;
+use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Cache;
 class PasswordController extends Controller
 {
     public function __construct(
-        private SemaphoreService $semaphore,
+        private PhilSmsService $sms,
         private OtpService $otp
     ) {
     }
@@ -31,14 +32,24 @@ class PasswordController extends Controller
         $request->validate(['user_id' => 'required|integer', 'channel' => 'required|in:email,phone']);
         $user = User::where('user_id', $request->user_id)->first();
         if (!$user) return response()->json(['message' => 'User not found.'], 404);
-        $otp = $this->otp->generateAndStore('pwd_change_otp_' . $request->user_id);
+
+        $result = $this->otp->requestOtp('pwd_change_otp_' . $request->user_id);
+        if (isset($result['blocked'])) {
+            if ($result['blocked'] === 'cooldown') {
+                return response()->json([
+                    'message'     => "A code was already sent — check your inbox or wait {$result['retry_after']}s before requesting another.",
+                    'retry_after' => $result['retry_after'],
+                ], 429);
+            }
+            return response()->json(['message' => 'Too many code requests. Please try again later.'], 429);
+        }
+        $otp = $result['otp'];
+
         if ($request->channel === 'phone') {
-            $sent = $this->semaphore->sendOtp($user->phone, (string) $otp);
+            $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'changing your password');
             if (!$sent) return response()->json(['message' => 'Failed to send SMS OTP.'], 500);
         } else {
-            Mail::raw("Your MDRRMO San Isidro Password Change Code is: {$otp}. It will expire in 10 minutes.", function ($m) use ($user) {
-                $m->to($user->email)->subject('Password Change Verification');
-            });
+            Mail::to($user->email)->send(new OtpMail($otp, 'changing your password'));
         }
         return response()->json(['message' => 'Verification code sent.']);
     }
