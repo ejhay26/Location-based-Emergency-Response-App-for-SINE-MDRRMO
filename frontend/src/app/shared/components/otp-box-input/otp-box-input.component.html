@@ -1,0 +1,16 @@
+<div class="otp-box-row">
+  <input
+    *ngFor="let i of boxIndexes"
+    #boxInput
+    class="otp-box"
+    type="tel"
+    inputmode="numeric"
+    autocomplete="one-time-code"
+    maxlength="1"
+    [attr.aria-label]="'Digit ' + (i + 1) + ' of 4'"
+    [value]="digits[i]"
+    [disabled]="disabled"
+    (input)="onInput(i, $any($event.target).value)"
+    (keydown)="onKeydown(i, $event)"
+    (paste)="onPaste($event)" />
+</div>

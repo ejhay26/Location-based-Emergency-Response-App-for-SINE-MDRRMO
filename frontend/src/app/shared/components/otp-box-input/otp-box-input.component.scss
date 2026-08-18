@@ -1,0 +1,26 @@
+.otp-box-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.otp-box {
+  width: 52px;
+  height: 60px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  border-radius: 10px;
+  border: 2px solid var(--ion-color-step-200, #ccc);
+  background: var(--ion-card-background, #fff);
+  color: var(--ion-text-color);
+
+  &:focus {
+    outline: none;
+    border-color: var(--ion-color-danger);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
