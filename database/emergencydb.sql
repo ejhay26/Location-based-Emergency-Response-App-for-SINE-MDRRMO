@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 08, 2026 at 09:59 PM
+-- Generation Time: Aug 17, 2026 at 07:28 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -158,7 +158,7 @@ INSERT INTO `device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`)
 (20, 1, 'drCxVuXfTUy-okW8L7P7sF:APA91bHYlbNW5PpYO_jxBuolkBxU19_8X_lhkH6M6FVMVy0XqT5FhaThqEZ3p9ZPRSQAE-KJn3ASWTPuzuZLaR_PLSrxQo2EtrfGFn4RpqeUXjnMwoSufvs', 'android', '2026-08-02 17:35:50'),
 (21, 3, 'dvW_kOHbR7KNykLVnQd55X:APA91bHoPbkdk2XX-9unAn3zku8f4aKkCEb4FuZ5xW5HnL1bfZ_sVjOGS9kd42XLu3Yx0IN2bfVNXnUH9aZPeT_BJ_D56fVOXdXlnJ49pF9lOdNIOBY_MB8', 'android', '2026-08-05 00:51:28'),
 (26, 1, 'cYQcX-GFTHCTv2pK-M8C8x:APA91bEtMN-q6bnkusba9ad9--kVft7qBoKBB_GrskD5rJ0Fu4cUxsPdi7GwbFZ_dAo44na8lcdYSDza8ThuhTIV6acWhaL_qCBUE4cuT3k839I8W-Jgijo', 'android', '2026-08-07 01:51:43'),
-(27, 1, 'cRVoECQDTd-FlFmKUpW3JJ:APA91bHmFfXLRmdVCXGD2kSuh1epegTcwfTv0sPuljFW3ecIzHCMsN4pDirdKbxn2I1uiAPH3mQHGcNEOJuaaZ7s9MTn4xWIcFT0dXFojUje7ppmv80HlEc', 'android', '2026-08-08 05:33:19');
+(27, 1, 'cRVoECQDTd-FlFmKUpW3JJ:APA91bHmFfXLRmdVCXGD2kSuh1epegTcwfTv0sPuljFW3ecIzHCMsN4pDirdKbxn2I1uiAPH3mQHGcNEOJuaaZ7s9MTn4xWIcFT0dXFojUje7ppmv80HlEc', 'android', '2026-08-11 21:32:40');
 
 -- --------------------------------------------------------
 
@@ -198,6 +198,7 @@ CREATE TABLE `emergency_requests` (
   `description` text DEFAULT NULL,
   `latitude` decimal(10,8) DEFAULT NULL,
   `longitude` decimal(11,8) DEFAULT NULL,
+  `barangay_id` int(11) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `request_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `created_at` timestamp NULL DEFAULT current_timestamp(),
@@ -210,15 +211,16 @@ CREATE TABLE `emergency_requests` (
 -- Dumping data for table `emergency_requests`
 --
 
-INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `proof_files`, `description`, `latitude`, `longitude`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`, `is_false_alarm`) VALUES
-(3, 1, 3, NULL, NULL, 15.30542100, 120.91368200, 'Cancelled', '2026-05-08 02:46:44', '2026-05-08 02:46:44', '2026-05-08 07:18:13', NULL, 0),
-(4, 3, 4, '[\"storage/emergencies/sos_1778388008_3.png\"]', NULL, 15.27727200, 120.90597900, 'Resolved', '2026-05-09 20:40:08', '2026-05-09 20:40:08', '2026-06-14 02:40:38', NULL, 0),
-(5, 1, 1, '[\"storage/emergencies/sos_1778388059_1.png\"]', NULL, 15.29416200, 120.90593600, 'Cancelled', '2026-05-09 20:40:59', '2026-05-09 20:40:59', '2026-06-14 02:40:38', NULL, 0),
-(6, 1, 2, '[\"storage/emergencies/sos_20260611_094105_1.mp4\"]', NULL, 15.22605500, 120.90042100, 'Cancelled', '2026-06-11 01:41:05', '2026-06-11 01:41:05', '2026-06-14 02:40:38', NULL, 0),
-(7, 1, 2, '[\"storage/emergencies/sos_20260613_093824_1.png\"]', NULL, 15.30950500, 120.90758600, 'Cancelled', '2026-06-13 01:38:24', '2026-06-13 01:38:24', '2026-06-14 02:40:38', NULL, 0),
-(8, 3, 3, '[\"storage/emergencies/sos_20260613_094422_3.png\"]', NULL, 15.30951900, 120.90291000, 'Resolved', '2026-06-13 01:44:22', '2026-06-13 01:44:22', '2026-06-14 02:40:38', NULL, 0),
-(9, 1, 2, '[\"storage\\/emergencies\\/sos_20260629_105213_6a424e5d615d6_1.png\",\"storage\\/emergencies\\/sos_20260629_105213_6a424e5d6675b_1.mp4\"]', NULL, 15.26077600, 120.91049400, 'Cancelled', '2026-06-29 02:52:13', '2026-06-29 02:52:13', '2026-07-20 21:40:11', NULL, 0),
-(10, 1, 1, '[\"storage\\/reports\\/sos\\/1\\/20260721_054159_6a5f06a722073.png\",\"storage\\/reports\\/sos\\/1\\/20260721_054159_6a5f06a72471f.mp4\"]', '', 15.30971500, 120.90776500, 'Cancelled', '2026-07-20 21:41:59', '2026-07-20 21:41:59', '2026-07-20 21:42:09', NULL, 0);
+INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `proof_files`, `description`, `latitude`, `longitude`, `barangay_id`, `status`, `request_time`, `created_at`, `updated_at`, `deleted_at`, `is_false_alarm`) VALUES
+(3, 1, 3, NULL, NULL, 15.30542100, 120.91368200, 3, 'Cancelled', '2026-05-08 02:46:44', '2026-05-08 02:46:44', '2026-08-17 05:09:39', NULL, 0),
+(4, 3, 4, '[\"storage/emergencies/sos_1778388008_3.png\"]', NULL, 15.27727200, 120.90597900, 9, 'Resolved', '2026-05-09 20:40:08', '2026-05-09 20:40:08', '2026-08-17 05:09:39', NULL, 0),
+(5, 1, 1, '[\"storage/emergencies/sos_1778388059_1.png\"]', NULL, 15.29416200, 120.90593600, 9, 'Cancelled', '2026-05-09 20:40:59', '2026-05-09 20:40:59', '2026-08-17 05:09:39', NULL, 0),
+(6, 1, 2, '[\"storage/emergencies/sos_20260611_094105_1.mp4\"]', NULL, 15.22605500, 120.90042100, 4, 'Cancelled', '2026-06-11 01:41:05', '2026-06-11 01:41:05', '2026-08-17 05:09:39', NULL, 0),
+(7, 1, 2, '[\"storage/emergencies/sos_20260613_093824_1.png\"]', NULL, 15.30950500, 120.90758600, 5, 'Cancelled', '2026-06-13 01:38:24', '2026-06-13 01:38:24', '2026-08-17 05:09:39', NULL, 0),
+(8, 3, 3, '[\"storage/emergencies/sos_20260613_094422_3.png\"]', NULL, 15.30951900, 120.90291000, 5, 'Resolved', '2026-06-13 01:44:22', '2026-06-13 01:44:22', '2026-08-17 05:09:39', NULL, 0),
+(9, 1, 2, '[\"storage\\/emergencies\\/sos_20260629_105213_6a424e5d615d6_1.png\",\"storage\\/emergencies\\/sos_20260629_105213_6a424e5d6675b_1.mp4\"]', NULL, 15.26077600, 120.91049400, 9, 'Cancelled', '2026-06-29 02:52:13', '2026-06-29 02:52:13', '2026-08-17 05:09:39', NULL, 0),
+(10, 1, 1, '[\"storage\\/reports\\/sos\\/1\\/20260721_054159_6a5f06a722073.png\",\"storage\\/reports\\/sos\\/1\\/20260721_054159_6a5f06a72471f.mp4\"]', '', 15.30971500, 120.90776500, 5, 'Cancelled', '2026-07-20 21:41:59', '2026-07-20 21:41:59', '2026-08-17 05:09:39', NULL, 0),
+(11, 1, 1, NULL, '', 15.26093000, 120.91037100, 9, 'Pending', '2026-08-11 21:32:45', '2026-08-11 21:32:45', '2026-08-17 05:09:39', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -264,6 +266,7 @@ CREATE TABLE `hazards` (
   `proof_files` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`proof_files`)),
   `latitude` decimal(10,8) DEFAULT NULL,
   `longitude` decimal(11,8) DEFAULT NULL,
+  `barangay_id` int(11) DEFAULT NULL,
   `status` varchar(50) DEFAULT 'Active',
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -273,9 +276,9 @@ CREATE TABLE `hazards` (
 -- Dumping data for table `hazards`
 --
 
-INSERT INTO `hazards` (`hazard_id`, `user_id`, `description`, `hazard_type`, `proof_files`, `latitude`, `longitude`, `status`, `created_at`, `updated_at`) VALUES
-(1, 3, 'Broken Road', NULL, '[\"storage/emergencies/hazard_1778387633_3.png\"]', 15.27789300, 120.90927300, 'Resolved', '2026-05-09 20:33:53', '2026-06-14 02:40:38'),
-(2, 1, 'baha', 'Flooded Street', '[\"storage/emergencies/hazard_20260613_093939_1.mp4\"]', 15.29582200, 120.88609000, 'Resolved', '2026-06-13 01:39:39', '2026-06-14 02:40:38');
+INSERT INTO `hazards` (`hazard_id`, `user_id`, `description`, `hazard_type`, `proof_files`, `latitude`, `longitude`, `barangay_id`, `status`, `created_at`, `updated_at`) VALUES
+(1, 3, 'Broken Road', NULL, '[\"storage/emergencies/hazard_1778387633_3.png\"]', 15.27789300, 120.90927300, 9, 'Resolved', '2026-05-09 20:33:53', '2026-08-17 05:09:39'),
+(2, 1, 'baha', 'Flooded Street', '[\"storage/emergencies/hazard_20260613_093939_1.mp4\"]', 15.29582200, 120.88609000, 8, 'Resolved', '2026-06-13 01:39:39', '2026-08-17 05:09:39');
 
 -- --------------------------------------------------------
 
@@ -392,9 +395,8 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
-(72, 'App\\Models\\User', 3, 'app-token', '1e2de155149a5540b82a2fdd9670cc157981bec2e26ca3a011530ae9c62bc654', '[\"citizen\"]', '2026-08-08 11:59:47', NULL, '2026-08-08 04:28:10', '2026-08-08 11:59:47'),
-(73, 'App\\Models\\User', 4, 'app-token', 'bfdcce50eb5de1710be6eb7b74e0129e7ac51fe0936f723b27aa436c8dfaca86', '[\"admin\",\"dispatcher\",\"citizen\"]', NULL, NULL, '2026-08-08 05:32:30', '2026-08-08 05:32:30'),
-(74, 'App\\Models\\User', 1, 'app-token', '5215b85e73c47933a60549dfa08c08d16581fe62181d167c38a76c453171e8d4', '[\"citizen\"]', '2026-08-08 05:37:06', NULL, '2026-08-08 05:33:18', '2026-08-08 05:37:06');
+(81, 'App\\Models\\User', 3, 'app-token', 'e601db389cd14ddcaa4859c52d021061baa60f226fbd20d3c4e6f4a2f3dcc335', '[\"citizen\"]', '2026-08-14 06:54:44', NULL, '2026-08-14 05:42:38', '2026-08-14 06:54:44'),
+(92, 'App\\Models\\User', 1, 'app-token', '82897ed0c801722d5f5fdfe5c590e46bea9434b2c24146c06033fed907e5fbc7', '[\"citizen\"]', '2026-08-16 06:22:32', NULL, '2026-08-15 18:36:32', '2026-08-16 06:22:32');
 
 -- --------------------------------------------------------
 
@@ -459,6 +461,7 @@ CREATE TABLE `users` (
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` timestamp NULL DEFAULT NULL,
   `valid_id_proof` varchar(255) DEFAULT NULL,
+  `valid_id_proof_back` varchar(255) DEFAULT NULL,
   `valid_id_type` varchar(50) DEFAULT NULL,
   `selfie_with_id_proof` varchar(255) DEFAULT NULL,
   `blood_type` varchar(10) DEFAULT NULL,
@@ -474,13 +477,13 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `phone`, `birthdate`, `profile_picture`, `email`, `password`, `role`, `account_status`, `setup_completed`, `barangay_id`, `created_at`, `updated_at`, `deleted_at`, `valid_id_proof`, `valid_id_type`, `selfie_with_id_proof`, `blood_type`, `allergies`, `medical_conditions`, `pwd_status`, `ban_reason`, `banned_at`, `false_alarm_strikes`) VALUES
-(1, 'Emmanuel John', 'Perez', 'user1', '09123456789', NULL, 'storage/profiles/profile_1784451005_1.png', 'ejperez623@gmail.com', '$2y$12$tf9EDu5GrXqwEi0Mu8KZau/9MnLwEYanOtozFMKQ6Wfs7OPK29U0a', 'citizen', 'active', 1, 9, '2026-05-07 05:45:17', '2026-08-07 17:11:41', NULL, NULL, NULL, NULL, 'AB+', '', '', '', NULL, NULL, 0),
-(3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 1, 1, '2026-05-07 05:45:17', '2026-08-08 12:39:35', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 0, 1, '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', 0, 3, '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(9, 'dispatcher', '2', 'dispatcher2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis2@mail.com', '$2y$12$WuAbG0j2AFQjlMC/RttG4OF5qv2k372lv6qeIOfjJue5FnBJ8Eml.', 'dispatcher', 'active', 0, 4, '2026-05-08 09:28:54', '2026-05-08 09:28:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(10, 'awd', 'awd', 'awdawd', '131314', '2005-04-13', 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejcp2005@gmail.com', '$2y$12$C5EMGU7mvVIrkGD9VIn.PuKexBvLz4taR/.KJMRLn2qSw4dBlNFpW', 'citizen', 'active', 0, 5, '2026-05-10 12:07:56', '2026-05-10 12:07:56', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0);
+INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `phone`, `birthdate`, `profile_picture`, `email`, `password`, `role`, `account_status`, `setup_completed`, `barangay_id`, `created_at`, `updated_at`, `deleted_at`, `valid_id_proof`, `valid_id_proof_back`, `valid_id_type`, `selfie_with_id_proof`, `blood_type`, `allergies`, `medical_conditions`, `pwd_status`, `ban_reason`, `banned_at`, `false_alarm_strikes`) VALUES
+(1, 'Emmanuel John', 'Perez', 'user1', '639940405953', NULL, 'storage/profiles/profile_1784451005_1.png', 'ejperez623@gmail.com', '$2y$12$tf9EDu5GrXqwEi0Mu8KZau/9MnLwEYanOtozFMKQ6Wfs7OPK29U0a', 'citizen', 'active', 1, 9, '2026-05-07 05:45:17', '2026-08-15 11:42:54', NULL, NULL, NULL, NULL, NULL, 'AB+', '', '', '', NULL, NULL, 0),
+(3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 1, 1, '2026-05-07 05:45:17', '2026-08-08 12:39:35', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 0, 1, '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', 0, 3, '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(9, 'dispatcher', '2', 'dispatcher2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis2@mail.com', '$2y$12$WuAbG0j2AFQjlMC/RttG4OF5qv2k372lv6qeIOfjJue5FnBJ8Eml.', 'dispatcher', 'active', 0, 4, '2026-05-08 09:28:54', '2026-05-08 09:28:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(10, 'awd', 'awd', 'awdawd', '131314', '2005-04-13', 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejcp2005@gmail.com', '$2y$12$C5EMGU7mvVIrkGD9VIn.PuKexBvLz4taR/.KJMRLn2qSw4dBlNFpW', 'citizen', 'active', 0, 5, '2026-05-10 12:07:56', '2026-05-10 12:07:56', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -502,12 +505,15 @@ CREATE TABLE `user_settings` (
 --
 
 INSERT INTO `user_settings` (`id`, `user_id`, `key`, `value`, `updated_at`, `save_media_to_device`) VALUES
-(1, 1, 'dark_mode', 'false', '2026-08-07 01:48:51', 0),
-(2, 1, 'location_auto_fetch', 'true', '2026-08-08 05:33:51', 0),
+(1, 1, 'dark_mode', 'false', '2026-08-16 00:18:04', 0),
+(2, 1, 'location_auto_fetch', 'true', '2026-08-15 20:00:06', 0),
 (3, 1, 'map_default_style', 'street', '2026-07-20 01:02:21', 0),
-(4, 1, 'reduce_animations', 'false', '2026-08-07 01:48:43', 0),
-(5, 4, 'dark_mode', 'true', '2026-08-02 17:44:27', 0),
-(6, 1, 'save_media_to_device', 'false', '2026-08-01 23:07:13', 0);
+(4, 1, 'reduce_animations', 'false', '2026-08-15 20:04:55', 0),
+(5, 4, 'dark_mode', 'true', '2026-08-15 03:38:52', 0),
+(6, 1, 'save_media_to_device', 'false', '2026-08-01 23:07:13', 0),
+(7, 3, 'dark_mode', 'false', '2026-08-10 23:24:09', 0),
+(8, 3, 'map_default_style', 'street', '2026-08-10 02:53:30', 0),
+(9, 3, 'reduce_animations', 'false', '2026-08-10 02:54:57', 0);
 
 -- --------------------------------------------------------
 
@@ -591,7 +597,8 @@ ALTER TABLE `dispatch`
 ALTER TABLE `emergency_requests`
   ADD PRIMARY KEY (`request_id`),
   ADD KEY `user_id` (`user_id`),
-  ADD KEY `incident_type_id` (`incident_type_id`);
+  ADD KEY `incident_type_id` (`incident_type_id`),
+  ADD KEY `emergency_requests_barangay_id_idx` (`barangay_id`);
 
 --
 -- Indexes for table `failed_jobs`
@@ -612,7 +619,8 @@ ALTER TABLE `feedback`
 --
 ALTER TABLE `hazards`
   ADD PRIMARY KEY (`hazard_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `hazards_barangay_id_idx` (`barangay_id`);
 
 --
 -- Indexes for table `incident_types`
@@ -710,7 +718,7 @@ ALTER TABLE `broadcasts`
 -- AUTO_INCREMENT for table `device_tokens`
 --
 ALTER TABLE `device_tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `dispatch`
@@ -722,7 +730,7 @@ ALTER TABLE `dispatch`
 -- AUTO_INCREMENT for table `emergency_requests`
 --
 ALTER TABLE `emergency_requests`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `failed_jobs`
@@ -764,7 +772,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
 
 --
 -- AUTO_INCREMENT for table `responders`
@@ -782,7 +790,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_settings`
 --
 ALTER TABLE `user_settings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
@@ -811,6 +819,7 @@ ALTER TABLE `device_tokens`
 -- Constraints for table `emergency_requests`
 --
 ALTER TABLE `emergency_requests`
+  ADD CONSTRAINT `emergency_requests_barangay_id_fk` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL,
   ADD CONSTRAINT `emergency_requests_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   ADD CONSTRAINT `emergency_requests_ibfk_2` FOREIGN KEY (`incident_type_id`) REFERENCES `incident_types` (`incident_type_id`);
 
@@ -824,6 +833,7 @@ ALTER TABLE `feedback`
 -- Constraints for table `hazards`
 --
 ALTER TABLE `hazards`
+  ADD CONSTRAINT `hazards_barangay_id_fk` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL,
   ADD CONSTRAINT `hazards_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 
 --
