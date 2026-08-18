@@ -68,6 +68,18 @@ export class UserSettingsService {
   getBool(key: SettingKey): boolean          { return this.get(key) === 'true'; }
   setBool(key: SettingKey, val: boolean): void { this.set(key, val ? 'true' : 'false'); }
 
+  /**
+   * Stage 5 — the single gate every Motion animation call in the app must
+   * check before animating (per the `reduce_animations` setting). Directives
+   * (`RevealAnimateDirective`, `PressFeedbackDirective`) and any component
+   * that calls Motion's `animate()` directly (TabsPage, ReportPage) all read
+   * this instead of re-deriving the same `!getBool('reduce_animations')`
+   * check independently.
+   */
+  shouldAnimate(): boolean {
+    return !this.getBool('reduce_animations');
+  }
+
   /** Apply all visual settings to the DOM. Call on app start and after login. */
   applyToDom(): void {
     // On app start the cache may still be at DEFAULTS because loadFromServer
