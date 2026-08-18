@@ -21,8 +21,8 @@ import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capaci
   templateUrl: './register-id-capture.component.html',
 })
 export class RegisterIdCaptureComponent {
-  @Input() variant: 'id' | 'selfie' = 'id';
-  @Input() fieldName: 'valid_id_image' | 'selfie_with_id_image' = 'valid_id_image';
+  @Input() variant: 'id' | 'id-back' | 'selfie' = 'id';
+  @Input() fieldName: 'valid_id_image' | 'valid_id_image_back' | 'selfie_with_id_image' = 'valid_id_image';
   @Input() userData: any;
 
   @Output() toast = new EventEmitter<string>();
@@ -32,25 +32,37 @@ export class RegisterIdCaptureComponent {
   croppedBase64 = '';
 
   get config() {
-    return this.variant === 'selfie'
-      ? {
-          title: 'Selfie with Valid ID',
-          description: "Take a selfie holding the same ID so we can confirm it's you.",
-          buttonLabel: 'Capture Selfie',
-          buttonIcon: 'fa-solid fa-camera-retro',
-          modalTitle: 'Crop Your Selfie',
-          fileName: 'selfie_capture.jpg',
-          direction: CameraDirection.Front,
-        }
-      : {
-          title: 'Valid ID Verification',
-          description: 'A clear photo of your ID is required for account verification.',
-          buttonLabel: 'Capture ID Photo',
-          buttonIcon: 'fa-solid fa-id-card',
-          modalTitle: 'Crop Your ID Photo',
-          fileName: 'id_capture.jpg',
-          direction: undefined as CameraDirection | undefined,
-        };
+    if (this.variant === 'selfie') {
+      return {
+        title: 'Selfie with Valid ID',
+        description: "Take a selfie holding the same ID so we can confirm it's you.",
+        buttonLabel: 'Capture Selfie',
+        buttonIcon: 'fa-solid fa-camera-retro',
+        modalTitle: 'Crop Your Selfie',
+        fileName: 'selfie_capture.jpg',
+        direction: CameraDirection.Front,
+      };
+    }
+    if (this.variant === 'id-back') {
+      return {
+        title: 'Valid ID — Back',
+        description: 'Now the back of the same ID.',
+        buttonLabel: 'Capture Back of ID',
+        buttonIcon: 'fa-solid fa-id-card',
+        modalTitle: 'Crop the Back of Your ID',
+        fileName: 'id_back_capture.jpg',
+        direction: undefined as CameraDirection | undefined,
+      };
+    }
+    return {
+      title: 'Valid ID — Front',
+      description: 'A clear photo of the front of your ID is required for account verification.',
+      buttonLabel: 'Capture ID Photo',
+      buttonIcon: 'fa-solid fa-id-card',
+      modalTitle: 'Crop Your ID Photo',
+      fileName: 'id_capture.jpg',
+      direction: undefined as CameraDirection | undefined,
+    };
   }
 
   get preview(): string { return this.userData?.[this.fieldName] || ''; }
