@@ -1,15 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonButton } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
+import { UserSettingsService } from '../../../../../core/services/user-settings';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
+import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
 import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
+import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/flip-reflow.util';
 
 /**
  * CitizensPanel — Accounts › Citizens. Search/filter over a card grid, plus
@@ -22,7 +25,7 @@ import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../..
   standalone: true,
   imports: [
     CommonModule, FormsModule, IonButton, ProxyImageDirective, UtcDatePipe,
-    DateRangeFilterComponent, FilterSummaryBarComponent,
+    DateRangeFilterComponent, FilterSummaryBarComponent, ListEnterDirective,
   ],
   templateUrl: './citizens.panel.html',
 })
@@ -36,7 +39,10 @@ export class CitizensPanel implements OnInit {
 
   readonly barangays = BARANGAYS;
 
-  constructor(public api: ApiService, public ui: AdminUiService) {}
+  /** FLIP filter-reflow (see applyFilterChange) needs a live handle on the grid's DOM to measure card positions before/after a filter change. */
+  @ViewChild('citizensGrid') citizensGrid?: ElementRef<HTMLElement>;
+
+  constructor(public api: ApiService, public ui: AdminUiService, private settings: UserSettingsService) {}
 
   ngOnInit() {
     this.loadCitizens();
@@ -66,11 +72,57 @@ export class CitizensPanel implements OnInit {
     return chips;
   }
 
+  trackByUserId(_index: number, c: any): number {
+    return c.user_id;
+  }
+
+  /**
+   * Filter-reflow (FLIP) — Citizens renders as a CSS Grid, not a
+   * single-column list, so RevealAnimateDirective's height-collapse trick
+   * (used by Log Archive/Verifications) doesn't reflow correctly here: a
+   * zero-height grid item just leaves an empty cell instead of letting
+   * siblings slide up. Filtered-out cards are removed outright (ordinary
+   * *ngIf-less *ngFor diffing), and the shared FLIP helpers animate every
+   * SURVIVING card sliding from its old grid position to its new one. See
+   * shared/utils/flip-reflow.util.ts for the full explanation.
+   *
+   * Every filter-mutating call site (search input, status/barangay
+   * dropdowns, date filter, clear-all) routes through this so none of them
+   * skip the reflow.
+   */
+  private applyFilterChange(mutate: () => void): void {
+    if (!this.settings.shouldAnimate()) { mutate(); return; }
+    const container = this.citizensGrid?.nativeElement;
+    const before = captureFlipRects(container);
+    mutate();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => playFlipReorder(container, before));
+    });
+  }
+
+  onSearchChange(value: string): void {
+    this.applyFilterChange(() => { this.citizenSearch = value; });
+  }
+
+  onStatusFilterChange(value: 'all' | 'active' | 'suspended'): void {
+    this.applyFilterChange(() => { this.citizenFilterStatus = value; });
+  }
+
+  onBarangayFilterChange(value: number | 'all'): void {
+    this.applyFilterChange(() => { this.citizenBarangayFilter = value; });
+  }
+
+  onDateFilterChange(value: DateFilterValue | null): void {
+    this.applyFilterChange(() => { this.citizenDateFilter = value; });
+  }
+
   clearAllFilters(): void {
-    this.citizenSearch = '';
-    this.citizenFilterStatus = 'all';
-    this.citizenBarangayFilter = 'all';
-    this.citizenDateFilter = null;
+    this.applyFilterChange(() => {
+      this.citizenSearch = '';
+      this.citizenFilterStatus = 'all';
+      this.citizenBarangayFilter = 'all';
+      this.citizenDateFilter = null;
+    });
   }
 
   loadCitizens() {

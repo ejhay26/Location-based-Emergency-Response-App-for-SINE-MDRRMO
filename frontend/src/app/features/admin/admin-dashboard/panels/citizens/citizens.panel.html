@@ -7,19 +7,19 @@
     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
       <div style="position: relative;">
         <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: gray; font-size: 13px; pointer-events: none;"></i>
-        <input id="citizenSearch" name="citizenSearch" [(ngModel)]="citizenSearch" placeholder="Search name, email…" style="padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); min-width: 200px;" />
+        <input id="citizenSearch" name="citizenSearch" [ngModel]="citizenSearch" (ngModelChange)="onSearchChange($event)" placeholder="Search name, email…" style="padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); min-width: 200px;" />
       </div>
-      <select id="citizenFilterStatus" name="citizenFilterStatus" [(ngModel)]="citizenFilterStatus" style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color);">
+      <select id="citizenFilterStatus" name="citizenFilterStatus" [ngModel]="citizenFilterStatus" (ngModelChange)="onStatusFilterChange($event)" style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color);">
         <option value="all">All</option>
         <option value="active">Active</option>
         <option value="suspended">Suspended</option>
       </select>
-      <select id="citizenBarangayFilter" name="citizenBarangayFilter" [ngModel]="citizenBarangayFilter" (ngModelChange)="citizenBarangayFilter = $event === 'all' ? 'all' : +$event"
+      <select id="citizenBarangayFilter" name="citizenBarangayFilter" [ngModel]="citizenBarangayFilter" (ngModelChange)="onBarangayFilterChange($event === 'all' ? 'all' : +$event)"
         style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color);">
         <option value="all">All Barangays</option>
         <option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</option>
       </select>
-      <app-date-range-filter [value]="citizenDateFilter" (valueChange)="citizenDateFilter = $event"></app-date-range-filter>
+      <app-date-range-filter [value]="citizenDateFilter" (valueChange)="onDateFilterChange($event)"></app-date-range-filter>
     </div>
   </div>
 
@@ -35,8 +35,8 @@
     <p>No citizens match the current filters.</p>
   </div>
 
-  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-    <div *ngFor="let c of filteredCitizens" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: 0 1px 4px rgba(0,0,0,0.06);" [style.border]="c.account_status === 'banned' ? '2px solid #eb445a' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.07))'">
+  <div #citizensGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+    <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="c.user_id" [appAnnouncementEnter]="i" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: 0 1px 4px rgba(0,0,0,0.06);" [style.border]="c.account_status === 'banned' ? '2px solid #eb445a' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.07))'">
       <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
         <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--ion-color-step-150, #ddd); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
           <i class="fa-solid fa-circle-user" style="font-size: 40px; color: var(--ion-color-step-400, #aaa);"></i>
