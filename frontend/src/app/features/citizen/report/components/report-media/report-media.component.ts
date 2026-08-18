@@ -99,6 +99,26 @@ export class ReportMediaComponent {
 
   cancelCrop() { this.showCropper = false; this.cropperFile = null; this.croppedBase64 = ''; this.tour.modalOpen.set(false); }
 
+  /**
+   * Skip cropping — attach the original captured photo as-is. Used when the
+   * reporter has no time to fine-tune a crop (dangerous/urgent situation).
+   * Reads cropperFile directly rather than relying on croppedBase64, since
+   * the cropper may not have finished processing yet when Skip is tapped.
+   */
+  skipCrop() {
+    const file = this.cropperFile;
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      this.mediaFiles.push({ preview: dataUrl, type: 'photo' });
+      this.emitMediaFiles();
+      this.showCropper = false; this.cropperFile = null; this.croppedBase64 = ''; this.tour.modalOpen.set(false);
+    };
+    reader.onerror = () => { this.showToast('Could not attach photo. Please try again.', 'danger'); };
+    reader.readAsDataURL(file);
+  }
+
   async removeMedia(index: number) {
     const a = await this.alertCtrl.create({
       header: 'Remove File', message: 'Remove this file?',
