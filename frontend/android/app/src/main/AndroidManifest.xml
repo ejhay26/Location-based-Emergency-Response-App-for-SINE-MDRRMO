@@ -21,7 +21,47 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Stage 3a: custom scheme for widget/external-launch deep links.
+                 Must stay in sync with DEEP_LINK_SCHEME in
+                 frontend/src/app/core/services/deep-link.ts and
+                 ios/App/App/Info.plist's CFBundleURLTypes. singleTask above
+                 means Capacitor's BridgeActivity forwards this straight to
+                 the appUrlOpen listener via onNewIntent(). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="sinemdrrmo" />
+            </intent-filter>
         </activity>
+
+        <!-- Stage 3a: home screen widget — single "Emergency SOS" button
+             that deep-links into the Report page via sinemdrrmo://report. -->
+        <receiver
+            android:name=".ReportWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/report_widget_info" />
+        </receiver>
+
+        <!-- Stage 3a: home screen widget — single "Report Hazard" button
+             that deep-links into the Report page via
+             sinemdrrmo://report?type=hazard. -->
+        <receiver
+            android:name=".ReportHazardWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hazard_widget_info" />
+        </receiver>
 
         <provider
             android:name="androidx.core.content.FileProvider"

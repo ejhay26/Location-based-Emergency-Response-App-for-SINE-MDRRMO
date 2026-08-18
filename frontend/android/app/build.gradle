@@ -1,6 +1,7 @@
 plugins {
   id 'com.android.application'
   id 'com.google.gms.google-services'
+  id 'org.jetbrains.kotlin.android'
 }
 
 apply plugin: 'com.android.application'
@@ -27,6 +28,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    // Matches capacitor.build.gradle's sourceCompatibility/targetCompatibility
+    // (JavaVersion.VERSION_21) so the Kotlin (ReportWidgetProvider) and Java
+    // sources compile against the same JVM bytecode target.
+    kotlinOptions {
+        jvmTarget = "21"
+    }
 }
 
 repositories {
@@ -47,6 +54,8 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
     implementation platform('com.google.firebase:firebase-bom:34.15.0')
     implementation 'com.google.firebase:firebase-analytics'
+    // ReportWidgetProvider (Stage 3a) is written in Kotlin.
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.0'
     // Needed to extend com.capacitorjs.plugins.pushnotifications.MessagingService
     // (MdrrmoMessagingService) — the plugin declares this as `implementation`
     // internally, so it isn't exposed transitively to this module.
