@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Emergency;
 
 use App\Http\Controllers\Controller;
+use App\Services\BarangayResolver;
 use App\Traits\MediaHandling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,10 @@ use App\Models\Hazard;
 class HazardController extends Controller
 {
     use MediaHandling;
+
+    public function __construct(private readonly BarangayResolver $barangayResolver)
+    {
+    }
 
     public function submitHazard(Request $request)
     {
@@ -27,6 +32,12 @@ class HazardController extends Controller
 
         $proofFilesJson = $this->processProofFiles($request->proof_files, $request->user_id, 'hazard');
 
+        // Server-side, authoritative barangay resolution — see
+        // BarangayResolver's class doc for why this is never trusted from
+        // the client. Null (unresolved) is a valid, expected outcome and
+        // must never block submission.
+        $barangayId = $this->barangayResolver->resolve((float) $request->latitude, (float) $request->longitude);
+
         Hazard::create([
             'user_id'     => $request->user_id,
             'description' => $request->description,
@@ -34,6 +45,7 @@ class HazardController extends Controller
             'proof_files' => $proofFilesJson,
             'latitude'    => $request->latitude,
             'longitude'   => $request->longitude,
+            'barangay_id' => $barangayId,
             'status'      => 'Active',
         ]);
 
@@ -51,8 +63,9 @@ class HazardController extends Controller
     {
         $hazards = DB::table('hazards')
             ->join('users', 'hazards.user_id', '=', 'users.user_id')
+            ->leftJoin('barangays', 'hazards.barangay_id', '=', 'barangays.barangay_id')
             ->where('hazards.status', 'Active')
-            ->select('hazards.*', 'users.first_name', 'users.last_name', 'users.profile_picture')
+            ->select('hazards.*', 'users.first_name', 'users.last_name', 'users.profile_picture', 'barangays.barangay_name')
             ->get()
             ->map(fn($r) => $this->decodeProofFiles($r));
         return response()->json($hazards);
