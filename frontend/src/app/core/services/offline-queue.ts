@@ -68,6 +68,10 @@ const MAX_ATTEMPTS = 8;
 export class OfflineQueueService {
   /** Reactive count of items still waiting to sync — bind to a UI badge. */
   readonly pendingCount = signal<number>(0);
+  /** Reactive count of queued items specifically of kind 'sos' — Stage 5's Floating SOS Card and History page need this distinct from the hazard-inclusive total. */
+  readonly pendingSosCount = signal<number>(0);
+  /** Reactive snapshot of the full queue, oldest-first — lets consumers render queued items (e.g. a "Queued — offline" row) without a separate getAll() round trip. Treat as read-only; mutate via enqueue/flush only. */
+  readonly items = signal<QueuedReport[]>([]);
 
   private dbPromise: Promise<IDBDatabase> | null = null;
   private flushing = false;
@@ -143,9 +147,12 @@ export class OfflineQueueService {
     });
   }
 
+  /** Single source of truth for every reactive signal this service exposes — one IndexedDB read, three derived views, so callers never diverge from what's actually persisted. */
   private async refreshCount(): Promise<void> {
-    const all = await this.getAll();
+    const all = (await this.getAll()).sort((a, b) => a.createdAt - b.createdAt);
     this.pendingCount.set(all.length);
+    this.pendingSosCount.set(all.filter(i => i.kind === 'sos').length);
+    this.items.set(all);
   }
 
   /**
