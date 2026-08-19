@@ -1,0 +1,27 @@
+<ng-container *ngIf="visible">
+  <div class="sos-pill-stack">
+    <div *ngFor="let pill of pills; trackBy: trackByKey"
+         appPressFeedback
+         (click)="onTap()"
+         class="sos-pill"
+         [class.sos-pill--offline]="pill.state === 'offline'"
+         [class.sos-pill--dispatched]="pill.state === 'dispatched'"
+         role="button"
+         tabindex="0">
+
+      <div class="sos-pill__icon-wrap">
+        <i [class]="pill.icon"></i>
+      </div>
+
+      <div class="sos-pill__body">
+        <p class="sos-pill__label">{{ pill.label }}</p>
+        <p class="sos-pill__sublabel">{{ pill.sublabel }}</p>
+      </div>
+
+      <div class="sos-pill__right">
+        <span *ngIf="pill.timeAgo" class="sos-pill__time">{{ pill.timeAgo }}</span>
+        <i class="fa-solid fa-chevron-right sos-pill__chevron"></i>
+      </div>
+    </div>
+  </div>
+</ng-container>

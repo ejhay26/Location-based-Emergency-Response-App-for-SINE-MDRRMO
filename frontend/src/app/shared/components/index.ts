@@ -3,3 +3,4 @@ export { AppDialogsComponent } from './app-dialogs/app-dialogs.component';
 export { VideoTrimmerComponent } from './video-trimmer/video-trimmer.component';
 export { DateRangeFilterComponent } from './date-range-filter/date-range-filter.component';
 export { FilterSummaryBarComponent } from './filter-summary-bar/filter-summary-bar.component';
+export { FloatingSosCardComponent, FloatingSosStatus } from './floating-sos-card/floating-sos-card.component';
