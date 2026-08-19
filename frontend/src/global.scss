@@ -562,22 +562,19 @@ ion-content::part(scroll)::-webkit-scrollbar-button { display: none; width: 0; h
    TOUR HIGHLIGHT
    Applied to the element currently being
    spotlighted by the tutorial overlay.
-   Brings it above the dim panels (z 98000)
-   and adds a pulsing ring so the user knows
-   exactly what to look at / tap.
+   Brings it above the dim layer (z 98000) and
+   keeps it tappable through the clip-path hole.
+   The visible spotlight RING itself is drawn by
+   tour-overlay.component.scss (.tour-ring), traced
+   from the exact same measured shape as the hole —
+   NOT a CSS outline. Outlines don't reliably clip to
+   border-radius on every WebView, which is what used
+   to produce a square/squircle halo behind circular
+   buttons (SOS button, avatar, tab icons) instead of
+   a true circle.
    ========================================= */
 .tour-highlight {
   position: relative !important;
-  z-index: 98500 !important;
-  /* Do NOT force border-radius here — it would square circular buttons.
-     The pulsing outline is enough to draw attention. */
-  outline: 3px solid rgba(255, 255, 255, 0.9) !important;
-  outline-offset: 5px !important;
-  animation: tourRing 1.5s ease-in-out infinite !important;
+  z-index: 98700 !important;
   pointer-events: all !important;
-}
-
-@keyframes tourRing {
-  0%, 100% { outline-color: rgba(255,255,255,0.9); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
-  50%       { outline-color: rgba(255,255,255,0.5); box-shadow: 0 0 0 8px rgba(255,255,255,0); }
 }
