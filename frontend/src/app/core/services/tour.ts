@@ -95,7 +95,7 @@ const STEPS: TourStep[] = [
   {
     id: 'tour-history-page', page: '/tabs/history', chapter: 'history',
     callout: 'All your submitted reports appear here.',
-    subtext: 'Each card shows the report type, your location, and its current status. Tap any card to see full details.',
+    subtext: 'Filter by date or status to find a specific report. Each card shows the type, time, and current status — tap any card to see full details.',
     waitForInteraction: false
   },
   // ── PROFILE ───────────────────────────────────────────────────────────────
