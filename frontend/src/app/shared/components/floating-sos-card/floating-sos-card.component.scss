@@ -1,15 +1,24 @@
-// Stacked pill container — sits at the bottom of ion-content, below
-// announcements. Gap between pills keeps them visually distinct.
+// Fixed above the tab bar — stays in place while the page scrolls.
+// Tab bar is 56px + safe-area; z-index 40 keeps it below tour overlay (98000+)
+// and Ionic modals (>10000) but above all normal page content.
 .sos-pill-stack {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 0 16px 16px;
+  padding: 0 16px 8px;
+  // Prevent the fixed layer from intercepting touches on empty space
+  // between pills — only the pill elements themselves are tappable.
+  pointer-events: none;
 }
 
-// Large white pill with a coloured left-border accent per state.
-// White background works on both light and dark mode via ion-card-background.
+// Large white pill — solid, not transparent. Depth via layered box-shadow.
 .sos-pill {
+  pointer-events: all; // re-enable for the pill itself
   display: flex;
   align-items: center;
   gap: 14px;
@@ -20,10 +29,11 @@
   user-select: none;
 
   background: var(--ion-card-background, #ffffff);
-  border: 1.5px solid var(--ion-color-step-100, #e8e8e8);
-  // Coloured left accent — default is warning (pending)
   border-left: 5px solid var(--ion-color-warning, #f9a825);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  // Layered shadow: tight contact shadow + wider diffuse lift
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.14),
+    0 6px 24px rgba(0, 0, 0, 0.18);
 
   animation: sosPillIn 0.22s ease;
 }
