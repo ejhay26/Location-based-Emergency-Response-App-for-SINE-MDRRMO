@@ -5,9 +5,12 @@
 </ion-header>
 
 <ion-content class="tab-page-content">
+  <!-- Wraps EVERY settings section (not just dark mode) so the tour step
+       highlights the whole page's worth of options, not one toggle. -->
+  <div id="tour-settings-page" [class.tour-highlight]="tour.targetId() === 'tour-settings-page'">
   <ion-list lines="none" style="padding:16px 16px 0;">
     <ion-list-header style="padding-left:0;margin-bottom:4px;"><ion-label color="danger" style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.8px;"><i class="fa-solid fa-palette" style="margin-right:7px;"></i>Appearance</ion-label></ion-list-header>
-    <ion-item *ngFor="let s of appearance" [attr.id]="s.key === 'dark_mode' ? 'tour-dark-mode-setting' : null" [class.tour-highlight]="s.key === 'dark_mode' && tour.targetId() === 'tour-dark-mode-setting'" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
+    <ion-item *ngFor="let s of appearance" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
       <ion-label style="padding:14px 0 10px;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p></ion-label>
       <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:6px;">{{ s.value ? 'ON' : 'OFF' }}</span>
       <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
@@ -54,6 +57,7 @@
       <i class="fa-solid fa-chevron-right" slot="end" style="color:var(--ion-color-medium);font-size:13px;"></i>
     </ion-item>
   </ion-list>
+  </div>
 
   <div style="padding:16px;text-align:center;margin-top:8px;">
     <p style="font-size:12px;color:var(--ion-color-medium);margin:0;">MDRRMO San Isidro Emergency App<br><span style="font-size:11px;">Settings are saved automatically and synced across devices.</span></p>
