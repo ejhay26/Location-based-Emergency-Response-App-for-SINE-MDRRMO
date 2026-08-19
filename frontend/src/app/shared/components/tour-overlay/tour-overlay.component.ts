@@ -169,13 +169,14 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
     const cs = getComputedStyle(el);
     const brPx = parseFloat(cs.borderTopLeftRadius) || 0;
     const minDim = Math.min(r.width, r.height);
-    // Treat as a circle once the corner radius covers roughly the shorter
-    // side's half — i.e. an actual circular/pill-round element — otherwise
-    // treat it as a rounded rectangle using its own real radius. Fully
-    // dynamic: read from the live element's own styles every time, nothing
-    // hardcoded per target id, so any current or future tour target is
-    // handled automatically.
-    const isCircle = brPx >= minDim * 0.4;
+    // Force-circle if the element's own inline style says border-radius:50%
+    // (WebView sometimes returns the raw percentage string from getComputedStyle
+    // rather than a resolved pixel value, causing brPx to parse as 0 and
+    // breaking the threshold check for perfectly circular buttons).
+    const inlineStyle = el.getAttribute('style') || '';
+    const isCircle = inlineStyle.includes('border-radius:50%') ||
+                     inlineStyle.includes('border-radius: 50%') ||
+                     brPx >= minDim * 0.4;
 
     this.hole = {
       top:    r.top    - PAD,
