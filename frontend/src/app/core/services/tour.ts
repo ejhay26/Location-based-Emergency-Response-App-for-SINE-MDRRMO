@@ -25,14 +25,14 @@ const STEPS: TourStep[] = [
     id: 'tour-sos-button', page: '/tabs/home', chapter: 'home',
     callout: 'This is your Emergency SOS button.',
     subtext: 'Use this when you need immediate help — fire, flood, medical emergency, or crime. Tap it to see how it works.',
-    waitForInteraction: true, interactionHint: 'Tap to continue →'
+    waitForInteraction: true, interactionHint: 'Tap the highlighted button'
   },
   // ── EMERGENCY REPORT ──────────────────────────────────────────────────────
   {
     id: 'tour-incident-grid', page: '/report?type=emergency&tour=1', chapter: 'emergency',
     callout: 'First, choose the type of emergency.',
     subtext: 'Tap the category that best matches your situation. This helps MDRRMO prepare the right response before arriving.',
-    waitForInteraction: true, interactionHint: 'Tap a category →'
+    waitForInteraction: true, interactionHint: 'Tap a category'
   },
   {
     id: 'tour-description-field', page: '/report?type=emergency&tour=1', chapter: 'emergency',
@@ -63,14 +63,14 @@ const STEPS: TourStep[] = [
     id: 'tour-hazard-button', page: '/tabs/home', chapter: 'home',
     callout: 'This button is for reporting hazards.',
     subtext: 'Use this for dangers that need attention but aren\'t immediate emergencies — flooded roads, downed wires, fallen trees. Tap it to see how it works.',
-    waitForInteraction: true, interactionHint: 'Tap to continue →'
+    waitForInteraction: true, interactionHint: 'Tap the highlighted button'
   },
   // ── HAZARD REPORT ─────────────────────────────────────────────────────────
   {
     id: 'tour-hazard-grid', page: '/report?type=hazard&tour=1', chapter: 'hazard',
     callout: 'Choose the type of hazard you\'re reporting.',
     subtext: 'Select the category that best matches what you see. MDRRMO will assess and send the appropriate team.',
-    waitForInteraction: true, interactionHint: 'Tap a category →'
+    waitForInteraction: true, interactionHint: 'Tap a category'
   },
   {
     id: 'tour-submit-button', page: '/report?type=hazard&tour=1', chapter: 'hazard',
@@ -90,7 +90,7 @@ const STEPS: TourStep[] = [
     id: 'tour-tab-history', page: '/tabs/home', chapter: 'home',
     callout: 'Tap the History tab to check your submitted reports.',
     subtext: 'You can track whether your report is Pending, Dispatched, or Resolved in real time.',
-    waitForInteraction: true, interactionHint: 'Tap the tab →'
+    waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
   },
   {
     id: 'tour-history-page', page: '/tabs/history', chapter: 'history',
@@ -103,7 +103,7 @@ const STEPS: TourStep[] = [
     id: 'tour-tab-profile', page: '/tabs/history', chapter: 'history',
     callout: 'Tap the Profile tab to manage your account.',
     subtext: '',
-    waitForInteraction: true, interactionHint: 'Tap the tab →'
+    waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
   },
   {
     id: 'tour-avatar-area', page: '/tabs/profile', chapter: 'profile',
@@ -122,12 +122,12 @@ const STEPS: TourStep[] = [
     id: 'tour-tab-settings', page: '/tabs/profile', chapter: 'profile',
     callout: 'Tap the Settings tab to customize the app.',
     subtext: '',
-    waitForInteraction: true, interactionHint: 'Tap the tab →'
+    waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
   },
   {
-    id: 'tour-dark-mode-setting', page: '/tabs/settings', chapter: 'settings',
-    callout: 'Toggle dark mode here.',
-    subtext: 'All your settings are saved automatically and synced across your devices whenever you log in.',
+    id: 'tour-settings-page', page: '/tabs/settings', chapter: 'settings',
+    callout: 'Choose your app preferences here.',
+    subtext: 'Dark mode, map style, location precision, notifications, reporting defaults, and even a Home Screen Widget — all saved automatically and synced across your devices.',
     waitForInteraction: false
   },
   // ── HELP ──────────────────────────────────────────────────────────────────
@@ -135,12 +135,30 @@ const STEPS: TourStep[] = [
     id: 'tour-tab-help', page: '/tabs/settings', chapter: 'settings',
     callout: 'The Help tab is your guide whenever you need it.',
     subtext: 'Find FAQs, replay any chapter of this tutorial, or send feedback to the development team.',
-    waitForInteraction: true, interactionHint: 'Tap the tab →'
+    waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
   },
   {
-    id: 'tour-replay-section', page: '/tabs/help', chapter: 'all',
+    id: 'tour-help-contacts', page: '/tabs/help', chapter: 'all',
+    callout: "MDRRMO's hotlines are always one tap away.",
+    subtext: 'Call either hotline directly from here, or check the office address and 24/7 operating hours.',
+    waitForInteraction: false
+  },
+  {
+    id: 'tour-help-tutorial', page: '/tabs/help', chapter: 'all',
+    callout: 'You can replay this tutorial anytime.',
+    subtext: 'Tap "Start Complete Tour" for the full walkthrough, or pick any chapter card below to jump straight to that topic instead.',
+    waitForInteraction: false
+  },
+  {
+    id: 'tour-help-faq', page: '/tabs/help', chapter: 'all',
+    callout: 'Check the FAQs for quick answers.',
+    subtext: 'Tap any question to expand it — covers reports, location accuracy, medical info, and more.',
+    waitForInteraction: false
+  },
+  {
+    id: 'tour-help-feedback', page: '/tabs/help', chapter: 'all',
     callout: "You're all set! 🎉",
-    subtext: "You now know how to use the MDRRMO Emergency App. You can replay any chapter of this guide here anytime.",
+    subtext: 'You now know how to use the MDRRMO Emergency App. Found a bug or have an idea? Send it to us right here.',
     waitForInteraction: false
   },
 ];
@@ -232,6 +250,20 @@ export class TourService {
 
   markSeen()    { localStorage.setItem('tourSeen', 'true'); }
   hasSeenTour() { return localStorage.getItem('tourSeen') === 'true'; }
+
+  /**
+   * Called by TourOverlayComponent when a step's target element can't be
+   * found on the page for several seconds straight (bad/stale id, a
+   * component that changed since this step was written, page not settled).
+   * Without this, the overlay just renders nothing forever — the app stays
+   * usable, but the tour itself silently disappears with no obvious way to
+   * tell what happened. Skipping forward turns that into "the tour
+   * continues, minus one broken step" instead.
+   */
+  skipMissingStep() {
+    if (!this.isActive()) return;
+    this.next();
+  }
 
   onInteraction() {
     if (!this.isActive()) return;
