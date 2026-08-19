@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonToast, ModalController } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
 import { TourService } from '../../../core/services/tour';
 import { BroadcastRefreshService } from '../../../core/services/broadcast-refresh';
 import { WidgetPinService } from '../../../core/services/widget-pin';
+import { OfflineQueueService } from '../../../core/services/offline-queue';
 import { DialogService } from '../../../core/services/dialog.service';
 import { PressFeedbackDirective } from '../../../shared/directives/press-feedback.directive';
 import { ImpactFeedbackDirective } from '../../../shared/directives/impact-feedback.directive';
@@ -13,6 +15,7 @@ import { ListEnterDirective } from '../../../shared/directives/list-enter.direct
 import { parseServerDate } from '../../../shared/pipes/utc-date.pipe';
 import { reportModalEnter, reportModalLeave } from '../../../core/animations/report-modal-transition';
 import { ReportPage } from '../report/report.page';
+import { FloatingSosCardComponent, FloatingSosStatus } from '../../../shared/components/floating-sos-card/floating-sos-card.component';
 
 const REFRESH_INTERVAL_MS = 60_000; // 1 minute
 
@@ -33,6 +36,7 @@ const WIDGET_PROMPT_DISMISSED_KEY = 'widget_prompt_dismissed';
   imports: [
     CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonToast,
     PressFeedbackDirective, ImpactFeedbackDirective, ListEnterDirective,
+    FloatingSosCardComponent,
   ],
 })
 export class HomePage implements OnInit, OnDestroy {
@@ -43,15 +47,26 @@ export class HomePage implements OnInit, OnDestroy {
   widgetToastOpen = false;
   widgetToastMessage = '';
 
+  /**
+   * Stage 5 — Floating SOS Card data. All active (Pending/Dispatched) SOS
+   * requests for this citizen, newest-first. Using all active ones, not just
+   * the first, because the user can report the same or a different incident
+   * while a previous one is still Pending — each gets its own stacked pill.
+   * Null until the first poll resolves; empty array means nothing active.
+   */
+  activeSosReports: FloatingSosStatus[] = [];
+
   private pollSub?: Subscription;
   private pushRefreshSub?: Subscription;
 
   constructor(
     private api: ApiService,
+    private router: Router,
     public tour: TourService,
     private broadcastRefresh: BroadcastRefreshService,
     private modalCtrl: ModalController,
     private widgetPin: WidgetPinService,
+    public offlineQueue: OfflineQueueService,
     private dialog: DialogService,
   ) {}
 
@@ -67,11 +82,17 @@ export class HomePage implements OnInit, OnDestroy {
       this.activeBroadcasts = this.broadcastRefresh.lastBroadcasts;
     }
     this.fetchBroadcasts();
+    this.fetchLatestSos();
 
-    // Keep the announcement panel live without requiring the user to leave
-    // and re-enter the tab: poll on an interval, plus refetch instantly
-    // whenever a broadcast push notification arrives in the foreground.
-    this.pollSub = interval(REFRESH_INTERVAL_MS).subscribe(() => this.fetchBroadcasts());
+    // Keep the announcement panel (and the Floating SOS Card's own status)
+    // live without requiring the user to leave and re-enter the tab: piggyback
+    // on the same 60s interval already used for broadcasts, reusing
+    // getMyEmergencies — the same call History's own page makes — rather than
+    // standing up a second, separately-timed poll loop for one more field.
+    this.pollSub = interval(REFRESH_INTERVAL_MS).subscribe(() => {
+      this.fetchBroadcasts();
+      this.fetchLatestSos();
+    });
     this.pushRefreshSub = this.broadcastRefresh.onRefresh.subscribe(() => this.fetchBroadcasts());
 
     this.widgetPin.isAvailable().then(available => {
@@ -92,6 +113,44 @@ export class HomePage implements OnInit, OnDestroy {
       },
       error: () => {}
     });
+  }
+
+  /**
+   * Stage 5 — Floating SOS Card data source. `getMyEmergencies` is already
+   * ordered by request_time desc server-side (see SosController), so the
+   * first Pending/Dispatched entry is genuinely the most recent one; a
+   * Resolved/Cancelled first entry means nothing currently active, and the
+   * card hides itself (see FloatingSosCardComponent.state). Errors are
+   * swallowed the same way fetchBroadcasts() does — a failed background
+   * refresh should never surface as a user-facing error on Home, and
+   * offline handling is already covered separately by NetworkService/
+   * OfflineQueueService for the actual submit path.
+   */
+  fetchLatestSos() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return;
+    const user = JSON.parse(userStr);
+    this.api.getMyEmergencies(user.user_id).subscribe({
+      next: (res: any) => {
+        const list: any[] = Array.isArray(res) ? res : [];
+        // Keep ALL active reports, newest-first (server already returns desc
+        // order). Each one gets its own stacked pill on the Home page.
+        this.activeSosReports = list.filter(
+          (r: any) => r.status === 'Pending' || r.status === 'Dispatched'
+        );
+      },
+      error: () => {}
+    });
+  }
+
+  /** Floating SOS Card tap — routes to History, where the full record (and its Cancel action) already lives. */
+  goToSosStatus() {
+    this.router.navigate(['/tabs/history']);
+  }
+
+  /** Queued-offline SOS items only — reads the shared reactive signal so no separate IndexedDB call is needed here. */
+  get queuedSosItems() {
+    return this.offlineQueue.items().filter(i => i.kind === 'sos');
   }
 
   /**

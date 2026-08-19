@@ -128,4 +128,14 @@
   </div>
 
   <ion-toast [isOpen]="widgetToastOpen" [message]="widgetToastMessage" color="medium" [duration]="3000" (didDismiss)="widgetToastOpen = false"></ion-toast>
+
+  <!-- Stage 5 — SOS status pills. Placed at the bottom of the page content,
+       above the announcements section, so it doesn't interrupt the primary
+       SOS/Hazard action area. Hidden when no active or queued reports. -->
+  <app-floating-sos-card
+    [activeReports]="activeSosReports"
+    [queuedItems]="queuedSosItems"
+    (cardTap)="goToSosStatus()">
+  </app-floating-sos-card>
+
 </ion-content>
