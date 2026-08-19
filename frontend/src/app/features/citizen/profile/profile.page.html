@@ -47,9 +47,8 @@
     </app-profile-password>
 
     <div style="padding:24px 0 8px 0;">
-      <ion-button expand="block" color="danger" fill="outline" (click)="logout()" [class.btn-loading]="loggingOut" style="font-weight:bold;height:48px;">
-        <ng-container *ngIf="!loggingOut"><i class="fa-solid fa-right-from-bracket" style="margin-right:8px;"></i> Logout</ng-container>
-        <span *ngIf="loggingOut" class="dot-loader"><span></span><span></span><span></span></span>
+      <ion-button expand="block" color="danger" fill="outline" (click)="logout()" style="font-weight:bold;height:48px;">
+        <i class="fa-solid fa-right-from-bracket" style="margin-right:8px;"></i> Logout
       </ion-button>
     </div>
   </ion-list>

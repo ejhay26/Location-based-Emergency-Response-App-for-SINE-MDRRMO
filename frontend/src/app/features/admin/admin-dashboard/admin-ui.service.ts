@@ -34,6 +34,10 @@ export class AdminUiService {
   showConfirm(cfg: ConfirmDialogConfig & { action: () => void }) {
     this.dialog.confirm(cfg).then(confirmed => { if (confirmed) cfg.action(); });
   }
+  /** Passthrough to DialogService.confirm() for call sites that need the promise directly — e.g. to pass an `onConfirm` async action so the dialog itself shows the loading state instead of `action()` firing after the dialog has already closed. */
+  confirm(cfg: ConfirmDialogConfig): Promise<boolean> {
+    return this.dialog.confirm(cfg);
+  }
   runConfirm()   { this.dialog.runConfirm(); }
   closeConfirm() { this.dialog.closeConfirm(); }
 

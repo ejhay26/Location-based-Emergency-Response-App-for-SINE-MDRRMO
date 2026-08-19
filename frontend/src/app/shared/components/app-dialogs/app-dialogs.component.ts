@@ -35,8 +35,11 @@ import { ProxyImageDirective } from '../../directives/proxy-image.directive';
             </div>
           </div>
           <div style="display: flex; gap: 10px;">
-            <button (click)="dialog.closeConfirm()" style="flex: 1; padding: 14px; background: var(--ion-color-light); border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; color: var(--ion-text-color);">{{ dialog.confirmDialog().cancelLabel }}</button>
-            <button (click)="dialog.runConfirm()" style="flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; color: white;" [style.background]="dialog.confirmDialog().confirmColor">{{ dialog.confirmDialog().confirmLabel }}</button>
+            <button (click)="dialog.closeConfirm()" [disabled]="dialog.confirmLoading()" [style.opacity]="dialog.confirmLoading() ? 0.5 : 1" [style.cursor]="dialog.confirmLoading() ? 'not-allowed' : 'pointer'" style="flex: 1; padding: 14px; background: var(--ion-color-light); border: none; border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--ion-text-color);">{{ dialog.confirmDialog().cancelLabel }}</button>
+            <button (click)="dialog.runConfirm()" [disabled]="dialog.confirmLoading()" style="flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center;" [style.background]="dialog.confirmDialog().confirmColor" [style.cursor]="dialog.confirmLoading() ? 'not-allowed' : 'pointer'">
+              <ng-container *ngIf="!dialog.confirmLoading()">{{ dialog.confirmDialog().confirmLabel }}</ng-container>
+              <span *ngIf="dialog.confirmLoading()" class="dot-loader"><span></span><span></span><span></span></span>
+            </button>
           </div>
         </div>
       </div>

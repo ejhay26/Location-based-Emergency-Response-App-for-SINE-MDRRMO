@@ -50,9 +50,6 @@ export class AdminDashboardPage implements OnInit {
   viewMode: ViewMode = 'active';
   isSidebarCollapsed = false;
 
-  /** Drives the sidebar Logout button's loading state while the logout request is in flight. */
-  loggingOut = false;
-
   // Only present in the DOM while viewMode is 'active'/'hazards'; undefined otherwise.
   @ViewChild(IncidentMapPanel) private incidentMapPanel?: IncidentMapPanel;
 
@@ -112,29 +109,30 @@ export class AdminDashboardPage implements OnInit {
   }
 
   logout() {
-    if (this.loggingOut) return; // guards a double-tap firing two overlapping logout flows
-    this.ui.showConfirm({
+    this.ui.confirm({
       title: 'Logout', message: 'Are you sure you want to logout?',
       icon: 'fa-solid fa-right-from-bracket', iconColor: 'var(--ion-color-danger)',
       confirmLabel: 'Logout', confirmColor: 'var(--ion-color-danger)',
-      action: () => {
-        this.loggingOut = true;
+      // The dialog itself now owns the loading state (its Confirm button
+      // shows the spinner and blocks Cancel while this runs) — see
+      // DialogService.runConfirm(). Same pattern/rationale as profile.page.ts's
+      // logout(): navigation waits for the server round-trip, bounded by
+      // timeout(6000) + catchError so a hung/offline connection can't leave
+      // the dialog spinning indefinitely.
+      onConfirm: () => new Promise<void>(resolve => {
         this.pushNotifications.unregisterPush();
-        // See profile.page.ts's logout() for the same pattern/rationale:
-        // navigation now waits for the server round-trip (bounded by
-        // timeout(6000) + catchError so a hung/offline connection can't
-        // leave the sidebar stuck on the loading state indefinitely).
         const finishLogout = () => {
           this.api.clearToken();
           this.userSettings.clear();
           localStorage.clear();
           this.router.navigate(['/login']);
+          resolve();
         };
         this.api.logout().pipe(
           timeout(6000),
           catchError(() => of(null)),
         ).subscribe({ next: finishLogout });
-      },
+      }),
     });
   }
 }

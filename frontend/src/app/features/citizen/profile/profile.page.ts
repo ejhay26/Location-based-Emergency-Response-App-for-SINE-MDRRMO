@@ -42,9 +42,6 @@ export class ProfilePage implements OnInit, OnDestroy {
   userData: any = {};
   calculatedAge: string | number = 'N/A';
 
-  /** Drives the Logout button's .btn-loading state while the logout request is in flight. */
-  loggingOut = false;
-
   medicalData: MedicalData = { blood_type: '', allergies: '', medical_conditions: '', pwd_status: '' };
 
   toastOpen    = false;
@@ -105,33 +102,36 @@ export class ProfilePage implements OnInit, OnDestroy {
     localStorage.setItem('user', JSON.stringify(user));
   }
 
-  async logout() {
-    if (this.loggingOut) return; // guards a double-tap firing two overlapping logout flows
-    const confirmed = await this.dialog.confirm({
+  logout() {
+    this.dialog.confirm({
       title: 'Logout', message: 'Are you sure you want to log out?',
       icon: 'fa-solid fa-right-from-bracket', iconColor: 'var(--ion-color-danger)',
       confirmLabel: 'Logout', confirmColor: 'var(--ion-color-danger)',
+      // The dialog itself now owns the loading state (its Confirm button
+      // shows the spinner and blocks Cancel while this runs) — see
+      // DialogService.runConfirm(). Local cleanup + navigation still runs
+      // AFTER the server round-trip settles rather than firing immediately,
+      // so the spinner reflects real work rather than just a flash.
+      // timeout(6000) + catchError(of(null)) guarantee finishLogout still
+      // fires even on a hung/offline connection — there's no global HTTP
+      // timeout configured (see error-interceptor.ts), so without this a bad
+      // connection could leave the dialog spinning forever instead of
+      // logging the user out locally.
+      onConfirm: () => new Promise<void>(resolve => {
+        this.pushNotifications.unregisterPush();
+        const finishLogout = () => {
+          this.locationSvc.stop(); this.api.clearToken(); this.imageCache.clear(); this.settings.clear();
+          localStorage.removeItem('user'); localStorage.removeItem('role');
+          document.documentElement.classList.remove('ion-palette-dark');
+          this.router.navigate(['/login']);
+          resolve();
+        };
+        this.api.logout().pipe(
+          timeout(6000),
+          catchError(() => of(null)),
+        ).subscribe({ next: finishLogout });
+      }),
     });
-    if (!confirmed) return;
-    this.loggingOut = true;
-    this.pushNotifications.unregisterPush();
-    // Local cleanup + navigation now runs AFTER the server round-trip settles
-    // instead of firing immediately, so the button's loading state reflects
-    // real work rather than just a flash. timeout(6000) + catchError(of(null))
-    // guarantee finishLogout still fires even on a hung/offline connection —
-    // there's no global HTTP timeout configured (see error-interceptor.ts),
-    // so without this a bad connection could leave the button spinning
-    // forever instead of logging the user out locally.
-    const finishLogout = () => {
-      this.locationSvc.stop(); this.api.clearToken(); this.imageCache.clear(); this.settings.clear();
-      localStorage.removeItem('user'); localStorage.removeItem('role');
-      document.documentElement.classList.remove('ion-palette-dark');
-      this.router.navigate(['/login']);
-    };
-    this.api.logout().pipe(
-      timeout(6000),
-      catchError(() => of(null)),
-    ).subscribe({ next: finishLogout });
   }
 
   calculateAge(birthdateStr: string) {
