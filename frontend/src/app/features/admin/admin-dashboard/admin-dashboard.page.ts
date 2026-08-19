@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenuController } from '@ionic/angular';
 import { IonContent, IonItem, IonLabel, IonToggle } from '@ionic/angular/standalone';
@@ -9,6 +9,7 @@ import { ApiService } from '../../../core/services/api';
 import { UserSettingsService } from '../../../core/services/user-settings';
 import { TourService } from '../../../core/services/tour';
 import { PushNotificationsService } from '../../../core/services/push-notifications';
+import { DesktopNotificationsService } from '../../../core/services/desktop-notifications';
 import { AdminUiService } from './admin-ui.service';
 
 import { IncidentMapPanel } from './panels/incident-map/incident-map.panel';
@@ -44,7 +45,7 @@ type ViewMode =
     VerificationsPanel, DispatchersPanel, CitizensPanel, FeedbackPanel,
   ],
 })
-export class AdminDashboardPage implements OnInit {
+export class AdminDashboardPage implements OnInit, OnDestroy {
 
   currentRole: string | null = '';
   viewMode: ViewMode = 'active';
@@ -63,12 +64,21 @@ export class AdminDashboardPage implements OnInit {
     private userSettings: UserSettingsService,
     private tour: TourService,
     private pushNotifications: PushNotificationsService,
+    private desktopNotifications: DesktopNotificationsService,
     public  ui: AdminUiService,
   ) {}
 
   ngOnInit() {
     // Apply dark mode from the settings service (same source as mobile pages).
     this.userSettings.applyToDom();
+    // Stage 5 — desktop alert on new SOS/hazard reports. Dashboard-wide (not
+    // tied to whichever sidebar panel is mounted); no-ops itself outside
+    // Electron (see DesktopNotificationsService.isElectron).
+    this.desktopNotifications.start();
+  }
+
+  ngOnDestroy() {
+    this.desktopNotifications.stop();
   }
 
   ionViewWillEnter() {
