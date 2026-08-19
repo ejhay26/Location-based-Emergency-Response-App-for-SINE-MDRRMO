@@ -7,7 +7,7 @@
 <ion-content class="ion-padding tab-page-content">
   <ion-refresher slot="fixed" (ionRefresh)="load($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
 
-  <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;">
+  <div id="tour-history-page" [class.tour-highlight]="tour.targetId() === 'tour-history-page'" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;">
     <app-date-range-filter [value]="dateFilter" (valueChange)="onDateFilterChange($event)"></app-date-range-filter>
     <button *ngFor="let s of statusFilters" (click)="setStatusFilter(s.value)"
       [style.background]="statusFilter===s.value?'var(--ion-color-danger)':'var(--ion-color-light)'"
@@ -39,7 +39,7 @@
     </ion-item>
   </ion-card>
 
-  <div id="tour-history-page" [class.tour-highlight]="tour.targetId() === 'tour-history-page'">
+  <div>
     <ng-container *ngIf="isLoading"><ion-card *ngFor="let i of [1,2,3]" style="margin:10px 0;"><ion-item lines="none"><ion-label><h2><ion-skeleton-text [animated]="true" style="width:60%;"></ion-skeleton-text></h2><p><ion-skeleton-text [animated]="true" style="width:40%;"></ion-skeleton-text></p></ion-label></ion-item></ion-card></ng-container>
 
     <div *ngIf="!isLoading && filteredEmergencies.length === 0 && !filterSettling" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;text-align:center;">
