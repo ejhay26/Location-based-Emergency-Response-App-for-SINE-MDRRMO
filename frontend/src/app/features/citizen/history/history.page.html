@@ -22,6 +22,23 @@
 
   <p *ngIf="!isLoading && emergencies.length > 0" style="font-size:12px;color:var(--ion-color-medium);margin:0 0 10px 2px;">{{ filteredEmergencies.length }} of {{ emergencies.length }} report{{ emergencies.length !== 1 ? 's' : '' }}</p>
 
+  <!-- Stage 5 — queued-offline SOS reports: not yet on the server at all,
+       so they can never appear in the list below. Shown above it,
+       read-only, regardless of the active status/date filters. -->
+  <ion-card *ngFor="let item of queuedSosItems" style="margin:10px 0;border:1.5px dashed var(--ion-color-warning);">
+    <ion-item lines="none">
+      <div slot="start" style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#ffc40920;">
+        <i class="fa-solid fa-cloud-arrow-up" style="color:#e0ac00;font-size:18px;"></i>
+      </div>
+      <ion-label>
+        <h2 style="font-weight:bold;color:var(--ion-text-color);">Emergency SOS</h2>
+        <p style="color:var(--ion-color-medium);font-size:12px;">{{ item.createdAt | date:'MMM d, y · h:mm a' }}</p>
+        <p style="font-size:12px;color:var(--ion-color-medium);margin-top:2px;">Saved on this device — will send automatically once you're back online.</p>
+      </ion-label>
+      <ion-badge slot="end" color="warning" style="font-weight:bold;padding:6px 12px;border-radius:8px;">Queued · Offline</ion-badge>
+    </ion-item>
+  </ion-card>
+
   <div id="tour-history-page" [class.tour-highlight]="tour.targetId() === 'tour-history-page'">
     <ng-container *ngIf="isLoading"><ion-card *ngFor="let i of [1,2,3]" style="margin:10px 0;"><ion-item lines="none"><ion-label><h2><ion-skeleton-text [animated]="true" style="width:60%;"></ion-skeleton-text></h2><p><ion-skeleton-text [animated]="true" style="width:40%;"></ion-skeleton-text></p></ion-label></ion-item></ion-card></ng-container>
 

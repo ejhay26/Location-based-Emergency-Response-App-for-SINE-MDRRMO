@@ -8,6 +8,7 @@ import {
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
 import { TourService } from '../../../core/services/tour';
+import { OfflineQueueService, QueuedReport } from '../../../core/services/offline-queue';
 import { DialogService } from '../../../core/services/dialog.service';
 import { DateRangeFilterComponent } from '../../../shared/components/date-range-filter/date-range-filter.component';
 import { FilterSummaryBarComponent } from '../../../shared/components/filter-summary-bar/filter-summary-bar.component';
@@ -89,7 +90,23 @@ export class HistoryPage implements OnDestroy {
     private router: Router,
     private dialog: DialogService,
     public tour: TourService,
+    public offlineQueue: OfflineQueueService,
   ) {}
+
+  /**
+   * Stage 5 — "Pending offline / queued" indicator, History page half. An
+   * item still sitting in the offline queue hasn't reached the server at
+   * all yet, so it can never appear in `emergencies` (fetched from
+   * getMyEmergencies) — rendered separately, read-only (no expand/cancel;
+   * cancelling a not-yet-sent report is just deleting the local queue entry,
+   * out of scope here), and only for kind 'sos' since this page only ever
+   * shows SOS records to begin with (getMyEmergencies never returns hazard
+   * reports). Reads the shared reactive signal directly — no separate
+   * IndexedDB call of its own.
+   */
+  get queuedSosItems(): QueuedReport[] {
+    return this.offlineQueue.items().filter(i => i.kind === 'sos');
+  }
 
   ngOnInit() { this.load(); }
 
