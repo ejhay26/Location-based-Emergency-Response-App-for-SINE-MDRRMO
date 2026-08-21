@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Emergency;
 
+use App\Events\EmergencyUpdated;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -47,6 +48,9 @@ class DispatchController extends Controller
         if ($req) {
             $this->notifications->notifyUser($req->user_id, 'Responders Dispatched', 'Help is on the way to your location.', ['type' => 'dispatched']);
         }
+
+        broadcast(new EmergencyUpdated('dispatched', $request->request_id))->toOthers();
+
         return response()->json(['message' => 'Units dispatched successfully!']);
     }
 
@@ -61,6 +65,9 @@ class DispatchController extends Controller
         if ($req) {
             $this->notifications->notifyUser($req->user_id, 'Emergency Resolved', 'Your report has been resolved. Stay safe.', ['type' => 'resolved']);
         }
+
+        broadcast(new EmergencyUpdated('resolved', $request->request_id))->toOthers();
+
         return response()->json(['message' => 'Emergency resolved and archived.']);
     }
 
@@ -88,6 +95,9 @@ class DispatchController extends Controller
             ]);
             DB::table('personal_access_tokens')->where('tokenable_id', $emergency->user_id)->delete();
             $this->notifications->notifyUser($emergency->user_id, 'Account Suspended', 'Your account has been suspended due to repeated false emergency reports.', ['type' => 'suspended']);
+
+            broadcast(new EmergencyUpdated('false_alarm', $request->request_id))->toOthers();
+
             return response()->json(['message' => 'User suspended after reaching 3 false alarm strikes.', 'false_alarm_strikes' => $strikes, 'account_status' => 'banned']);
         }
         $remaining = 3 - $strikes;
@@ -97,6 +107,9 @@ class DispatchController extends Controller
             "This report was marked as a false alarm by MDRRMO. {$remaining} more strike(s) will result in account suspension.",
             ['type' => 'false_alarm_strike']
         );
+
+        broadcast(new EmergencyUpdated('false_alarm', $request->request_id))->toOthers();
+
         return response()->json(['message' => "Strike {$strikes} recorded. {$remaining} more will result in automatic suspension.", 'false_alarm_strikes' => $strikes, 'account_status' => $user->account_status]);
     }
 }
