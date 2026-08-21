@@ -27,7 +27,8 @@ class AnalyticsController extends Controller
                 DB::raw('COUNT(*) as total')
             )
             ->where('emergency_requests.request_time', '>=', now()->subDays($days))
-            ->groupBy('date')->orderBy('date', 'asc')->get();
+            ->groupBy(DB::raw('DATE(emergency_requests.request_time)'))
+            ->orderBy(DB::raw('DATE(emergency_requests.request_time)'), 'asc')->get();
 
         $typeStats = DB::table('emergency_requests')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
@@ -57,12 +58,29 @@ class AnalyticsController extends Controller
         $hazardStats = DB::table('hazards')
             ->where('created_at', '>=', now()->subDays($days))
             ->select('hazard_type', DB::raw('COUNT(*) as total'))
-            ->groupBy('hazard_type')->get();
+            ->groupBy('hazard_type')
+            ->get()
+            ->map(function ($row) {
+                $type = trim($row->hazard_type ?? '');
+                return (object) [
+                    'hazard_type' => $type !== '' ? $type : 'Others',
+                    'total'       => (int) $row->total,
+                ];
+            });
 
         $hazardDailyStats = DB::table('hazards')
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as total'))
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw("SUM(CASE WHEN hazard_type = 'Flooded Street' OR hazard_type LIKE '%Flood%' THEN 1 ELSE 0 END) as flood"),
+                DB::raw("SUM(CASE WHEN hazard_type = 'Road Obstruction' OR hazard_type LIKE '%Road%' OR hazard_type LIKE '%Block%' THEN 1 ELSE 0 END) as road"),
+                DB::raw("SUM(CASE WHEN hazard_type = 'Fallen Tree' OR hazard_type LIKE '%Tree%' THEN 1 ELSE 0 END) as tree"),
+                DB::raw("SUM(CASE WHEN hazard_type = 'Downed Wire' OR hazard_type LIKE '%Wire%' OR hazard_type LIKE '%Electric%' THEN 1 ELSE 0 END) as electrical"),
+                DB::raw("SUM(CASE WHEN (hazard_type IS NULL OR (hazard_type NOT IN ('Flooded Street', 'Road Obstruction', 'Fallen Tree', 'Downed Wire') AND hazard_type NOT LIKE '%Flood%' AND hazard_type NOT LIKE '%Road%' AND hazard_type NOT LIKE '%Tree%' AND hazard_type NOT LIKE '%Wire%')) THEN 1 ELSE 0 END) as others"),
+                DB::raw('COUNT(*) as total')
+            )
             ->where('created_at', '>=', now()->subDays($days))
-            ->groupBy('date')->orderBy('date', 'asc')->get();
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->orderBy(DB::raw('DATE(created_at)'), 'asc')->get();
 
         $hazardBarangayStats = DB::table('hazards')
             ->join('barangays', 'hazards.barangay_id', '=', 'barangays.barangay_id')
