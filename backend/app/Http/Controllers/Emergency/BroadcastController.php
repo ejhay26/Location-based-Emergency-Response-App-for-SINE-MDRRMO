@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Emergency;
 
+use App\Events\BroadcastMessageUpdated;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Broadcast;
 use App\Models\Barangay;
 use App\Services\NotificationService;
+use App\Traits\MediaHandling;
 
 /**
  * Admin/dispatcher-pushed alert broadcasts. A broadcast can be town-wide
@@ -17,6 +19,8 @@ use App\Services\NotificationService;
  */
 class BroadcastController extends Controller
 {
+    use MediaHandling;
+
     public function __construct(private NotificationService $notifications)
     {
     }
@@ -24,17 +28,40 @@ class BroadcastController extends Controller
     public function createBroadcast(Request $request)
     {
         $validated = $request->validate([
+            'title'           => 'nullable|string|max:255',
             'message'         => 'required|string|max:2000',
             'barangay_ids'    => 'array',
             'barangay_ids.*'  => 'integer|distinct|exists:barangays,barangay_id',
+            'media_files'     => 'nullable|array|max:4',
+            'media_files.*'   => 'nullable|string|max:20971520',
         ]);
 
+        $userId = $request->user()?->user_id ?? 1;
         $barangayIds = array_values(array_unique($validated['barangay_ids'] ?? []));
 
+        $storedMediaPaths = [];
+        if (!empty($validated['media_files'])) {
+            foreach (array_slice($validated['media_files'], 0, 4) as $rawMedia) {
+                if (!$rawMedia || !is_string($rawMedia)) continue;
+                $storedPath = $this->processAndStorePublic(
+                    'broadcast',
+                    "reports/broadcasts/{$userId}",
+                    'proof',
+                    $rawMedia,
+                    $userId
+                );
+                if ($storedPath !== null) {
+                    $storedMediaPaths[] = $storedPath;
+                }
+            }
+        }
+
         $broadcast = Broadcast::create([
-            'message'    => $validated['message'],
-            'is_active'  => 1,
-            'created_at' => now(),
+            'title'       => $validated['title'] ?? null,
+            'message'     => $validated['message'],
+            'media_files' => !empty($storedMediaPaths) ? json_encode($storedMediaPaths) : null,
+            'is_active'   => 1,
+            'created_at'  => now(),
         ]);
 
         if (!empty($barangayIds)) {
@@ -42,19 +69,25 @@ class BroadcastController extends Controller
         }
 
         $location = $this->locationLabel($barangayIds);
-        $title    = "SINE MDRRMO Alert — {$location}";
-        $data     = [
+        $notifTitle = !empty($validated['title'])
+            ? "MDRRMO Alert: {$validated['title']}"
+            : "SINE MDRRMO Alert — {$location}";
+
+        $data = [
             'type'         => 'broadcast',
             'broadcast_id' => $broadcast->broadcast_id,
+            'title'        => $validated['title'] ?? '',
             'scope'        => empty($barangayIds) ? 'town' : 'barangay',
             'location'     => $location,
         ];
 
         if (empty($barangayIds)) {
-            $this->notifications->notifyAllCitizens($title, $validated['message'], $data);
+            $this->notifications->notifyAllCitizens($notifTitle, $validated['message'], $data);
         } else {
-            $this->notifications->notifyCitizensInBarangays($barangayIds, $title, $validated['message'], $data);
+            $this->notifications->notifyCitizensInBarangays($barangayIds, $notifTitle, $validated['message'], $data);
         }
+
+        broadcast(new BroadcastMessageUpdated('created', $broadcast->broadcast_id))->toOthers();
 
         return response()->json(['message' => "Broadcast pushed to {$location}!"]);
     }
@@ -80,9 +113,18 @@ class BroadcastController extends Controller
         }
 
         $broadcasts = $query->get()->map(function (Broadcast $broadcast) {
+            $media = $broadcast->media_files;
+            if (is_string($media)) {
+                $media = json_decode($media, true) ?? [];
+            } elseif (!is_array($media)) {
+                $media = [];
+            }
+
             return [
                 'broadcast_id' => $broadcast->broadcast_id,
+                'title'        => $broadcast->title ?? '',
                 'message'      => $broadcast->message,
+                'media_files'  => $media,
                 'is_active'    => $broadcast->is_active,
                 'created_at'   => $broadcast->created_at,
                 'scope'        => $broadcast->barangays->isEmpty() ? 'town' : 'barangay',
@@ -103,6 +145,8 @@ class BroadcastController extends Controller
         $broadcast = Broadcast::find($validated['broadcast_id']);
         $broadcast->is_active = 0;
         $broadcast->save();
+
+        broadcast(new BroadcastMessageUpdated('cleared', $broadcast->broadcast_id))->toOthers();
 
         return response()->json(['message' => 'Broadcast alert cleared.']);
     }
