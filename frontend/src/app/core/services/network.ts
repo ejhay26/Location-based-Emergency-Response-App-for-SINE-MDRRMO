@@ -35,21 +35,22 @@ export class NetworkService {
   }
 
   /**
-   * Actively probes the backend's health route (Laravel's built-in `/up`,
-   * already relied on by the Docker HEALTHCHECK — confirmed present).
+   * Actively probes the backend's health route (/api/health).
    * Short 5s timeout: on a genuinely bad connection this should fail fast
    * rather than hang the caller (report submission) waiting on it.
    */
   async recheck(): Promise<boolean> {
     try {
       await firstValueFrom(
-        this.http.get(`${this.api.apiOrigin}/up`, { responseType: 'text' }).pipe(timeout(5000))
+        this.api.healthCheck().pipe(timeout(5000))
       );
       this._isOnline.set(true);
       return true;
     } catch {
-      this._isOnline.set(false);
-      return false;
+      // If browser reports navigator.onLine is true, check if standard internet works
+      const onlineFallback = typeof navigator !== 'undefined' ? navigator.onLine : false;
+      this._isOnline.set(onlineFallback);
+      return onlineFallback;
     }
   }
 }
