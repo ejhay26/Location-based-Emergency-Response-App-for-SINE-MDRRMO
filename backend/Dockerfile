@@ -28,6 +28,11 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # ── App source ────────────────────────────────────────────────────────────
 WORKDIR /var/www/html
 COPY . .
+# NOTE: package:discover is intentionally NOT run here. .dockerignore
+# excludes .env, so APP_KEY is absent at build time and artisan exits
+# before it can rewrite bootstrap/cache/packages.php. The entrypoint.sh
+# re-runs package:discover at container startup when all env vars are
+# actually present — that is the correct and only reliable fix.
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
 # ── Storage permissions + public disk symlink ─────────────────────────────
