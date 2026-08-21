@@ -1,24 +1,29 @@
-# Database Schema
+# Database Schema Documentation
 
-Database: `emergencydb` (MariaDB / MySQL). Schema source: `database/emergencydb.sql`.
+Database engine: **MariaDB 10.6+ / MySQL 8.0+** (`emergencydb`).  
+Schema source: `backend/database/migrations/` and `database/emergencydb.sql`.
 
-## ER Diagram
+---
+
+## 1. Entity-Relationship (ER) Diagram
 
 ```mermaid
 erDiagram
-    BARANGAYS ||--o{ USERS : "has"
+    BARANGAYS ||--o{ USERS : "resides in"
+    BARANGAYS ||--o{ EMERGENCY_REQUESTS : "located in"
+    BARANGAYS ||--o{ HAZARDS : "located in"
     BARANGAYS ||--o{ BROADCAST_BARANGAYS : "targeted by"
     BROADCASTS ||--o{ BROADCAST_BARANGAYS : "scoped to"
     USERS ||--o{ EMERGENCY_REQUESTS : "files"
     USERS ||--o{ HAZARDS : "reports"
     USERS ||--o{ FEEDBACK : "submits"
     USERS ||--o{ DEVICE_TOKENS : "registers"
-    USERS ||--o{ USER_SETTINGS : "has"
+    USERS ||--o{ USER_SETTINGS : "configures"
     INCIDENT_TYPES ||--o{ EMERGENCY_REQUESTS : "categorizes"
     EMERGENCY_REQUESTS ||--o{ DISPATCH : "triggers"
-    RESPONDERS ||--o{ DISPATCH : "handles"
-    RESPONDERS ||--o{ VEHICLES : "owns"
-    VEHICLES ||--o{ DISPATCH : "used in"
+    RESPONDERS ||--o{ DISPATCH : "assigned to"
+    RESPONDERS ||--o{ VEHICLES : "operates"
+    VEHICLES ||--o{ DISPATCH : "utilized in"
 
     BARANGAYS {
         int barangay_id PK
@@ -26,12 +31,29 @@ erDiagram
     }
     USERS {
         int user_id PK
-        varchar username
-        varchar email
+        varchar first_name
+        varchar last_name
+        varchar username UK
+        varchar phone
+        date birthdate
+        varchar profile_picture
+        varchar email UK
+        varchar password
         enum role
         enum account_status
+        boolean setup_completed
         int barangay_id FK
+        varchar valid_id_proof
+        varchar valid_id_proof_back
+        varchar valid_id_type
+        varchar selfie_with_id_proof
+        varchar blood_type
+        text allergies
+        text medical_conditions
+        varchar pwd_status
         tinyint false_alarm_strikes
+        string ban_reason
+        timestamp banned_at
     }
     INCIDENT_TYPES {
         int incident_type_id PK
@@ -41,15 +63,24 @@ erDiagram
         int request_id PK
         int user_id FK
         int incident_type_id FK
-        varchar status
+        int barangay_id FK
+        longtext proof_files
+        text description
         decimal latitude
         decimal longitude
-        tinyint is_false_alarm
+        varchar status
+        boolean is_false_alarm
+        timestamp request_time
     }
     HAZARDS {
         int hazard_id PK
         int user_id FK
+        int barangay_id FK
+        varchar description
         varchar hazard_type
+        longtext proof_files
+        decimal latitude
+        decimal longitude
         varchar status
     }
     DISPATCH {
@@ -57,12 +88,15 @@ erDiagram
         int request_id FK
         int responder_id FK
         int vehicle_id FK
+        datetime dispatch_time
+        datetime arrival_time
         varchar status
     }
     RESPONDERS {
         int responder_id PK
         varchar name
         varchar role
+        varchar contact
         varchar status
     }
     VEHICLES {
@@ -70,12 +104,16 @@ erDiagram
         int responder_id FK
         varchar name
         varchar type
+        varchar plate
         varchar status
     }
     BROADCASTS {
         int broadcast_id PK
+        varchar title
         text message
+        longtext media_files
         tinyint is_active
+        timestamp created_at
     }
     BROADCAST_BARANGAYS {
         int broadcast_id FK
@@ -86,213 +124,146 @@ erDiagram
         int user_id FK
         text message
         varchar category
+        timestamp created_at
     }
     DEVICE_TOKENS {
         int id PK
         int user_id FK
         varchar token
         varchar platform
+        timestamp created_at
     }
     USER_SETTINGS {
         bigint id PK
         int user_id FK
         varchar key
         varchar value
+        boolean save_media_to_device
+        timestamp updated_at
     }
 ```
 
-> GitHub renders this diagram automatically — no extra setup needed to view it.
+---
 
-## Tables
+## 2. Detailed Table Specifications
 
-<details>
-<summary><b>users</b></summary>
+### 2.1 `users`
+Primary user table storing credentials, roles, ID verification artifacts, and "Golden Minute" medical data.
 
-| Column | Type | Notes |
-|---|---|---|
-| `user_id` | `int` PK, auto-increment | |
-| `first_name`, `last_name`, `username` | `varchar` | |
-| `phone`, `birthdate` | `varchar`, `date` | |
-| `profile_picture` | `varchar` | defaults to a placeholder avatar URL |
-| `email` | `varchar` | |
-| `password` | `varchar` | bcrypt hash |
-| `role` | `enum('citizen','dispatcher','admin')` | default `citizen` |
-| `account_status` | `enum('unverified','active','banned')` | default `active`; new citizen registrations are created as `unverified` explicitly (see `AuthController::register()`) and stay locked out of login until an admin approves them |
-| `barangay_id` | `int` FK → `barangays.barangay_id` | |
-| `valid_id_proof`, `valid_id_type`, `selfie_with_id_proof` | `varchar` | ID check during registration |
-| `blood_type`, `allergies`, `medical_conditions`, `pwd_status` | `varchar`/`text` | "Golden Minute" medical profile, attached to SOS |
-| `ban_reason`, `banned_at` | `varchar`, `timestamp` | account moderation |
-| `false_alarm_strikes` | `tinyint unsigned` | counts confirmed false-alarm SOS reports per user |
-| `created_at`, `updated_at`, `deleted_at` | `timestamp` | soft-deletes supported |
+| Column | Type | Nullable | Description & Constraints |
+|---|---|---|---|
+| `user_id` | `int` | No | Primary Key, Auto Increment |
+| `first_name` | `varchar(100)` | Yes | Citizen / Officer given name |
+| `last_name` | `varchar(100)` | Yes | Citizen / Officer surname |
+| `username` | `varchar(50)` | Yes | Unique login handle |
+| `phone` | `varchar(20)` | Yes | Normalized Philippine mobile number (`639...`) |
+| `birthdate` | `date` | Yes | Date of birth (age verification) |
+| `profile_picture` | `varchar(255)` | Yes | Storage URL to avatar image |
+| `email` | `varchar(100)` | Yes | Unique contact & OTP email |
+| `password` | `varchar(255)` | Yes | Bcrypt password hash |
+| `role` | `enum('citizen','dispatcher','admin')` | No | Access tier (default `'citizen'`) |
+| `account_status` | `enum('unverified','active','banned')` | No | Account lifecycle status |
+| `setup_completed` | `boolean` | No | Indicates completion of post-approval onboarding wizard |
+| `barangay_id` | `int` | Yes | Foreign Key → `barangays.barangay_id` |
+| `valid_id_proof` | `varchar(255)` | Yes | Front of government-issued ID image URL |
+| `valid_id_proof_back`| `varchar(255)` | Yes | Back of government-issued ID image URL |
+| `valid_id_type` | `varchar(50)` | Yes | Document type (PhilID, Driver's License, UMID, etc.) |
+| `selfie_with_id_proof`| `varchar(255)` | Yes | Live selfie holding ID card |
+| `blood_type` | `varchar(10)` | Yes | Medical profile: A+, B+, O+, AB+, etc. |
+| `allergies` | `text` | Yes | Medical profile: Drug & environmental allergies |
+| `medical_conditions` | `text` | Yes | Medical profile: Hypertension, Asthma, Diabetes, etc. |
+| `pwd_status` | `varchar(100)` | Yes | Medical profile: PWD ID or assistance requirements |
+| `false_alarm_strikes`| `tinyint unsigned` | No | Accumulated confirmed false alarm strikes (3 = Auto-Ban) |
+| `ban_reason` | `varchar(500)` | Yes | Reason recorded upon suspension |
+| `banned_at` | `timestamp` | Yes | Suspension timestamp |
+| `created_at` / `updated_at` | `timestamp` | Yes | Audit timestamps |
+| `deleted_at` | `timestamp` | Yes | Soft-delete timestamp |
 
-</details>
+---
 
-<details>
-<summary><b>barangays</b></summary>
+### 2.2 `barangays`
+Reference table for the 9 official barangays comprising the Municipality of San Isidro, Nueva Ecija.
 
-| Column | Type |
-|---|---|
-| `barangay_id` | `int` PK |
-| `barangay_name` | `varchar` |
+| Column | Type | Nullable | Notes |
+|---|---|---|---|
+| `barangay_id` | `int` | No | Primary Key |
+| `barangay_name` | `varchar(255)` | No | Alua, Calaba, Malapit, Mangga, Poblacion, Pulo, San Roque, Santo Cristo, Tabon |
 
-Seeded with San Isidro's 9 barangays (Alua, Calaba, Malapit, Mangga, Poblacion, Pulo, San Roque, Santo Cristo, Tabon). Used both for a user's home barangay (`users.barangay_id`) and for scoping broadcasts (`broadcast_barangays`).
+---
 
-</details>
+### 2.3 `emergency_requests`
+Stores one-tap SOS emergency filings from citizens.
 
-<details>
-<summary><b>incident_types</b></summary>
+| Column | Type | Nullable | Notes |
+|---|---|---|---|
+| `request_id` | `int` | No | Primary Key, Auto Increment |
+| `user_id` | `int` | Yes | FK → `users.user_id` |
+| `incident_type_id` | `int` | Yes | FK → `incident_types.incident_type_id` |
+| `barangay_id` | `int` | Yes | FK → `barangays.barangay_id` (Authoritatively resolved by `BarangayResolver`) |
+| `proof_files` | `longtext` (JSON) | Yes | JSON array of storage paths for live SOS camera photo/10s video |
+| `description` | `text` | Yes | Citizen-provided incident details |
+| `latitude` / `longitude` | `decimal(10,8)` / `(11,8)` | Yes | Precise GPS coordinates |
+| `status` | `varchar(50)` | Yes | `'Pending'`, `'Dispatched'`, `'Resolved'`, `'Cancelled'` |
+| `is_false_alarm` | `boolean` | No | Default `false`; set to `true` on confirmed false alarm mark |
+| `request_time` | `timestamp` | No | Incident timestamp |
 
-| Column | Type |
-|---|---|
-| `incident_type_id` | `int` PK |
-| `incident_name` | `varchar` |
+---
 
-Seeded values: Fire, Flood, Medical, Crime, Others.
+### 2.4 `hazards`
+Citizen-reported public road hazards (floods, fallen trees, electrical hazards).
 
-</details>
+| Column | Type | Nullable | Notes |
+|---|---|---|---|
+| `hazard_id` | `int` | No | Primary Key, Auto Increment |
+| `user_id` | `int` | Yes | FK → `users.user_id` |
+| `barangay_id` | `int` | Yes | FK → `barangays.barangay_id` (Resolved by `BarangayResolver`) |
+| `description` | `varchar(255)` | Yes | Details of the obstruction |
+| `hazard_type` | `varchar(50)` | Yes | `'Flooded Street'`, `'Road Obstruction'`, `'Fallen Tree'`, `'Downed Wire'`, `'Others'` |
+| `proof_files` | `longtext` (JSON) | Yes | JSON array of photo/video evidence paths |
+| `latitude` / `longitude` | `decimal(10,8)` / `(11,8)` | Yes | Hazard location coordinates |
+| `status` | `varchar(50)` | Yes | `'Active'`, `'Resolved'` |
 
-<details>
-<summary><b>emergency_requests</b></summary>
+---
 
-| Column | Type | Notes |
-|---|---|---|
-| `request_id` | `int` PK, auto-increment | |
-| `user_id` | `int` FK → `users.user_id` | |
-| `incident_type_id` | `int` FK → `incident_types.incident_type_id` | |
-| `proof_files` | `longtext` (JSON) | validated with `CHECK (json_valid(...))`; list of storage paths to SOS photo/video proof |
-| `description` | `text` | |
-| `latitude`, `longitude` | `decimal(10,8)` / `decimal(11,8)` | |
-| `status` | `varchar` | e.g. `Cancelled`, `Resolved` |
-| `is_false_alarm` | `tinyint(1)` | |
-| `request_time`, `created_at`, `updated_at`, `deleted_at` | `timestamp` | soft-deletes supported |
+### 2.5 `dispatch`
+Links emergency requests to assigned responder teams and vehicles.
 
-</details>
+| Column | Type | Nullable | Notes |
+|---|---|---|---|
+| `dispatch_id` | `int` | No | Primary Key, Auto Increment |
+| `request_id` | `int` | No | FK → `emergency_requests.request_id` |
+| `responder_id`| `int` | No | FK → `responders.responder_id` |
+| `vehicle_id`  | `int` | No | FK → `vehicles.vehicle_id` |
+| `dispatch_time`| `datetime` | Yes | Timestamp when units were dispatched |
+| `arrival_time` | `datetime` | Yes | Timestamp when units arrived/completed |
+| `status`      | `varchar(50)` | Yes | `'En Route'`, `'Completed'` |
 
-<details>
-<summary><b>hazards</b></summary>
+---
 
-| Column | Type | Notes |
-|---|---|---|
-| `hazard_id` | `int` PK, auto-increment | |
-| `user_id` | `int` FK → `users.user_id` | |
-| `description`, `hazard_type` | `varchar` | e.g. "Flooded Street" |
-| `proof_files` | `longtext` (JSON, `json_valid` checked) | photo/video proof |
-| `latitude`, `longitude` | `decimal` | |
-| `status` | `varchar` | default `Active` |
+### 2.6 `responders` & `vehicles`
+Municipal response units and their linked emergency vehicle fleets.
 
-</details>
+- **`responders`**: San Isidro BFP (Firefighter), San Isidro PNP (Police), MDRRMO Rescue Team (Rescue), Rural Health Unit — RHU (Medical).
+- **`vehicles`**: Ambulances, Fire Trucks, Patrol Cars, Rescue Boats, Utility Trucks (linked to specific `responder_id`).
 
-<details>
-<summary><b>dispatch</b></summary>
+---
 
-| Column | Type | Notes |
-|---|---|---|
-| `dispatch_id` | `int` PK, auto-increment | |
-| `request_id` | `int` FK → `emergency_requests.request_id` | |
-| `responder_id` | `int` FK → `responders.responder_id` | |
-| `vehicle_id` | `int` FK → `vehicles.vehicle_id` | |
-| `dispatch_time`, `arrival_time` | `datetime` | |
-| `status` | `varchar` | e.g. `Completed` |
+### 2.7 `broadcasts` & `broadcast_barangays`
+Emergency alert banners pushed by dispatchers/admins.
 
-</details>
+- **`broadcasts`**: Contains `broadcast_id`, `title`, `message`, `media_files` (JSON array of up to 4 images/videos), `is_active` (`1` or `0`), and `created_at`.
+- **`broadcast_barangays`**: Pivot table (`broadcast_id`, `barangay_id`). If empty, the broadcast is treated as **Town-wide**; otherwise, it is scoped exclusively to citizens registered in the selected barangays.
 
-<details>
-<summary><b>responders</b></summary>
+---
 
-| Column | Type |
-|---|---|
-| `responder_id` | `int` PK |
-| `name`, `role`, `contact`, `status` | `varchar` |
+### 2.8 `user_settings`
+Flexible key-value preferences table with unique constraint on `(user_id, key)`.
 
-Seeded units: San Isidro BFP (Firefighter), San Isidro PNP (Police), MDRRMO Rescue Team (Rescue), Rural Health Unit — RHU (Medical).
-
-</details>
-
-<details>
-<summary><b>vehicles</b></summary>
-
-| Column | Type | Notes |
-|---|---|---|
-| `vehicle_id` | `int` PK, auto-increment | |
-| `responder_id` | `int` FK → `responders.responder_id` | |
-| `name`, `type`, `plate`, `status` | `varchar` | |
-
-</details>
-
-<details>
-<summary><b>broadcasts</b></summary>
-
-| Column | Type |
-|---|---|
-| `broadcast_id` | `int` PK |
-| `message` | `text` |
-| `is_active` | `tinyint(1)`, default `1` |
-| `created_at` | `timestamp` |
-
-A broadcast with no rows in `broadcast_barangays` is **town-wide**; one or more rows there scopes it to those barangays (`Broadcast::isTownWide()` checks this). Multiple broadcasts can be active at once.
-
-</details>
-
-<details>
-<summary><b>broadcast_barangays</b></summary>
-
-| Column | Type |
-|---|---|
-| `broadcast_id` | `int` FK → `broadcasts.broadcast_id` |
-| `barangay_id` | `int` FK → `barangays.barangay_id` |
-
-Pivot table for many-to-many broadcast ↔ barangay targeting. A broadcast with zero rows here is town-wide.
-
-</details>
-
-<details>
-<summary><b>feedback</b></summary>
-
-| Column | Type |
-|---|---|
-| `id` | `bigint unsigned` PK |
-| `user_id` | `int` FK → `users.user_id` (cascade delete) |
-| `message` | `text` |
-| `category` | `varchar`, default `general` |
-| `created_at` | `timestamp` |
-
-</details>
-
-<details>
-<summary><b>device_tokens</b></summary>
-
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `int` PK | |
-| `user_id` | `int` FK → `users.user_id` (cascade delete) | |
-| `token` | `varchar` | FCM push token |
-| `platform` | `varchar`, default `android` | |
-
-</details>
-
-<details>
-<summary><b>user_settings</b></summary>
-
-| Column | Type |
-|---|---|
-| `id` | `bigint unsigned` PK |
-| `user_id` | `int` FK → `users.user_id` (cascade delete) |
-| `key`, `value` | `varchar` |
-| `save_media_to_device` | `tinyint(1)` |
-
-Stores per-user preferences as key/value pairs (`dark_mode`, `location_auto_fetch`, `map_default_style`, `reduce_animations`, etc.) instead of one column per setting.
-
-</details>
-
-<details>
-<summary><b>Laravel framework tables</b> (not app data)</summary>
-
-`cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, `migrations`, `sessions`, `password_reset_tokens`, `personal_access_tokens` — standard Laravel infrastructure tables.
-
-</details>
-
-## Seed Data
-
-`database/emergencydb.sql` currently ships as a **full data dump**, not just the schema — it includes sample citizen accounts, bcrypt password hashes, real-looking emails/phone numbers, and live FCM push tokens from testing.
-
-**Before this repo goes anywhere public or gets shown to a panel:** swap this file for a schema-only export (`mysqldump --no-data`) plus a small, made-up seed set, or scrub the real personal data and tokens out of the current dump. Shipping real push tokens and password hashes in a public repo is a risk even though the passwords are hashed.
+Supported Keys:
+- `dark_mode`: `'true'` / `'false'`
+- `reduce_animations`: `'true'` / `'false'`
+- `location_auto_fetch`: `'true'` / `'false'`
+- `map_default_style`: `'street'` / `'satellite'`
+- `notif_emergency_alerts`: `'true'` / `'false'`
+- `notif_broadcast_alerts`: `'true'` / `'false'`
+- `save_media_to_device`: `true` / `false`
