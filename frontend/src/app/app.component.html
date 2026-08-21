@@ -1,4 +1,7 @@
-<ion-app>
+<ion-app [class.electron-app]="isElectron">
+  <!-- Custom titlebar replacing the native one main.js disables (frame:
+       false). Only rendered inside Electron — see AppComponent.isElectron. -->
+  <app-titlebar *ngIf="isElectron"></app-titlebar>
   <ion-router-outlet></ion-router-outlet>
   <!-- Tour overlay at root level so it persists across all routes -->
   <app-tour-overlay></app-tour-overlay>
