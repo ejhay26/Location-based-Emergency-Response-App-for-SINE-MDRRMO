@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Emergency;
 
+use App\Events\EmergencyUpdated;
 use App\Http\Controllers\Controller;
 use App\Services\BarangayResolver;
 use App\Traits\MediaHandling;
@@ -60,6 +61,8 @@ class SosController extends Controller
             'request_time'     => now(),
         ]);
 
+        broadcast(new EmergencyUpdated('submitted', $created->request_id))->toOthers();
+
         return response()->json(['message' => 'Emergency SOS sent!', 'request_id' => $created->request_id], 201);
     }
 
@@ -82,7 +85,10 @@ class SosController extends Controller
             ->where('user_id', $request->user_id)
             ->where('status', 'Pending')
             ->update(['status' => 'Cancelled']);
-        if ($affected) return response()->json(['message' => 'Emergency request cancelled.']);
+        if ($affected) {
+            broadcast(new EmergencyUpdated('cancelled', $request->request_id))->toOthers();
+            return response()->json(['message' => 'Emergency request cancelled.']);
+        }
         return response()->json(['message' => 'Cannot cancel — request may already be dispatched.'], 400);
     }
 
