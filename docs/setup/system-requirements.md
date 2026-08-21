@@ -1,49 +1,82 @@
 # System Requirements
 
-What you need to actually run this app, depending on which side you're on. This is separate from the [Installation Guide](./installation.md), which is about setting up a local dev copy — this page is about what devices/OS versions the finished app supports.
+Comprehensive hardware and software specifications required to run each component of the SINE MDRRMO Emergency Response System.
 
-## Citizen App (Mobile)
+---
 
-| Platform | Minimum version | Notes |
+## 1. Citizen Mobile Application (Android & iOS)
+
+The citizen application is built with **Ionic 8 / Angular 20** and compiled to native mobile packages via **Capacitor 8**.
+
+### Supported Operating Systems
+| Platform | Minimum Version | Target / Recommended | Notes |
+|---|---|---|---|
+| **Android** | **Android 7.0 (API 24, Nougat)** | **Android 14–16 (API 34–36)** | Pinned by `minSdkVersion = 24` in `frontend/android/variables.gradle`. Built against compile/target SDK 36. |
+| **iOS** | **iOS 15.0** | **iOS 17+ / 18+** | Compatible with iPhone 6s, iPhone SE (1st gen), and all newer models. |
+
+### Minimum & Recommended Mobile Hardware Specs
+| Component | Minimum Specification | Recommended Specification | Reason / Notes |
+|---|---|---|---|
+| **RAM** | 2 GB | 3 GB or higher | Ensures smooth camera photo/video capture, Leaflet map rendering, and background tasks. |
+| **Storage** | 100 MB free space | 250 MB free space | App binary is ~30–45 MB; extra space is needed for caching offline reports and proof media in IndexedDB. |
+| **Camera** | 5 MP Rear Camera | 12 MP+ with Autofocus & Flash | Required for live anti-prank proof capture (SOS photo/10s video) and Front/Back valid ID scanning. |
+| **Location / GPS** | GPS / A-GPS hardware | GPS + GLONASS / Galileo | Required for high-accuracy coordinate capture during emergency reporting. |
+| **Network** | 3G / HSPA+ mobile data | 4G LTE / 5G or stable Wi-Fi | Needed for real-time SOS submission and receiving broadcast alerts. |
+| **Permissions** | Location, Camera, Notifications | Location, Camera, Notifications, SMS Retriever (Android) | Essential runtime permissions for app operations. |
+
+---
+
+## 2. Admin & Dispatcher Dashboard (Electron Desktop)
+
+The MDRRMO Command Center dashboard is packaged as a **native desktop application (Electron 42 / Chromium)** using `electron-builder`. It connects directly to the backend API and Laravel Reverb WebSocket server without requiring a hosted web frontend.
+
+### Supported Operating Systems
+| OS | Supported Versions | Distributed Package Formats |
 |---|---|---|
-| Android | **Android 7.0 (API 24)** or newer | Set by `minSdkVersion` in `frontend/android/variables.gradle`. Built and tested against target SDK 36 (Android 16). |
-| iOS | **iOS 15.0** or newer | Set by `IPHONEOS_DEPLOYMENT_TARGET` in the Xcode project. |
+| **Windows** | Windows 10 (64-bit), Windows 11 | NSIS Installer (`.exe`), Portable (`.exe`) |
+| **macOS** | macOS 11 (Big Sur) or newer | Apple Disk Image (`.dmg`), ZIP Archive (`.zip`) |
+| **Linux** | Ubuntu 20.04+, Debian 11+, Fedora 34+, Arch | AppImage, Debian Package (`.deb`), Tarball (`.tar.gz`) |
 
-If a citizen asks "will this work on my phone" — as long as their Android is 7.0+ or their iPhone is on iOS 15+, yes. Anything older than that isn't supported out of the box (you'd have to lower the minimum SDK/deployment target yourself, which may break some plugins).
+### Desktop Hardware Requirements
+| Component | Minimum Specification | Recommended Specification | Purpose |
+|---|---|---|---|
+| **Processor (CPU)** | Dual-Core 2.0 GHz (x64) | Quad-Core 2.5 GHz+ (Intel Core i5 / AMD Ryzen 5 or Apple Silicon) | Fluid UI animations, WebSocket message handling, and real-time mapping. |
+| **RAM** | 4 GB | 8 GB or higher | Smooth rendering of multi-marker interactive Leaflet maps, live dispatch feeds, and analytics charts. |
+| **Display Resolution** | 1280 × 800 pixels | 1920 × 1080 (Full HD) or higher | Optimized layout for multi-panel dispatcher workflow (minimum supported window size: 960 × 600). |
+| **Storage Space** | 500 MB free disk space | 1 GB SSD space | Space for Electron runtime, application bundle, and local log caches. |
+| **Network** | 5 Mbps broadband connection | 15 Mbps+ dedicated fiber/broadband | Continuous WebSocket connection for instant pin drops and desktop notifications. |
 
-Also needed on the device:
-- Internet connection (mobile data or Wi-Fi) — the app talks to the backend API over HTTPS
-- Location permission — required for SOS and hazard reporting to work at all
-- Camera permission — required for the anti-prank live photo/video capture on SOS
+---
 
-## Admin / Dispatcher Dashboard
+## 3. Backend & Cloud Server (Linux VPS / Server)
 
-This is a **native desktop app only** — there's no hosted web version, and no browser access. That's a deliberate choice: it avoids paying for frontend hosting, since the app is distributed as a downloadable install rather than served from a public URL. It's built with Electron (`electron-builder`), targeting:
+The backend is containerized and runs **Laravel 13 on PHP 8.4-FPM**, **Nginx**, and **Laravel Reverb (WebSocket server)**. It supports deployment on **Podman** (recommended for rootless, lightweight execution) as well as **Docker**.
 
-| OS | Package formats |
-|---|---|
-| Windows | NSIS installer, portable `.exe` |
-| macOS | `.dmg`, `.zip` |
-| Linux | AppImage, `.deb`, `.tar.gz` |
+### Recommended Server Specs
+| Tier | Server Specifications | Ideal Use Case |
+|---|---|---|
+| **Minimum / Pilot** | 1 vCPU / 1 GB RAM / 25 GB SSD | Pilot testing, capstone demonstration, development staging. |
+| **Production (Recommended)** | 2 vCPU / 2 GB–4 GB RAM / 50 GB SSD | Municipal deployment handling active citizen traffic, background queues, and concurrent WebSocket connections. |
 
-There's no strict "minimum Windows version" pinned in the project — Electron itself (currently v42) generally needs **Windows 10 or later**, **macOS 11+**, or a reasonably modern Linux distro. If a dispatcher asks whether their older Windows machine can run the desktop app, Windows 10/11 is the safe answer; anything older isn't guaranteed to work.
+### Software & Stack Requirements
+| Requirement | Version / Specification | Notes |
+|---|---|---|
+| **PHP** | **8.4+** | Required extensions: `pdo_mysql`, `mbstring`, `curl`, `zip`, `intl`, `xml`, `gd`, `bcmath`, `exif`, `opcache`, `pcntl`. |
+| **Framework** | **Laravel 13** | Core REST API, Sanctum token authentication, and background queues. |
+| **WebSocket Engine** | **Laravel Reverb 1.11+** | Dedicated long-running WebSocket server on port 6001 (proxied over WSS/443 via Nginx). |
+| **Database** | **MariaDB 10.6+ / MySQL 8.0+** | UTF8mb4 charset, InnoDB storage engine. |
+| **Web Server** | **Nginx 1.25+** | Reverse proxy for PHP-FPM, `/storage` static files, and WebSocket upgrade proxy for `/app/` and `/apps/`. |
+| **Container Engine** | **Podman (or Docker)** | Managed via `podman-compose` or `docker compose` (`app`, `reverb`, optional local `minio`). |
+| **Object Storage** | S3-Compatible (Cloudflare R2 / AWS S3 / MinIO) | Scalable off-server storage for SOS photos, videos, valid IDs, and profile avatars. |
+| **Push Notifications** | **Firebase Cloud Messaging (FCM v1)** | High-priority push alerts to Android and iOS devices. |
+| **SMS Gateway** | **PhilSMS API v3** | Transactional OTP delivery via `https://dashboard.philsms.com/api/v3/sms/send`. |
 
-The backend API still needs to be reachable over the internet for the desktop app to talk to it (see [Production Deployment](../deployment/production.md)) — only the *frontend* skips hosting, not the API.
+---
 
-## Backend Server (for whoever's hosting it)
+## Quick Reference Summary
 
-| Requirement | Version |
-|---|---|
-| PHP | 8.3+ |
-| Laravel | 13 |
-| Database | MariaDB or MySQL (any version compatible with Laravel 13's query builder) |
-| Docker | Required only for the containerized production deployment — see [Production Deployment](../deployment/production.md) |
-
-## Quick Answer Table
-
-| Who's asking | Answer |
-|---|---|
-| "Does my Android phone support this?" | Android 7.0 or newer — yes |
-| "Does my iPhone support this?" | iOS 15 or newer — yes |
-| "Can I use this on my office Windows PC?" | Yes, via the desktop app install (Windows 10+) — no browser version exists |
-| "Can I use this on Mac/Linux as an admin?" | Yes — native desktop builds exist for both too |
+| User / Role | Supported Environment | Minimum Specs at a Glance |
+|---|---|---|
+| **Citizen (Mobile)** | Android 7.0+ or iOS 15.0+ | Smartphone with 2 GB RAM, Camera, GPS, and Internet |
+| **Dispatcher / Admin** | Windows 10/11, macOS 11+, or Linux | PC/Laptop with 4 GB RAM, 1280×800 Display, Broadband |
+| **Server Host** | Linux VPS (Ubuntu 22.04/24.04 LTS) | 1–2 vCPU, 1–2 GB RAM, Podman / Docker, PHP 8.4, MariaDB 10.6+ |
