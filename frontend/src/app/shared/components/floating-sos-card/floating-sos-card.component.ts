@@ -4,10 +4,6 @@ import { PressFeedbackDirective } from '../../directives/press-feedback.directiv
 import { parseServerDate } from '../../pipes/utc-date.pipe';
 import { QueuedReport } from '../../../core/services/offline-queue';
 
-/**
- * Minimal shape read from an emergency_requests row — narrow on purpose so
- * the parent can pass the raw API object through without mapping it first.
- */
 export interface FloatingSosStatus {
   request_id: number;
   status: 'Pending' | 'Dispatched' | 'Resolved' | 'Cancelled';
@@ -18,34 +14,20 @@ export interface FloatingSosStatus {
 type PillState = 'offline' | 'pending' | 'dispatched';
 
 interface SosPill {
-  /** Unique key for ngFor trackBy — negative ids for offline-queue items. */
   key: number;
   state: PillState;
   label: string;
   sublabel: string;
   icon: string;
   timeAgo: string;
+  /** null for offline-queue pills (no server id yet) */
+  requestId: number | null;
+  /** set for offline-queue pills */
+  queueId: string | null;
+  /** Dispatched reports cannot be cancelled — responder already en route */
+  cancellable: boolean;
 }
 
-/**
- * FloatingSosCardComponent — Stage 5 (revised).
- *
- * Renders one large pill per active SOS:
- *   • One pill per queued-offline entry (no server id yet)
- *   • One pill per Pending/Dispatched server-confirmed report
- *
- * Offline-queue pills always appear above server ones (offline = most
- * "recently submitted from the user's perspective" since they haven't even
- * reached the server yet). Within each group order is newest-first, which
- * is the order the parent already passes them in.
- *
- * Rendered as a normal block element inside ion-content (NOT slot="fixed"),
- * so it participates in normal page flow between the header greeting and
- * the SOS button — the most visible location without obstructing the tab bar.
- *
- * Tap on any pill → emits cardTap. The parent navigates to History where
- * the full record lives.
- */
 @Component({
   selector: 'app-floating-sos-card',
   standalone: true,
@@ -54,16 +36,15 @@ interface SosPill {
   styleUrl: './floating-sos-card.component.scss',
 })
 export class FloatingSosCardComponent {
-  /** All Pending/Dispatched server-confirmed SOS reports, newest-first. */
   @Input() activeReports: FloatingSosStatus[] = [];
-  /** Queued-offline SOS entries from OfflineQueueService.items(). */
   @Input() queuedItems: QueuedReport[] = [];
   @Output() cardTap = new EventEmitter<void>();
+  /** Emits request_id for server-confirmed pills, null for offline-queue pills (use queueId instead) */
+  @Output() cancelTap = new EventEmitter<{ requestId: number | null; queueId: string | null }>();
 
   get pills(): SosPill[] {
     const result: SosPill[] = [];
 
-    // Offline-queue pills first (negative key so no collision with request_ids)
     for (let i = 0; i < this.queuedItems.length; i++) {
       const item = this.queuedItems[i];
       result.push({
@@ -73,10 +54,12 @@ export class FloatingSosCardComponent {
         sublabel: "Will send automatically once you're back online.",
         icon: 'fa-solid fa-cloud-arrow-up',
         timeAgo: '',
+        requestId: null,
+        queueId: item.id,
+        cancellable: true,
       });
     }
 
-    // Server-confirmed active reports
     for (const r of this.activeReports) {
       const state: PillState = r.status === 'Dispatched' ? 'dispatched' : 'pending';
       result.push({
@@ -88,15 +71,18 @@ export class FloatingSosCardComponent {
           : 'MDRRMO has received your request and is reviewing it.',
         icon: state === 'dispatched' ? 'fa-solid fa-truck-medical' : 'fa-solid fa-hourglass-half',
         timeAgo: this.calcTimeAgo(r.request_time),
+        requestId: r.request_id,
+        queueId: null,
+        // Only Pending can be cancelled — Dispatched means a responder is
+        // already en route, cancelling at that point is handled by History.
+        cancellable: state === 'pending',
       });
     }
 
     return result;
   }
 
-  get visible(): boolean {
-    return this.pills.length > 0;
-  }
+  get visible(): boolean { return this.pills.length > 0; }
 
   private calcTimeAgo(dateStr: string): string {
     const date = parseServerDate(dateStr);
@@ -111,4 +97,9 @@ export class FloatingSosCardComponent {
   trackByKey(_: number, pill: SosPill): number { return pill.key; }
 
   onTap() { this.cardTap.emit(); }
+
+  onCancel(ev: MouseEvent, pill: SosPill) {
+    ev.stopPropagation(); // don't also fire cardTap
+    this.cancelTap.emit({ requestId: pill.requestId, queueId: pill.queueId });
+  }
 }

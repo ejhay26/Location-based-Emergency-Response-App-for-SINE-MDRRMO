@@ -20,7 +20,21 @@
 
       <div class="sos-pill__right">
         <span *ngIf="pill.timeAgo" class="sos-pill__time">{{ pill.timeAgo }}</span>
-        <i class="fa-solid fa-chevron-right sos-pill__chevron"></i>
+
+        <!-- Cancel button — only on cancellable pills (Pending + offline queue) -->
+        <button *ngIf="pill.cancellable"
+                class="sos-pill__cancel-action-btn"
+                (touchstart)="$event.stopPropagation()"
+                (touchend)="$event.stopPropagation()"
+                (mousedown)="$event.stopPropagation()"
+                (click)="onCancel($event, pill)"
+                aria-label="Cancel this SOS report">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Cancel</span>
+        </button>
+
+        <!-- Chevron only on non-cancellable pills (Dispatched) — tap goes to History -->
+        <i *ngIf="!pill.cancellable" class="fa-solid fa-chevron-right sos-pill__chevron"></i>
       </div>
     </div>
   </div>

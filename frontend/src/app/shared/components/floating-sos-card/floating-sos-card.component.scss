@@ -38,6 +38,29 @@
   animation: sosPillIn 0.22s ease;
 }
 
+.sos-pill__cancel-action-btn {
+  pointer-events: all;
+  background: rgba(235, 68, 90, 0.12);
+  color: var(--ion-color-danger, #eb445a);
+  border: 1px solid rgba(235, 68, 90, 0.35);
+  border-radius: 9999px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+
+  &:hover, &:active {
+    background: var(--ion-color-danger, #eb445a);
+    color: #ffffff;
+    transform: scale(0.96);
+  }
+}
+
 @keyframes sosPillIn {
   from { opacity: 0; transform: translateY(6px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
