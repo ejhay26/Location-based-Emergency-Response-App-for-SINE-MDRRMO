@@ -1,78 +1,218 @@
-# Production Deployment
+# Production Deployment Guide — Linux Server / Cloud VPS
 
-## Setup
+Step-by-step guide for deploying the containerized SINE MDRRMO backend API and Laravel Reverb WebSocket server to a **Linux Server / Cloud VPS (Ubuntu LTS)** using **Podman** (or **Docker**).
 
-The backend ships as a **single Docker image** running nginx + php-fpm together via `supervisord`, based on `php:8.3-fpm-alpine`. Target hosting: AWS free tier.
+---
+
+## 1. Architecture Overview
+
+The production backend runs as a multi-container stack managed via `podman-compose` or `docker compose` on a Linux server:
 
 ```
-backend/
-├── Dockerfile              → nginx + php-fpm + supervisord, single container
-├── docker-compose.yml      → starts/manages the container
-└── docker/
-    ├── nginx/nginx.conf
-    ├── php/php.ini
-    └── supervisord.conf
+┌────────────────────────────────────────────────────────┐
+│             Linux Server / Cloud VPS (Ubuntu LTS)      │
+│                                                        │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │                Nginx (Port 80 / 443 SSL)         │  │
+│  │  ├─ /api/*       ──▶ FastCGI (PHP 8.4-FPM)       │  │
+│  │  ├─ /storage/*   ──▶ Static Storage Symlinks     │  │
+│  │  └─ /app/, /apps ──▶ WebSocket Proxy (Reverb)    │  │
+│  └──────────────────────────┬───────────────────────┘  │
+│                             │                          │
+│         ┌───────────────────┴───────────────────┐      │
+│         ▼                                       ▼      │
+│  ┌──────────────┐                       ┌──────────────┐
+│  │ mdrrmo_app   │                       │mdrrmo_reverb │
+│  │ (PHP 8.4-FPM)│                       │ (Reverb WS)  │
+│  └──────┬───────┘                       └──────┬───────┘
+│         │                                      │       │
+│         └──────────────────┬───────────────────┘       │
+│                            ▼                           │
+│                 ┌─────────────────────┐                │
+│                 │  MariaDB / MySQL    │                │
+│                 │ (Port 3306 / Local) │                │
+│                 └─────────────────────┘                │
+└────────────────────────────┬───────────────────────────┘
+                             │
+                             ▼
+              ┌─────────────────────────────┐
+              │ S3 / Cloud Storage (R2/S3)  │
+              │  (Media & Proof Storage)    │
+              └─────────────────────────────┘
 ```
 
-The database runs **outside** the container (on the host or a managed DB service) — the container reaches it via `host.docker.internal`, there's no bundled DB container.
+---
 
-## Building & Running
+## 2. Server Requirements & Initialization
 
+### Hardware Specs
+- **Minimum:** 1 vCPU / 1 GB RAM / 25 GB SSD (suitable for pilot/testing)
+- **Recommended:** 2 vCPU / 2–4 GB RAM / 50 GB SSD (suitable for municipal live operations)
+
+### Initial Server Setup
+SSH into your server:
 ```bash
-cd backend
-docker compose up -d --build
+ssh root@YOUR_SERVER_IP
 ```
 
-This builds the image (installs PHP extensions, runs `composer install --no-dev --optimize-autoloader`, sets up `storage`/`bootstrap/cache` permissions for `www-data`) and starts the container on port `80`.
-
-## Environment Overrides for Production
-
-Set these no matter how the container gets launched — full reference in [Environment Variables](../setup/environment.md):
-
-| Variable | Production value |
-|---|---|
-| `APP_ENV` | `production` |
-| `APP_DEBUG` | `false` — **important**; leaving this `true` in production shows stack traces and config to anyone who hits an error |
-| `DB_HOST` | `host.docker.internal` (or your managed DB endpoint) |
-| `DB_USERNAME` / `DB_PASSWORD` | A dedicated, limited DB user — never `root` |
-
-`docker-compose.yml` already sets `APP_ENV`/`APP_DEBUG`/`DB_HOST`/`DB_PORT` — everything else (mail, Firebase, Semaphore, DB credentials) still needs to come from a production `.env` file, mounted or added in through your deploy process — **never committed to the image or the repo**.
-
-## Keeping Uploaded Files Around
-
-`storage/` and `bootstrap/cache/` are mounted as volumes in `docker-compose.yml` so uploaded SOS/hazard media and profile pictures survive container rebuilds. Without this, every redeploy would wipe out any evidence citizens submitted.
-
-```yaml
-volumes:
-  - ./storage:/var/www/html/storage
-  - ./bootstrap/cache:/var/www/html/bootstrap/cache
-```
-
-After the first deploy, run this once inside the container:
+Update system packages and install essential utilities:
 ```bash
-php artisan storage:link
+apt update && apt upgrade -y
+apt install -y curl git ufw fail2ban
 ```
 
-## Notes on AWS Free Tier
+---
 
-- A `t2.micro`/`t3.micro` instance is enough to run this one container comfortably at capstone/pilot scale — it's not built for heavy production traffic.
-- Keep the database off the same instance if you can (or watch memory closely if MariaDB and the app share one free-tier box).
-- If you move media storage to S3 later, the `AWS_*` variables in `.env` are already there for it — see [Environment Variables — AWS](../setup/environment.md#aws-optional-production-storage).
+## 3. Container Engine Setup (Podman or Docker)
 
-## Frontend Deployment
+You can run the stack with either **Podman** (recommended for rootless, daemonless, and lightweight operation) or standard **Docker**.
 
-There's no hosted web frontend — this avoids paying for frontend hosting entirely. The Ionic/Angular build output is packaged into native installs instead of being served from a URL:
-- A signed APK/AAB via Capacitor for Android, and an IPA for iOS (citizen app)
-- A native desktop install via Electron for Windows/macOS/Linux (admin/dispatcher app) — see [System Requirements](../setup/system-requirements.md)
+### Option A: Podman (Recommended & Lightweight)
+```bash
+apt install -y podman podman-compose
+```
 
-Either way, point the app's API base URL at the deployed backend's real domain before building for release — not `localhost`. The backend API itself still needs to be hosted somewhere reachable (see above); it's only the frontend that skips hosting.
+### Option B: Docker
+```bash
+curl -fsSL https://get.docker.com | sh
+systemctl enable docker
+systemctl start docker
+```
 
-## Before You Deploy
+Configure the UFW Firewall:
+```bash
+ufw allow OpenSSH
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw enable
+```
 
-- [ ] `APP_DEBUG=false`
-- [ ] Production `.env` filled in (not the `.env.example` placeholders)
-- [ ] Database seeded/migrated with a **schema-only or cleaned-up** dataset — see [Database Schema — Seed Data](../architecture/database-schema.md#seed-data)
-- [ ] `storage:link` run inside the deployed container
-- [ ] `storage/` volume mounted so uploads survive redeploys
-- [ ] Firebase credentials JSON present but **not committed to version control**
-- [ ] Frontend API base URL points at the production backend domain
+---
+
+## 4. Deploying the Backend Stack
+
+### 4.1 Clone Repository & Prepare Environment
+```bash
+cd /var/www
+git clone https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO.git
+cd Location-based-Emergency-Response-App-for-SINE-MDRRMO/backend
+
+cp .env.example .env
+nano .env
+```
+
+### 4.2 Production `.env` Settings
+Ensure these critical values are set for production:
+```env
+APP_NAME="MDRRMO San Isidro Emergency App"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://api.yourdomain.com
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=emergencydb
+DB_USERNAME=mdrrmo_user
+DB_PASSWORD=your_super_secret_db_password
+
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=mdrrmo_sine_app
+REVERB_APP_KEY=your_production_reverb_key
+REVERB_APP_SECRET=your_production_reverb_secret
+REVERB_HOST=0.0.0.0
+REVERB_PORT=6001
+REVERB_SCHEME=https
+
+FILESYSTEM_DISK=s3
+AWS_ACCESS_KEY_ID=your_storage_access_key
+AWS_SECRET_ACCESS_KEY=your_storage_secret_key
+AWS_DEFAULT_REGION=auto
+AWS_BUCKET=mdrrmo-sine-media
+AWS_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+AWS_USE_PATH_STYLE_ENDPOINT=false
+
+PHILSMS_API_TOKEN=your_philsms_api_token
+PHILSMS_SENDER_NAME="PhilSMS"
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USERNAME=your_gmail@gmail.com
+MAIL_PASSWORD=your_16_char_app_password
+MAIL_ENCRYPTION=ssl
+MAIL_FROM_ADDRESS="no-reply@sinemdrrmo.gov.ph"
+MAIL_FROM_NAME="MDRRMO SINE Emergency Response"
+
+FIREBASE_PROJECT_ID=mdrrmo-sine-response-app
+FIREBASE_CREDENTIALS=storage/app/firebase-credentials.json
+```
+
+---
+
+### 4.3 Build & Start Containers
+
+Using **Podman**:
+```bash
+podman-compose up -d --build
+```
+
+*(Or using **Docker**: `docker compose up -d --build`)*
+
+---
+
+### 4.4 Run Database Migrations & Cache Optimization
+
+Using **Podman**:
+```bash
+# Run migrations
+podman exec -it mdrrmo_backend php artisan migrate --force
+
+# Optimize configurations
+podman exec -it mdrrmo_backend php artisan config:cache
+podman exec -it mdrrmo_backend php artisan route:cache
+podman exec -it mdrrmo_backend php artisan view:cache
+```
+
+*(Or with Docker: `docker compose exec app php artisan migrate --force`)*
+
+---
+
+## 5. SSL & Domain Configuration (Let's Encrypt Certbot)
+
+Install Certbot to provision free SSL certificates for your domain:
+```bash
+apt install -y certbot python3-certbot-nginx
+certbot --nginx -d api.yourdomain.com
+```
+
+### Nginx WebSocket Proxy Configuration
+Ensure your Nginx configuration includes proxy parameters for Laravel Reverb WebSocket connections:
+```nginx
+# WebSocket reverse proxy for Laravel Reverb
+location /app/ {
+    proxy_pass http://127.0.0.1:6001;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+}
+```
+
+---
+
+## 6. Pre-Flight Production Checklist
+
+- [ ] `APP_DEBUG` is explicitly set to `false`.
+- [ ] `APP_ENV` is set to `production`.
+- [ ] Database credentials use a dedicated non-root user with strong password.
+- [ ] MariaDB binds securely to `127.0.0.1` and is not exposed to the public internet.
+- [ ] `storage/` directory is mounted as a persistent container volume.
+- [ ] S3-compatible bucket (Cloudflare R2 / AWS S3) has valid write credentials.
+- [ ] Firebase credentials JSON exists in `storage/app/` and is omitted from Git.
+- [ ] UFW firewall is active, allowing only ports 22, 80, and 443.
+- [ ] Frontend `environment.prod.ts` points to the production domain and Reverb WSS endpoint.
