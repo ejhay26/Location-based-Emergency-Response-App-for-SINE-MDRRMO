@@ -1,12 +1,15 @@
 # Location-Based Emergency Response App — SINE MDRRMO
 
-[![License](https://img.shields.io/badge/license-Proprietary-red)](./LICENSE)
-[![Laravel](https://img.shields.io/badge/backend-Laravel%2013-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
-[![Angular](https://img.shields.io/badge/frontend-Angular%2020%20%2F%20Ionic%208-DD0031?logo=angular&logoColor=white)](https://angular.dev)
-[![Database](https://img.shields.io/badge/database-MariaDB-003545?logo=mariadb&logoColor=white)](https://mariadb.org)
-[![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20Desktop-3DDC84?logo=android&logoColor=white)](https://capacitorjs.com)
+![License](https://img.shields.io/badge/license-Proprietary-red)
+![Laravel](https://img.shields.io/badge/backend-Laravel%2013-FF2D20?logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/php-8.4-777BB4?logo=php&logoColor=white)
+![Angular](https://img.shields.io/badge/frontend-Angular%2020%20%2F%20Ionic%208-DD0031?logo=angular&logoColor=white)
+![Database](https://img.shields.io/badge/database-MariaDB-003545?logo=mariadb&logoColor=white)
+![Broadcasting](https://img.shields.io/badge/realtime-Laravel%20Reverb-FF2D20?logo=laravel&logoColor=white)
+![Containers](https://img.shields.io/badge/containers-Podman%20%2F%20Docker-892CA0?logo=podman&logoColor=white)
+![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20Desktop-3DDC84?logo=android&logoColor=white)
 
-A full-stack, location-based emergency response app built for the **Municipal Disaster Risk Reduction and Management Office (MDRRMO)** of San Isidro, Nueva Ecija. It connects citizens who need help with local responders — with fast dispatch, anti-prank checks, and live location tracking.
+A full-stack, location-based emergency response ecosystem engineered for the **Municipal Disaster Risk Reduction and Management Office (MDRRMO)** of San Isidro, Nueva Ecija. It connects citizens facing crises with local emergency responders through sub-second dispatching, anti-prank verification checks, offline resilient reporting, and live geospatial tracking.
 
 Bachelor of Science in Information Technology Capstone Project — Nueva Ecija University of Science and Technology, San Isidro Campus.
 
@@ -14,87 +17,105 @@ Bachelor of Science in Information Technology Capstone Project — Nueva Ecija U
 
 ## Overview
 
-The app has two sides:
+The platform operates as a cohesive, multi-platform emergency ecosystem:
 
-- **Citizen App** — residents sign up, manage their profile, send a one-tap SOS with live GPS + photo/video proof, and report road hazards.
-- **Admin/Dispatcher Dashboard** — a real-time, auto-updating map where MDRRMO staff can see incoming emergencies, send out the right responder unit, and manage citizen accounts. Ships as a native desktop app (Electron) for Windows/macOS/Linux — there's no hosted web version, so there's nothing to pay for hosting on the admin side either.
+- **Citizen Mobile Application (Android / iOS)** — Residents sign up with verified dual-sided government ID proof, manage their emergency health profiles, send one-tap SOS alerts with live GPS and camera proof (with offline queueing support), report road hazards, and receive barangay-targeted broadcast alerts.
+- **Admin & Dispatcher Command Center (Electron Desktop)** — A native desktop application for Windows, macOS, and Linux. Staff track active emergencies in real-time on a boundary-locked Leaflet map, smart-dispatch responder fleets (BFP, PNP, Rescue, RHU), manage citizen verifications, and analyze incident trends with zero web frontend hosting costs.
+- **Backend API & Real-Time Engine (Laravel 13 & Reverb)** — Containerized via Podman / Docker on a cloud Linux VPS, providing REST APIs, Sanctum token authentication, authoritative geospatial point-in-polygon resolution, transactional SMS via PhilSMS, and sub-second WebSocket broadcasting via Laravel Reverb.
+
+---
 
 ## Tech Stack
 
 <table>
 <tr>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/ionic/3880FF" width="40" height="40" alt="Ionic"/><br/><sub><b>Ionic 8</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/angular/DD0031" width="40" height="40" alt="Angular"/><br/><sub><b>Angular 20</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/capacitor/119EFF" width="40" height="40" alt="Capacitor"/><br/><sub><b>Capacitor 8</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/electron/47848F" width="40" height="40" alt="Electron"/><br/><sub><b>Electron</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/android/3DDC84" width="40" height="40" alt="Android"/><br/><sub><b>Android</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/apple/000000" width="40" height="40" alt="iOS"/><br/><sub><b>iOS</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/ionic/3880FF" width="40" height="40" alt="Ionic" pointer-events="none"/><br/><sub><b>Ionic 8</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/angular/DD0031" width="40" height="40" alt="Angular" pointer-events="none"/><br/><sub><b>Angular 20</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/capacitor/119EFF" width="40" height="40" alt="Capacitor" pointer-events="none"/><br/><sub><b>Capacitor 8</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/electron/47848F" width="40" height="40" alt="Electron" pointer-events="none"/><br/><sub><b>Electron 42</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/android/3DDC84" width="40" height="40" alt="Android" pointer-events="none"/><br/><sub><b>Android</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/apple/000000" width="40" height="40" alt="iOS" pointer-events="none"/><br/><sub><b>iOS</b></sub></td>
 </tr>
 <tr>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/laravel/FF2D20" width="40" height="40" alt="Laravel"/><br/><sub><b>Laravel 13</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/php/777BB4" width="40" height="40" alt="PHP"/><br/><sub><b>PHP 8.3</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/mariadb/003545" width="40" height="40" alt="MariaDB"/><br/><sub><b>MariaDB / MySQL</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/docker/2496ED" width="40" height="40" alt="Docker"/><br/><sub><b>Docker</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/nginx/009639" width="40" height="40" alt="nginx"/><br/><sub><b>nginx</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/leaflet/199900" width="40" height="40" alt="Leaflet"/><br/><sub><b>Leaflet.js</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/laravel/FF2D20" width="40" height="40" alt="Laravel" pointer-events="none"/><br/><sub><b>Laravel 13</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/php/777BB4" width="40" height="40" alt="PHP" pointer-events="none"/><br/><sub><b>PHP 8.4</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/mariadb/003545" width="40" height="40" alt="MariaDB" pointer-events="none"/><br/><sub><b>MariaDB</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/podman/892CA0" width="40" height="40" alt="Podman" pointer-events="none"/><br/><sub><b>Podman / Docker</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/nginx/009639" width="40" height="40" alt="Nginx" pointer-events="none"/><br/><sub><b>Nginx</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/leaflet/199900" width="40" height="40" alt="Leaflet" pointer-events="none"/><br/><sub><b>Leaflet.js</b></sub></td>
 </tr>
 <tr>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/chartdotjs/FF6384" width="40" height="40" alt="Chart.js"/><br/><sub><b>Chart.js</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/firebase/FFCA28" width="40" height="40" alt="Firebase"/><br/><sub><b>Firebase (push)</b></sub></td>
-<!-- <td align="center" width="110"><img src="https://cdn.simpleicons.org/amazonaws/232F3E" width="40" height="40" alt="AWS"/><br/><sub><b>AWS</b></sub></td> -->
-<td align="center" width="110"></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/chartdotjs/FF6384" width="40" height="40" alt="Chart.js" pointer-events="none"/><br/><sub><b>Chart.js</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/firebase/FFCA28" width="40" height="40" alt="Firebase" pointer-events="none"/><br/><sub><b>Firebase (FCM)</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/gnubash/4EAA25" width="40" height="40" alt="PhilSMS" pointer-events="none"/><br/><sub><b>PhilSMS API</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/socketdotio/010101" width="40" height="40" alt="Reverb" pointer-events="none"/><br/><sub><b>Reverb (WS)</b></sub></td>
 <td align="center" width="110"></td>
 <td align="center" width="110"></td>
 </tr>
 </table>
 
+---
+
 ## Core Features
 
-- **Role-Based Access** — separate dashboards and permissions for Citizens, Dispatchers, and Master Admins.
-- **One-Tap SOS with Anti-Prank Check** — grabs GPS location and forces a live camera photo (not a gallery pick) so people can't easily spam fake emergencies.
-- **Live Map with Boundary Lock** — the map keeps SOS pins and the camera view inside San Isidro's actual town borders, using real boundary shapes instead of a rough box.
-- **Real-Time Dispatch Updates** — the dashboard checks for new emergencies in the background and drops pins on the map the moment one comes in.
-- **Smart Unit Assignment** — dropdowns that link each responder (Fire, Police, Rescue, RHU) to their assigned vehicle, so dispatchers can't pick a mismatched pair.
-- **"Golden Minute" Medical Profile** — citizens can save blood type, allergies, and PWD status ahead of time, so it's attached automatically when they send an SOS.
-- **Hazard Reporting** — residents can report road hazards (floods, fallen trees, etc.) with photo proof, so dispatchers can route around them.
-- **Barangay-Targeted Broadcast Alerts** — the Master Admin can push an alert banner either town-wide or to specific barangays, and citizens only see alerts that apply to them (town-wide + their own barangay).
-- **OTP-Based Password Recovery & Changes** — a one-time-code flow over email, required even for changing your password while already logged in.
-- **Analytics Dashboard** — filterable emergency trends (7/30/90 days) with charts you can click into for details.
-- **Search & Filter Everywhere** — every admin list (Citizens, Dispatchers, ID Verifications, Log Archive, Analytics) supports search plus a shared date-range filter (single day / several days / a range), with a summary bar showing which filters are active.
-- **Guided Onboarding Tour** — a first-run walkthrough overlay for new users.
+- **Real-Time WebSocket Synchronization** — Powered by Laravel Reverb and Laravel Echo; incidents, unit assignments, hazard updates, and broadcast alerts appear instantaneously across devices without manual refresh.
+- **Role-Based Access Control (RBAC)** — Granular permission tiers and token abilities for Citizens, Dispatchers, and Master Administrators.
+- **Anti-Prank Verification System** — Requires live camera photo or 10-second video evidence (preventing gallery uploads) combined with locked GPS coordinates.
+- **3-Strike False Alarm Moderation** — Dispatchers can flag confirmed false alarms, automatically suspending accounts upon reaching 3 strikes.
+- **Dual-Sided Government ID Verification** — Registration requires capturing both the **Front** and **Back** of an official valid ID plus a live selfie holding the ID card.
+- **Offline-First Emergency Reporting** — Offline queueing via **IndexedDB** guarantees SOS submissions are preserved during cellular outages and automatically dispatched when connectivity returns.
+- **Home Screen Emergency Widget & Deep Links** — 1-Tap SOS widget pinned to the Android home screen connecting directly via `sinemdrrmo://report`.
+- **Authoritative Server Geolocation (`BarangayResolver`)** — Ray-casting point-in-polygon math against official PSA boundaries locks incidents and camera views to San Isidro's municipal territory.
+- **Smart Fleet & Unit Dispatching** — Linked responder and vehicle dropdowns prevent assigning mismatched equipment (e.g. fire trucks to medical calls).
+- **"Golden Minute" Medical Profile** — Blood type, allergies, conditions, and PWD status are automatically attached to outgoing SOS alerts.
+- **Public Road Hazard Reporting** — Residents report floods, fallen trees, and downed power lines with photo proof to assist emergency route planning.
+- **Barangay-Targeted Rich Media Broadcasts** — Municipal safety banners can be broadcast town-wide or targeted to specific barangays, supporting titles and attached media files.
+- **Desktop Notifications for Dispatchers** — Electron command center triggers native audio and visual OS notifications for incoming incidents.
+- **Multi-Channel OTP Authentication** — Secure verification via Email OTP or SMS OTP (PhilSMS) with native Android SMS User Consent auto-retrieval.
+- **Interactive Analytics Dashboard** — Rolling 7/30/90-day incident trends, categorical breakdowns, and geographic volume distribution powered by Chart.js.
+- **Unified Date-Range Search & Filters** — Standardized calendar filters and active filter chips shared across all admin tables.
+
+---
 
 ## User Guides
 
-| Guide | For |
-|---|---|
-| [Citizen Guide](./docs/guides/citizen-guide.md) | Registering, logging in, sending an SOS, reporting hazards, settings |
-| [Dispatcher Guide](./docs/guides/dispatcher-guide.md) | Dispatching responders, log archive, analytics, broadcasts |
-| [Admin Guide](./docs/guides/admin-guide.md) | ID verification, managing citizens/dispatchers, feedback |
+| Guide | Target Audience | Key Contents |
+|---|---|---|
+| [Citizen Guide](./docs/guides/citizen-guide.md) | San Isidro Residents | Registration, Front/Back ID check, SOS filing, offline sync, widget setup, medical profile |
+| [Dispatcher Guide](./docs/guides/dispatcher-guide.md) | Municipal Dispatchers | Incident Map, fleet dispatching, hazard clearance, log archive, alert broadcasts |
+| [Admin Guide](./docs/guides/admin-guide.md) | Master Administrators | ID verification review, citizen moderation, dispatcher staff CRUD, feedback, settings |
 
-## Documentation
+---
 
-| Section | Description |
-|---|---|
-| [Installation Guide](./docs/setup/installation.md) | Local setup — database, backend, frontend |
-| [System Requirements](./docs/setup/system-requirements.md) | Minimum Android/iOS versions, desktop OS support |
-| [Environment Variables](./docs/setup/environment.md) | `.env` reference for the backend |
-| [Troubleshooting](./docs/setup/troubleshooting.md) | Fixes for common setup issues |
-| [Architecture Overview](./docs/architecture/overview.md) | How the system's put together |
-| [Database Schema](./docs/architecture/database-schema.md) | Tables, relationships, and an ER diagram |
-| [Security Model](./docs/architecture/security.md) | Login, tokens, rate limits |
-| [API — Auth](./docs/api/auth.md) | Registration, login, OTP, password endpoints |
-| [API — Emergency](./docs/api/emergency.md) | SOS, dispatch, and hazard endpoints |
-| [API — Admin](./docs/api/admin.md) | Citizen/dispatcher management, feedback, analytics |
-| [Feature Breakdown](./docs/features/overview.md) | Closer look at every feature |
-| [Production Deployment](./docs/deployment/production.md) | Docker + nginx/php-fpm + AWS |
+## Documentation Suite
 
-## What's Next
+| Section | Document | Summary |
+|---|---|---|
+| **Setup & Requirements** | [System Requirements](./docs/setup/system-requirements.md) | Hardware & software minimum specs for Mobile, Desktop, and Server |
+| | [Installation Guide](./docs/setup/installation.md) | Complete local development setup for Backend, WebSockets, and Frontend |
+| | [Environment Variables](./docs/setup/environment.md) | `.env` reference for database, Reverb, PhilSMS, mail, and storage |
+| | [Troubleshooting](./docs/setup/troubleshooting.md) | Solutions for WebSockets, PhilSMS, Leaflet, Android, and Electron |
+| **Architecture** | [Architecture Overview](./docs/architecture/overview.md) | System topology, Reverb WebSocket channels, and directory layouts |
+| | [Database Schema](./docs/architecture/database-schema.md) | Entity-Relationship (ER) diagram, table schemas, and constraints |
+| | [Security Model](./docs/architecture/security.md) | Sanctum token abilities, anti-enumeration, OTP security, and rate limits |
+| **API Reference** | [API — Authentication](./docs/api/auth.md) | Registration, login, OTP channels, and account lifecycle endpoints |
+| | [API — Emergency](./docs/api/emergency.md) | SOS, fleet dispatch, road hazards, broadcasts, and WebSocket events |
+| | [API — Admin](./docs/api/admin.md) | ID verifications, citizen moderation, staff CRUD, and feedback |
+| **Features & Deployment** | [Feature Breakdown](./docs/features/overview.md) | In-depth technical explanation of all system capabilities |
+| | [Production Deployment](./docs/deployment/production.md) | Containerized deployment on a Linux Cloud Server / VPS with SSL |
 
-1. **Offline Support** — queue SOS requests on the device during an outage and send them automatically once back online.
-2. **Dispatch-Status Push Notifications** — Firebase alerts when a responder is on the way (push infra already exists and powers broadcast alerts; this would extend it to per-dispatch updates).
+---
+
+## Future Roadmap
+
+1. **Multi-Language Support (I18N)** — Localized interface support for Tagalog / Filipino and Kapampangan dialects.
+2. **Direct Two-Way Responders Messaging** — Secure real-time chat channel between active field responders and reporting citizens during dispatch.
+3. **Automated Drone Dispatch Feeds** — Integration with municipal aerial survey feeds during typhoon and flood evacuations.
+
+---
 
 ## License
 
-This project is proprietary and **not open source**. You're welcome to view it and reference it academically with credit — copying, modifying, redistributing, or deploying it isn't allowed without the Author's written permission. Full terms: [LICENSE](./LICENSE).
+This project is proprietary and **not open source**. It is developed for academic evaluation and municipal disaster response operations — copying, modifying, redistributing, or commercial deployment without prior written authorization from the Author is prohibited. Full terms: [LICENSE](./LICENSE).
 
 © 2026 Emmanuel John C. Perez. All rights reserved.
