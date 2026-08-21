@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Emergency;
 
+use App\Events\HazardUpdated;
 use App\Http\Controllers\Controller;
 use App\Services\BarangayResolver;
 use App\Traits\MediaHandling;
@@ -38,7 +39,7 @@ class HazardController extends Controller
         // must never block submission.
         $barangayId = $this->barangayResolver->resolve((float) $request->latitude, (float) $request->longitude);
 
-        Hazard::create([
+        $hazard = Hazard::create([
             'user_id'     => $request->user_id,
             'description' => $request->description,
             'hazard_type' => $request->hazard_type,
@@ -49,6 +50,8 @@ class HazardController extends Controller
             'status'      => 'Active',
         ]);
 
+        broadcast(new HazardUpdated('submitted', $hazard->hazard_id))->toOthers();
+
         return response()->json(['message' => 'Hazard reported successfully!']);
     }
 
@@ -56,6 +59,9 @@ class HazardController extends Controller
     {
         $request->validate(['hazard_id' => 'required|integer']);
         Hazard::where('hazard_id', $request->hazard_id)->update(['status' => 'Resolved']);
+
+        broadcast(new HazardUpdated('resolved', $request->hazard_id))->toOthers();
+
         return response()->json(['message' => 'Hazard removed from active monitoring.']);
     }
 
