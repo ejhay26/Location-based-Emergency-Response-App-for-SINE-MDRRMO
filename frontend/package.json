@@ -66,9 +66,11 @@
     "@ionic/angular": "^8.0.0",
     "chart.js": "^4.5.1",
     "ionicons": "^7.0.0",
+    "laravel-echo": "^2.4.0",
     "leaflet": "^1.9.4",
     "motion": "^13.0.0",
     "ngx-image-cropper": "^9.1.6",
+    "pusher-js": "^8.6.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
