@@ -23,10 +23,22 @@ mkdir -p storage/framework/cache storage/framework/sessions storage/framework/vi
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
-# ── 2. Always clear any stale cached config from a previous image/build ─
+# ── 2. Re-run package discovery at runtime so bootstrap/cache/packages.php
+#       only lists production providers. The Dockerfile runs
+#       `composer install --no-dev`, but the post-autoload-dump hook
+#       (package:discover) fires BEFORE --no-dev prunes dev packages from
+#       vendor — so dev-only providers like Laravel\Pail\PailServiceProvider
+#       get baked into the image's packages.php even though their classes
+#       don't exist. Re-running here at startup, when APP_KEY is present and
+#       vendor/ contains only production packages, overwrites that stale cache
+#       with the correct production-only provider list. This is safe to run on
+#       every container start — it's fast and idempotent.
+php artisan package:discover --ansi 2>&1 || true
+
+# ── 3. Always clear any stale cached config from a previous image/build ─
 php artisan config:clear >/dev/null 2>&1 || true
 
-# ── 3. Re-cache for production performance (skip when APP_ENV=local so
+# ── 4. Re-cache for production performance (skip when APP_ENV=local so
 #       local podman-compose dev still picks up .env edits without a
 #       rebuild/restart) ───────────────────────────────────────────────
 if [ "$APP_ENV" != "local" ]; then
@@ -35,7 +47,7 @@ if [ "$APP_ENV" != "local" ]; then
     php artisan view:cache
 fi
 
-# ── 4. Opt-in migrations — never run automatically/silently against a
+# ── 5. Opt-in migrations — never run automatically/silently against a
 #       live emergency-response database. Set RUN_MIGRATIONS=true only
 #       when you intend a deploy to migrate. ───────────────────────────
 if [ "$RUN_MIGRATIONS" = "true" ]; then
@@ -43,7 +55,7 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
     php artisan migrate --force
 fi
 
-# ── 5. Recreate the public/storage symlink if the volume-mounted
+# ── 6. Recreate the public/storage symlink if the volume-mounted
 #       storage/ wiped it (defensive; Dockerfile also creates it) ──────
 if [ ! -L public/storage ]; then
     php artisan storage:link >/dev/null 2>&1 || true
