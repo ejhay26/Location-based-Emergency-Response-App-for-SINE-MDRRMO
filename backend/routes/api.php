@@ -15,6 +15,7 @@ use App\Http\Controllers\UserSettingsController;
 use App\Http\Controllers\FeedbackController;
 
 // ── Public routes (no token required) ────────────────────────────────────────
+Route::get('/health',           fn () => response()->json(['status' => 'ok', 'timestamp' => now()]));
 Route::post('/register',        [AuthController::class, 'register']);
 Route::post('/login',           [AuthController::class, 'login']);
 Route::post('/login-send-otp',   [AuthController::class, 'loginSendOtp'])->middleware('throttle:3,1');
