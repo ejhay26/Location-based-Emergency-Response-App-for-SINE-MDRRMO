@@ -311,6 +311,22 @@ ion-toggle {
   font-weight: 700 !important;
 }
 
+/* =========================================
+   ELECTRON DESKTOP SHELL: CUSTOM TITLEBAR SPACE
+   frame:false in main.js removes the native OS titlebar; app-titlebar.
+   component fills that role with a 32px `position:fixed` bar (see its own
+   .scss). ion-app is Ionic's positioned root — see the code comment below,
+   this padding-top reserves matching space so <ion-router-outlet>, which
+   Ionic absolutely-positions with `inset:0` relative to ion-app's padding
+   box, starts right below the titlebar instead of underneath it. Only
+   applied when AppComponent detects Electron, so web/Android/iOS builds —
+   which render no titlebar — get no extra offset.
+   ========================================= */
+ion-app.electron-app {
+  position: relative;
+  padding-top: 32px;
+}
+
 .menu-item-active i {
   color: var(--app-red) !important;
 }
@@ -491,6 +507,20 @@ html.reduce-animations .sos-ring {
 @keyframes cPanelPopIn {
   from { opacity: 0; transform: scale(0.94); }
   to   { opacity: 1; transform: scale(1); }
+}
+
+/* =========================================
+   CLEAN LEAFLET MAP LABELS
+   Eliminates Leaflet's default div-icon background,
+   border, and anchor dots from custom pill overlays.
+   ========================================= */
+.bgy-clean-label-icon,
+.leaflet-div-icon.bgy-clean-label-icon,
+.local-bgy-pill,
+.leaflet-div-icon.local-bgy-pill {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* =========================================
