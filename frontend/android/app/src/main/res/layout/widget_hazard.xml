@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Stage 3a: circular "Report Hazard" home screen widget layout. Mirrors
-  widget_report.xml's structure/pattern exactly (small caption + large
-  label, oval background sized to a square, contentDescription on the root)
-  but with its own ids/background/strings so both widgets can be placed
-  independently without id collisions. The whole root is the tap target;
-  the click PendingIntent is attached to @+id/widget_hazard_root by
-  ReportHazardWidgetProvider.
+  Rectangular "Report Hazard" home screen widget layout — redesigned
+  to match home.page.html's rectangular hazard card. Uses a horizontal
+  layout with the caption ("Report") stacked above the label ("Hazard")
+  for a compact card look. No icons since we don't have icon images.
+  The rounded-rectangle background (widget_hazard_bg.xml) scales with
+  the widget. The whole root is the tap target; the click PendingIntent
+  is attached to @+id/widget_hazard_root by ReportHazardWidgetProvider.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_hazard_root"
@@ -14,6 +14,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
     android:background="@drawable/widget_hazard_bg"
     android:contentDescription="@string/widget_hazard_full_label">
 
@@ -23,7 +27,7 @@
         android:layout_height="wrap_content"
         android:text="@string/widget_hazard_caption"
         android:textColor="#DEFFFFFF"
-        android:textSize="9sp"
+        android:textSize="10sp"
         android:textStyle="bold"
         android:singleLine="true"
         android:letterSpacing="0.08"
@@ -36,7 +40,7 @@
         android:layout_marginTop="1dp"
         android:text="@string/widget_hazard_label"
         android:textColor="#FFFFFF"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         android:singleLine="true"
         android:importantForAccessibility="no" />

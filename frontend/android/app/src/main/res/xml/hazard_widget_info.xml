@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Stage 3a: AppWidgetProviderInfo for the circular "Report Hazard" home
-  screen widget. Mirrors report_widget_info.xml — square 1x1 cell
-  (minWidth == minHeight) so the oval background in widget_hazard_bg.xml
-  renders as a true circle, static launcher shortcut
-  (updatePeriodMillis="0"), only reacts to user taps.
+  AppWidgetProviderInfo for the rectangular "Report Hazard" home screen
+  widget. Sized as a 2×1 rectangle (wider than tall) matching the
+  home.page.html's full-width rectangular hazard card. Resizable
+  horizontally and vertically to let users scale the widget while the
+  rounded-rectangle background preserves its look at any size.
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="72dp"
+    android:minWidth="146dp"
     android:minHeight="72dp"
-    android:targetCellWidth="1"
+    android:targetCellWidth="2"
     android:targetCellHeight="1"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_hazard"
-    android:resizeMode="none"
+    android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:previewLayout="@layout/widget_hazard" />
