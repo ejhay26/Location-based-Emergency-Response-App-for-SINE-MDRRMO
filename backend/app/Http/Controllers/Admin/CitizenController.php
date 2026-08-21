@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\UserVerified;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -55,6 +56,9 @@ class CitizenController extends Controller
         $user->banned_at      = now();
         $user->save();
         $user->tokens()->delete();
+
+        broadcast(new UserVerified('suspended', $user->user_id))->toOthers();
+
         return response()->json(['message' => 'Account suspended.', 'user' => $user->fresh()]);
     }
 
@@ -67,6 +71,9 @@ class CitizenController extends Controller
         $user->ban_reason     = null;
         $user->banned_at      = null;
         $user->save();
+
+        broadcast(new UserVerified('reinstated', $user->user_id))->toOthers();
+
         return response()->json(['message' => 'Account reactivated.', 'user' => $user->fresh()]);
     }
 
@@ -86,9 +93,10 @@ class CitizenController extends Controller
         $user->account_status = 'active';
         $user->save();
 
+        broadcast(new UserVerified('approved', $user->user_id))->toOthers();
+
         // Best-effort welcome notification — a failure here must not undo
-        // the approval that already succeeded above, so both are wrapped
-        // and only logged on failure rather than surfaced to the admin.
+        // the approval that already succeeded above.
         try {
             Mail::to($user->email)->send(new WelcomeMail($user));
         } catch (\Throwable $e) {
@@ -117,12 +125,14 @@ class CitizenController extends Controller
     {
         $request->validate(['user_id' => 'required|integer']);
         $user = User::where('user_id', $request->user_id)->first();
-        if ($user && $user->valid_id_proof) {
-            Storage::disk('public')->deleteDirectory(
-                'verification_ids/' . $user->username
-            );
+        if ($user) {
+            if ($user->valid_id_proof) {
+                Storage::disk('public')->deleteDirectory('verification_ids/' . $user->username);
+            }
+            $userId = $user->user_id;
+            $user->delete();
+            broadcast(new UserVerified('rejected', $userId))->toOthers();
         }
-        User::where('user_id', $request->user_id)->delete();
         return response()->json(['message' => 'User request rejected and deleted.']);
     }
 }
