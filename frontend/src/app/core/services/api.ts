@@ -32,6 +32,11 @@ export class ApiService {
     return { headers: new HttpHeaders(auth ? this.authHeaders() : this.baseHeaders()) };
   }
 
+  /** Lightweight backend health probe (/api/health) */
+  healthCheck(): Observable<any> {
+    return this.http.get(`${this.url}/health`, this.opts(false));
+  }
+
   // ── File URL helpers ─────────────────────────────────────────────────
   resolveFileUrl(path: string | null | undefined): string {
     if (!path) return '';
