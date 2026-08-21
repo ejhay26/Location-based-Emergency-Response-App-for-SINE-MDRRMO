@@ -1,145 +1,174 @@
-# Installation Guide
+# Local Installation & Setup Guide
 
-Step-by-step guide to run the SINE MDRRMO Emergency Response App on your own machine.
+Step-by-step instructions to set up, configure, and run the SINE MDRRMO Emergency Response System locally on Windows, macOS, or Linux.
 
-> Related: [System Requirements](./system-requirements.md) · [Environment Variables](./environment.md) · [Troubleshooting](./troubleshooting.md)
->
-> Every code block below has a copy button in the top-right corner when you hover over it on GitHub — no need to type these out by hand.
-
-## Prerequisites
-
-- Composer
-- Node.js
-- PHP (with the extensions listed below)
-- MariaDB / MySQL
-
-Works on both Windows and Linux.
-
-- **Windows:** Installing XAMPP gives you PHP and MariaDB out of the box. Install XAMPP *before* Composer, so the Composer installer can auto-detect the XAMPP PHP folder.
-- **Linux:** Install MariaDB/MySQL server and PHP separately.
-
-<details>
-<summary><b>Required PHP extensions — Linux</b></summary>
-
-Install via your distro's package manager:
-- `php-mysql`
-- `php-mbstring`
-- `php-curl`
-- `php-zip`
-- `php-intl`
-- `php-xml`
-
-</details>
-
-<details>
-<summary><b>Required PHP extensions — Windows (XAMPP)</b></summary>
-
-Open `php/php.ini`, find the *Dynamic Extensions* section, and uncomment (remove the leading `;` from) these lines:
-```ini
-extension=mbstring
-extension=curl
-extension=zip
-extension=intl
-```
-
-</details>
+> **Related:** [System Requirements](./system-requirements.md) · [Environment Variables](./environment.md) · [Troubleshooting](./troubleshooting.md)
 
 ---
 
-## Setup Steps
+## Prerequisites
 
-### 1. Start your database server
-Turn on MariaDB/MySQL locally (via XAMPP, Laragon, or a native install).
+Before starting, ensure you have the following software installed:
 
-### 2. Import the database
-Create an empty database named `emergencydb`, then from the project root:
-```bash
-cd database
-mysql -u your_username -p emergencydb < emergencydb.sql
+| Tool | Version | Purpose |
+|---|---|---|
+| **PHP** | 8.4+ | Backend runtime (with `pdo_mysql`, `mbstring`, `curl`, `zip`, `intl`, `xml`, `gd`, `bcmath`, `exif`) |
+| **Composer** | 2.x | PHP dependency manager |
+| **Node.js** | 20.x or 22.x LTS | JavaScript runtime for Angular/Ionic and Electron |
+| **MariaDB / MySQL** | 10.6+ / 8.0+ | Relational database server |
+| **Ionic CLI** | 8.x+ | Command-line interface for frontend (`npm install -g @ionic/cli`) |
+| **Docker & Compose** | Optional | For containerized local development with Reverb & MinIO |
+
+---
+
+## Method A: Standard Local Setup
+
+### 1. Database Setup
+Start your local MariaDB/MySQL service (via XAMPP, Laragon, or native service).
+
+Create a new database named `emergencydb`:
+```sql
+CREATE DATABASE emergencydb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
-(Or use the `source` command inside the MySQL/MariaDB CLI, or import via phpMyAdmin.)
 
-> The bundled dump has sample/demo rows for local testing — see the note in [Database Schema](../architecture/database-schema.md#seed-data) before reusing it anywhere beyond your own machine.
+Import the initial database schema and seed data from the project root:
+```bash
+# Windows (PowerShell/Command Prompt)
+mysql -u root -p emergencydb < database/emergencydb.sql
 
-### 3. Set up the backend environment
-From the project root:
+# Linux / macOS
+mysql -u root -p emergencydb < database/emergencydb.sql
+```
+
+*(Alternatively, import `database/emergencydb.sql` using phpMyAdmin, HeidiSQL, or DBeaver).*
+
+---
+
+### 2. Backend API & WebSockets Setup
+
+Navigate to the `backend/` directory:
 ```bash
 cd backend
+```
 
-# Linux/macOS
-cp .env.example .env
-
+Copy the environment template:
+```bash
 # Windows
 copy .env.example .env
+
+# Linux / macOS
+cp .env.example .env
 ```
 
 Install Composer dependencies:
 ```bash
 composer install
 ```
-If you hit version errors, try: `composer install --ignore-platform-reqs`
 
-### 4. Set your database credentials
-Open `backend/.env` and fill in the database section — see [Environment Variables](./environment.md) for the full reference:
+Generate the unique application key:
+```bash
+php artisan key:generate
+```
+
+Configure your `backend/.env` with your database credentials, PhilSMS API token, and Mail password (see [Environment Variables](./environment.md)):
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=emergencydb
-DB_USERNAME=your_username_here
-DB_PASSWORD=your_password_here
+DB_USERNAME=your_db_username
+DB_PASSWORD=your_db_password
+
+BROADCAST_CONNECTION=reverb
+FILESYSTEM_DISK=public
 ```
 
-Also set `MAIL_PASSWORD` — needed for the OTP email flow (see [Environment Variables](./environment.md#mail-otp-emails)).
-
-**Recommended:** use a dedicated database user instead of `root`:
-```sql
-CREATE USER 'new_user'@'localhost' IDENTIFIED BY 'secure_password';
-GRANT ALL PRIVILEGES ON emergencydb.* TO 'new_user'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-### 5. Generate the app key
-```bash
-php artisan key:generate
-```
-
-### 6. Link local storage (needed for images)
-Creates the symlink that serves SOS camera uploads and profile pictures:
+Create the public storage symlink for uploaded files:
 ```bash
 php artisan storage:link
 ```
 
-### 7. Start the API backend
+Start the backend API server:
 ```bash
-php artisan serve
+php artisan serve --port=8000
 ```
 
-### 8. Install frontend dependencies
-In a new terminal, from the project root:
+In a **second terminal**, start the **Laravel Reverb WebSocket server**:
+```bash
+php artisan reverb:start --host=0.0.0.0 --port=6001
+```
+
+---
+
+### 3. Frontend Setup (Citizen Mobile & Dispatcher Dashboard)
+
+Open a **third terminal** and navigate to `frontend/`:
 ```bash
 cd frontend
 ```
-If a `node_modules` folder already exists, delete it first, then:
+
+Install npm dependencies:
 ```bash
 npm install
 ```
 
-### 9. Install the Ionic CLI
-```bash
-npm install -g @ionic/cli
+Verify `frontend/src/environments/environment.ts` points to your local backend and Reverb server:
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:8000/api',
+  reverbKey: 'xlq16kh4sisuz0kwe3sq',
+  reverbHost: 'localhost',
+  reverbPort: 6001,
+  reverbScheme: 'http',
+};
 ```
 
-### 10. Start the frontend
+---
+
+### 4. Running the Applications
+
+#### A. Citizen Mobile App (Web Simulator / Browser Preview)
 ```bash
-ionic serve
+ionic serve --port=8100
+```
+- Opens at: `http://localhost:8100` (Use Browser DevTools Device Mode: iPhone 14 or Pixel 7 for optimal mobile preview).
+
+#### B. Admin & Dispatcher Command Center (Electron Desktop App)
+```bash
+npm run start:desktop
+```
+- Launches the native Electron dashboard with borderless titlebar, multi-panel incident map, and desktop notifications.
+
+#### C. Native Android Build (Capacitor)
+```bash
+npx cap sync android
+npx cap open android
+```
+- Opens the project in **Android Studio** for building APK / running on an Android device/emulator.
+
+---
+
+## Method B: Containerized Docker / Podman Setup
+
+For an instant, fully containerized environment running Nginx, PHP 8.4-FPM, and Laravel Reverb:
+
+```bash
+cd backend
+docker compose up -d --build
 ```
 
-## Check It's Working
+- **App & API**: `http://localhost:8080`
+- **Reverb WebSocket**: `http://localhost:6001` (proxied via `http://localhost:8080/app/`)
+- Run migrations if needed: `docker compose exec app php artisan migrate --force`
 
-| Service | URL |
-|---|---|
-| Laravel Backend API | http://localhost:8000 |
-| Ionic Frontend UI | http://localhost:8100 |
+---
 
-If either one doesn't come up, check [Troubleshooting](./troubleshooting.md).
+## Verifying the Setup
+
+| Service | Address | Expected Status |
+|---|---|---|
+| **Backend Health Check** | `http://localhost:8000/api/health` | `{"status":"ok","timestamp":"..."}` |
+| **Reverb WebSocket Server** | `ws://localhost:6001` | Connection accepted |
+| **Citizen App (Ionic)** | `http://localhost:8100` | Citizen UI loaded |
+| **Admin Dashboard** | Electron App Window | Command Center active |
