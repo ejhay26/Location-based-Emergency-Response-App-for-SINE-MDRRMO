@@ -1,140 +1,131 @@
-# Citizen Guide
+# Citizen User Guide
 
-How to register, log in, and use the app as a resident of San Isidro. For what's happening behind the scenes, see [Feature Breakdown](../features/overview.md) and [API — Auth](../api/auth.md).
+Step-by-step instructions on registering, logging in, and using the SINE MDRRMO Emergency Response App as a resident of San Isidro, Nueva Ecija.
 
-## Registering an Account
+---
 
-Registration is 3 steps:
+## 1. Registering an Account
 
-<details>
-<summary><b>Step 1 — Personal details + ID verification</b></summary>
+Registration consists of three guided steps:
 
-- First name, last name, phone number, birthdate
-- Valid ID type (Philippine National ID, Driver's License, Voter's ID, UMID, Postal ID, PWD ID, Senior Citizen ID, Student/School ID, Barangay ID, or Other)
-- A live photo of that ID — the app opens your camera directly, not your gallery, then lets you crop it
-- A live selfie holding that ID next to your face — same live-capture + crop process
+### Step 1: Personal Details & Dual-Sided ID Verification
+- **Personal Information:** First name, last name, mobile phone number, birthdate.
+- **Valid Government ID Type:** Choose from Philippine National ID (PhilID), Driver's License, Voter's ID, UMID, Postal ID, PWD ID, Senior Citizen ID, Student ID, or Barangay ID.
+- **Front of ID Photo:** The app opens the camera for a live photo of the **Front** of your ID, with an integrated crop tool.
+- **Back of ID Photo:** Take a live photo of the **Back** of your ID and crop.
+- **Live Selfie with ID:** Take a live photo holding your valid ID next to your face.
 
-This ID + selfie pair is what MDRRMO staff review to confirm you're a real resident before your account is approved.
+---
 
-</details>
+### Step 2: Account Details & Security
+- **Resident Barangay:** Select your home barangay in San Isidro.
+- **Username & Email:** Live availability check ensures your handle is unique.
+- **Password:** Strong password checklist (minimum 8 characters, uppercase, lowercase, number, special symbol).
+- **Verification Channel:** Choose whether to receive your 4-digit code via **Email OTP** or **SMS OTP (PhilSMS)**.
+- **Terms & Privacy:** Agree to data privacy and emergency reporting terms.
 
-<details>
-<summary><b>Step 2 — Account details</b></summary>
+---
 
-- Barangay
-- Username (checked for availability as you type — if it's taken, you'll get suggested alternatives)
-- Email address (also checked live)
-- Password + confirm password, with a live checklist: minimum 8 characters, an uppercase letter, a lowercase letter, a digit, and a special symbol (`@$!%*#?&`)
-- How you want to verify your account: **Email OTP** or **SMS OTP**
-- Agree to the Terms and Conditions / Privacy Policy checkbox
+### Step 3: Enter Verification Code
+- Enter the 4-digit code sent to your email or mobile number.
+- On Android phones, the app automatically detects the incoming SMS and presents a one-tap consent dialog to auto-fill the code.
 
-</details>
+---
 
-<details>
-<summary><b>Step 3 — Verify your code</b></summary>
+## 2. What Happens Next: Pending Verification & Onboarding
 
-A 4-digit code is sent to whichever channel you picked (email or SMS). Enter it and tap **Verify Email** (or the SMS equivalent).
+1. **Pending Verification Screen:**  
+   Once your code is verified, your account is submitted to MDRRMO staff for identity review. You will see the Pending Verification screen, which automatically updates via real-time WebSockets the instant an admin approves your application.
+2. **Account Setup Wizard:**  
+   On your very first login after approval, the app guides you through an onboarding setup:
+   - Uploading a profile avatar.
+   - Setting up your **"Golden Minute"** medical profile.
+   - Adding the **1-Tap Emergency SOS Widget** to your home screen.
 
-</details>
+---
 
-## What Happens Right After Verifying
+## 3. Logging In & Account Recovery
 
-This is the part that's easy to misunderstand, so it's worth being explicit: **verifying your code doesn't log you in.** Your account exists, but MDRRMO staff still need to review your submitted ID before you can actually use the app.
+### Login Methods
+- **Password Login:** Enter your username/email and password.
+- **Passwordless OTP Login:** Tap "Login with OTP instead", enter your registered email or phone number, and enter the 4-digit code received.
 
-You'll land on a **Pending Verification** screen that:
-- Explains you're waiting on admin review
-- Checks in automatically every 20–30 seconds — no need to keep refreshing
-- Shows a **Logout** button if you want to leave and come back later
-- Updates itself the moment your account is approved, with a button to continue to Login
+### Forgot Password
+1. Tap **Forgot Password?** on the login screen.
+2. Choose Email or Phone recovery and receive a 4-digit OTP.
+3. Verify the OTP and immediately enter a new strong password.
 
-If your submitted ID is rejected instead of approved, the registration is removed rather than banned — you'll see a message explaining that, with the option to register again.
+---
 
-If you close the app and come back later (or try to log in directly), attempting to log in on a still-pending account routes you to this same screen instead of just showing an error.
+## 4. Sending an Emergency SOS
 
-## Logging In
+The large red **SOS** button is located prominently on the Home screen:
 
-Two ways in, both from the main login screen:
+```
+[Tap Red SOS Button]
+        │
+        ├─ 1. GPS Coordinates captured automatically
+        ├─ 2. Live Camera activates (Capture photo or up to 10s video)
+        ├─ 3. Select Incident Category (Fire, Flood, Medical, Crime, Others)
+        ├─ 4. Enter brief description
+        │
+        ▼
+[Submit SOS] ──▶ Instant Real-Time Alert to MDRRMO Command Center
+```
 
-- **Email or username + password** — the standard path.
-- **Login with OTP instead** — no password needed. Choose email or your registered phone number, get a 4-digit code, and it logs you in once verified.
+### Offline SOS Queueing
+If you have no cellular signal or internet connection during a disaster:
+- The app automatically saves your SOS report, GPS position, and media proof to your device's local **IndexedDB storage**.
+- The moment your device reconnects to a mobile network or Wi-Fi, the report is automatically synced and transmitted to the command center.
 
-<details>
-<summary><b>Forgot your password?</b></summary>
+---
 
-From the login screen, tap **Forgot Password?**:
-1. Choose how to receive your recovery code — registered email or registered phone number.
-2. Enter that email/phone, get a 4-digit OTP.
-3. Enter the OTP plus a new password (same strength checklist as registration: 8+ characters, uppercase, lowercase, digit, symbol).
-4. Confirm — you're set to log in with the new password.
+## 5. Home Screen Quick-Report Widget
 
-</details>
+On Android 8.0+ devices:
+1. Open **Settings** or tap the widget banner on the Home screen.
+2. Tap **Add Emergency Widget**.
+3. Accept the prompt to pin the SINE MDRRMO 1-Tap SOS widget directly to your phone's home screen.
+4. Tapping this widget immediately opens the app directly into emergency reporting mode via deep link (`sinemdrrmo://report`).
 
-## Sending an SOS
+---
 
-The main red button on Home. Tapping it:
-1. Grabs your GPS location automatically.
-2. Requires a live camera photo or a short video (10 seconds or less) as proof — not something picked from your gallery. This is intentional; it's what keeps the system from being spammed with fake reports.
-3. Lets you pick the incident type (Fire, Flood, Medical, Crime, Others) and add a description.
-4. Submits — MDRRMO's dispatch dashboard sees it immediately.
+## 6. Managing Your "Golden Minute" Medical Profile
 
-Once submitted, you can track it from the **Status** tab, and cancel it from there if it's no longer an emergency (e.g. you called it in by phone instead, or it resolved itself).
+From the **Profile** tab, you can configure critical emergency health information:
+- **Blood Type:** (e.g. O+, A+, B+, AB-)
+- **Allergies:** (e.g. Penicillin, Shellfish, Latex)
+- **Medical Conditions:** (e.g. Hypertension, Asthma, Diabetes)
+- **PWD Status & Special Assistance:** (e.g. Wheelchair user, Hearing impaired)
 
-<details>
-<summary><b>"Golden Minute" medical profile — optional but recommended</b></summary>
+> This information is attached automatically whenever you submit an SOS, allowing dispatchers and paramedics to arrive prepared with the right equipment and medication.
 
-From **Profile**, you can save your blood type, allergies, medical conditions, and PWD status ahead of time. If you ever send an SOS, this gets attached automatically, so responders know what to expect before they even arrive. It's entirely optional and can be added, edited, or left blank at any time.
+---
 
-</details>
+## 7. Reporting a Public Road Hazard
 
-## Reporting a Hazard
+For non-emergency community hazards (flooded streets, fallen trees, downed power lines, road obstructions):
+1. Navigate to the **Report** tab and choose **Road Hazard**.
+2. Take a photo/video of the obstruction.
+3. Select the hazard category and submit.
+4. The hazard appears as a cautionary icon on the MDRRMO map, helping responders and fellow citizens avoid impassable routes.
 
-Not every emergency, but not nothing either — flooded streets, fallen trees, broken roads. From the **Report** section, choose "Hazard" instead of SOS, add a photo/video and description, and it shows up on the dispatch team's map so they can route around it.
+---
 
-## Checking Your Reports (Status tab)
+## 8. App Settings & Customization
 
-Shows your SOS and hazard history, filterable by **All / This Week / This Month**. Active requests can be cancelled from here.
+- **Appearance:** Toggle Dark Theme or Reduce Animations for faster rendering.
+- **Location:** Enable or disable automatic continuous background location fetching.
+- **Map View:** Choose between **Street View** and **Satellite Imagery** as the default map layer.
+- **Notifications:** Independently toggle dispatch updates and municipal broadcast alert notifications.
+- **Media:** Enable "Save Captured Media to Device" to retain a copy of SOS photos in your device gallery.
 
-## Your Profile
+---
 
-- Update your profile photo
-- Edit your medical/"Golden Minute" profile
-- Change your password (see below — it's not a simple form, on purpose)
-- See your **false alarm strikes**, if any — confirmed false SOS reports count against your account
+## 9. Help Center & Direct Hotlines
 
-<details>
-<summary><b>Changing your password while logged in</b></summary>
-
-Even though you're already logged in, changing your password still requires a fresh OTP check:
-1. Tap **Change Password**.
-2. Choose where to send the verification code — your email or phone.
-3. Enter the 4-digit code.
-4. Set a new password (same strength checklist as everywhere else).
-
-This extra step exists so that someone with access to your unlocked phone can't quietly change your password without also having access to your email/SMS.
-
-</details>
-
-## Settings
-
-Grouped into a few sections:
-- **Appearance** — Dark Mode, Reduce Animations
-- **Location** — Auto-fetch Location (on by default; if off, location is only grabbed when you explicitly tap "Use My Location" instead of continuously while the app is open)
-- **Map** — Default map style for the Report page (Street or Satellite)
-- **Notifications** — Emergency Dispatch Alerts, Broadcast Alerts (each can be turned off independently)
-- **Reporting** — Save Captured Media to Device (off by default — when on, photos/videos you take for a report are also saved to your phone's gallery, not just submitted)
-
-## Help & Support
-
-The **Help** tab has:
-- MDRRMO's emergency hotlines (Globe and Smart numbers), office address, and hours — tap either number to call directly
-- An **interactive tutorial** — either a full walkthrough of every feature, or jump to a specific chapter
-- A searchable FAQ
-- A feedback form (categorized as General / Bug / Suggestion / Other) that goes straight to MDRRMO admin
-
-## Getting Notified
-
-If you allow push notifications (prompted from the Profile page), you'll get alerts for:
-- Emergency dispatch updates on your own SOS
-- Broadcast alerts relevant to you — town-wide ones, plus anything targeted specifically at your barangay
-
-Notifications stop coming to that device once you log out.
+The **Help** tab provides:
+- **Direct Dial Hotlines:** One-tap calling to MDRRMO Globe and Smart emergency numbers.
+- **Interactive Tour:** Step-by-step feature walkthroughs by chapter.
+- **Searchable FAQs:** Quick answers regarding privacy, response times, and account security.
+- **Feedback Form:** Direct line to submit bugs, questions, or suggestions to municipal administrators.

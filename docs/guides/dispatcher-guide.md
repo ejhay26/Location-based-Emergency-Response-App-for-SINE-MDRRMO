@@ -1,74 +1,105 @@
-# Dispatcher Guide
+# Dispatcher User Guide
 
-How to use the Admin/Dispatcher Dashboard from a **dispatcher** account. This is the Electron desktop app — see [System Requirements](../setup/system-requirements.md) if you're setting up a new machine. For what a Master Admin can additionally do, see the [Admin Guide](./admin-guide.md).
+How to monitor, dispatch, and coordinate emergency responses using the SINE MDRRMO Command Center desktop application.
 
-## Logging In
+---
 
-Same login screen style as the citizen app — email/username + password, or OTP. Dispatcher accounts are created by an admin (dispatchers can't self-register), so if you don't have credentials yet, ask your MDRRMO admin to set one up from the Dispatchers panel.
+## 1. Launching & Logging In
 
-## What You Can See
+1. Launch the **SINE MDRRMO Command Center** desktop application on your workstation.
+2. Sign in using the dispatcher credentials provided by your System Administrator.
+3. Upon login, the application establishes an active **Laravel Reverb WebSocket connection** for sub-second incident streaming.
 
-The sidebar has five sections for a dispatcher account:
-- **Incident Map**
-- **Public Hazards**
-- **Log Archive**
-- **Analytics**
-- **Alert Broadcast**
+---
 
-(ID Verifications, Feedback, Dispatchers, and Citizens are admin-only — see the [Admin Guide](./admin-guide.md) if you need those.)
+## 2. Dispatcher Sidebar Overview
 
-Dark Mode toggle and Logout are at the bottom of the sidebar.
+Dispatchers have access to five primary command panels:
+- **Incident Map:** Live interactive map tracking active SOS emergencies and public road hazards.
+- **Public Hazards:** Overview of active road blockages, fallen trees, and flooded streets.
+- **Log Archive:** Searchable historical record of resolved incidents and false alarm moderation.
+- **Analytics:** Statistical incident trends, charts, and barangay volume distribution.
+- **Alert Broadcast:** Municipal emergency banner push system with rich media support.
 
-## Incident Map — Your Main Screen
+---
 
-This is a live map (toggle between **Street** and **Satellite** view) showing active emergencies and hazards, refreshed automatically in the background — no manual refresh needed.
+## 3. Incident Map: Active Emergency Workflow
 
-### Dispatching a Responder
+The **Incident Map** is the primary operational dashboard:
 
-1. From the **Active Emergencies** list (or by clicking a pin on the map), open an incident.
-2. Tap **Dispatch**.
-3. **Step 1:** pick the responder unit (Fire, Police, Rescue, or RHU).
-4. **Step 2:** pick the specific vehicle assigned to that responder — the list only shows vehicles that belong to whichever unit you picked in Step 1, so you can't accidentally assign a fire truck to a medical call.
-5. Tap **Confirm Dispatch**.
+```
+[Incoming SOS Alert]
+        │ (Instant Pin Drop via WebSocket + Desktop Notification)
+        ▼
+[Click Pin / Open Incident Card]
+        ├─ Review live photo or 10-second video evidence
+        ├─ Inspect "Golden Minute" Medical Data (Blood type, Allergies, Conditions, PWD)
+        ├─ Check citizen false-alarm strike count
+        │
+        ▼
+[Tap "Dispatch" Button]
+        ├─ Step 1: Select Responder Unit (BFP, PNP, Rescue, RHU)
+        ├─ Step 2: Select Matching Vehicle (Ambulance, Fire Truck, Patrol Car)
+        │
+        ▼
+[Confirm Dispatch] ──▶ Status becomes "En Route" (Citizen notified via Push Alert)
+        │
+        ▼ (Incident Resolved on Scene)
+[Tap "Resolve"]    ──▶ Status becomes "Resolved" & moved to Log Archive
+```
 
-### Resolving an Emergency
+---
 
-Once handled, tap **Resolve** on that incident. This moves it out of the active list and into the [Log Archive](#log-archive).
+## 4. Managing Public Road Hazards
 
-### Handling Hazards
+Hazard reports (e.g. fallen trees, downed electrical wires, flooded streets) appear as cautionary orange markers on the Incident Map:
+1. Click the hazard marker to inspect photo proof and citizen description.
+2. Coordinate with DPWH or municipal maintenance teams to clear the obstruction.
+3. Tap **Acknowledge / Resolve** once cleared to remove the marker from the active monitoring map.
 
-Hazard reports (flooded roads, fallen trees, etc.) show up in a separate **Active Hazards** list on the same map. Tap **Acknowledge** once it's been dealt with (cleared, repaired, or otherwise no longer a routing concern).
+---
 
-## Log Archive
+## 5. Log Archive & False Alarm Moderation
 
-Resolved emergencies and hazards live here, not on the live map. You can:
-- **Search** by keyword
-- **Filter by date range** — single day, several specific days, or a start/end range, using the shared date-range filter (a summary bar shows exactly which filters are active)
-- **Mark False Alarm** on a resolved emergency, if it turns out the report wasn't genuine
+The **Log Archive** stores all completed, resolved, and cancelled emergency records.
 
-<details>
-<summary><b>Why false alarms are marked here and not on the live map</b></summary>
+### Features
+- **Keyword Search:** Search by citizen name, username, phone number, or description.
+- **Unified Date-Range Filter:** Filter by Single Day, Multi-Day, or a custom Date Range using the shared calendar selector.
+- **Mark False Alarm:**  
+  If field responders confirm that a reported emergency was fraudulent or malicious:
+  1. Open the incident in Log Archive.
+  2. Tap **Mark False Alarm**.
+  3. This increments the reporting citizen's strike counter. When a citizen reaches **3 strikes**, their account is automatically banned from filing further requests.
 
-You only find out a report was fake *after* looking into it — which usually means after it's already been resolved one way or another. Marking it false here increments that citizen's false-alarm count, which can eventually lead to account moderation (handled by an admin).
+---
 
-</details>
+## 6. Real-Time Analytics Dashboard
 
-## Analytics
+The **Analytics** panel presents interactive Chart.js visualizations filterable by **7-day**, **30-day**, or **90-day** rolling windows:
+- **Daily Incident Trends:** Line/Bar chart breakdown by type (Fire, Flood, Medical, Crime, Others).
+- **Incident Category Distribution:** Doughnut chart of incident types.
+- **Barangay Volume Breakdown:** Identifies geographic areas with the highest emergency frequency.
+- **Hazard Analytics:** Track flood frequency, road blockages, and power line hazards over time.
+- **Interactive Filtering:** Clicking any chart segment automatically filters the underlying incident list to inspect matching records.
 
-Charts of emergency trends — filterable by the same date-range filter used elsewhere, plus quick 7/30/90-day presets. Clicking a chart segment (e.g. a specific day's bar, or an incident-type slice) filters the underlying incident list to match, so you can go from "there's a spike here" straight to "here's what happened."
+---
 
-## Alert Broadcast
+## 7. Pushing Alert Broadcasts
 
-Send an alert banner that citizens see on their dashboard.
+Dispatchers can transmit critical public safety banners directly to citizens' mobile apps:
+1. Navigate to **Alert Broadcast**.
+2. Enter an optional **Title** (e.g. *"Heavy Rainfall Warning"*).
+3. Type the detailed emergency message.
+4. **Select Audience:**
+   - Leave empty / tap **All** for a **Town-Wide** broadcast.
+   - Or select specific **Barangays** (e.g. *Tabon*, *Pulo*) for localized alerts.
+5. **Attach Media:** Optionally attach up to **4 images or weather tracking charts**.
+6. Tap **Send Broadcast**.
+7. Active broadcasts appear on the panel and can be dismissed individually once the hazard subsides.
 
-1. Write your message.
-2. Choose the audience:
-   - Leave barangay selection empty (or tap **All**) for a **town-wide** alert.
-   - Or select one or more specific barangays to target just those residents.
-3. Send.
+---
 
-You can have multiple broadcasts active at once — e.g. a town-wide weather advisory alongside a barangay-specific flood warning. Each one is cleared independently from the same panel once it's no longer relevant. Citizens only see alerts that apply to them (town-wide, plus their own barangay); as a dispatcher, you see everything active regardless of scope.
+## 8. Desktop Notifications
 
-## A Note on What You Can't Do
-
-Dispatcher accounts are intentionally scoped — no citizen ID approvals, no managing other dispatcher accounts, no viewing citizen feedback. If you need any of that, it's an admin-only action; see the [Admin Guide](./admin-guide.md).
+When the desktop app is running, native OS notifications and audio alerts sound for any new SOS or hazard submission, even when viewing other panels or when the window is minimized.

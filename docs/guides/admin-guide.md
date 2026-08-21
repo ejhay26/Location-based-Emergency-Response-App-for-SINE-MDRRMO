@@ -1,62 +1,76 @@
-# Admin Guide
+# Administrator User Guide
 
-How to use the Admin/Dispatcher Dashboard from a **Master Admin** account. This covers everything admin-only — for the shared dispatch/map/broadcast/analytics workflow every staff account can use, see the [Dispatcher Guide](./dispatcher-guide.md) first.
+Comprehensive guide for **Master Administrators** managing user accounts, citizen identity verifications, staff dispatchers, system feedback, and global command center settings.
 
-## What Admins Can See That Dispatchers Can't
+---
 
-Four extra sidebar sections: **ID Verifications**, **Feedback**, **Dispatchers**, **Citizens** — on top of everything in the [Dispatcher Guide](./dispatcher-guide.md) (Incident Map, Public Hazards, Log Archive, Analytics, Alert Broadcast).
+## 1. Administrator Capabilities
 
-## ID Verifications
+Master Admin accounts hold full system abilities (`['admin', 'dispatcher', 'citizen']`). In addition to all operational dispatch tools (Incident Map, Hazards, Log Archive, Analytics, Alert Broadcast), Admins have access to four dedicated management panels and the Admin Settings suite.
 
-Every new citizen registration lands here first, marked pending, until you act on it. For each pending registration you'll see:
-- The applicant's submitted ID photo
-- Their selfie holding that ID
-- Their registration details
+---
 
-Two actions:
-- **Approve** — the account becomes active immediately; the citizen can now log in. Their Pending Verification screen picks this up automatically within its next check-in.
-- **Deny** — **this permanently deletes the account**, including the uploaded ID and selfie files. There's no "rejected but recoverable" state — if someone's denied by mistake, they'll need to register again from scratch.
+## 2. Citizen ID Verifications Panel
 
-See [Feature Breakdown — Registration & ID Verification](../features/overview.md#registration--id-verification) for the full technical flow, including what a citizen sees on their end while waiting.
+Every newly registered citizen remains in an `unverified` status until reviewed by an administrator:
 
-## Citizens Panel
+### Reviewing an Application
+For each applicant in the verification queue, the admin can inspect:
+1. **Front of Valid ID:** High-resolution cropped image of the government document.
+2. **Back of Valid ID:** High-resolution cropped image of the reverse side.
+3. **Live Selfie with ID:** Live photograph showing the applicant holding the ID next to their face.
+4. **Account Details:** Full name, phone number, birthdate, home barangay, and ID type.
 
-A searchable, filterable list of every registered citizen (not just pending ones — this is the full roster).
+### Verification Actions
+- **Approve User:**  
+  - Activates the account (`account_status = 'active'`).
+  - Broadcasts `UserVerified` (`approved`) via WebSockets to instantly unlock the citizen's pending screen.
+  - Automatically dispatches a Welcome Email and FCM Push Notification.
+- **Reject User:**  
+  - **Permanently deletes** the registration and unlinks all uploaded ID and selfie files from storage.
+  - Leaves zero residual personal data in the database.
 
-- **Search** by name/username/email
-- **Filter by barangay**
-- **Filter by date range** (registration date), using the same shared date-range filter used elsewhere in the dashboard
-- Status badge per citizen: **Active**, **Pending** (still awaiting ID verification), or **Suspended**
+---
 
-Actions available per citizen:
-- **Suspend** — locks the account out (`account_status` → `banned`). Use this for a citizen who's active but abusing the system (e.g. repeated confirmed false alarms), as opposed to denial, which is only for registrations that were never approved in the first place.
-- **Reactivate** — lifts a suspension, returning the account to active.
+## 3. Citizens Management Panel
 
-<details>
-<summary><b>Suspend vs. Deny \u2014 which one do I use?</b></summary>
+The **Citizens** panel is a full directory of all registered residents across San Isidro.
 
-- **Deny** only applies to a still-pending registration (someone who hasn't been approved yet) and deletes the account outright.
-- **Suspend** only applies to an already-active citizen and just locks them out — reversible with Reactivate.
+### Tools & Filters
+- **Global Search:** Search by name, username, email, or mobile phone number.
+- **Barangay Filter:** Filter residents by any of the 9 official barangays.
+- **Unified Date-Range Filter:** Filter by registration date using Single-Day, Multi-Day, or Custom Date Range.
+- **Status Badges:** `Active`, `Pending`, or `Suspended`.
 
-There's no in-between "suspend a pending applicant" action; if their ID looks fraudulent, deny it. If a previously-approved citizen turns out to be a problem, suspend them.
+### Moderation Actions
+- **Suspend Citizen:** Locks an abusive account (`account_status = 'banned'`), revokes all active session tokens, and records an administrative ban reason.
+- **Reactivate Citizen:** Restores access for a previously suspended citizen (`account_status = 'active'`).
 
-</details>
+---
 
-## Dispatchers Panel
+## 4. Dispatchers Management Panel
 
-Manage staff accounts here — this is also how new dispatchers get set up, since they can't self-register the way citizens do.
+Dispatchers cannot self-register; they are created and managed directly by administrators:
+- **Add Dispatcher:** Create a new staff account with Name, Mobile Number, Username, Email, Password, and Assigned Barangay.
+- **Edit Dispatcher:** Update contact details or change assigned information.
+- **Deactivate Dispatcher:** Revoke staff access and invalidate all active session tokens.
 
-- **Add Dispatcher** — create a new dispatcher account (name, contact info, login credentials).
-- **Edit** — update an existing dispatcher's details.
-- **Remove** — deactivate a dispatcher account.
+---
 
-## Feedback
+## 5. Citizen Feedback Portal
 
-Everything citizens submit from their Help tab shows up here — sender name, username, timestamp, a category badge (General / Bug / Suggestion / Other), and the message itself.
+All feedback submitted by citizens from the mobile app's Help tab is routed to this panel:
+- **Details Displayed:** Sender name, username, email, submission timestamp, category badge (*General*, *Bug*, *Suggestion*, *Other*), and message content.
+- **Export JSON:** Download the entire feedback database as a timestamped JSON file (`feedback_export_YYYY-MM-DD_HHMMSS.json`) for reporting and review.
+- **Clear All:** Safely purges all feedback records once processed.
 
-- **Export JSON** — download the full feedback list for offline review or reporting.
-- **Clear All** — wipes the feedback list. There's no per-item delete or undo, so export first if you want to keep a record.
+---
 
-## Everything Else
+## 6. Command Center Settings Panel
 
-Incident Map, Log Archive, Analytics, and Alert Broadcast work identically for admin and dispatcher accounts — see the [Dispatcher Guide](./dispatcher-guide.md) for those.
+Administrators and dispatchers can customize their command center interface:
+- **Dark Theme:** Toggle between High-Contrast Dark Mode and Clean Light Mode.
+- **Reduce Animations:** Minimize UI transition effects for maximum performance on lower-spec workstations.
+- **Emergency Audio & Push Alerts:** Enable or mute real-time sound cues and push alerts for incoming SOS calls.
+- **Default Map Style:** Set the default tile layer for the Incident Map (**Street View** vs. **Satellite Imagery**).
+- **Session Logout:** Safely terminate the administrative session and clear local credentials.
