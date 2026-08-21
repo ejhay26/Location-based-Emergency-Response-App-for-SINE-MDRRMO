@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
 /**
- * Tiny pub/sub so PushNotificationsService can tell HomePage "a broadcast
- * push just arrived, refetch now" without the two having a direct
- * dependency on each other. HomePage subscribes in ngOnInit and unsubscribes
- * in ngOnDestroy alongside its polling interval.
+ * Tiny pub/sub so any real-time source — PushNotificationsService (FCM)
+ * or EchoService (Reverb WebSocket) — can tell HomePage "something changed,
+ * refetch now" without the two having a direct dependency on each other.
+ * HomePage subscribes in ngOnInit and unsubscribes in ngOnDestroy alongside
+ * its fallback polling interval.
  *
  * Also holds the last-fetched broadcast list as a simple in-memory cache.
  * `/report` is a top-level route outside the tabs' cached route structure,
@@ -16,6 +17,10 @@ import { Subject } from 'rxjs';
  * service is `providedIn: 'root'`, it survives HomePage's destroy/recreate
  * as long as the app itself is still running, so HomePage can paint the
  * cached list immediately and only silently refresh in the background.
+ *
+ * Real-time sources that call trigger():
+ *   1. PushNotificationsService — FCM push arrives while app is foregrounded
+ *   2. EchoService — BroadcastMessageUpdated WebSocket event from Reverb
  */
 @Injectable({ providedIn: 'root' })
 export class BroadcastRefreshService {
