@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 17, 2026 at 07:28 AM
+-- Generation Time: Aug 21, 2026 at 07:27 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -72,9 +72,13 @@ INSERT INTO `broadcasts` (`broadcast_id`, `message`, `is_active`, `created_at`) 
 (5, 'test', 0, '2026-08-02 06:34:00'),
 (6, 'test', 0, '2026-08-02 06:34:20'),
 (7, 'test', 0, '2026-08-02 06:35:03'),
-(8, 'alert', 1, '2026-08-02 06:48:27'),
-(9, 'test', 1, '2026-08-02 17:13:15'),
-(10, 'Flooding', 1, '2026-08-02 17:43:57');
+(8, 'alert', 0, '2026-08-02 06:48:27'),
+(9, 'test', 0, '2026-08-02 17:13:15'),
+(10, 'Flooding', 1, '2026-08-02 17:43:57'),
+(11, 'testing', 0, '2026-08-19 18:05:03'),
+(12, 'test', 0, '2026-08-19 18:11:48'),
+(13, 'test', 1, '2026-08-19 18:12:36'),
+(14, 'test', 1, '2026-08-20 06:02:36');
 
 -- --------------------------------------------------------
 
@@ -158,7 +162,9 @@ INSERT INTO `device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`)
 (20, 1, 'drCxVuXfTUy-okW8L7P7sF:APA91bHYlbNW5PpYO_jxBuolkBxU19_8X_lhkH6M6FVMVy0XqT5FhaThqEZ3p9ZPRSQAE-KJn3ASWTPuzuZLaR_PLSrxQo2EtrfGFn4RpqeUXjnMwoSufvs', 'android', '2026-08-02 17:35:50'),
 (21, 3, 'dvW_kOHbR7KNykLVnQd55X:APA91bHoPbkdk2XX-9unAn3zku8f4aKkCEb4FuZ5xW5HnL1bfZ_sVjOGS9kd42XLu3Yx0IN2bfVNXnUH9aZPeT_BJ_D56fVOXdXlnJ49pF9lOdNIOBY_MB8', 'android', '2026-08-05 00:51:28'),
 (26, 1, 'cYQcX-GFTHCTv2pK-M8C8x:APA91bEtMN-q6bnkusba9ad9--kVft7qBoKBB_GrskD5rJ0Fu4cUxsPdi7GwbFZ_dAo44na8lcdYSDza8ThuhTIV6acWhaL_qCBUE4cuT3k839I8W-Jgijo', 'android', '2026-08-07 01:51:43'),
-(27, 1, 'cRVoECQDTd-FlFmKUpW3JJ:APA91bHmFfXLRmdVCXGD2kSuh1epegTcwfTv0sPuljFW3ecIzHCMsN4pDirdKbxn2I1uiAPH3mQHGcNEOJuaaZ7s9MTn4xWIcFT0dXFojUje7ppmv80HlEc', 'android', '2026-08-11 21:32:40');
+(27, 1, 'cRVoECQDTd-FlFmKUpW3JJ:APA91bHmFfXLRmdVCXGD2kSuh1epegTcwfTv0sPuljFW3ecIzHCMsN4pDirdKbxn2I1uiAPH3mQHGcNEOJuaaZ7s9MTn4xWIcFT0dXFojUje7ppmv80HlEc', 'android', '2026-08-11 21:32:40'),
+(29, 3, 'dkQc3UTMTc24n2oKzyMTc7:APA91bEsj8n2V6SUDcf2iki3TdyYkxsHASxWNExfSvqwj8NUGS2u-KG4r9kuRl7Ys6GGoPWzfBpMpI6_odbNiydSqgb9Mxa_rk2m_eZuviYYNK3AEEH51HI', 'android', '2026-08-18 00:32:28'),
+(30, 3, 'cUUQtDnURxW3llPflEAAEk:APA91bGBGDQXvMOYwMnPBFVYfKBuyPAS5pVIKjb-KhtnTUHaXfoj3ee49Xx4C6m2XowzK_1sPEXaepsYh0II1AVlXdil4RDOc_5OMv1pUdCr8IjfzWHo2Pw', 'android', '2026-08-18 03:16:34');
 
 -- --------------------------------------------------------
 
@@ -220,7 +226,7 @@ INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `
 (8, 3, 3, '[\"storage/emergencies/sos_20260613_094422_3.png\"]', NULL, 15.30951900, 120.90291000, 5, 'Resolved', '2026-06-13 01:44:22', '2026-06-13 01:44:22', '2026-08-17 05:09:39', NULL, 0),
 (9, 1, 2, '[\"storage\\/emergencies\\/sos_20260629_105213_6a424e5d615d6_1.png\",\"storage\\/emergencies\\/sos_20260629_105213_6a424e5d6675b_1.mp4\"]', NULL, 15.26077600, 120.91049400, 9, 'Cancelled', '2026-06-29 02:52:13', '2026-06-29 02:52:13', '2026-08-17 05:09:39', NULL, 0),
 (10, 1, 1, '[\"storage\\/reports\\/sos\\/1\\/20260721_054159_6a5f06a722073.png\",\"storage\\/reports\\/sos\\/1\\/20260721_054159_6a5f06a72471f.mp4\"]', '', 15.30971500, 120.90776500, 5, 'Cancelled', '2026-07-20 21:41:59', '2026-07-20 21:41:59', '2026-08-17 05:09:39', NULL, 0),
-(11, 1, 1, NULL, '', 15.26093000, 120.91037100, 9, 'Pending', '2026-08-11 21:32:45', '2026-08-11 21:32:45', '2026-08-17 05:09:39', NULL, 0);
+(11, 1, 1, NULL, '', 15.26093000, 120.91037100, 9, 'Cancelled', '2026-08-11 21:32:45', '2026-08-11 21:32:45', '2026-08-20 06:05:50', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -318,6 +324,21 @@ CREATE TABLE `jobs` (
   `created_at` int(10) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `jobs`
+--
+
+INSERT INTO `jobs` (`id`, `queue`, `payload`, `attempts`, `reserved_at`, `available_at`, `created_at`) VALUES
+(1, 'default', '{\"uuid\":\"e6eca7f1-0fe2-4a8f-90e1-9652acfc0802\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"created\\\";s:11:\\\"broadcastId\\\";i:11;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787191513,\"delay\":null}', 0, NULL, 1787191513, 1787191513),
+(2, 'default', '{\"uuid\":\"220e0d53-b30a-41a4-9aee-305b517ad990\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"cleared\\\";s:11:\\\"broadcastId\\\";i:9;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787191555,\"delay\":null}', 0, NULL, 1787191555, 1787191555),
+(3, 'default', '{\"uuid\":\"c99a34b4-0f1d-4ecc-b921-2183040965bf\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"cleared\\\";s:11:\\\"broadcastId\\\";i:8;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787191556,\"delay\":null}', 0, NULL, 1787191556, 1787191556),
+(4, 'default', '{\"uuid\":\"1874a2e8-3a39-482c-a6f4-3dccd50c190d\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"cleared\\\";s:11:\\\"broadcastId\\\";i:11;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787191842,\"delay\":null}', 0, NULL, 1787191842, 1787191842),
+(5, 'default', '{\"uuid\":\"60359c60-00bb-4367-888d-f37cd1854360\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"created\\\";s:11:\\\"broadcastId\\\";i:12;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787191918,\"delay\":null}', 0, NULL, 1787191918, 1787191918),
+(6, 'default', '{\"uuid\":\"8d46065f-dfff-4aa9-a718-c03fcc9835d5\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"cleared\\\";s:11:\\\"broadcastId\\\";i:12;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787191929,\"delay\":null}', 0, NULL, 1787191929, 1787191929),
+(7, 'default', '{\"uuid\":\"020c6e35-5eb4-4ca1-8155-4a73d2352374\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"created\\\";s:11:\\\"broadcastId\\\";i:13;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787191967,\"delay\":null}', 0, NULL, 1787191967, 1787191967),
+(8, 'default', '{\"uuid\":\"8179bf96-788f-413a-83a5-0cea1326a59d\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"created\\\";s:11:\\\"broadcastId\\\";i:14;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787234564,\"delay\":null}', 0, NULL, 1787234564, 1787234564),
+(9, 'default', '{\"uuid\":\"320071e6-b207-4f0d-8312-78ac76066438\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:9:\\\"cancelled\\\";s:9:\\\"requestId\\\";i:11;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787234750,\"delay\":null}', 0, NULL, 1787234750, 1787234750);
+
 -- --------------------------------------------------------
 
 --
@@ -395,8 +416,8 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
-(81, 'App\\Models\\User', 3, 'app-token', 'e601db389cd14ddcaa4859c52d021061baa60f226fbd20d3c4e6f4a2f3dcc335', '[\"citizen\"]', '2026-08-14 06:54:44', NULL, '2026-08-14 05:42:38', '2026-08-14 06:54:44'),
-(92, 'App\\Models\\User', 1, 'app-token', '82897ed0c801722d5f5fdfe5c590e46bea9434b2c24146c06033fed907e5fbc7', '[\"citizen\"]', '2026-08-16 06:22:32', NULL, '2026-08-15 18:36:32', '2026-08-16 06:22:32');
+(100, 'App\\Models\\User', 1, 'app-token', '80d22a195d7b7f3db6d0230339595370d8192198af9f5a6c65270c20e405c8c4', '[\"citizen\"]', '2026-08-20 21:27:34', NULL, '2026-08-19 05:29:46', '2026-08-20 21:27:34'),
+(107, 'App\\Models\\User', 4, 'app-token', 'ceb15bb98b048c07884f92388f60d02f14f79643de09220333577889b54fa9a2', '[\"admin\",\"dispatcher\",\"citizen\"]', '2026-08-20 19:24:09', NULL, '2026-08-20 06:02:26', '2026-08-20 19:24:09');
 
 -- --------------------------------------------------------
 
@@ -505,15 +526,16 @@ CREATE TABLE `user_settings` (
 --
 
 INSERT INTO `user_settings` (`id`, `user_id`, `key`, `value`, `updated_at`, `save_media_to_device`) VALUES
-(1, 1, 'dark_mode', 'false', '2026-08-16 00:18:04', 0),
+(1, 1, 'dark_mode', 'false', '2026-08-18 07:08:17', 0),
 (2, 1, 'location_auto_fetch', 'true', '2026-08-15 20:00:06', 0),
 (3, 1, 'map_default_style', 'street', '2026-07-20 01:02:21', 0),
 (4, 1, 'reduce_animations', 'false', '2026-08-15 20:04:55', 0),
-(5, 4, 'dark_mode', 'true', '2026-08-15 03:38:52', 0),
+(5, 4, 'dark_mode', 'false', '2026-08-19 22:16:29', 0),
 (6, 1, 'save_media_to_device', 'false', '2026-08-01 23:07:13', 0),
-(7, 3, 'dark_mode', 'false', '2026-08-10 23:24:09', 0),
+(7, 3, 'dark_mode', 'true', '2026-08-18 03:17:42', 0),
 (8, 3, 'map_default_style', 'street', '2026-08-10 02:53:30', 0),
-(9, 3, 'reduce_animations', 'false', '2026-08-10 02:54:57', 0);
+(9, 3, 'reduce_animations', 'false', '2026-08-10 02:54:57', 0),
+(10, 3, 'notif_broadcast_alerts', 'true', '2026-08-18 00:41:04', 0);
 
 -- --------------------------------------------------------
 
@@ -712,13 +734,13 @@ ALTER TABLE `barangays`
 -- AUTO_INCREMENT for table `broadcasts`
 --
 ALTER TABLE `broadcasts`
-  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `device_tokens`
 --
 ALTER TABLE `device_tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `dispatch`
@@ -760,7 +782,7 @@ ALTER TABLE `incident_types`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `migrations`
@@ -772,7 +794,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=108;
 
 --
 -- AUTO_INCREMENT for table `responders`
@@ -790,7 +812,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_settings`
 --
 ALTER TABLE `user_settings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
