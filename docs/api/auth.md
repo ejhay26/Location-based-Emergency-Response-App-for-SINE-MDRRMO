@@ -1,59 +1,145 @@
-# API Reference — Auth
+# API Reference — Authentication & Accounts
 
-Base path: `/api`. See [Security Model](../architecture/security.md) for the token/OTP flow this reference assumes.
+Base Path: `/api`  
+Security: Laravel Sanctum (`Bearer <token>`)
 
-## No Login Needed
+---
 
-| Method | Endpoint | Controller | Notes |
-|---|---|---|---|
-| `POST` | `/register` | `AuthController@register` | Creates a citizen account |
-| `POST` | `/login` | `AuthController@login` | Returns a Sanctum token on success |
-| `POST` | `/login-send-otp` | `AuthController@loginSendOtp` | Throttled: 3/min |
-| `POST` | `/login-verify-otp` | `AuthController@loginVerifyOtp` | Throttled: 5/min |
-| `POST` | `/verify-otp` | `AuthController@verifyOtp` | Registration OTP check. Doesn't return a token — the account is still `unverified` at this point (see below) |
-| `POST` | `/check-verification-status` | `AuthController@checkVerificationStatus` | Throttled: 10/min. Body: `email`. Returns `{ "status": "unverified" \| "active" \| "banned" \| "not_found" }` — nothing else. Polled by the Pending Verification screen |
-| `GET` | `/check-username` | `AuthController@checkUsername` | Availability check |
-| `GET` | `/check-email` | `AuthController@checkEmail` | Availability check |
-| `POST` | `/forgot-password` | `AuthController@forgotPassword` | Throttled: 3/min |
-| `POST` | `/reset-password` | `AuthController@resetPassword` | Finishes the password reset via OTP |
+## 1. Public Authentication Endpoints (No Token Required)
 
-## Login Required (`auth:sanctum`)
+### 1.1 `GET /api/health`
+Lightweight health probe endpoint.
+- **Response (200):**
+  ```json
+  { "status": "ok", "timestamp": "2026-08-21T16:00:00.000000Z" }
+  ```
 
-| Method | Endpoint | Controller | Notes |
-|---|---|---|---|
-| `POST` | `/logout` | `AuthController@logout` | Revokes the current token |
-| `POST` | `/update-password` | `PasswordController@updatePassword` | Needs OTP verification first (see below) |
-| `POST` | `/send-password-change-otp` | `PasswordController@sendPasswordChangeOtp` | Step 1 of changing password while logged in |
-| `POST` | `/verify-password-change-otp` | `PasswordController@verifyPasswordChangeOtp` | Step 2 — must pass before `/update-password` works |
+---
 
-<details>
-<summary><b>Password change flow, step by step</b></summary>
+### 1.2 `POST /api/register`
+Creates a new citizen registration and triggers an initial OTP verification code.
 
-```
-send-password-change-otp → (email) → verify-password-change-otp → update-password
-```
+- **Request Body (JSON):**
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `first_name` | string | Yes | Citizen first name |
+  | `last_name` | string | Yes | Citizen surname |
+  | `phone` | string | Yes | Philippine mobile number (`09...` or `+639...`) |
+  | `birthdate` | string (YYYY-MM-DD) | Yes | Citizen date of birth |
+  | `username` | string | Yes | Unique username |
+  | `email` | string | Yes | Unique email address |
+  | `password` | string | Yes | Strong password (8+ chars, uppercase, lowercase, digit, symbol) |
+  | `barangay_id` | integer | Yes | ID of resident barangay (1–9) |
+  | `valid_id_type` | string | Yes | e.g. "Philippine National ID", "Driver's License", "UMID" |
+  | `valid_id_image` | string (base64) | Yes | Front of Valid Government ID |
+  | `valid_id_image_back`| string (base64) | Yes | Back of Valid Government ID |
+  | `selfie_with_id_image`| string (base64) | Yes | Live selfie holding the ID card |
+  | `otp_channel` | string (`email` \| `sms`) | No | Preferred channel for verification code (default: `email`) |
 
-This applies even if you're already logged in, so a stolen or active session alone isn't enough to change someone's password.
+- **Response (200):**
+  ```json
+  { "message": "Verification code sent." }
+  ```
 
-</details>
+---
 
-<details>
-<summary><b>Registration → login flow, step by step</b></summary>
+### 1.3 `POST /api/login`
+Authenticates a citizen, dispatcher, or admin using username/email and password.
 
-```
-register → (email OTP) → verify-otp → Pending Verification screen
-                                          ↓ (polls check-verification-status every 20–30s)
-                              still unverified ─────────▶ keeps waiting
-                              approved (active) ──────▶ login (issues a token)
-                              rejected ─────────────▶ account no longer exists
-```
+- **Request Body:** `{ "login": "username_or_email", "password": "secret_password" }`
+- **Response (200):**
+  ```json
+  {
+    "message": "Login successful",
+    "token": "1|abcdef123456...",
+    "role": "citizen",
+    "user": { "user_id": 12, "first_name": "Juan", "role": "citizen", "setup_completed": false }
+  }
+  ```
+- **Error (403):** Returns `{ "message": "Your account registration is currently pending admin verification review.", "reason": "unverified" }` if ID has not yet been approved.
 
-A newly registered citizen can't actually use the app until an admin approves their submitted ID — see [Security Model — New Accounts Start Locked](../architecture/security.md#new-accounts-start-locked-pending-verification).
+---
 
-</details>
+### 1.4 `POST /api/login-send-otp` (Throttled: 3/min)
+Sends a passwordless login code via Email or PhilSMS.
 
-## Related
+- **Request Body:**
+  ```json
+  {
+    "otp_channel": "phone",
+    "phone": "09171234567"
+  }
+  ```
+  *(Or `{"otp_channel": "email", "email": "user@example.com"}`)*
+- **Response (200):** `{ "message": "If that account exists, an OTP was sent." }`
 
-- [Security Model](../architecture/security.md)
-- [API — Emergency](./emergency.md)
-- [API — Admin](./admin.md)
+---
+
+### 1.5 `POST /api/login-verify-otp` (Throttled: 5/min)
+Verifies the passwordless login code and issues a Sanctum token.
+
+- **Request Body:**
+  ```json
+  {
+    "otp_channel": "phone",
+    "phone": "09171234567",
+    "otp": "4812"
+  }
+  ```
+- **Response (200):** Returns Sanctum token, user object, and role.
+
+---
+
+### 1.6 `POST /api/verify-otp`
+Confirms the OTP received during registration.
+
+- **Request Body:** `{ "email": "user@example.com", "otp": "1234" }`
+- **Response (200):** `{ "message": "Verification successful", "user": {...}, "role": "citizen" }`
+
+---
+
+### 1.7 `POST /api/resend-registration-otp` (Throttled: 3/min)
+Resends the registration OTP for an unverified account.
+
+- **Request Body:** `{ "email": "user@example.com", "otp_channel": "email" }`
+- **Response (200):** `{ "message": "If a pending registration exists, a new code was sent." }`
+
+---
+
+### 1.8 `POST /api/check-verification-status` (Throttled: 10/min)
+Tokenless endpoint polled by the Pending Verification screen.
+
+- **Request Body:** `{ "login": "user@example.com" }` (or `{ "email": "..." }`)
+- **Response (200):** `{ "status": "unverified" | "active" | "banned" | "not_found" }`
+
+---
+
+### 1.9 `GET /api/check-username` & `GET /api/check-email`
+Live availability checkers during registration.
+- `GET /api/check-username?username=juan26` → `{ "available": true }`
+- `GET /api/check-email?email=juan@gmail.com` → `{ "available": true }`
+
+---
+
+### 1.10 Password Recovery Flow
+1. **`POST /api/forgot-password` (3/min):**  
+   Body: `{"otp_channel": "email"|"phone", "email": "...", "phone": "..."}`  
+   Response: `{ "message": "If an account exists, an OTP was sent." }`
+2. **`POST /api/verify-reset-otp` (5/min):**  
+   Body: `{"otp_channel": "email"|"phone", "email": "...", "phone": "...", "otp": "1234"}`  
+   Response: `{ "message": "OTP verified." }`
+3. **`POST /api/reset-password`:**  
+   Body: `{"otp_channel": "...", "email": "...", "phone": "...", "new_password": "NewSecurePassword123!"}`  
+   Response: `{ "message": "Password reset successfully!" }`
+
+---
+
+## 2. Authenticated Account Endpoints (`auth:sanctum`)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/logout` | Revokes current Sanctum token |
+| `POST` | `/api/complete-account-setup` | Marks the initial post-approval onboarding wizard completed |
+| `POST` | `/api/send-password-change-otp` | Sends an OTP to verify identity before changing password while logged in |
+| `POST` | `/api/verify-password-change-otp` | Validates the password change OTP |
+| `POST` | `/api/update-password` | Commits the new password after OTP verification |
