@@ -24,7 +24,9 @@
 
   <!-- Stage 5 — queued-offline SOS reports: not yet on the server at all,
        so they can never appear in the list below. Shown above it,
-       read-only, regardless of the active status/date filters. -->
+       regardless of the active status/date filters. Cancellable — removes
+       the local queue entry, no API call needed since it never reached
+       the server. -->
   <ion-card *ngFor="let item of queuedSosItems" style="margin:10px 0;border:1.5px dashed var(--ion-color-warning);">
     <ion-item lines="none">
       <div slot="start" style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#ffc40920;">
@@ -35,8 +37,11 @@
         <p style="color:var(--ion-color-medium);font-size:12px;">{{ item.createdAt | date:'MMM d, y · h:mm a' }}</p>
         <p style="font-size:12px;color:var(--ion-color-medium);margin-top:2px;">Saved on this device — will send automatically once you're back online.</p>
       </ion-label>
-      <ion-badge slot="end" color="warning" style="font-weight:bold;padding:6px 12px;border-radius:8px;">Queued · Offline</ion-badge>
+      <ion-badge slot="end" color="warning" style="font-weight:bold;padding:6px 12px;border-radius:8px;margin-right:8px;">Queued · Offline</ion-badge>
     </ion-item>
+    <ion-button fill="clear" color="medium" expand="block" (click)="cancelQueuedItem(item.id)" style="font-weight:bold;border-top:1px solid var(--ion-color-step-100,#eee);margin-top:4px;">
+      <i class="fa-solid fa-circle-ban" style="margin-right:6px;"></i>Remove From Queue
+    </ion-button>
   </ion-card>
 
   <div>

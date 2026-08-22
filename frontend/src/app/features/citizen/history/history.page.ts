@@ -1,13 +1,14 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonItem,
   IonLabel, IonBadge, IonRefresher, IonRefresherContent, IonSkeletonText, IonList
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
 import { TourService } from '../../../core/services/tour';
+import { EchoService } from '../../../core/services/echo.service';
 import { OfflineQueueService, QueuedReport } from '../../../core/services/offline-queue';
 import { DialogService } from '../../../core/services/dialog.service';
 import { DateRangeFilterComponent } from '../../../shared/components/date-range-filter/date-range-filter.component';
@@ -42,7 +43,7 @@ const STATUS_FILTERS: StatusFilterOption[] = [
     ProxyImageDirective, VideoThumbnailDirective, RevealAnimateDirective,
   ],
 })
-export class HistoryPage implements OnDestroy {
+export class HistoryPage implements OnInit, OnDestroy {
   /** Exposed to the template so the status-filter row can be rendered from one source of truth. */
   readonly statusFilters = STATUS_FILTERS;
 
@@ -84,11 +85,13 @@ export class HistoryPage implements OnDestroy {
   filterSettling = false;
   private filterSettleTimer?: ReturnType<typeof setTimeout>;
 
+  private echoEmergencySub?: Subscription;
+
   constructor(
     private api: ApiService,
-    private toastCtrl: ToastController,
     private router: Router,
     private dialog: DialogService,
+    private echo: EchoService,
     public tour: TourService,
     public offlineQueue: OfflineQueueService,
   ) {}
@@ -108,7 +111,26 @@ export class HistoryPage implements OnDestroy {
     return this.offlineQueue.items().filter(i => i.kind === 'sos');
   }
 
-  ngOnInit() { this.load(); }
+  ngOnInit() {
+    this.load();
+
+    // Connect is idempotent — safe even if HomePage already called it.
+    this.echo.connect();
+
+    // When the admin dispatches or resolves this citizen's emergency,
+    // the status badge and card details update immediately without
+    // requiring a manual pull-to-refresh. Only EmergencyUpdated matters
+    // here — hazard and broadcast events are irrelevant to this page.
+    this.echoEmergencySub = this.echo.onEmergencyUpdated.subscribe(() => {
+      this.load();
+    });
+  }
+
+  ngOnDestroy() {
+    this.echoEmergencySub?.unsubscribe();
+    clearTimeout(this.filterSettleTimer);
+    // Do NOT disconnect Echo — it is a root singleton.
+  }
 
   load(event?: any) {
     const userStr = localStorage.getItem('user');
@@ -119,10 +141,6 @@ export class HistoryPage implements OnDestroy {
       next: (res: any) => { this.emergencies = Array.isArray(res) ? res : []; this.isLoading = false; event?.target.complete(); },
       error: () => { this.isLoading = false; event?.target.complete(); }
     });
-  }
-
-  ngOnDestroy() {
-    clearTimeout(this.filterSettleTimer);
   }
 
   /** Delays the empty-state message just long enough for RevealAnimateDirective's close tween (~220ms) to actually finish — see the filterSettling doc comment above. */
@@ -231,16 +249,36 @@ export class HistoryPage implements OnDestroy {
 
   async cancelRequest(requestId: number) {
     const user = JSON.parse(localStorage.getItem('user')!);
-    this.api.cancelEmergency({ request_id: requestId, user_id: user.user_id }).subscribe({
-      next: async () => {
-        const t = await this.toastCtrl.create({ message: 'Request cancelled.', duration: 2000, color: 'medium' });
-        t.present(); this.load();
+    await this.dialog.confirm({
+      title: 'Cancel SOS Report',
+      message: 'Are you sure you want to cancel this emergency report? Only do this if the situation has been resolved or was reported by mistake.',
+      icon: 'close-circle-outline',
+      iconColor: 'danger',
+      confirmLabel: 'Yes, Cancel Report',
+      confirmColor: 'danger',
+      onConfirm: async () => {
+        await new Promise<void>((resolve, reject) => {
+          this.api.cancelEmergency({ request_id: requestId, user_id: user.user_id }).subscribe({
+            next: () => resolve(),
+            error: (e) => reject(e),
+          });
+        });
+        this.load();
       },
-      error: async () => {
-        const t = await this.toastCtrl.create({ message: 'Failed to cancel.', duration: 2000, color: 'danger' });
-        t.present();
-      }
     });
+  }
+
+  /** Cancel a not-yet-sent, still-queued-offline SOS — simpler confirm, no API call since it never reached the server. */
+  async cancelQueuedItem(id: string) {
+    const confirmed = await this.dialog.confirm({
+      title: 'Remove Queued Report',
+      message: "This report hasn't reached MDRRMO yet. Remove it from the queue?",
+      icon: 'close-circle-outline',
+      iconColor: 'danger',
+      confirmLabel: 'Remove',
+      confirmColor: 'danger',
+    });
+    if (confirmed) await this.offlineQueue.removeById(id);
   }
 
   goToSos()    { this.router.navigate(['/report'], { queryParams: { type: 'emergency' } }); }
