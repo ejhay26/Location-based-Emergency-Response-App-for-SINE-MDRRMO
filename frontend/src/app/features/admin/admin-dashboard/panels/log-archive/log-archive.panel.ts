@@ -128,6 +128,159 @@ export class LogArchivePanel implements OnInit {
     return chips;
   }
 
+  showExportModal = false;
+
+  openExportModal(): void {
+    if (this.filteredArchivedRequests.length === 0) {
+      this.ui.showToast('No records match your current filters to export.', 'warning');
+      return;
+    }
+    this.showExportModal = true;
+  }
+
+  closeExportModal(): void {
+    this.showExportModal = false;
+  }
+
+  printPdfReport(): void {
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const adminName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'MDRRMO Officer';
+    const role = localStorage.getItem('role') || 'Admin';
+    const nowStr = new Date().toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const records = this.filteredArchivedRequests;
+    const filterSummary = this.activeFilterChips.length > 0 ? this.activeFilterChips.join(' | ') : 'All Archived Logs';
+
+    const rowsHtml = records.map((r, i) => `
+      <tr>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 11px;">${i + 1}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-size: 12px;">${r.incident_name || 'Emergency'}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.first_name || ''} ${r.last_name || ''}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.phone || 'N/A'}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.barangay_name || 'Unresolved'}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${new Date(r.request_time).toLocaleString()}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 11px;">
+          <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; background: ${r.status === 'Resolved' ? '#e8f5e9' : '#f5f5f5'}; color: ${r.status === 'Resolved' ? '#2e7d32' : '#616161'};">
+            ${r.status}
+          </span>
+          ${r.is_false_alarm ? '<span style="display: inline-block; margin-left: 4px; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 9px; background: #ffebee; color: #c62828;">FALSE ALARM</span>' : ''}
+        </td>
+      </tr>
+    `).join('');
+
+    const printHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>MDRRMO Log Archive Report - ${new Date().toISOString().slice(0, 10)}</title>
+        <style>
+          @page { size: landscape; margin: 12mm 15mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #222; margin: 0; padding: 15px; font-size: 12px; }
+          .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #c62828; padding-bottom: 12px; margin-bottom: 16px; }
+          .header-left { display: flex; align-items: center; gap: 12px; }
+          .logo-box { width: 44px; height: 44px; background: #c62828; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 14px; }
+          .title-box h1 { margin: 0; font-size: 16px; text-transform: uppercase; color: #c62828; letter-spacing: 0.5px; }
+          .title-box p { margin: 2px 0 0; font-size: 11px; color: #666; }
+          .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #f8f9fa; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e9ecef; }
+          .meta-item { font-size: 11px; }
+          .meta-label { color: #888; text-transform: uppercase; font-size: 9px; font-weight: bold; margin-bottom: 2px; }
+          .meta-val { font-weight: 600; color: #333; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th { background: #f1f3f5; color: #495057; font-weight: 700; font-size: 11px; text-transform: uppercase; padding: 8px 10px; border-bottom: 2px solid #dee2e6; text-align: left; }
+          tr:nth-child(even) { background-color: #fafbfc; }
+          .footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 15px; border-top: 1px solid #dee2e6; font-size: 10px; color: #888; }
+          .sig-box { text-align: center; border-top: 1px solid #333; padding-top: 4px; width: 180px; }
+          @media print {
+            body { padding: 0; }
+            button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="header-left">
+            <div class="logo-box">SINE</div>
+            <div class="title-box">
+              <h1>MDRRMO San Isidro — Emergency Log Archive Report</h1>
+              <p>Municipal Disaster Risk Reduction and Management Office • Official Record</p>
+            </div>
+          </div>
+          <div style="text-align: right; font-size: 11px; color: #666;">
+            <div><b>Generated:</b> ${nowStr}</div>
+            <div><b>Officer:</b> ${adminName} (${role.toUpperCase()})</div>
+          </div>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-item">
+            <div class="meta-label">Total Records</div>
+            <div class="meta-val">${records.length} Incident(s)</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Applied Filters</div>
+            <div class="meta-val">${filterSummary}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Sort Order</div>
+            <div class="meta-val">${this.archiveSort.toUpperCase()}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Report Status</div>
+            <div class="meta-val">Official Archive Export</div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align: center; width: 35px;">#</th>
+              <th>Incident Type</th>
+              <th>Citizen Reporter</th>
+              <th>Contact Number</th>
+              <th>Barangay</th>
+              <th>Date & Time Reported</th>
+              <th style="text-align: center;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <div>This document is an official export from the MDRRMO Emergency Response System. Confidential information.</div>
+          <div class="sig-box">
+            <b>${adminName}</b><br>
+            <span>Certified MDRRMO Personnel</span>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
+      this.closeExportModal();
+    } else {
+      this.ui.showToast('Could not open print window. Please allow popups for this site.', 'danger');
+    }
+  }
+
   clearAllFilters(): void {
     this.archiveFilter = 'all';
     this.archiveTypeFilter = 'all';
@@ -149,3 +302,4 @@ export class LogArchivePanel implements OnInit {
     });
   }
 }
+
