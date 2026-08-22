@@ -35,6 +35,7 @@ The **Incident Map** is the primary operational dashboard:
         ├─ Review live photo or 10-second video evidence
         ├─ Inspect "Golden Minute" Medical Data (Blood type, Allergies, Conditions, PWD)
         ├─ Check citizen false-alarm strike count
+        ├─ Interactive Map Sync (Clicking card smoothly pans/zooms map to pin)
         │
         ▼
 [Tap "Dispatch" Button]
@@ -45,7 +46,10 @@ The **Incident Map** is the primary operational dashboard:
 [Confirm Dispatch] ──▶ Status becomes "En Route" (Citizen notified via Push Alert)
         │
         ▼ (Incident Resolved on Scene)
-[Tap "Resolve"]    ──▶ Status becomes "Resolved" & moved to Log Archive
+[Tap "Resolve"]    ──▶ Confirmation dialog with animated loading spinner
+        │
+        ▼
+Status becomes "Resolved" & moved to Log Archive
 ```
 
 ---
