@@ -1,9 +1,11 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { IonButton } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
+import { EchoService } from '../../../../../core/services/echo.service';
 import { UserSettingsService } from '../../../../../core/services/user-settings';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
 import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
@@ -14,12 +16,6 @@ import { FilterSummaryBarComponent } from '../../../../../shared/components/filt
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/flip-reflow.util';
 
-/**
- * CitizensPanel — Accounts › Citizens. Search/filter over a card grid, plus
- * suspend/reactivate. Filtering is done client-side against the full list
- * (same as the original monolith) rather than round-tripping to the API's
- * getCitizens(filters) support, to keep behavior identical during atomization.
- */
 @Component({
   selector: 'app-citizens-panel',
   standalone: true,
@@ -29,7 +25,7 @@ import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/f
   ],
   templateUrl: './citizens.panel.html',
 })
-export class CitizensPanel implements OnInit {
+export class CitizensPanel implements OnInit, OnDestroy {
 
   citizens: any[] = [];
   citizenSearch = '';
@@ -39,13 +35,28 @@ export class CitizensPanel implements OnInit {
 
   readonly barangays = BARANGAYS;
 
-  /** FLIP filter-reflow (see applyFilterChange) needs a live handle on the grid's DOM to measure card positions before/after a filter change. */
   @ViewChild('citizensGrid') citizensGrid?: ElementRef<HTMLElement>;
 
-  constructor(public api: ApiService, public ui: AdminUiService, private settings: UserSettingsService) {}
+  private echoUserSub?: Subscription;
+
+  constructor(
+    public api: ApiService,
+    public ui: AdminUiService,
+    private echo: EchoService,
+    private settings: UserSettingsService,
+  ) {}
 
   ngOnInit() {
     this.loadCitizens();
+    this.echo.connect();
+    // Refresh when any account status changes (suspend / reinstate / approve).
+    this.echoUserSub = this.echo.onUserVerified.subscribe(() => {
+      this.loadCitizens();
+    });
+  }
+
+  ngOnDestroy() {
+    this.echoUserSub?.unsubscribe();
   }
 
   get filteredCitizens(): any[] {
@@ -62,7 +73,6 @@ export class CitizensPanel implements OnInit {
     });
   }
 
-  /** Chip labels for the active-filters summary bar; empty array hides the bar. */
   get activeFilterChips(): string[] {
     const chips: string[] = [];
     if (this.citizenSearch.trim())            chips.push(`"${this.citizenSearch.trim()}"`);
@@ -72,56 +82,24 @@ export class CitizensPanel implements OnInit {
     return chips;
   }
 
-  trackByUserId(_index: number, c: any): number {
-    return c.user_id;
-  }
+  trackByUserId(_index: number, c: any): number { return c.user_id; }
 
-  /**
-   * Filter-reflow (FLIP) — Citizens renders as a CSS Grid, not a
-   * single-column list, so RevealAnimateDirective's height-collapse trick
-   * (used by Log Archive/Verifications) doesn't reflow correctly here: a
-   * zero-height grid item just leaves an empty cell instead of letting
-   * siblings slide up. Filtered-out cards are removed outright (ordinary
-   * *ngIf-less *ngFor diffing), and the shared FLIP helpers animate every
-   * SURVIVING card sliding from its old grid position to its new one. See
-   * shared/utils/flip-reflow.util.ts for the full explanation.
-   *
-   * Every filter-mutating call site (search input, status/barangay
-   * dropdowns, date filter, clear-all) routes through this so none of them
-   * skip the reflow.
-   */
   private applyFilterChange(mutate: () => void): void {
     if (!this.settings.shouldAnimate()) { mutate(); return; }
     const container = this.citizensGrid?.nativeElement;
     const before = captureFlipRects(container);
     mutate();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => playFlipReorder(container, before));
-    });
+    requestAnimationFrame(() => requestAnimationFrame(() => playFlipReorder(container, before)));
   }
 
-  onSearchChange(value: string): void {
-    this.applyFilterChange(() => { this.citizenSearch = value; });
-  }
-
-  onStatusFilterChange(value: 'all' | 'active' | 'suspended'): void {
-    this.applyFilterChange(() => { this.citizenFilterStatus = value; });
-  }
-
-  onBarangayFilterChange(value: number | 'all'): void {
-    this.applyFilterChange(() => { this.citizenBarangayFilter = value; });
-  }
-
-  onDateFilterChange(value: DateFilterValue | null): void {
-    this.applyFilterChange(() => { this.citizenDateFilter = value; });
-  }
-
+  onSearchChange(value: string):                    void { this.applyFilterChange(() => { this.citizenSearch = value; }); }
+  onStatusFilterChange(value: 'all' | 'active' | 'suspended'): void { this.applyFilterChange(() => { this.citizenFilterStatus = value; }); }
+  onBarangayFilterChange(value: number | 'all'):    void { this.applyFilterChange(() => { this.citizenBarangayFilter = value; }); }
+  onDateFilterChange(value: DateFilterValue | null): void { this.applyFilterChange(() => { this.citizenDateFilter = value; }); }
   clearAllFilters(): void {
     this.applyFilterChange(() => {
-      this.citizenSearch = '';
-      this.citizenFilterStatus = 'all';
-      this.citizenBarangayFilter = 'all';
-      this.citizenDateFilter = null;
+      this.citizenSearch = ''; this.citizenFilterStatus = 'all';
+      this.citizenBarangayFilter = 'all'; this.citizenDateFilter = null;
     });
   }
 
@@ -145,7 +123,10 @@ export class CitizensPanel implements OnInit {
           ? this.api.reactivateCitizen({ user_id: citizen.user_id })
           : this.api.suspendCitizen({ user_id: citizen.user_id });
         call.subscribe({
-          next: () => { this.ui.showToast(isSuspended ? 'Account reinstated.' : 'Account suspended.', isSuspended ? 'success' : 'warning'); this.loadCitizens(); },
+          next: () => {
+            this.ui.showToast(isSuspended ? 'Account reinstated.' : 'Account suspended.', isSuspended ? 'success' : 'warning');
+            this.loadCitizens();
+          },
           error: () => this.ui.showToast('Action failed. Try again.', 'danger')
         });
       }
