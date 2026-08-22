@@ -9,7 +9,9 @@ export type SettingKey =
   | 'map_default_style'
   | 'notif_emergency_alerts'
   | 'notif_broadcast_alerts'
-  | 'save_media_to_device';
+  | 'save_media_to_device'
+  | 'photo_cropping_enabled'
+  | 'video_trimming_enabled';
 
 const STORAGE_KEY = 'user_settings_cache';
 
@@ -21,6 +23,8 @@ const DEFAULTS: Record<SettingKey, string> = {
   notif_emergency_alerts:  'true',
   notif_broadcast_alerts:  'true',
   save_media_to_device:    'false',
+  photo_cropping_enabled:  'true',
+  video_trimming_enabled:  'true',
 };
 
 @Injectable({ providedIn: 'root' })
