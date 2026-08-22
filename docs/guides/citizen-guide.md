@@ -6,28 +6,29 @@ Step-by-step instructions on registering, logging in, and using the SINE MDRRMO 
 
 ## 1. Registering an Account
 
-Registration consists of three guided steps:
+Registration consists of three easy, guided steps:
 
-### Step 1: Personal Details & Dual-Sided ID Verification
-- **Personal Information:** First name, last name, mobile phone number, birthdate.
-- **Valid Government ID Type:** Choose from Philippine National ID (PhilID), Driver's License, Voter's ID, UMID, Postal ID, PWD ID, Senior Citizen ID, Student ID, or Barangay ID.
-- **Front of ID Photo:** The app opens the camera for a live photo of the **Front** of your ID, with an integrated crop tool.
-- **Back of ID Photo:** Take a live photo of the **Back** of your ID and crop.
-- **Live Selfie with ID:** Take a live photo holding your valid ID next to your face.
-
----
-
-### Step 2: Account Details & Security
-- **Resident Barangay:** Select your home barangay in San Isidro.
+### Step 1: Personal Details & Account Credentials
+- **Personal Information:** First name, last name, mobile phone number (`639...`), and birthdate.
+- **Resident Barangay:** Select your home barangay in San Isidro (Alua, Calaba, Malapit, Mangga, Poblacion, Pulo, San Roque, Santo Cristo, Tabon).
 - **Username & Email:** Live availability check ensures your handle is unique.
 - **Password:** Strong password checklist (minimum 8 characters, uppercase, lowercase, number, special symbol).
-- **Verification Channel:** Choose whether to receive your 4-digit code via **Email OTP** or **SMS OTP (PhilSMS)**.
-- **Terms & Privacy:** Agree to data privacy and emergency reporting terms.
 
 ---
 
-### Step 3: Enter Verification Code
-- Enter the 4-digit code sent to your email or mobile number.
+### Step 2: Dual-Sided ID Verification & Photo Guidelines
+- **Quick Tips Card:** Tips for bright lighting, fitting all 4 corners of the ID card in frame, and holding the ID clearly in your selfie without covering details.
+- **Valid Government ID Type:** Choose from Philippine National ID (PhilID), Driver's License, Voter's ID, UMID, Postal ID, PWD ID, Senior Citizen ID, Student ID, or Barangay ID.
+- **Front of ID Photo:** Live camera capture of the **Front** of your valid ID.
+- **Back of ID Photo:** Live camera capture of the **Back** of your valid ID.
+- **Live Selfie with ID:** Live selfie holding your ID next to your chest or face.
+
+---
+
+### Step 3: Terms Agreement & Verification Code
+- **Terms & Privacy Modal:** Review the simplified Terms of Service (emergency scope, 3-strike false alarm rules) and Privacy Policy (Data Privacy Act RA 10173).
+- **Verification Channel:** Choose whether to receive your 4-digit code via **Email OTP** or **SMS OTP (PhilSMS)**.
+- **Enter Verification Code:** Enter the 4-digit code sent to your email or mobile number.
 - On Android phones, the app automatically detects the incoming SMS and presents a one-tap consent dialog to auto-fill the code.
 
 ---
@@ -113,12 +114,15 @@ For non-emergency community hazards (flooded streets, fallen trees, downed power
 ---
 
 ## 8. App Settings & Customization
-
+ 
 - **Appearance:** Toggle Dark Theme or Reduce Animations for faster rendering.
 - **Location:** Enable or disable automatic continuous background location fetching.
 - **Map View:** Choose between **Street View** and **Satellite Imagery** as the default map layer.
 - **Notifications:** Independently toggle dispatch updates and municipal broadcast alert notifications.
-- **Media:** Enable "Save Captured Media to Device" to retain a copy of SOS photos in your device gallery.
+- **Reporting & Media:**
+  - **Photo Crop Editor:** Toggle whether to open the crop editor after capturing an image or attach photos immediately for high-speed reporting.
+  - **Video Trim Editor:** Toggle whether to manually select video clip segments or automatically trim the first 10 seconds in the background.
+  - **Save Captured Media to Device:** Option to automatically save captured incident photos/videos to your phone's camera roll.
 
 ---
 
