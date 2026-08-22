@@ -256,37 +256,30 @@ export class ReportMapComponent implements OnDestroy {
       const node = this.fullscreenOverlayRef?.nativeElement;
       if (!node) return;
 
-      // Root cause of the original Open Item bug: `ion-content` applies CSS
-      // `contain` to its scroll viewport, and per spec that also makes it
-      // the containing block for any `position:fixed` descendant — so this
-      // overlay's `position:fixed;inset:0` was never actually fixed to the
-      // real browser viewport, only to ion-content's box. Reparenting the
-      // overlay node to document.body escapes the trap entirely — Angular's
-      // view/binding system doesn't care where in the DOM a node physically
-      // lives. This must happen BEFORE the curtain starts, so the node is
-      // already in its final stacking context — and at its final, locked
-      // full-viewport box — for the whole animation.
+      // Reparenting to ion-app (or body as fallback) escapes ion-content's
+      // CSS `contain` box while keeping the overlay firmly inside the active
+      // Ionic view hierarchy and above all route pages and modals.
       if (!this.overlayOriginalParent) {
         this.overlayOriginalParent = node.parentNode;
         this.overlayOriginalNextSibling = node.nextSibling;
-        this.renderer.appendChild(document.body, node);
+        const targetParent = document.querySelector('ion-app') || document.body;
+        this.renderer.appendChild(targetParent, node);
       }
 
       // Reparent the SAME, already-initialized #report-map Leaflet container
       // into the fullscreen slot — no second Leaflet instance is created, so
       // there's no re-init/tile-refetch pass to visibly flinch mid-animation.
-      // This happens before the curtain starts, so the map is already laid
-      // out at its full fullscreen size for the entire reveal — only the
-      // clip-path grows; the map's own content never resizes mid-tween, and
-      // invalidateSize() keeps the same geographic center, so the region
-      // visible in the small view lines up exactly once revealed.
       const mapEl = document.getElementById('report-map');
       const slotEl = document.getElementById('report-map-fullscreen-slot');
       if (mapEl && slotEl && !this.mapCanvasOriginalParent) {
         this.mapCanvasOriginalParent = mapEl.parentNode;
         this.mapCanvasOriginalNextSibling = mapEl.nextSibling;
         this.renderer.appendChild(slotEl, mapEl);
-        if (this.map) { this.map.invalidateSize(); }
+        if (this.map) {
+          this.map.invalidateSize();
+          setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 60);
+          setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 200);
+        }
       }
 
       // Fire-and-forget: unlike collapseMap, expandMap doesn't need to react
@@ -341,7 +334,7 @@ export class ReportMapComponent implements OnDestroy {
     const durationSec = direction === 'in' ? 0.32 : 0.26;
 
     if (!this.userSettings.shouldAnimate()) {
-      node.style.clipPath = direction === 'in' ? openClip : closedClip;
+      node.style.clipPath = direction === 'in' ? '' : closedClip;
       return Promise.resolve();
     }
 

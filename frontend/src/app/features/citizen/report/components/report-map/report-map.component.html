@@ -32,7 +32,7 @@
   the map appear to push outward like a curtain opening, while the map
   content itself never moves or scales.
 -->
-<div *ngIf="mapExpanded || mapCollapsing" #fullscreenOverlay style="position:fixed;inset:0;z-index:9999;background:var(--ion-background-color,#fff);display:flex;flex-direction:column;">
+<div *ngIf="mapExpanded || mapCollapsing" #fullscreenOverlay style="position:fixed;inset:0;z-index:99999;background:var(--ion-background-color,#fff);display:flex;flex-direction:column;">
   <div id="report-map-fullscreen-wrap" style="position:relative;flex:1;min-height:0;">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;pointer-events:none;"><i class="fa-solid fa-crosshairs" [style.color]="crosshairColor" style="font-size:40px;text-shadow:0 2px 8px rgba(0,0,0,0.5);"></i></div>
     <!-- Same live barangay preview as the small view, positioned top-left so it doesn't collide with the top-center drag hint or the top-right compress button. -->
