@@ -15,6 +15,34 @@
 
 @import "assets/custom-icons/css/all.min.css";
 
+/* =========================================
+   DESKTOP / ELECTRON: DISABLE ACCIDENTAL TEXT SELECTION & IMAGE DRAG
+   Matches native app behavior (Android/iOS) where UI chrome,
+   labels, logos, and icons are not text-selectable or draggable images.
+   Form inputs, textareas, and .selectable-text remain fully selectable.
+   ========================================= */
+*, *::before, *::after {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+body, ion-app {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+img, svg, button, ion-button, a {
+  -webkit-user-drag: none;
+  user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea, [contenteditable="true"], .selectable-text {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
 @font-face {
   font-family: 'Roboto';
   src: url('/assets/fonts/Roboto-Bold.ttf') format('truetype');
@@ -312,19 +340,95 @@ ion-toggle {
 }
 
 /* =========================================
-   ELECTRON DESKTOP SHELL: CUSTOM TITLEBAR SPACE
-   frame:false in main.js removes the native OS titlebar; app-titlebar.
-   component fills that role with a 32px `position:fixed` bar (see its own
-   .scss). ion-app is Ionic's positioned root — see the code comment below,
-   this padding-top reserves matching space so <ion-router-outlet>, which
-   Ionic absolutely-positions with `inset:0` relative to ion-app's padding
-   box, starts right below the titlebar instead of underneath it. Only
-   applied when AppComponent detects Electron, so web/Android/iOS builds —
-   which render no titlebar — get no extra offset.
+   ELECTRON DESKTOP SHELL: NATIVE OVERLAY TITLEBAR
+   titleBarStyle:'hidden' + titleBarOverlay in main.js renders native
+   min/max/close buttons as a floating overlay (Discord / VS Code style).
+   The Ionic <ion-toolbar> acts as the drag region so the entire header
+   bar can be used to drag the window. We add right-side padding so the
+   toolbar title/buttons don't slide under the native overlay controls.
+   Only applied when AppComponent detects Electron.
    ========================================= */
 ion-app.electron-app {
-  position: relative;
-  padding-top: 32px;
+  /* No extra top padding — content fills the full window height */
+}
+
+/* =========================================
+   ELECTRON DESKTOP: CUSTOM TITLEBAR & DRAG REGION
+   Only the dedicated top drag area (.app-titlebar__drag) is draggable.
+   All buttons, headers, sidebars, and panels remain standard interactive DOM elements.
+   ========================================= */
+ion-app.electron-app app-titlebar .app-titlebar__drag {
+  -webkit-app-region: drag !important;
+}
+
+ion-app.electron-app app-titlebar .app-titlebar__controls,
+ion-app.electron-app app-titlebar .app-titlebar__btn,
+ion-app.electron-app app-titlebar button,
+ion-app.electron-app app-titlebar i {
+  -webkit-app-region: no-drag !important;
+  pointer-events: auto !important;
+}
+
+/* Reserve space on the right for normal start-aligned titles */
+ion-app.electron-app ion-toolbar ion-title {
+  padding-right: env(titlebar-area-width, 140px);
+}
+
+/* For centered titles (login, auth, modals), balance left and right padding so the title remains perfectly centered without truncation */
+ion-app.electron-app ion-toolbar ion-title.ion-text-center,
+ion-app.electron-app ion-toolbar ion-title[style*="text-align: center"],
+ion-app.electron-app ion-toolbar ion-title[style*="text-align:center"] {
+  padding-left: 140px !important;
+  padding-right: 140px !important;
+  text-align: center !important;
+}
+
+/* Admin Dashboard Electron Top Spacing & Window Controls Clearance */
+ion-app.electron-app .admin-main-viewport {
+  padding: 38px 24px 18px 24px !important;
+}
+ion-app.electron-app .admin-sidebar {
+  padding-top: 24px !important;
+}
+
+/* =========================================
+   MAP: MODERN INDUSTRY-STANDARD BARANGAY LABELS
+   Clean frosted glass pill badge with emergency red accent
+   ========================================= */
+.bgy-clean-label-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.bgy-map-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1e293b;
+  padding: 3px 9px 3px 7px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14), 0 1px 2px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.bgy-map-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #D32F2F;
+  box-shadow: 0 0 3px rgba(211, 47, 47, 0.5);
+  flex-shrink: 0;
 }
 
 .menu-item-active i {
@@ -378,7 +482,7 @@ ion-app.electron-app {
    breathing room so the last content item doesn't touch the bar's top edge.
    ========================================= */
 .tab-page-content {
-  --padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  --padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
 }
 
 /* =========================================
@@ -472,22 +576,244 @@ html.reduce-animations .sos-ring {
   display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;
 }
 
+/* =========================================
+   ENHANCED RESPONSIVE MEDIA LIGHTBOX
+   Full-screen, pinch-to-zoom, pan, swipeable
+   ========================================= */
 .lightbox-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 99998;
-  display: flex; align-items: center; justify-content: center;
-  animation: adminLightboxFadeIn 0.2s ease;
+  position: fixed; inset: 0; z-index: 99998;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: space-between;
+  padding: env(safe-area-inset-top, 12px) env(safe-area-inset-right, 12px) env(safe-area-inset-bottom, 12px) env(safe-area-inset-left, 12px);
+  user-select: none; -webkit-user-select: none;
+  touch-action: none;
+  animation: adminLightboxFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
 }
-@keyframes adminLightboxFadeIn { from { opacity: 0; } to { opacity: 1; } }
-.lightbox-close {
-  position: absolute; top: 18px; right: 22px;
-  background: rgba(255,255,255,0.12); border: none; color: white;
-  font-size: 22px; width: 44px; height: 44px; border-radius: 50%;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s;
+
+@keyframes adminLightboxFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-.lightbox-close:hover { background: rgba(255,255,255,0.25); }
-.lightbox-img { max-width: 90vw; max-height: 88vh; object-fit: contain; border-radius: 8px; }
-.lightbox-video { max-width: 90vw; max-height: 88vh; border-radius: 8px; outline: none; }
+
+.lightbox-toolbar {
+  width: 100%;
+  max-width: 1200px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  z-index: 20;
+  flex-shrink: 0;
+}
+
+.lightbox-counter {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
+}
+
+.lightbox-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lightbox-tool-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(8px);
+}
+
+.lightbox-tool-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.lightbox-tool-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.lightbox-close-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(235, 68, 90, 0.85);
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 12px rgba(235, 68, 90, 0.35);
+}
+
+.lightbox-close-btn:hover {
+  background: #eb445a;
+  transform: scale(1.08);
+}
+
+.lightbox-stage {
+  flex: 1;
+  width: 100%;
+  max-width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.lightbox-media-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.lightbox-img {
+  width: 100%;
+  max-width: min(100vw, 920px);
+  height: auto;
+  max-height: 82vh;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  cursor: grab;
+}
+
+.lightbox-img:active {
+  cursor: grabbing;
+}
+
+.lightbox-video {
+  width: 100%;
+  max-width: min(900px, 96vw);
+  max-height: 80vh;
+  border-radius: 12px;
+  outline: none;
+  background: #000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+}
+
+.lightbox-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 25;
+  backdrop-filter: blur(8px);
+  transition: all 0.15s ease;
+}
+
+.lightbox-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox-nav-prev {
+  left: 16px;
+}
+
+.lightbox-nav-next {
+  right: 16px;
+}
+
+.lightbox-footer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0;
+  z-index: 20;
+  flex-shrink: 0;
+}
+
+.lightbox-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.lightbox-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lightbox-dot.active {
+  width: 22px;
+  border-radius: 10px;
+  background: var(--ion-color-danger, #eb445a);
+  box-shadow: 0 0 10px rgba(235, 68, 90, 0.6);
+}
+
+.lightbox-hint {
+  margin: 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+
+@media (max-width: 600px) {
+  .lightbox-nav-btn {
+    display: none; // On phones, swipe gesture handles navigation cleanly
+  }
+  .lightbox-img {
+    width: 100vw;
+    max-width: 100vw;
+    height: auto;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 0;
+  }
+}
 
 /* Confirm dialog — shared by AdminUiService.confirmDialog, hosted once at
    the admin-dashboard shell level. Previously referenced by class name only
@@ -524,48 +850,126 @@ html.reduce-animations .sos-ring {
 }
 
 /* =========================================
-   GLOBAL PILL SCROLLBAR — app-wide default
-   Thin track, NO visible track background, NO up/down arrow buttons —
-   just a solid rounded pill thumb. Colors derive from the existing
-   step-300/step-400 tokens so it auto-adapts light/dark via the same
-   ion-palette-dark class everything else uses.
-   - Firefox: scrollbar-width + scrollbar-color cover it natively.
-   - Chromium/Electron (web build + admin desktop shell): ::-webkit-scrollbar.
-   - ion-content's real scroll container lives in its shadow DOM, so a plain
-     class/tag selector on <ion-content> can't reach it — Ionic exposes it
-     via the ::part(scroll) shadow part instead, which is targeted separately
-     below alongside the plain-DOM rule for every other scroll container
-     (admin sidebar, panels, modals, etc).
+   GLOBAL MODULAR AUTO-HIDING FLOATING PILL SCROLLBAR
+   - Ultra-thin 6px track
+   - Zero track background (transparent)
+   - Zero up/down arrow buttons or corners (display: none !important)
+   - Auto-hides (transparent) on load & when idle
+   - Smoothly fades in when hovering/interacting with the container
+   - Adaptive color for Light Mode & Dark Mode
+   - Targets ALL elements (*), html/body, divs, panels, and Ionic shadow roots
    ========================================= */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--ion-color-step-300, rgba(0,0,0,0.25)) transparent;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
 }
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: var(--ion-color-step-300, rgba(0,0,0,0.25));
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--ion-color-step-400, rgba(0,0,0,0.35));
-}
-::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 
-ion-content::part(scroll) {
-  scrollbar-width: thin;
-  scrollbar-color: var(--ion-color-step-300, rgba(0,0,0,0.25)) transparent;
+*:hover {
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
 }
-ion-content::part(scroll)::-webkit-scrollbar { width: 6px; }
-ion-content::part(scroll)::-webkit-scrollbar-track { background: transparent; }
+
+:root.ion-palette-dark * {
+  scrollbar-color: transparent transparent;
+}
+
+:root.ion-palette-dark *:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+/* WebKit / Chromium / Electron / Safari direct override */
+*::-webkit-scrollbar,
+::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+div::-webkit-scrollbar,
+ion-content::part(scroll)::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-track,
+::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+div::-webkit-scrollbar-track,
+ion-content::part(scroll)::-webkit-scrollbar-track {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Idle state: invisible thumb by default so it doesn't clutter initial page load */
+*::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+div::-webkit-scrollbar-thumb,
 ion-content::part(scroll)::-webkit-scrollbar-thumb {
-  background: var(--ion-color-step-300, rgba(0,0,0,0.25));
-  border-radius: 999px;
+  background: transparent !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  transition: background 0.3s ease;
 }
+
+/* Hover/Active container state: smoothly fade-in floating pill */
+*:hover::-webkit-scrollbar-thumb,
+html:hover::-webkit-scrollbar-thumb,
+body:hover::-webkit-scrollbar-thumb,
+div:hover::-webkit-scrollbar-thumb,
+ion-content:hover::part(scroll)::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:active {
+  background: rgba(100, 116, 139, 0.35) !important;
+}
+
+/* Hovering directly on thumb */
+*::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+div::-webkit-scrollbar-thumb:hover,
 ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
-  background: var(--ion-color-step-400, rgba(0,0,0,0.35));
+  background: rgba(100, 116, 139, 0.65) !important;
 }
-ion-content::part(scroll)::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+*::-webkit-scrollbar-button,
+::-webkit-scrollbar-button,
+*::-webkit-scrollbar-corner,
+::-webkit-scrollbar-corner,
+ion-content::part(scroll)::-webkit-scrollbar-button,
+ion-content::part(scroll)::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Dark mode overrides */
+:root.ion-palette-dark *::-webkit-scrollbar-thumb,
+:root.ion-palette-dark ::-webkit-scrollbar-thumb,
+:root.ion-palette-dark html::-webkit-scrollbar-thumb,
+:root.ion-palette-dark body::-webkit-scrollbar-thumb,
+:root.ion-palette-dark div::-webkit-scrollbar-thumb,
+:root.ion-palette-dark ion-content::part(scroll)::-webkit-scrollbar-thumb {
+  background: transparent !important;
+}
+
+:root.ion-palette-dark *:hover::-webkit-scrollbar-thumb,
+:root.ion-palette-dark html:hover::-webkit-scrollbar-thumb,
+:root.ion-palette-dark body:hover::-webkit-scrollbar-thumb,
+:root.ion-palette-dark div:hover::-webkit-scrollbar-thumb,
+:root.ion-palette-dark ion-content:hover::part(scroll)::-webkit-scrollbar-thumb,
+:root.ion-palette-dark ::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+:root.ion-palette-dark *::-webkit-scrollbar-thumb:hover,
+:root.ion-palette-dark ::-webkit-scrollbar-thumb:hover,
+:root.ion-palette-dark html::-webkit-scrollbar-thumb:hover,
+:root.ion-palette-dark body::-webkit-scrollbar-thumb:hover,
+:root.ion-palette-dark div::-webkit-scrollbar-thumb:hover,
+:root.ion-palette-dark ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5) !important;
+}
 
 /* =========================================
    ADMIN DASHBOARD: SLIM SCROLL CONTAINER (fade mask only)
@@ -607,4 +1011,13 @@ ion-content::part(scroll)::-webkit-scrollbar-button { display: none; width: 0; h
   position: relative !important;
   z-index: 98700 !important;
   pointer-events: all !important;
+}
+
+/* =========================================
+   PULSE DOT — small green "live" indicator
+   Used in active broadcast cards, etc.
+   ========================================= */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.7); }
 }
