@@ -87,6 +87,16 @@ export class DesktopNotificationsService {
   }
 
   private poll(): void {
+    if (!localStorage.getItem('api_token')) {
+      this.stop();
+      return;
+    }
+    const role = localStorage.getItem('role');
+    if (role !== 'admin' && role !== 'dispatcher') {
+      this.stop();
+      return;
+    }
+
     this.pollCount += 1;
     const isSeedingPoll = this.pollCount === 1;
 
