@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { NgIf } from '@angular/common';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent } from './shared/components/index';
 import { UserSettingsService } from './core/services/user-settings';
@@ -10,18 +11,17 @@ import { DeepLinkService } from './core/services/deep-link';
   selector: 'app-root',
   templateUrl: 'app.component.html',
   standalone: true,
-  imports: [NgIf, IonApp, IonRouterOutlet, TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent],
+  imports: [IonApp, IonRouterOutlet, TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent],
 })
 export class AppComponent implements OnInit {
   /**
    * True only when running inside the Electron desktop shell (see
-   * frontend/main.js), never on the web build or native Android/iOS —
-   * those have no `window.process`/`require` and get no titlebar or the
-   * padding-top that makes room for it (see global.scss `.electron-app`).
+   * frontend/main.js), never on the web build or native Android/iOS.
    */
   isElectron = false;
 
   constructor(
+    private router: Router,
     private settings: UserSettingsService,
     private locationSvc: LocationService,
     private deepLink: DeepLinkService,
@@ -37,7 +37,19 @@ export class AppComponent implements OnInit {
     if (user) {
       this.settings.applyToDom();
       this.locationSvc.start();
+    } else {
+      // Clean cold start (Login page): red header -> white window controls
+      this.settings.syncElectronTitleBar(true);
     }
+
+    // Sync window controls whenever navigating between routes
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      const url = event.urlAfterRedirects || event.url || '';
+      const isRedHeader = !url.startsWith('/admin');
+      this.settings.syncElectronTitleBar(isRedHeader);
+    });
 
     // Listens for widget/external-launch deep links (native only, no-op
     // elsewhere). Must be registered once at root so it's live regardless
