@@ -5,11 +5,12 @@ import { ModalController } from '@ionic/angular/standalone';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ApiService } from '../../../core/services/api';
 import { UtcDatePipe, parseServerDate } from '../../pipes/utc-date.pipe';
+import { ProxyImageDirective } from '../../directives/proxy-image.directive';
 
 @Component({
   selector: 'app-announcements-modal',
   standalone: true,
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, UtcDatePipe],
+  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, UtcDatePipe, ProxyImageDirective],
   templateUrl: './announcements-modal.component.html',
 })
 export class AnnouncementsModalComponent {
