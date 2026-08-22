@@ -69,7 +69,7 @@
       <div *ngIf="item.media_files && item.media_files.length > 0" style="padding: 0 16px 16px;">
         <!-- 1 media file: Full-width hero -->
         <div *ngIf="item.media_files.length === 1"
-             (click)="openMedia(item.media_files[0], isVideoFile(item.media_files[0]))"
+             (click)="openMedia(item.media_files[0], isVideoFile(item.media_files[0]), item.media_files)"
              style="border-radius: 12px; overflow: hidden; max-height: 280px; background: #1a1a1a; cursor: pointer; position: relative;">
           <img *ngIf="!isVideoFile(item.media_files[0])"
                [src]="getMediaUrl(item.media_files[0])"
@@ -85,7 +85,7 @@
         <!-- 2 media files: 2-column side-by-side -->
         <div *ngIf="item.media_files.length === 2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <div *ngFor="let m of item.media_files"
-               (click)="openMedia(m, isVideoFile(m))"
+               (click)="openMedia(m, isVideoFile(m), item.media_files)"
                style="border-radius: 12px; overflow: hidden; height: 150px; background: #1a1a1a; cursor: pointer; position: relative;">
             <img *ngIf="!isVideoFile(m)" [src]="getMediaUrl(m)" style="width: 100%; height: 100%; object-fit: cover;" />
             <div *ngIf="isVideoFile(m)" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">
@@ -100,7 +100,7 @@
         <!-- 3-4 media files: 2x2 grid -->
         <div *ngIf="item.media_files.length >= 3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <div *ngFor="let m of item.media_files.slice(0, 4)"
-               (click)="openMedia(m, isVideoFile(m))"
+               (click)="openMedia(m, isVideoFile(m), item.media_files)"
                style="border-radius: 12px; overflow: hidden; height: 120px; background: #1a1a1a; cursor: pointer; position: relative;">
             <img *ngIf="!isVideoFile(m)" [src]="getMediaUrl(m)" style="width: 100%; height: 100%; object-fit: cover;" />
             <div *ngIf="isVideoFile(m)" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">

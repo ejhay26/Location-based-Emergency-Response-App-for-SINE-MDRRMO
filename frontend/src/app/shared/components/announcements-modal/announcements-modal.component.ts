@@ -23,7 +23,16 @@ export class AnnouncementsModalComponent {
     this.modalCtrl.dismiss();
   }
 
-  openMedia(path: string, isVideo = false): void {
+  openMedia(path: string, isVideo = false, allMedia?: string[]): void {
+    if (allMedia && Array.isArray(allMedia) && allMedia.length > 0) {
+      const items = allMedia.map(m => ({
+        url: this.getMediaUrl(m),
+        isVideo: this.isVideoFile(m)
+      }));
+      const idx = allMedia.indexOf(path);
+      this.dialog.openLightbox(items, Math.max(0, idx));
+      return;
+    }
     const url = this.getMediaUrl(path);
     this.dialog.openLightbox(url, isVideo);
   }
@@ -33,13 +42,7 @@ export class AnnouncementsModalComponent {
   }
 
   getMediaUrl(path: string): string {
-    if (!path) return '';
-    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:') || path.startsWith('blob:')) {
-      return path;
-    }
-    const origin = this.api.apiOrigin;
-    const cleanPath = path.replace(/^storage\//, '');
-    return `${origin}/storage-proxy/${cleanPath}`;
+    return this.api.resolveFileUrl(path);
   }
 
   timeAgo(dateStr: string): string {
