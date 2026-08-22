@@ -7,6 +7,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { ApiService } from './api';
 
 @Injectable({ providedIn: 'root' })
 export class ErrorInterceptorService implements HttpInterceptor {
@@ -26,9 +27,10 @@ export class ErrorInterceptorService implements HttpInterceptor {
           if (!navigator.onLine || error.status === 0) {
             // Network error — do NOT log out. May just be offline or ngrok timeout.
             message = 'No network connection. Please check your internet.';
-          } else if (error.status === 401 && !isLogout && !isLogin) {
+          } else if (error.status === 401 && !isLogout && !isLogin && !ApiService.isLoggingOut) {
             const isApiRequest = req.url.includes('/api/');
-            if (isApiRequest) {
+            const currentUrl = this.router.url || '';
+            if (isApiRequest && !currentUrl.includes('/login') && !currentUrl.includes('/auth')) {
               localStorage.removeItem('api_token');
               localStorage.removeItem('user');
               localStorage.removeItem('role');
