@@ -15,6 +15,8 @@ class UserSettingsController extends Controller
         'notif_emergency_alerts',
         'notif_broadcast_alerts',
         'save_media_to_device',
+        'photo_cropping_enabled',
+        'video_trimming_enabled',
     ];
 
     private const DEFAULTS = [
@@ -25,6 +27,8 @@ class UserSettingsController extends Controller
         'notif_emergency_alerts' => 'true',
         'notif_broadcast_alerts' => 'true',
         'save_media_to_device'   => 'false',
+        'photo_cropping_enabled' => 'true',
+        'video_trimming_enabled' => 'true',
     ];
 
     public function get(int $user_id)
