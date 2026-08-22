@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { IonButton, IonBadge } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -289,15 +290,21 @@ export class LogArchivePanel implements OnInit {
   }
 
   markFalseAlarm(requestId: number, citizenName: string) {
-    this.ui.showConfirm({
+    this.ui.confirm({
       title: 'Mark as False Alarm',
       message: `Mark this report by ${citizenName} as a false alarm? This will add a strike to their account. At 3 strikes, their account is automatically suspended.`,
-      icon: 'fa-solid fa-triangle-exclamation', iconColor: '#eb445a', confirmLabel: 'Mark False Alarm', confirmColor: '#eb445a',
-      action: () => {
-        this.api.markFalseAlarm({ request_id: requestId }).subscribe({
-          next: (res: any) => { this.ui.showToast(res.message, 'warning'); this.loadData(); },
-          error: (err: any) => this.ui.showToast(err.error?.message || 'Failed to mark false alarm.', 'danger')
-        });
+      icon: 'fa-solid fa-triangle-exclamation',
+      iconColor: '#eb445a',
+      confirmLabel: 'Mark False Alarm',
+      confirmColor: '#eb445a',
+      onConfirm: async () => {
+        try {
+          const res: any = await firstValueFrom(this.api.markFalseAlarm({ request_id: requestId }));
+          this.ui.showToast(res.message, 'warning');
+          this.loadData();
+        } catch (err: any) {
+          this.ui.showToast(err.error?.message || 'Failed to mark false alarm.', 'danger');
+        }
       }
     });
   }
