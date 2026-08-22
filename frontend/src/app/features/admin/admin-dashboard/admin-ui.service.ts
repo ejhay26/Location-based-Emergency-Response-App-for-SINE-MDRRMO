@@ -27,7 +27,18 @@ export class AdminUiService {
   get lightboxUrl()     { return this.dialog.lightboxUrl; }
   get lightboxIsVideo() { return this.dialog.lightboxIsVideo; }
 
-  openLightbox(url: string, isVideo: boolean) { this.dialog.openLightbox(url, isVideo); }
+  openLightbox(urlOrItems: any, isVideoOrIndex: any = false, allMedia?: string[]) {
+    if (allMedia && Array.isArray(allMedia) && allMedia.length > 0) {
+      const items = allMedia.map(m => ({
+        url: this.getProxyUrl(m),
+        isVideo: this.isVideoFile(m)
+      }));
+      const idx = allMedia.indexOf(urlOrItems);
+      this.dialog.openLightbox(items, Math.max(0, idx));
+      return;
+    }
+    this.dialog.openLightbox(urlOrItems, isVideoOrIndex);
+  }
   closeLightbox() { this.dialog.closeLightbox(); }
 
   // ── Confirm dialog (delegates to DialogService, action-callback flavor) ──
@@ -60,21 +71,7 @@ export class AdminUiService {
 
   // ── File / media helpers ─────────────────────────────────────────────────
   getProxyUrl(path: string | null | undefined): string {
-    if (!path || path.trim() === '') return '';
-    if (path.includes('ionicframework.com')) return '';
-    if (path.startsWith('blob:') || path.startsWith('data:')) return path;
-    try {
-      const origin = this.api.apiOrigin;
-      if (!origin) return '';
-      let relative = path;
-      if (/^https?:\/\//i.test(path)) {
-        const match = path.match(/\/(storage\/.+)$/);
-        if (!match) return '';
-        relative = match[1];
-      }
-      const filePart = relative.replace(/^storage\//, '');
-      return `${origin}/storage-proxy/${filePart}`;
-    } catch { return ''; }
+    return this.api.resolveFileUrl(path);
   }
 
   isVideoFile(path: string): boolean {
