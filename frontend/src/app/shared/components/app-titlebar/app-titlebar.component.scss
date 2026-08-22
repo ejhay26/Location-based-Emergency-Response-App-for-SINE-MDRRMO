@@ -10,44 +10,107 @@
   height: 32px;
   display: flex;
   align-items: stretch;
-  background: var(--ion-color-danger, #d32f2f);
-  z-index: 99999;
+  justify-content: space-between;
+  background: transparent;
+  z-index: 999999;
   -webkit-user-select: none;
   user-select: none;
+  pointer-events: none;
 }
 
 .app-titlebar__drag {
   flex: 1;
-  -webkit-app-region: drag;
+  height: 100%;
+  -webkit-app-region: drag !important;
+  pointer-events: auto;
 }
 
 .app-titlebar__controls {
   display: flex;
-  -webkit-app-region: no-drag;
+  align-items: stretch;
+  height: 100%;
+  -webkit-app-region: no-drag !important;
+  pointer-events: auto !important;
 }
 
 .app-titlebar__btn {
   width: 46px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  color: #fff;
+  height: 100%;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #1e293b;
   font-size: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  outline: none;
+  box-shadow: none !important;
+  transition: background-color 0.12s ease, color 0.12s ease;
+  -webkit-app-region: no-drag !important;
+  pointer-events: auto !important;
+}
+
+.app-titlebar__btn i {
+  pointer-events: none;
+  -webkit-app-region: no-drag !important;
 }
 
 .app-titlebar__btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(100, 116, 139, 0.18) !important;
 }
 
 .app-titlebar__btn:active {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(100, 116, 139, 0.32) !important;
 }
 
 .app-titlebar__btn--close:hover {
-  background: #e81123;
+  background: #e81123 !important;
+  color: #ffffff !important;
+}
+
+.app-titlebar__btn--close:active {
+  background: #bf0f1d !important;
+  color: #ffffff !important;
+}
+
+/* Dark Mode Theme Adjustment */
+:host-context(.ion-palette-dark) {
+  .app-titlebar__btn {
+    color: #f8fafc;
+  }
+
+  .app-titlebar__btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+  }
+
+  .app-titlebar__btn:active {
+    background: rgba(255, 255, 255, 0.25) !important;
+  }
+
+  .app-titlebar__btn--close:hover {
+    background: #e81123 !important;
+    color: #ffffff !important;
+  }
+}
+
+/* Red Header Theme Adjustment (Login, Register, Citizen App) */
+.app-titlebar.red-header {
+  .app-titlebar__btn {
+    color: #ffffff;
+  }
+
+  .app-titlebar__btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .app-titlebar__btn:active {
+    background: rgba(255, 255, 255, 0.32) !important;
+  }
+
+  .app-titlebar__btn--close:hover {
+    background: #b91c1c !important;
+    color: #ffffff !important;
+  }
 }

@@ -1,58 +1,52 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
-/** Minimal shape of Electron's ipcRenderer that this component actually uses. */
+/** Minimal shape of Electron's ipcRenderer that this component uses. */
 interface ElectronIpcRenderer {
   send(channel: string, ...args: unknown[]): void;
   on(channel: string, listener: (...args: unknown[]) => void): void;
   removeListener(channel: string, listener: (...args: unknown[]) => void): void;
 }
 
-/**
- * AppTitlebarComponent — replaces the native OS titlebar that main.js
- * disables via `frame: false`. Only meaningful inside the Electron desktop
- * shell (see AppComponent.isElectron), never rendered on web/Android/iOS.
- *
- * Talks to main.js over IPC using the SAME security model the rest of the
- * Electron shell already relies on (nodeIntegration: true, contextIsolation:
- * false in main.js's BrowserWindow), i.e. `window.require('electron')` is
- * available directly in the renderer. That model is broader than best
- * practice (a preload script + contextBridge would be tighter), but this
- * component doesn't change that trust boundary — it only adds 3 narrow,
- * argument-less IPC channels (minimize / maximize-toggle / close) on top of
- * it. All electron access below is defensively guarded so this component is
- * a total no-op — not a crash — anywhere `window.require` doesn't exist.
- */
 @Component({
   selector: 'app-titlebar',
   standalone: true,
   imports: [CommonModule],
   styleUrl: './app-titlebar.component.scss',
   template: `
-    <div class="app-titlebar">
+    <div class="app-titlebar" [class.red-header]="isRedHeader">
       <div class="app-titlebar__drag"></div>
-      <div class="app-titlebar__controls">
+      <div class="app-titlebar__controls" (mousedown)="$event.stopPropagation()">
         <button
           type="button"
           class="app-titlebar__btn"
-          (click)="minimize()"
+          (click)="minimize($event)"
+          (mousedown)="$event.stopPropagation()"
           aria-label="Minimize window"
+          title="Minimize"
         >
-          <i class="fa-solid fa-window-minimize"></i>
+          <i class="fa-solid fa-minus"></i>
         </button>
         <button
           type="button"
           class="app-titlebar__btn"
-          (click)="toggleMaximize()"
+          (click)="toggleMaximize($event)"
+          (mousedown)="$event.stopPropagation()"
           [attr.aria-label]="isMaximized ? 'Restore window' : 'Maximize window'"
+          [title]="isMaximized ? 'Restore' : 'Maximize'"
         >
-          <i class="fa-regular" [class.fa-window-restore]="isMaximized" [class.fa-square]="!isMaximized"></i>
+          <i class="fa-regular" [class.fa-clone]="isMaximized" [class.fa-square]="!isMaximized"></i>
         </button>
         <button
           type="button"
           class="app-titlebar__btn app-titlebar__btn--close"
-          (click)="close()"
+          (click)="close($event)"
+          (mousedown)="$event.stopPropagation()"
           aria-label="Close window"
+          title="Close"
         >
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -62,46 +56,72 @@ interface ElectronIpcRenderer {
 })
 export class AppTitlebarComponent implements OnInit, OnDestroy {
   isMaximized = false;
+  isRedHeader = false;
 
-  private ipcRenderer: ElectronIpcRenderer | null = null;
+  private router = inject(Router);
+  private sub?: Subscription;
+  private ipc: ElectronIpcRenderer | null = null;
 
-  // Bound once so removeListener() in ngOnDestroy actually matches the
-  // listener registered in ngOnInit (an inline arrow passed to `on` and a
-  // fresh one passed to `removeListener` would never be equal).
   private readonly handleWindowState = (...args: unknown[]): void => {
     const state = args[0] as { maximized?: boolean } | undefined;
     this.isMaximized = !!state?.maximized;
   };
 
   ngOnInit(): void {
-    this.ipcRenderer = this.resolveIpcRenderer();
-    this.ipcRenderer?.on('window:state', this.handleWindowState);
+    this.ipc = this.resolveIpcRenderer();
+    this.ipc?.on('window:state', this.handleWindowState);
+
+    this.updateHeaderState(this.router.url);
+    this.sub = this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd)
+    ).subscribe(e => {
+      this.updateHeaderState(e.urlAfterRedirects || e.url);
+    });
   }
 
   ngOnDestroy(): void {
-    this.ipcRenderer?.removeListener('window:state', this.handleWindowState);
+    this.sub?.unsubscribe();
+    this.ipc?.removeListener('window:state', this.handleWindowState);
   }
 
-  minimize(): void {
-    this.ipcRenderer?.send('window:minimize');
+  private updateHeaderState(url: string): void {
+    const isAuth = url.includes('/login') || url.includes('/register') || url.includes('/welcome');
+    const isCitizen = url.includes('/tabs') || url.includes('/report');
+    this.isRedHeader = isAuth || isCitizen;
   }
 
-  toggleMaximize(): void {
-    this.ipcRenderer?.send('window:maximize-toggle');
+  minimize(event?: MouseEvent): void {
+    event?.stopPropagation();
+    event?.preventDefault();
+    const ipc = this.ipc || this.resolveIpcRenderer();
+    ipc?.send('window:minimize');
   }
 
-  close(): void {
-    this.ipcRenderer?.send('window:close');
+  toggleMaximize(event?: MouseEvent): void {
+    event?.stopPropagation();
+    event?.preventDefault();
+    const ipc = this.ipc || this.resolveIpcRenderer();
+    ipc?.send('window:maximize-toggle');
   }
 
-  /** Returns null (never throws) outside the Electron shell. */
+  close(event?: MouseEvent): void {
+    event?.stopPropagation();
+    event?.preventDefault();
+    const ipc = this.ipc || this.resolveIpcRenderer();
+    ipc?.send('window:close');
+  }
+
+  /** Returns null outside the Electron desktop shell. */
   private resolveIpcRenderer(): ElectronIpcRenderer | null {
-    const electronRequire = (window as unknown as { require?: (mod: 'electron') => { ipcRenderer: ElectronIpcRenderer } }).require;
-    if (typeof electronRequire !== 'function') return null;
     try {
-      return electronRequire('electron').ipcRenderer ?? null;
+      const electronRequire = (window as unknown as { require?: (mod: string) => any }).require;
+      if (typeof electronRequire === 'function') {
+        const electron = electronRequire('electron');
+        return electron?.ipcRenderer || electron || null;
+      }
     } catch {
       return null;
     }
+    return null;
   }
 }
