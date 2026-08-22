@@ -117,14 +117,16 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
    * [appRevealAnimate] instead of removing non-matching cards outright.
    */
   matchesAnalyticsFilter(r: any): boolean {
-    const matchType     = !this.activeTypeFilter || r.incident_name === this.activeTypeFilter;
+    const recordType    = r.incident_name || r.hazard_type;
+    const matchType     = !this.activeTypeFilter || recordType === this.activeTypeFilter;
     const matchBarangay = !this.activeBarangayFilter || r.barangay_id === this.activeBarangayFilter;
-    const matchDate     = matchesDateFilter(r.request_time, this.analyticsDateFilter);
+    const dateField     = r.request_time || r.created_at;
+    const matchDate     = matchesDateFilter(dateField, this.analyticsDateFilter);
     return matchType && matchBarangay && matchDate;
   }
 
   trackByRequestId(_index: number, r: any): number {
-    return r.request_id;
+    return r.request_id || r.hazard_id;
   }
 
   /** Chip labels for the active-filters summary bar; empty array hides the bar. */
@@ -203,27 +205,70 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
     if (this.hazardTrendChartInstance)    this.hazardTrendChartInstance.destroy();
     if (this.hazardTypeChartInstance)     this.hazardTypeChartInstance.destroy();
     if (this.hazardBarangayChartInstance) this.hazardBarangayChartInstance.destroy();
-    const dates  = (this.analyticsData.hazard_daily_stats || []).map((d: any) => d.date);
-    const totals = (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.total) || 0);
+
+    const dates = (this.analyticsData.hazard_daily_stats || []).map((d: any) => d.date);
     this.hazardTrendChartInstance = new Chart(tc, {
       type: this.trendChartType,
-      data: { labels: dates, datasets: [{ label: 'Hazard Reports', data: totals, backgroundColor: 'rgba(255,196,9,0.6)', borderColor: '#ffc409', borderWidth: 2, tension: 0.2 }] },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { stepSize: 1 }, beginAtZero: true } } }
+      data: {
+        labels: dates,
+        datasets: [
+          { label: 'Flood',       data: (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.flood)      || 0), backgroundColor: 'rgba(56,128,255,0.6)',  borderColor: '#3880ff', borderWidth: 2, tension: 0.2 },
+          { label: 'Road Issue',  data: (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.road)       || 0), backgroundColor: 'rgba(255,196,9,0.6)',   borderColor: '#ffc409', borderWidth: 2, tension: 0.2 },
+          { label: 'Fallen Tree', data: (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.tree)       || 0), backgroundColor: 'rgba(45,211,111,0.6)',  borderColor: '#2dd36f', borderWidth: 2, tension: 0.2 },
+          { label: 'Electrical',  data: (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.electrical) || 0), backgroundColor: 'rgba(235,68,90,0.6)',   borderColor: '#eb445a', borderWidth: 2, tension: 0.2 },
+          { label: 'Others',      data: (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.others)     || 0), backgroundColor: 'rgba(146,148,156,0.6)', borderColor: '#92949c', borderWidth: 2, tension: 0.2 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { ticks: { stepSize: 1 }, beginAtZero: true } },
+        onClick: (_e, elements) => {
+          if (elements.length > 0) this.filterListByDate(dates[elements[0].index]);
+        }
+      }
     });
-    const types  = (this.analyticsData.hazard_stats || []).map((t: any) => t.hazard_type || 'Unknown');
-    const counts = (this.analyticsData.hazard_stats || []).map((t: any) => t.total);
+
+    const types  = (this.analyticsData.hazard_stats || []).map((t: any) => t.hazard_type || 'Others');
+    const counts = (this.analyticsData.hazard_stats || []).map((t: any) => Number(t.total) || 0);
     this.hazardTypeChartInstance = new Chart(dc, {
       type: 'doughnut',
-      data: { labels: types, datasets: [{ data: counts, backgroundColor: ['#3880ff','#ffc409','#e0ac00','#2dd36f','#92949c'], hoverOffset: 10 }] },
-      options: { responsive: true, maintainAspectRatio: false }
+      data: {
+        labels: types,
+        datasets: [{
+          data: counts,
+          backgroundColor: ['#3880ff','#ffc409','#2dd36f','#eb445a','#92949c','#bc6fff','#e0ac00'],
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (_e, elements) => {
+          if (elements.length > 0) this.filterListByType(types[elements[0].index]);
+        }
+      }
     });
 
     const hazBarangayNames  = (this.analyticsData.hazard_barangay_stats || []).map((b: any) => b.barangay_name);
-    const hazBarangayTotals = (this.analyticsData.hazard_barangay_stats || []).map((b: any) => b.total);
+    const hazBarangayTotals = (this.analyticsData.hazard_barangay_stats || []).map((b: any) => Number(b.total) || 0);
     this.hazardBarangayChartInstance = new Chart(bc, {
       type: 'doughnut',
-      data: { labels: hazBarangayNames, datasets: [{ data: hazBarangayTotals, backgroundColor: ['#eb445a','#3880ff','#2dd36f','#bc6fff','#ffc409','#92949c','#e0ac00','#5260ff','#f4a942'], hoverOffset: 10 }] },
-      options: { responsive: true, maintainAspectRatio: false, onClick: (_e, elements) => { if (elements.length > 0) this.filterListByBarangay(hazBarangayNames[elements[0].index]); } }
+      data: {
+        labels: hazBarangayNames,
+        datasets: [{
+          data: hazBarangayTotals,
+          backgroundColor: ['#eb445a','#3880ff','#2dd36f','#bc6fff','#ffc409','#92949c','#e0ac00','#5260ff','#f4a942'],
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (_e, elements) => {
+          if (elements.length > 0) this.filterListByBarangay(hazBarangayNames[elements[0].index]);
+        }
+      }
     });
   }
 }
