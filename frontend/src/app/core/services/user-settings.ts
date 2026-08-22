@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { ApiService } from './api';
 
 export type SettingKey =
@@ -26,6 +27,7 @@ const DEFAULTS: Record<SettingKey, string> = {
 export class UserSettingsService {
 
   private cache: Record<string, string> = { ...DEFAULTS };
+  private router = inject(Router);
 
   constructor(private api: ApiService) {}
 
@@ -89,8 +91,47 @@ export class UserSettingsService {
     if (stored) {
       try { this.cache = { ...DEFAULTS, ...JSON.parse(stored) }; } catch {}
     }
-    document.documentElement.classList.toggle('ion-palette-dark',    this.getBool('dark_mode'));
+    const isDark = this.getBool('dark_mode');
+    document.documentElement.classList.toggle('ion-palette-dark',    isDark);
     document.documentElement.classList.toggle('reduce-animations',   this.getBool('reduce_animations'));
+
+    // Automatically sync window buttons symbol color for desktop shell
+    this.syncElectronTitleBar();
+  }
+
+  /**
+   * Synchronizes the Electron window controls (min/max/close) symbol color
+   * with the current theme and active header. The overlay background is
+   * always transparent (set once in main.js) so it naturally shows whatever
+   * page content sits underneath — red header, light sidebar, dark sidebar
+   * — with zero risk of a mismatched color strip. Only the glyph color
+   * (symbolColor) needs to change for contrast:
+   *
+   * - Red headers (Login, Register, Citizen): white symbols.
+   * - Admin Light Mode: dark charcoal symbols (#1a1a1a) for contrast on white.
+   * - Admin Dark Mode: white symbols for contrast on dark.
+   */
+  syncElectronTitleBar(isRedHeader?: boolean): void {
+    type IpcRenderer = { send: (ch: string, data: unknown) => void };
+    type ElectronWindow = { require?: (mod: string) => { ipcRenderer: IpcRenderer } };
+    const electronRequire = (window as unknown as ElectronWindow).require;
+    if (typeof electronRequire !== 'function') return;
+    try {
+      const { ipcRenderer } = electronRequire('electron');
+      const isDark = this.getBool('dark_mode');
+      if (isRedHeader === undefined) {
+        const currentUrl = this.router?.url || '';
+        const userStr = localStorage.getItem('user');
+        let role = '';
+        try { role = userStr ? JSON.parse(userStr).role : ''; } catch { /* ignore */ }
+        const isAdmin = currentUrl.includes('admin') || role === 'admin' || role === 'dispatcher';
+        isRedHeader = !isAdmin;
+      }
+      const symbolColor = isRedHeader ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#1a1a1a');
+      ipcRenderer.send('window:theme', { symbolColor, isDark: isDark || isRedHeader });
+    } catch (err) {
+      console.warn('[Electron] syncElectronTitleBar failed:', err);
+    }
   }
 
   /** Clear cache and remove all visual effects on logout. */
@@ -100,5 +141,6 @@ export class UserSettingsService {
     // Remove visual effects so the login page is always clean
     document.documentElement.classList.remove('ion-palette-dark');
     document.documentElement.classList.remove('reduce-animations');
+    this.syncElectronTitleBar(true); // Login page always has red header
   }
 }
