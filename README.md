@@ -100,6 +100,7 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 | **Architecture** | [Architecture Overview](./docs/architecture/overview.md) | System topology, Reverb WebSocket channels, and directory layouts |
 | | [Database Schema](./docs/architecture/database-schema.md) | Entity-Relationship (ER) diagram, table schemas, and constraints |
 | | [Security Model](./docs/architecture/security.md) | Sanctum token abilities, anti-enumeration, OTP security, and rate limits |
+| | [Disaster Recovery & Backups](./docs/architecture/disaster-recovery.md) | Automated 2-hour snapshots, high-level CLI (`backup list/desc/restore`), delta salvage |
 | **API Reference** | [API — Authentication](./docs/api/auth.md) | Registration, login, OTP channels, and account lifecycle endpoints |
 | | [API — Emergency](./docs/api/emergency.md) | SOS, fleet dispatch, road hazards, broadcasts, and WebSocket events |
 | | [API — Admin](./docs/api/admin.md) | ID verifications, citizen moderation, staff CRUD, and feedback |
