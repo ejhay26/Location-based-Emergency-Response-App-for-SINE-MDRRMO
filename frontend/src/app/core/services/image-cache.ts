@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment';
+import { ApiService } from './api';
 
 @Injectable({ providedIn: 'root' })
 export class ImageCacheService {
 
   private cache = new Map<string, string>();
+
+  constructor(private api: ApiService) {}
 
   /**
    * Resolves a stored file reference to a directly-usable <img>/background
@@ -79,20 +81,28 @@ export class ImageCacheService {
 
       if (isAbsoluteUrl) {
         const storageMatch = path.match(/\/(storage\/.+)$/);
-        if (!storageMatch) return null; // R2 / external — not our legacy shape
-        relative = storageMatch[1];
+        if (storageMatch) {
+          relative = storageMatch[1];
+        } else {
+          const reportsMatch = path.match(/\/(reports\/.+)$/);
+          if (reportsMatch) {
+            relative = reportsMatch[1];
+          } else {
+            return null; // R2 / external — not our legacy shape
+          }
+        }
       } else if (path.startsWith('storage/')) {
+        relative = path;
+      } else if (path.startsWith('reports/') || path.startsWith('profiles/') || path.startsWith('hazards/')) {
         relative = path;
       } else {
         return null; // not a recognizable legacy path at all
       }
 
-      const apiUrl = environment.apiUrl || '';
-      if (!apiUrl) return null;
-      const origin = apiUrl.replace(/\/api\/?$/, '');
+      const origin = this.api.apiOrigin;
       if (!origin) return null;
 
-      const filePart = relative.replace(/^storage\//, '');
+      const filePart = relative.replace(/^storage\//, '').replace(/^\/+/, '');
       return `${origin}/storage-proxy/${filePart}`;
     } catch {
       return null;
