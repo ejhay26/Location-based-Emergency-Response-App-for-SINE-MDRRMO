@@ -17,15 +17,12 @@
     },
     "win": {
       "target": [
-        "nsis",
         "portable"
       ]
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb",
-        "tar.gz"
+        "AppImage"
       ],
       "category": "Utility"
     }
@@ -40,7 +37,10 @@
     "start:desktop": "electron .",
     "build:linux": "ionic build --prod && electron-builder --linux",
     "build:mac": "ionic build --prod && electron-builder --mac",
-    "build:win": "ionic build --prod && electron-builder --win"
+    "build:win": "ionic build --prod && electron-builder --win",
+    "build:mobile": "ionic build --prod && npx cap sync",
+    "build:android" : "ionic build --prod && npx cap sync android",
+    "build:ios" : "ionic build --prod && npx cap sync ios"
   },
   "private": true,
   "dependencies": {
