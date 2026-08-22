@@ -11,6 +11,7 @@ import { AdminUiService } from '../../admin-ui.service';
 import { EchoService } from '../../../../../core/services/echo.service';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
+import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
 import { BARANGAYS, Barangay } from '../../../../../shared/constants/barangays';
 
 /**
@@ -38,7 +39,7 @@ export interface BroadcastMediaItem {
 @Component({
   selector: 'app-broadcast-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonInput, IonButton, UtcDatePipe, ListEnterDirective],
+  imports: [CommonModule, FormsModule, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonInput, IonButton, UtcDatePipe, ListEnterDirective, ProxyImageDirective],
   templateUrl: './broadcast.panel.html',
 })
 export class BroadcastPanel implements OnInit, OnDestroy {
