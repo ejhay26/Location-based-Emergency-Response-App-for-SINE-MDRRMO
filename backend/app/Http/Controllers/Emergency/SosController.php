@@ -80,16 +80,26 @@ class SosController extends Controller
 
     public function cancelEmergency(Request $request)
     {
-        $request->validate(['request_id' => 'required|integer', 'user_id' => 'required|integer']);
-        $affected = EmergencyRequest::where('request_id', $request->request_id)
-            ->where('user_id', $request->user_id)
-            ->where('status', 'Pending')
-            ->update(['status' => 'Cancelled']);
+        $request->validate([
+            'request_id' => 'required|integer',
+            'user_id'    => 'nullable|integer',
+        ]);
+        $userId = $request->user_id ?? $request->user()?->user_id;
+
+        $query = EmergencyRequest::where('request_id', $request->request_id)
+            ->where('status', 'Pending');
+
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        $affected = $query->update(['status' => 'Cancelled']);
+
         if ($affected) {
             broadcast(new EmergencyUpdated('cancelled', $request->request_id))->toOthers();
             return response()->json(['message' => 'Emergency request cancelled.']);
         }
-        return response()->json(['message' => 'Cannot cancel — request may already be dispatched.'], 400);
+        return response()->json(['message' => 'Cannot cancel — request may already be dispatched or was not found.'], 400);
     }
 
     public function getActiveEmergencies()
