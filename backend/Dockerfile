@@ -47,6 +47,7 @@ RUN mkdir -p storage/logs storage/framework/{cache,sessions,views} storage/app/p
 # ── Configs ───────────────────────────────────────────────────────────────
 COPY docker/nginx/nginx.conf      /etc/nginx/nginx.conf
 COPY docker/php/php.ini           /usr/local/etc/php/conf.d/99-app.ini
+COPY docker/php/zz-docker.conf    /usr/local/etc/php-fpm.d/zz-docker.conf
 COPY docker/supervisord.conf      /etc/supervisord.conf
 COPY docker/entrypoint.sh         /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
