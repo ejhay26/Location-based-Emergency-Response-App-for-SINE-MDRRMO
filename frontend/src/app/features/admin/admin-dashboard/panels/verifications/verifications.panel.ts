@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { IonButton } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
+import { EchoService } from '../../../../../core/services/echo.service';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
 import { RevealAnimateDirective } from '../../../../../shared/directives/reveal-animate.directive';
 import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
@@ -12,6 +14,13 @@ import { DateRangeFilterComponent } from '../../../../../shared/components/date-
 import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 
+/**
+ * VerificationsPanel — refreshes its queue in real-time via the Echo
+ * `users` channel (UserVerified event). When one admin approves or rejects
+ * an application, all other admin sessions update immediately without
+ * polling. No fallback poll needed — this panel is admin-only and always
+ * foreground; a missed event is recovered by the user's next interaction.
+ */
 @Component({
   selector: 'app-verifications-panel',
   standalone: true,
@@ -21,7 +30,7 @@ import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../..
   ],
   templateUrl: './verifications.panel.html',
 })
-export class VerificationsPanel implements OnInit {
+export class VerificationsPanel implements OnInit, OnDestroy {
 
   pendingVerifications: any[] = [];
 
@@ -32,10 +41,25 @@ export class VerificationsPanel implements OnInit {
 
   readonly barangays = BARANGAYS;
 
-  constructor(public api: ApiService, public ui: AdminUiService) {}
+  private echoUserSub?: Subscription;
+
+  constructor(
+    public api: ApiService,
+    public ui: AdminUiService,
+    private echo: EchoService,
+  ) {}
 
   ngOnInit() {
     this.loadPendingVerifications();
+    this.echo.connect();
+    // Refresh immediately when any admin approves/rejects an application.
+    this.echoUserSub = this.echo.onUserVerified.subscribe(() => {
+      this.loadPendingVerifications();
+    });
+  }
+
+  ngOnDestroy() {
+    this.echoUserSub?.unsubscribe();
   }
 
   loadPendingVerifications() {
@@ -46,15 +70,6 @@ export class VerificationsPanel implements OnInit {
     return this.pendingVerifications.filter(u => this.matchesVerificationFilter(u));
   }
 
-  /**
-   * Filter shrink-and-reflow (RevealAnimateDirective, permanent-mount
-   * pattern) — Verifications is a single-column list like Log Archive, so
-   * unlike Citizens/Dispatchers (CSS Grid → FLIP) it can use the simpler
-   * height-collapse reflow: the template iterates the FULL (unfiltered)
-   * list so every card stays mounted, and this predicate drives each
-   * card's [appRevealAnimate] instead of removing non-matching cards
-   * outright.
-   */
   matchesVerificationFilter(u: any): boolean {
     const search = this.verificationSearch.trim().toLowerCase();
     const matchSearch = !search ||
@@ -70,12 +85,10 @@ export class VerificationsPanel implements OnInit {
     return u.user_id;
   }
 
-  /** Distinct ID types actually present in the current queue, for the filter dropdown. */
   get verificationIdTypes(): string[] {
     return [...new Set(this.pendingVerifications.map(u => u.valid_id_type).filter((t): t is string => !!t))].sort();
   }
 
-  /** Chip labels for the active-filters summary bar; empty array hides the bar. */
   get activeFilterChips(): string[] {
     const chips: string[] = [];
     if (this.verificationSearch.trim())            chips.push(`"${this.verificationSearch.trim()}"`);
