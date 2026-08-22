@@ -16,6 +16,7 @@ import { ListEnterDirective } from '../../../shared/directives/list-enter.direct
 import { UtcDatePipe, parseServerDate } from '../../../shared/pipes/utc-date.pipe';
 import { reportModalEnter, reportModalLeave } from '../../../core/animations/report-modal-transition';
 import { ReportPage } from '../report/report.page';
+import { ProxyImageDirective } from '../../../shared/directives/proxy-image.directive';
 import { FloatingSosCardComponent, FloatingSosStatus } from '../../../shared/components/floating-sos-card/floating-sos-card.component';
 import { AnnouncementsModalComponent } from '../../../shared/components/announcements-modal/announcements-modal.component';
 
@@ -45,7 +46,7 @@ const WIDGET_PROMPT_DISMISSED_KEY = 'widget_prompt_dismissed';
   imports: [
     CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonToast,
     PressFeedbackDirective, ImpactFeedbackDirective, ListEnterDirective,
-    FloatingSosCardComponent, UtcDatePipe,
+    ProxyImageDirective, FloatingSosCardComponent, UtcDatePipe,
   ],
 })
 export class HomePage implements OnInit, OnDestroy {
