@@ -1,4 +1,9 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, computed, Signal } from '@angular/core';
+
+export interface LightboxMediaItem {
+  url: string;
+  isVideo: boolean;
+}
 
 /** One label/value row shown in a confirm dialog's optional details summary (e.g. "Type: Fire", "Photos: 2"). */
 export interface ConfirmDialogDetail {
@@ -102,18 +107,81 @@ export class DialogService {
   }
 
   // ── Media lightbox ──────────────────────────────────────────────────────
-  lightboxOpen    = signal(false);
-  lightboxUrl     = signal('');
-  lightboxIsVideo = signal(false);
+  lightboxOpen  = signal(false);
+  lightboxItems = signal<LightboxMediaItem[]>([]);
+  lightboxIndex = signal(0);
 
-  openLightbox(url: string, isVideo: boolean) {
-    this.lightboxUrl.set(url);
-    this.lightboxIsVideo.set(isVideo);
+  get lightboxUrl() {
+    return computed(() => {
+      const items = this.lightboxItems();
+      const idx = this.lightboxIndex();
+      return items[idx]?.url ?? '';
+    });
+  }
+
+  get lightboxIsVideo() {
+    return computed(() => {
+      const items = this.lightboxItems();
+      const idx = this.lightboxIndex();
+      return items[idx]?.isVideo ?? false;
+    });
+  }
+
+  get hasNextMedia(): boolean {
+    return this.lightboxIndex() < this.lightboxItems().length - 1;
+  }
+
+  get hasPrevMedia(): boolean {
+    return this.lightboxIndex() > 0;
+  }
+
+  get totalMediaCount(): number {
+    return this.lightboxItems().length;
+  }
+
+  openLightbox(urlOrItems: string | string[] | LightboxMediaItem[], isVideoOrIndex: boolean | number = false, index = 0) {
+    let items: LightboxMediaItem[] = [];
+    let initialIndex = 0;
+
+    if (Array.isArray(urlOrItems)) {
+      items = urlOrItems.map(item => {
+        if (typeof item === 'string') {
+          const isVid = item.toLowerCase().endsWith('.mp4') || item.toLowerCase().endsWith('.webm');
+          return { url: item, isVideo: isVid };
+        }
+        return item;
+      });
+      initialIndex = typeof isVideoOrIndex === 'number' ? isVideoOrIndex : index;
+    } else if (typeof urlOrItems === 'string') {
+      const isVid = typeof isVideoOrIndex === 'boolean' ? isVideoOrIndex : false;
+      items = [{ url: urlOrItems, isVideo: isVid }];
+      initialIndex = 0;
+    }
+
+    if (items.length === 0) return;
+    this.lightboxItems.set(items);
+    this.lightboxIndex.set(Math.max(0, Math.min(initialIndex, items.length - 1)));
     this.lightboxOpen.set(true);
   }
+
+  setLightboxIndex(idx: number) {
+    const total = this.lightboxItems().length;
+    if (idx >= 0 && idx < total) {
+      this.lightboxIndex.set(idx);
+    }
+  }
+
+  nextLightboxItem() {
+    this.setLightboxIndex(this.lightboxIndex() + 1);
+  }
+
+  prevLightboxItem() {
+    this.setLightboxIndex(this.lightboxIndex() - 1);
+  }
+
   closeLightbox() {
     this.lightboxOpen.set(false);
-    this.lightboxUrl.set('');
-    this.lightboxIsVideo.set(false);
+    this.lightboxItems.set([]);
+    this.lightboxIndex.set(0);
   }
 }
