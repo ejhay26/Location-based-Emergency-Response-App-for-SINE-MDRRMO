@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, AfterViewInit, OnDestroy, SimpleChanges } 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Subscription, interval } from 'rxjs';
+import { Subscription, interval, firstValueFrom } from 'rxjs';
 import {
   IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
   IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
@@ -541,29 +541,72 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     });
   }
 
+  selectIncidentCard(item: any, type: 'emergency' | 'hazard') {
+    const id = type === 'emergency' ? item.request_id : item.hazard_id;
+    this.selectedRequestId = id;
+    this.previewType = type;
+
+    if (item.latitude && item.longitude && this.map) {
+      this.map.flyTo([item.latitude, item.longitude], 16, { animate: true, duration: 0.5 });
+      const targetMarker = this.mapMarkers.find(m => {
+        const latLng = m.getLatLng();
+        return Math.abs(latLng.lat - Number(item.latitude)) < 0.0001 && Math.abs(latLng.lng - Number(item.longitude)) < 0.0001;
+      });
+      if (targetMarker) {
+        targetMarker.openPopup();
+      }
+    }
+  }
+
   resolveEmergency(requestId: number) {
-    this.ui.showConfirm({ title: 'Resolve Emergency', message: 'Mark this emergency as resolved? It will be moved to the archive.', icon: 'fa-solid fa-circle-check', iconColor: '#2dd36f', confirmLabel: 'Resolve', confirmColor: '#2dd36f',
-      action: () => { this.api.resolveEmergency({ request_id: requestId }).subscribe({ next: () => { this.ui.showToast('Emergency resolved and archived.', 'medium'); this.loadData(); } }); }
+    this.ui.confirm({
+      title: 'Resolve Emergency',
+      message: 'Mark this emergency as resolved? It will be moved to the archive.',
+      icon: 'fa-solid fa-circle-check',
+      iconColor: '#2dd36f',
+      confirmLabel: 'Resolve',
+      confirmColor: '#2dd36f',
+      onConfirm: async () => {
+        await firstValueFrom(this.api.resolveEmergency({ request_id: requestId }));
+        this.ui.showToast('Emergency resolved and archived.', 'medium');
+        this.loadData();
+      }
     });
   }
 
   markFalseAlarm(requestId: number, citizenName: string) {
-    this.ui.showConfirm({
+    this.ui.confirm({
       title: 'Mark as False Alarm',
       message: `Mark this report by ${citizenName} as a false alarm? This will add a strike to their account. At 3 strikes, their account is automatically suspended.`,
-      icon: 'fa-solid fa-triangle-exclamation', iconColor: '#eb445a', confirmLabel: 'Mark False Alarm', confirmColor: '#eb445a',
-      action: () => {
-        this.api.markFalseAlarm({ request_id: requestId }).subscribe({
-          next: (res: any) => { this.ui.showToast(res.message, 'warning'); this.loadData(); },
-          error: (err: any) => this.ui.showToast(err.error?.message || 'Failed to mark false alarm.', 'danger')
-        });
+      icon: 'fa-solid fa-triangle-exclamation',
+      iconColor: '#eb445a',
+      confirmLabel: 'Mark False Alarm',
+      confirmColor: '#eb445a',
+      onConfirm: async () => {
+        try {
+          const res: any = await firstValueFrom(this.api.markFalseAlarm({ request_id: requestId }));
+          this.ui.showToast(res.message, 'warning');
+          this.loadData();
+        } catch (err: any) {
+          this.ui.showToast(err.error?.message || 'Failed to mark false alarm.', 'danger');
+        }
       }
     });
   }
 
   dismissHazard(hazardId: number) {
-    this.ui.showConfirm({ title: 'Acknowledge Hazard', message: 'Remove this hazard from the map? This confirms it has been addressed.', icon: 'fa-solid fa-road-barrier', iconColor: '#ffc409', confirmLabel: 'Acknowledge', confirmColor: '#ffc409',
-      action: () => { this.api.resolveHazard({ hazard_id: hazardId }).subscribe({ next: () => { this.ui.showToast('Hazard acknowledged.', 'medium'); this.loadData(); } }); }
+    this.ui.confirm({
+      title: 'Acknowledge Hazard',
+      message: 'Remove this hazard from the map? This confirms it has been addressed.',
+      icon: 'fa-solid fa-road-barrier',
+      iconColor: '#ffc409',
+      confirmLabel: 'Acknowledge',
+      confirmColor: '#ffc409',
+      onConfirm: async () => {
+        await firstValueFrom(this.api.resolveHazard({ hazard_id: hazardId }));
+        this.ui.showToast('Hazard acknowledged.', 'medium');
+        this.loadData();
+      }
     });
   }
 

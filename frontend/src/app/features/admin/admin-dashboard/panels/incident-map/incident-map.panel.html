@@ -100,7 +100,7 @@
            [appAnnouncementEnter]="i"
            [ngStyle]="{'border': selectedRequestId === request.request_id && previewType === 'emergency' ? '3px solid var(--ion-color-danger)' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.04))'}"
            style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 15px; color: var(--ion-text-color); cursor: pointer;"
-           (click)="selectedRequestId = request.request_id; previewType = 'emergency'">
+           (click)="selectIncidentCard(request, 'emergency')">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
           <div style="width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center;" [style.background]="request.incident_name === 'Fire' ? '#eb445a18' : (request.incident_name === 'Flood' ? '#3880ff18' : (request.incident_name === 'Medical' ? '#2dd36f18' : '#bc6fff18'))">
             <i [class]="request.incident_name === 'Fire' ? 'fa-solid fa-fire' : (request.incident_name === 'Flood' ? 'fa-solid fa-cloud-showers-heavy' : (request.incident_name === 'Medical' ? 'fa-solid fa-heart-pulse' : 'fa-solid fa-handcuffs'))" [style.color]="request.incident_name === 'Fire' ? '#eb445a' : (request.incident_name === 'Flood' ? '#3880ff' : (request.incident_name === 'Medical' ? '#2dd36f' : '#bc6fff'))" style="font-size: 15px;"></i>
@@ -142,7 +142,8 @@
            [id]="'hazard-card-' + haz.hazard_id"
            [appAnnouncementEnter]="i"
            [ngStyle]="{'border': selectedRequestId === haz.hazard_id && previewType === 'hazard' ? '3px solid #ffc409' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.04))'}"
-           style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 15px; color: var(--ion-text-color);">
+           style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 15px; color: var(--ion-text-color); cursor: pointer;"
+           (click)="selectIncidentCard(haz, 'hazard')">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;"><i class="fa-solid fa-road-barrier" style="color: #ffc409; font-size: 18px;"></i><h4 style="margin: 0; font-weight: bold; font-size: 15px;">Public Hazard Report</h4></div>
         <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.3;">{{ haz.description }}</p>
         <span style="font-size: 11px; color: gray; font-weight: bold;">Source: {{ haz.first_name }} {{ haz.last_name }} | {{ haz.created_at | utcDate:'short' }}</span>
