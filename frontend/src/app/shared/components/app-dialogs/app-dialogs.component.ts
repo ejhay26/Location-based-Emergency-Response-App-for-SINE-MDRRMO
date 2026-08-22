@@ -190,8 +190,15 @@ export class AppDialogsComponent {
     }
   }
 
+  private lastDoubleTapTime = 0;
+
   onDoubleTap(event: MouseEvent | TouchEvent) {
     if (this.dialog.lightboxIsVideo()) return;
+    const now = Date.now();
+    // Ignore synthetic dblclick dispatched by browser within 400ms of a touch double-tap
+    if (now - this.lastDoubleTapTime < 400) return;
+    this.lastDoubleTapTime = now;
+
     if (this.scale > 1.1) {
       this.resetZoom();
     } else {
