@@ -138,7 +138,6 @@ erDiagram
         int user_id FK
         varchar key
         varchar value
-        boolean save_media_to_device
         timestamp updated_at
     }
 ```
@@ -260,10 +259,12 @@ Emergency alert banners pushed by dispatchers/admins.
 Flexible key-value preferences table with unique constraint on `(user_id, key)`.
 
 Supported Keys:
-- `dark_mode`: `'true'` / `'false'`
-- `reduce_animations`: `'true'` / `'false'`
-- `location_auto_fetch`: `'true'` / `'false'`
-- `map_default_style`: `'street'` / `'satellite'`
-- `notif_emergency_alerts`: `'true'` / `'false'`
-- `notif_broadcast_alerts`: `'true'` / `'false'`
-- `save_media_to_device`: `true` / `false`
+- `dark_mode`: `'true'` / `'false'` (Default `'false'`)
+- `reduce_animations`: `'true'` / `'false'` (Default `'false'`)
+- `location_auto_fetch`: `'true'` / `'false'` (Default `'true'`)
+- `map_default_style`: `'street'` / `'satellite'` (Default `'street'`)
+- `notif_emergency_alerts`: `'true'` / `'false'` (Default `'true'`)
+- `notif_broadcast_alerts`: `'true'` / `'false'` (Default `'true'`)
+- `save_media_to_device`: `'true'` / `'false'` (Default `'false'`)
+- `photo_cropping_enabled`: `'true'` / `'false'` (Default `'true'`)
+- `video_trimming_enabled`: `'true'` / `'false'` (Default `'true'`)
