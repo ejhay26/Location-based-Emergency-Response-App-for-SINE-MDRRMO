@@ -33,6 +33,33 @@
 
   <!-- ══ STEP 2: ID Verification ══ -->
   <div *ngIf="currentStep === 2">
+    <!-- Verification Tips & Requirements Box -->
+    <div style="background: linear-gradient(135deg, rgba(235,68,90,0.08), rgba(235,68,90,0.03)); border: 1.5px solid rgba(235,68,90,0.25); border-radius: 14px; padding: 14px 16px; margin: 4px 0 16px 0;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <i class="fa-solid fa-id-card-clip" style="color: var(--ion-color-danger); font-size: 16px;"></i>
+        <h4 style="margin: 0; font-size: 14px; font-weight: 800; color: var(--ion-color-danger); text-transform: uppercase; letter-spacing: 0.4px;">
+          Quick Tips for ID Verification
+        </h4>
+      </div>
+      <p style="margin: 0 0 8px 0; font-size: 12px; color: var(--ion-text-color); line-height: 1.45;">
+        To keep our community safe and make sure help goes to real people, MDRRMO requires a valid ID.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--ion-text-color);">
+        <div style="display: flex; align-items: flex-start; gap: 8px;">
+          <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 12px; margin-top: 2px; flex-shrink: 0;"></i>
+          <span><strong>Bright Lighting:</strong> Take the photo in a bright place. Avoid shadows and strong camera flash glare over your info.</span>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 8px;">
+          <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 12px; margin-top: 2px; flex-shrink: 0;"></i>
+          <span><strong>Clear &amp; Readable:</strong> Make sure all 4 corners of your ID are inside the box and your name and ID number can be read clearly.</span>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 8px;">
+          <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 12px; margin-top: 2px; flex-shrink: 0;"></i>
+          <span><strong>Selfie with ID:</strong> Hold your ID next to your chest or face. Look straight at the camera and make sure your fingers don't cover your name or photo.</span>
+        </div>
+      </div>
+    </div>
+
     <ion-list style="background: transparent;">
       <ion-item>
         <ion-select label="Valid ID Type" labelPlacement="stacked" placeholder="Tap to select your ID type" [(ngModel)]="userData.valid_id_type" required>
