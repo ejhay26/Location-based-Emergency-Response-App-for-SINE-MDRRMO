@@ -8,17 +8,87 @@
   </ion-card>
 </div>
 
-<div style="width:340px;flex-shrink:0;display:flex;flex-direction:column;min-width:0;">
-  <div style="padding:0 0 10px 0;">
-    <select
-      id="incidentMapBarangayFilter"
-      name="incidentMapBarangayFilter"
-      [(ngModel)]="barangayFilter"
-      (ngModelChange)="onBarangayFilterChange()"
-      style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
-      <option [ngValue]="'all'">All Barangays</option>
-      <option *ngFor="let b of barangayOptions" [ngValue]="b.id">{{ b.name }}</option>
-    </select>
+<div style="width:380px;flex-shrink:0;display:flex;flex-direction:column;min-width:0;padding-left:12px;">
+  <!-- Filter Pills Bar -->
+  <div style="padding:0 0 12px 0;display:flex;flex-direction:column;gap:10px;">
+    
+    <!-- Barangay Filter Pills (Clean Wrapping with Multi-Select) -->
+    <div>
+      <div style="font-size:10px;font-weight:800;color:var(--ion-color-medium);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Barangay</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        <button
+          type="button"
+          (click)="toggleBarangayFilter('all')"
+          [style.background]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
+          [style.color]="isBarangaySelected('all') ? 'white' : 'var(--ion-text-color)'"
+          [style.border-color]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+          style="padding:4px 9px;border-radius:9999px;border:1px solid;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.15s;">
+          All
+        </button>
+        <button
+          *ngFor="let b of barangayOptions"
+          type="button"
+          (click)="toggleBarangayFilter(b.id)"
+          [style.background]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
+          [style.color]="isBarangaySelected(b.id) ? 'white' : 'var(--ion-text-color)'"
+          [style.border-color]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+          style="padding:4px 9px;border-radius:9999px;border:1px solid;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.15s;">
+          {{ b.name }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Type Filter Pills (Clean Wrapping with Multi-Select) -->
+    <div>
+      <div style="font-size:10px;font-weight:800;color:var(--ion-color-medium);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Type</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        <button
+          type="button"
+          (click)="toggleTypeFilter('all')"
+          [style.background]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
+          [style.color]="isTypeSelected('all') ? 'white' : 'var(--ion-text-color)'"
+          [style.border-color]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+          style="padding:4px 9px;border-radius:9999px;border:1px solid;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;transition:all 0.15s;">
+          <i class="fa-solid fa-layer-group" [style.color]="isTypeSelected('all') ? 'white' : 'var(--ion-color-danger)'" style="font-size:10px;"></i>
+          <span>{{ mode === 'active' ? 'All Types' : 'All Hazards' }}</span>
+        </button>
+
+        <button
+          *ngFor="let t of (mode === 'active' ? emergencyTypeOptions : hazardTypeOptions)"
+          type="button"
+          (click)="toggleTypeFilter(t.id)"
+          [style.background]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
+          [style.color]="isTypeSelected(t.id) ? 'white' : 'var(--ion-text-color)'"
+          [style.border-color]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+          style="padding:4px 9px;border-radius:9999px;border:1px solid;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;transition:all 0.15s;">
+          <i [class]="t.icon" [style.color]="isTypeSelected(t.id) ? 'white' : (t.color || 'var(--ion-color-danger)')" style="font-size:10px;"></i>
+          <span>{{ t.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Date Quick Filter Pills + Shared Calendar Component -->
+    <div>
+      <div style="font-size:10px;font-weight:800;color:var(--ion-color-medium);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Date Range</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;">
+        <button
+          *ngFor="let d of dateFilterOptions"
+          type="button"
+          (click)="setDateFilter(d.id)"
+          [style.background]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #444)' : 'var(--ion-card-background, white)'"
+          [style.color]="!customCalendarFilter && dateFilter === d.id ? 'white' : 'var(--ion-text-color)'"
+          [style.border-color]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #444)' : 'var(--ion-color-step-200, #ccc)'"
+          style="padding:3px 9px;border-radius:9999px;border:1px solid;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.15s;">
+          {{ d.label }}
+        </button>
+
+        <app-date-range-filter
+          [value]="customCalendarFilter"
+          (valueChange)="onCalendarFilterChange($event)">
+        </app-date-range-filter>
+      </div>
+    </div>
+
   </div>
   <div style="flex:1;max-height:calc(100vh - 80px);overflow-y:auto;">
 
