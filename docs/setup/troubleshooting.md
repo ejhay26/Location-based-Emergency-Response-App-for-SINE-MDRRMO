@@ -69,6 +69,23 @@ Common issues, error codes, and step-by-step solutions when developing, running,
 
 </details>
 
+<details>
+<summary><b>1.5 Missing Reference Data or Fresh Database Setup Errors</b></summary>
+
+**Symptoms:** Registration or dispatch fails because `barangay_id`, `incident_type_id`, responders, or default admin accounts are missing on a fresh database installation.
+
+**Solutions:**
+1. Populate all reference lookup tables (Barangays, Incident Types, Responders, Vehicles, and initial Admin/Dispatcher accounts) using Laravel's database seeder:
+   ```bash
+   php artisan db:seed
+   ```
+2. For a complete fresh database initialization:
+   ```bash
+   php artisan migrate --seed
+   ```
+
+</details>
+
 ---
 
 ## 2. Frontend & Mobile Issues (Ionic / Angular / Capacitor)
