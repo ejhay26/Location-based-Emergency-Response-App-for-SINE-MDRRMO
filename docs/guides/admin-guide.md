@@ -69,8 +69,10 @@ All feedback submitted by citizens from the mobile app's Help tab is routed to t
 ## 6. Command Center Settings Panel
 
 Administrators and dispatchers can customize their command center interface:
+- **Custom Desktop Controls:** Frameless Electron desktop window with smooth, theme-aware minimize, maximize, and exit controls.
 - **Dark Theme:** Toggle between High-Contrast Dark Mode and Clean Light Mode.
 - **Reduce Animations:** Minimize UI transition effects for maximum performance on lower-spec workstations.
 - **Emergency Audio & Push Alerts:** Enable or mute real-time sound cues and push alerts for incoming SOS calls.
 - **Default Map Style:** Set the default tile layer for the Incident Map (**Street View** vs. **Satellite Imagery**).
+- **Animated Action Confirmation:** Interactive confirmation dialogs with loading spinners during user approvals, rejections, false alarm flags, and incident resolutions.
 - **Session Logout:** Safely terminate the administrative session and clear local credentials.
