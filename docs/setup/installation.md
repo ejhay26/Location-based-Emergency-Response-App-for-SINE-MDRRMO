@@ -83,8 +83,10 @@ BROADCAST_CONNECTION=reverb
 FILESYSTEM_DISK=public
 ```
 
-Create the public storage symlink for uploaded files:
-```bash
+# Run migrations and seed all required reference data (Barangays, Incident Types, Responders, Vehicles, Admin/Dispatcher):
+php artisan migrate --seed
+
+# Create the public storage symlink for uploaded files:
 php artisan storage:link
 ```
 
