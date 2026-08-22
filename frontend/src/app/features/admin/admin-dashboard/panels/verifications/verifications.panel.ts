@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 import { IonButton } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -106,27 +106,33 @@ export class VerificationsPanel implements OnInit, OnDestroy {
   }
 
   approveCitizen(userId: number) {
-    this.ui.showConfirm({
+    this.ui.confirm({
       title: 'Approve Citizen',
       message: 'Approve this citizen? They will be able to submit reports.',
-      icon: 'fa-solid fa-user-check', iconColor: '#2dd36f', confirmLabel: 'Approve', confirmColor: '#2dd36f',
-      action: () => {
-        this.api.approveUser({ user_id: userId }).subscribe({
-          next: () => { this.ui.showToast('Citizen approved!', 'success'); this.loadPendingVerifications(); }
-        });
+      icon: 'fa-solid fa-user-check',
+      iconColor: '#2dd36f',
+      confirmLabel: 'Approve',
+      confirmColor: '#2dd36f',
+      onConfirm: async () => {
+        await firstValueFrom(this.api.approveUser({ user_id: userId }));
+        this.ui.showToast('Citizen approved!', 'success');
+        this.loadPendingVerifications();
       }
     });
   }
 
   rejectCitizen(userId: number) {
-    this.ui.showConfirm({
+    this.ui.confirm({
       title: 'Deny Application',
       message: 'Deny this registration? They will need to register again.',
-      icon: 'fa-solid fa-user-xmark', iconColor: '#eb445a', confirmLabel: 'Deny', confirmColor: '#eb445a',
-      action: () => {
-        this.api.rejectUser({ user_id: userId }).subscribe({
-          next: () => { this.ui.showToast('Application denied.', 'medium'); this.loadPendingVerifications(); }
-        });
+      icon: 'fa-solid fa-user-xmark',
+      iconColor: '#eb445a',
+      confirmLabel: 'Deny',
+      confirmColor: '#eb445a',
+      onConfirm: async () => {
+        await firstValueFrom(this.api.rejectUser({ user_id: userId }));
+        this.ui.showToast('Application denied.', 'medium');
+        this.loadPendingVerifications();
       }
     });
   }
