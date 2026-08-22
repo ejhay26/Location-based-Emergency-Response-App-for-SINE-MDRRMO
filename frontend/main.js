@@ -2,9 +2,7 @@ const { app, BrowserWindow, session, Menu, ipcMain } = require('electron');
 const path = require('path');
 const fs   = require('fs');
 
-// Module-scoped reference so the IPC handlers below (registered once,
-// outside createWindow) can always reach the current window instead of
-// closing over a stale/undefined `win` from a previous call.
+// Module-scoped reference so event handlers below can reach the current window.
 let mainWindow = null;
 
 function patchBaseHref() {
@@ -47,6 +45,48 @@ function registerOsmFix() {
   console.log('[Electron] OSM tile header intercept registered.');
 }
 
+/**
+ * Theme & Window Controls Synchronizer
+ *
+ * Single ipcMain listener for 'window:theme'. The Angular renderer sends
+ * { symbolColor, isDark } whenever the theme changes.
+ *
+ * The overlay background is ALWAYS fully transparent so it blends with
+ * whatever page content sits underneath — red header, light sidebar, or
+ * dark sidebar — without us having to track/hardcode a matching color.
+ * Only symbolColor (the button glyph color) changes dynamically.
+ *
+ * WINDOW CONTROLS IPC
+ * Handles minimize, maximize/restore toggle, and close/quit from our custom HTML Titlebar.
+ */
+function registerWindowControls() {
+  ipcMain.on('window:minimize', (event) => {
+    const targetWin = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+    if (targetWin && !targetWin.isDestroyed()) {
+      targetWin.minimize();
+    }
+  });
+
+  ipcMain.on('window:maximize-toggle', (event) => {
+    const targetWin = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+    if (targetWin && !targetWin.isDestroyed()) {
+      if (targetWin.isMaximized()) {
+        targetWin.unmaximize();
+      } else {
+        targetWin.maximize();
+      }
+    }
+  });
+
+  ipcMain.on('window:close', (event) => {
+    const targetWin = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+    if (targetWin && !targetWin.isDestroyed()) {
+      targetWin.close();
+    }
+    app.quit();
+  });
+}
+
 function createWindow() {
   patchBaseHref();
 
@@ -56,8 +96,8 @@ function createWindow() {
     minWidth: 960,
     minHeight: 600,
     icon: path.join(__dirname, 'www', 'assets', 'icon', 'logo.jpg'),
+    // Frameless window with custom HTML controls
     frame: false,
-    titleBarStyle: 'hidden',
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -71,15 +111,14 @@ function createWindow() {
   win.removeMenu();
   Menu.setApplicationMenu(null);
 
-  // Keep the renderer's custom titlebar in sync with real window state so
-  // its maximize/restore icon reflects reality instead of drifting after an
-  // OS-level double-click-on-titlebar-region or edge-snap.
-  const sendWindowState = () => {
-    if (win.isDestroyed()) return;
-    win.webContents.send('window:state', { maximized: win.isMaximized() });
-  };
-  win.on('maximize', sendWindowState);
-  win.on('unmaximize', sendWindowState);
+  // Sync maximize / unmaximize state with the renderer's custom titlebar
+  win.on('maximize', () => {
+    win.webContents.send('window:state', { maximized: true });
+  });
+
+  win.on('unmaximize', () => {
+    win.webContents.send('window:state', { maximized: false });
+  });
 
   win.on('closed', () => {
     if (mainWindow === win) mainWindow = null;
@@ -87,34 +126,6 @@ function createWindow() {
 
   // Uncomment to debug:
   // win.webContents.openDevTools();
-}
-
-/**
- * Custom titlebar window controls.
- * frame:false removes the OS titlebar entirely, so minimize/maximize/close
- * must be re-implemented from the renderer via IPC. Registered once at
- * module scope (not inside createWindow) to avoid piling up duplicate
- * listeners if createWindow ever runs more than once (e.g. macOS 'activate').
- * Each handler guards against a missing/destroyed window rather than
- * assuming mainWindow is always valid.
- */
-function registerWindowControls() {
-  ipcMain.on('window:minimize', () => {
-    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize();
-  });
-
-  ipcMain.on('window:maximize-toggle', () => {
-    if (!mainWindow || mainWindow.isDestroyed()) return;
-    if (mainWindow.isMaximized()) {
-      mainWindow.unmaximize();
-    } else {
-      mainWindow.maximize();
-    }
-  });
-
-  ipcMain.on('window:close', () => {
-    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.close();
-  });
 }
 
 // Register OSM fix immediately — session is available before app is ready
