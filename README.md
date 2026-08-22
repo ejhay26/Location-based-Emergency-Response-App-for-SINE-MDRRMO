@@ -60,17 +60,19 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 
 - **Real-Time WebSocket Synchronization** — Powered by Laravel Reverb and Laravel Echo; incidents, unit assignments, hazard updates, and broadcast alerts appear instantaneously across devices without manual refresh.
 - **Role-Based Access Control (RBAC)** — Granular permission tiers and token abilities for Citizens, Dispatchers, and Master Administrators.
-- **Anti-Prank Verification System** — Requires live camera photo or 10-second video evidence (preventing gallery uploads) combined with locked GPS coordinates.
+- **Anti-Prank Verification System** — Requires live camera photo or 10-second video evidence (with automatic duration capping and WebM/MP4 magic byte verification) combined with locked GPS coordinates.
+- **Granular Media Editor Preferences** — Configurable Photo Cropper and Video Trimmer toggles in User Settings allowing citizens to customize reporting speed with instant in-modal "Disable now" shortcuts.
 - **3-Strike False Alarm Moderation** — Dispatchers can flag confirmed false alarms, automatically suspending accounts upon reaching 3 strikes.
-- **Dual-Sided Government ID Verification** — Registration requires capturing both the **Front** and **Back** of an official valid ID plus a live selfie holding the ID card.
+- **Dual-Sided Government ID Verification** — Guided registration with clear photo tips, front & back ID capture, selfie with ID, and simplified Terms of Service & Privacy Policy (RA 10173 compliance).
 - **Offline-First Emergency Reporting** — Offline queueing via **IndexedDB** guarantees SOS submissions are preserved during cellular outages and automatically dispatched when connectivity returns.
-- **Home Screen Emergency Widget & Deep Links** — 1-Tap SOS widget pinned to the Android home screen connecting directly via `sinemdrrmo://report`.
+- **Home Screen Emergency Widget & Deep Links** — 1-Tap SOS widget pinned to the Android home screen connecting directly via `sinemdrrmo://report` with full-viewport map support.
 - **Authoritative Server Geolocation (`BarangayResolver`)** — Ray-casting point-in-polygon math against official PSA boundaries locks incidents and camera views to San Isidro's municipal territory.
+- **Interactive Admin Incident Map** — Live incident sidebar cards with animated pin focusing (`flyTo`), boundary dimming, and animated confirmation loaders on incident resolution.
+- **Electron Desktop Client with Custom Controls** — Frameless native desktop command center with custom theme-aware window controls (minimize, maximize, close) and desktop sound/push alerts.
 - **Smart Fleet & Unit Dispatching** — Linked responder and vehicle dropdowns prevent assigning mismatched equipment (e.g. fire trucks to medical calls).
 - **"Golden Minute" Medical Profile** — Blood type, allergies, conditions, and PWD status are automatically attached to outgoing SOS alerts.
 - **Public Road Hazard Reporting** — Residents report floods, fallen trees, and downed power lines with photo proof to assist emergency route planning.
 - **Barangay-Targeted Rich Media Broadcasts** — Municipal safety banners can be broadcast town-wide or targeted to specific barangays, supporting titles and attached media files.
-- **Desktop Notifications for Dispatchers** — Electron command center triggers native audio and visual OS notifications for incoming incidents.
 - **Multi-Channel OTP Authentication** — Secure verification via Email OTP or SMS OTP (PhilSMS) with native Android SMS User Consent auto-retrieval.
 - **Interactive Analytics Dashboard** — Rolling 7/30/90-day incident trends, categorical breakdowns, and geographic volume distribution powered by Chart.js.
 - **Unified Date-Range Search & Filters** — Standardized calendar filters and active filter chips shared across all admin tables.
