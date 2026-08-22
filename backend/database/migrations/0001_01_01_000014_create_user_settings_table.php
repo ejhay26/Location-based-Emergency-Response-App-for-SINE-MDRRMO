@@ -14,7 +14,6 @@ return new class extends Migration
             $table->string('key', 64);
             $table->string('value', 255)->nullable();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
-            $table->boolean('save_media_to_device')->default(false);
 
             $table->unique(['user_id', 'key']);
             $table->foreign('user_id')->references('user_id')->on('users')->cascadeOnDelete();
