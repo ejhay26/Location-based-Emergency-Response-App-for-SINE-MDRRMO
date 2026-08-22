@@ -37,12 +37,14 @@ trait MediaHandling
         'image/png'  => ['offset' => 0, 'hex' => '89504e47'],
         'image/jpeg' => ['offset' => 0, 'hex' => 'ffd8ff'],
         'video/mp4'  => ['offset' => 4, 'hex' => '66747970'],
+        'video/webm' => ['offset' => 0, 'hex' => '1a45dfa3'],
     ];
 
     private const EXTENSIONS = [
         'image/png'  => 'png',
         'image/jpeg' => 'jpg',
         'video/mp4'  => 'mp4',
+        'video/webm' => 'webm',
     ];
 
     // ── 1. Decode ────────────────────────────────────────────────────────────
