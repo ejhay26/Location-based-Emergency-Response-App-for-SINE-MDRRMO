@@ -59,7 +59,7 @@ class BroadcastController extends Controller
         $broadcast = Broadcast::create([
             'title'       => $validated['title'] ?? null,
             'message'     => $validated['message'],
-            'media_files' => !empty($storedMediaPaths) ? json_encode($storedMediaPaths) : null,
+            'media_files' => !empty($storedMediaPaths) ? $storedMediaPaths : null,
             'is_active'   => 1,
             'created_at'  => now(),
         ]);
