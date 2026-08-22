@@ -1,8 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subscription, interval } from 'rxjs';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
+import { EchoService } from '../../../core/services/echo.service';
 
 type VerificationStatus = 'checking' | 'unverified' | 'active' | 'banned' | 'not_found' | 'error';
 
@@ -13,9 +15,20 @@ type VerificationStatus = 'checking' | 'unverified' | 'active' | 'banned' | 'not
  * AuthGuard — there's no token at this point, only an identifier (email or
  * username) passed in the `login` query param.
  *
- * Polls POST /check-verification-status on an interval rather than opening
- * a WebSocket connection — this screen isn't time-critical enough to
- * justify running broadcast infrastructure just for it.
+ * Real-time strategy (hybrid):
+ *   Primary  — Echo `users` channel listens for UserVerified events.
+ *              When the admin approves THIS user, the event fires and we
+ *              call checkStatus() immediately — the citizen sees their screen
+ *              update in under a second rather than waiting for the next poll.
+ *   Fallback — 30s interval runs continuously as a safety net for when
+ *              the WebSocket is disconnected (network blip, mobile background,
+ *              app cold-started without Reverb running yet, etc.).
+ *
+ * The Echo subscription is intentionally broad (any UserVerified event, not
+ * just this user's user_id) because the identifier on this page is an email/
+ * username string, not a user_id — we can't filter server-side without an
+ * authenticated private channel, which this pre-auth page can't use. The
+ * extra HTTP call on an irrelevant approval is negligible.
  */
 @Component({
   selector: 'app-pending-verification',
@@ -25,31 +38,48 @@ type VerificationStatus = 'checking' | 'unverified' | 'active' | 'banned' | 'not
 })
 export class PendingVerificationPage implements OnInit, OnDestroy {
 
-  readonly POLL_INTERVAL_MS = 25_000;
+  /** Fallback polling interval in ms — active when the WebSocket is down. */
+  readonly POLL_INTERVAL_MS = 30_000;
 
   identifier = '';
   status: VerificationStatus = 'checking';
-  private pollHandle: any;
+
+  private fallbackPollSub?: Subscription;
+  private echoUserSub?: Subscription;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private api: ApiService,
+    private echo: EchoService,
   ) {}
 
   ngOnInit() {
     this.identifier = this.route.snapshot.queryParamMap.get('login') || '';
     if (!this.identifier) {
-      // No identifier to check — nothing useful to poll, send them back.
       this.router.navigate(['/login']);
       return;
     }
+
+    // Initial check immediately on mount.
     this.checkStatus();
-    this.pollHandle = setInterval(() => this.checkStatus(), this.POLL_INTERVAL_MS);
+
+    // Primary: Echo fires the moment an admin approves/rejects any account.
+    this.echo.connect();
+    this.echoUserSub = this.echo.onUserVerified.subscribe(() => {
+      this.checkStatus();
+    });
+
+    // Fallback: 30s poll covers disconnected WebSocket scenarios.
+    this.fallbackPollSub = interval(this.POLL_INTERVAL_MS).subscribe(() => {
+      this.checkStatus();
+    });
   }
 
   ngOnDestroy() {
-    clearInterval(this.pollHandle);
+    this.fallbackPollSub?.unsubscribe();
+    this.echoUserSub?.unsubscribe();
+    // Do NOT disconnect Echo — it is a root singleton.
   }
 
   checkStatus() {
@@ -57,13 +87,23 @@ export class PendingVerificationPage implements OnInit, OnDestroy {
       next: (res: any) => {
         const next: VerificationStatus = res?.status ?? 'error';
         this.status = next;
-        if (next === 'active' || next === 'banned' || next === 'not_found') {
-          clearInterval(this.pollHandle);
+
+        if (next === 'active') {
+          // Stop all polling — account is approved. The template shows a
+          // "You're approved!" state; the citizen taps "Go to Login" to
+          // complete the flow rather than auto-navigating, because they
+          // still need to log in to get a token.
+          this.fallbackPollSub?.unsubscribe();
+          this.echoUserSub?.unsubscribe();
+        }
+
+        if (next === 'banned' || next === 'not_found') {
+          this.fallbackPollSub?.unsubscribe();
+          this.echoUserSub?.unsubscribe();
         }
       },
       error: () => {
-        // Transient network hiccup — keep polling rather than dead-ending
-        // the screen on one failed check.
+        // Transient network hiccup — keep polling.
         this.status = 'error';
       }
     });
