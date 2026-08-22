@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# SINE MDRRMO Disaster Recovery & Backup CLI (Linux / Docker / macOS)
+# ==============================================================================
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
+php "$DIR/artisan" backup "$@"
