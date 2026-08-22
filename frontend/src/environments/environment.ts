@@ -7,19 +7,12 @@ export const environment = {
   apiUrl: 'https://nuclei-oil-modular.ngrok-free.dev/api',
 
   // ── Laravel Reverb (WebSocket) ─────────────────────────────────────────
-  // Dev (ng serve): connect directly to Reverb on port 6001, bypassing
-  // Nginx entirely — Nginx only runs inside the Docker/Podman stack.
-  // The Nginx /app/ proxy is only needed in the containerised stack where
-  // the browser can't reach the reverb container directly.
-  //
-  // When running the full Podman stack locally, switch to:
-  //   reverbHost: 'localhost', reverbPort: 8080  (goes through Nginx proxy)
-  //
-  // reverbKey must match REVERB_APP_KEY in backend/.env exactly.
+  // Proxied through Nginx on port 8080 via the single ngrok tunnel.
+  // Port 443 + https because ngrok terminates TLS for both REST and WebSockets.
   reverbKey: 'xlq16kh4sisuz0kwe3sq',
-  reverbHost: 'localhost',
-  reverbPort: 6001,
-  reverbScheme: 'http',
+  reverbHost: 'nuclei-oil-modular.ngrok-free.dev',
+  reverbPort: 443,
+  reverbScheme: 'https',
 };
 
 /*
