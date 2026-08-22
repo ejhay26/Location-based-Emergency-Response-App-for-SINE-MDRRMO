@@ -78,7 +78,24 @@ export class AccountSetupPage implements OnInit {
     { key: 'notif_broadcast_alerts', label: 'Broadcast Alerts',          hint: v => v ? "You'll be notified when MDRRMO sends a public broadcast." : 'Broadcast notifications are off.',          value: true },
   ];
   reporting: SetupToggle[] = [
-    { key: 'save_media_to_device', label: 'Save Captured Media to Device', hint: v => v ? 'Photos and videos captured while reporting will be saved to your device gallery.' : 'Captured media is used only for the report and not saved to your device.', value: false },
+    {
+      key: 'photo_cropping_enabled',
+      label: 'Photo Crop Editor',
+      hint: v => v ? 'Crop editor opens after capturing a photo.' : 'Photos are attached directly to emergency reports without opening the crop editor.',
+      value: true
+    },
+    {
+      key: 'video_trimming_enabled',
+      label: 'Video Trim Editor',
+      hint: v => v ? 'Trim editor opens after recording a video.' : 'Videos are attached directly to emergency reports without opening the trim editor.',
+      value: true
+    },
+    {
+      key: 'save_media_to_device',
+      label: 'Save Captured Media to Device',
+      hint: v => v ? 'Photos and videos captured while reporting will be saved to your device gallery.' : 'Captured media is used only for the report and not saved to your device.',
+      value: false
+    },
   ];
 
   isFinishing = false;
