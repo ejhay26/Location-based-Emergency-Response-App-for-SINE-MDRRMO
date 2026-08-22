@@ -78,42 +78,83 @@
   </div>
 
   <div style="padding:0 20px 20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <div style="width:28px;height:28px;border-radius:8px;background:var(--ion-color-danger);display:flex;align-items:center;justify-content:center;">
           <i class="fa-solid fa-bullhorn" style="font-size:13px;color:white;"></i>
         </div>
         <span style="font-size:13px;font-weight:700;color:var(--ion-text-color);text-transform:uppercase;letter-spacing:0.6px;">Announcements</span>
       </div>
-      <span style="font-size:11px;color:var(--ion-color-medium);font-weight:600;">from MDRRMO</span>
+      
+      <!-- Announcements > Action Button -->
+      <button
+        id="openAllAnnouncementsBtn"
+        type="button"
+        (click)="openAllAnnouncements()"
+        style="background:none;border:none;color:var(--ion-color-danger);font-weight:700;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:4px 0;">
+        <span>View All</span>
+        <span *ngIf="activeBroadcasts.length > 0" style="background:rgba(235,68,90,0.12);padding:1px 6px;border-radius:10px;font-size:10px;">{{ activeBroadcasts.length }}</span>
+        <i class="fa-solid fa-chevron-right" style="font-size:10px;"></i>
+      </button>
     </div>
 
     <div id="tour-announcement-pane"
          [class.tour-highlight]="tour.targetId() === 'tour-announcement-pane'">
 
-      <div *ngFor="let broadcast of activeBroadcasts; let i = index; trackBy: trackByBroadcastId"
+      <!-- Top 2 Announcement Cards -->
+      <div *ngFor="let broadcast of topAnnouncements; let i = index; trackBy: trackByBroadcastId"
            [appAnnouncementEnter]="i"
-           style="border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#c62828,#eb445a);box-shadow:0 6px 24px rgba(235,68,90,0.32);margin-bottom:12px;">
-        <div style="padding:16px 16px 12px;">
-          <div style="display:flex;align-items:flex-start;gap:12px;">
-            <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
-              <i class="fa-solid fa-triangle-exclamation" style="color:white;font-size:18px;"></i>
+           style="border-radius:18px;overflow:hidden;background:var(--ion-card-background,white);border:1px solid var(--ion-color-step-150,rgba(0,0,0,0.08));box-shadow:0 4px 20px rgba(0,0,0,0.06);margin-bottom:14px;">
+        
+        <!-- Header Strip -->
+        <div style="padding:14px 16px 10px;background:linear-gradient(135deg,rgba(198,40,40,0.08),rgba(235,68,90,0.04));border-bottom:1px solid var(--ion-color-step-100,rgba(0,0,0,0.04));display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+            <div style="width:28px;height:28px;border-radius:8px;background:var(--ion-color-danger);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;flex-shrink:0;">
+              <i class="fa-solid fa-shield-halved"></i>
             </div>
-            <div style="flex:1;min-width:0;">
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">
-                <span style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.8px;">Official Notice</span>
-                <span style="width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,0.4);"></span>
-                <span style="font-size:10px;color:rgba(255,255,255,0.6);">{{ timeAgo(broadcast.created_at) }}</span>
-                <span style="margin-left:auto;font-size:9px;font-weight:800;color:white;background:rgba(255,255,255,0.22);padding:3px 8px;border-radius:8px;text-transform:uppercase;letter-spacing:0.4px;">
-                  <i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>{{ broadcast.location }}
-                </span>
+            <div style="min-width:0;">
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span style="font-size:11px;font-weight:800;color:var(--ion-text-color);">MDRRMO San Isidro</span>
+                <i class="fa-solid fa-circle-check" style="color:var(--ion-color-danger);font-size:11px;"></i>
               </div>
-              <p style="color:white;font-weight:600;font-size:14px;margin:0;line-height:1.5;">{{ broadcast.message }}</p>
+              <div style="font-size:10px;color:var(--ion-color-medium);">{{ broadcast.created_at | utcDate:'medium' }} • <b style="color:var(--ion-color-danger);">{{ timeAgo(broadcast.created_at) }}</b></div>
+            </div>
+          </div>
+          <span style="font-size:9px;font-weight:800;color:var(--ion-color-danger);background:rgba(235,68,90,0.12);padding:3px 8px;border-radius:8px;text-transform:uppercase;letter-spacing:0.4px;white-space:nowrap;">
+            <i class="fa-solid fa-location-dot" style="margin-right:3px;"></i>{{ broadcast.location }}
+          </span>
+        </div>
+
+        <!-- Content Body -->
+        <div style="padding:14px 16px;">
+          <h4 *ngIf="broadcast.title" style="margin:0 0 6px 0;font-size:15px;font-weight:800;color:var(--ion-text-color);line-height:1.35;">
+            {{ broadcast.title }}
+          </h4>
+          <p style="margin:0;font-size:13px;color:var(--ion-text-color);line-height:1.5;white-space:pre-line;word-break:break-word;">
+            {{ broadcast.message }}
+          </p>
+
+          <!-- Media Thumbnails Grid (if attached) -->
+          <div *ngIf="broadcast.media_files && broadcast.media_files.length > 0" style="margin-top:12px;">
+            <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">
+              <div *ngFor="let m of broadcast.media_files"
+                   (click)="openMedia(m, isVideoFile(m), broadcast.media_files)"
+                   style="width:90px;height:90px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#1a1a1a;position:relative;cursor:pointer;border:1.5px solid var(--ion-color-step-150,rgba(0,0,0,0.1));">
+                <img *ngIf="!isVideoFile(m)" [src]="getMediaUrl(m)" style="width:100%;height:100%;object-fit:cover;" />
+                <div *ngIf="isVideoFile(m)" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;">
+                  <video [src]="getMediaUrl(m)" style="width:100%;height:100%;object-fit:cover;" muted></video>
+                  <div style="position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.65);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;">
+                    <i class="fa-solid fa-play" style="margin-left:2px;"></i>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
       </div>
 
+      <!-- Empty State -->
       <div *ngIf="activeBroadcasts.length === 0"
            style="border-radius:18px;padding:20px;background:var(--ion-card-background,white);border:1.5px dashed var(--ion-color-step-200,#ccc);display:flex;align-items:center;gap:14px;">
         <div style="width:44px;height:44px;border-radius:12px;background:var(--ion-color-step-50,rgba(0,0,0,0.04));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -135,7 +176,11 @@
   <app-floating-sos-card
     [activeReports]="activeSosReports"
     [queuedItems]="queuedSosItems"
-    (cardTap)="goToSosStatus()">
+    (cardTap)="goToSosStatus()"
+    (cancelTap)="onSosCancel($event)">
   </app-floating-sos-card>
+
+  <!-- Bottom buffer so last card is completely visible above the tab bar -->
+  <div style="height: 36px; flex-shrink: 0;"></div>
 
 </ion-content>

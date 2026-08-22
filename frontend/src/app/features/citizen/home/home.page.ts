@@ -2,22 +2,31 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonToast, ModalController } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonToast, ModalController, ToastController } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
 import { TourService } from '../../../core/services/tour';
 import { BroadcastRefreshService } from '../../../core/services/broadcast-refresh';
+import { EchoService } from '../../../core/services/echo.service';
 import { WidgetPinService } from '../../../core/services/widget-pin';
 import { OfflineQueueService } from '../../../core/services/offline-queue';
 import { DialogService } from '../../../core/services/dialog.service';
 import { PressFeedbackDirective } from '../../../shared/directives/press-feedback.directive';
 import { ImpactFeedbackDirective } from '../../../shared/directives/impact-feedback.directive';
 import { ListEnterDirective } from '../../../shared/directives/list-enter.directive';
-import { parseServerDate } from '../../../shared/pipes/utc-date.pipe';
+import { UtcDatePipe, parseServerDate } from '../../../shared/pipes/utc-date.pipe';
 import { reportModalEnter, reportModalLeave } from '../../../core/animations/report-modal-transition';
 import { ReportPage } from '../report/report.page';
 import { FloatingSosCardComponent, FloatingSosStatus } from '../../../shared/components/floating-sos-card/floating-sos-card.component';
+import { AnnouncementsModalComponent } from '../../../shared/components/announcements-modal/announcements-modal.component';
 
-const REFRESH_INTERVAL_MS = 60_000; // 1 minute
+/**
+ * Fallback polling interval — active only when the Reverb WebSocket is
+ * disconnected. 30s matches the decision recorded in the handoff doc
+ * (decision 54). When the socket IS connected, the interval is still
+ * running as a safety net but the WebSocket push will almost always arrive
+ * first, making the poll a silent no-op rather than visible churn.
+ */
+const FALLBACK_POLL_MS = 30_000;
 
 /**
  * Stage 3a — Home Screen Widget banner. Shown once to accounts that
@@ -36,12 +45,16 @@ const WIDGET_PROMPT_DISMISSED_KEY = 'widget_prompt_dismissed';
   imports: [
     CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonToast,
     PressFeedbackDirective, ImpactFeedbackDirective, ListEnterDirective,
-    FloatingSosCardComponent,
+    FloatingSosCardComponent, UtcDatePipe,
   ],
 })
 export class HomePage implements OnInit, OnDestroy {
   userFirstName = '';
   activeBroadcasts: any[] = [];
+
+  get topAnnouncements(): any[] {
+    return this.activeBroadcasts.slice(0, 2);
+  }
 
   showWidgetBanner = false;
   widgetToastOpen = false;
@@ -56,19 +69,32 @@ export class HomePage implements OnInit, OnDestroy {
    */
   activeSosReports: FloatingSosStatus[] = [];
 
-  private pollSub?: Subscription;
+  /** True while Reverb WebSocket is connected — used only for dev/debug; not bound in template. */
+  private wsConnected = false;
+
+  private fallbackPollSub?: Subscription;
   private pushRefreshSub?: Subscription;
+  private echoEmergencySub?: Subscription;
+  private echoBroadcastSub?: Subscription;
+  private echoConnectedSub?: Subscription;
 
   constructor(
     private api: ApiService,
     private router: Router,
     public tour: TourService,
     private broadcastRefresh: BroadcastRefreshService,
+    private echo: EchoService,
     private modalCtrl: ModalController,
+    private toastCtrl: ToastController,
     private widgetPin: WidgetPinService,
     public offlineQueue: OfflineQueueService,
     private dialog: DialogService,
   ) {}
+
+  async showToast(message: string, color: 'success' | 'danger' | 'warning' | 'medium' = 'medium') {
+    const toast = await this.toastCtrl.create({ message, duration: 3000, color, position: 'top' });
+    await toast.present();
+  }
 
   ngOnInit() {
     const userStr = localStorage.getItem('user');
@@ -81,18 +107,37 @@ export class HomePage implements OnInit, OnDestroy {
     if (this.broadcastRefresh.lastBroadcasts) {
       this.activeBroadcasts = this.broadcastRefresh.lastBroadcasts;
     }
+
+    // Initial fetch regardless of socket state.
     this.fetchBroadcasts();
     this.fetchLatestSos();
 
-    // Keep the announcement panel (and the Floating SOS Card's own status)
-    // live without requiring the user to leave and re-enter the tab: piggyback
-    // on the same 60s interval already used for broadcasts, reusing
-    // getMyEmergencies — the same call History's own page makes — rather than
-    // standing up a second, separately-timed poll loop for one more field.
-    this.pollSub = interval(REFRESH_INTERVAL_MS).subscribe(() => {
+    // ── Hybrid real-time strategy ─────────────────────────────────────
+    // Primary: Reverb WebSocket events trigger immediate re-fetches.
+    // Fallback: 30s interval runs continuously as a safety net for when
+    // the socket is disconnected (network blip, mobile background, etc.).
+    // The fallback is never removed — it just becomes the sole mechanism
+    // when the socket is down.
+
+    this.echo.connect();
+
+    // Track connection state (for fallback awareness).
+    this.echoConnectedSub = this.echo.onConnected.subscribe(connected => {
+      this.wsConnected = connected;
+    });
+
+    // When a BroadcastMessageUpdated event arrives via Reverb, trigger
+    // an immediate re-fetch — same as the FCM push path already does.
+    this.echoBroadcastSub = this.echo.onBroadcastUpdated.subscribe(() => {
       this.fetchBroadcasts();
+    });
+
+    // When EmergencyUpdated arrives (dispatched, resolved, etc.), the
+    // citizen's own SOS status may have changed — refresh the pill.
+    this.echoEmergencySub = this.echo.onEmergencyUpdated.subscribe(() => {
       this.fetchLatestSos();
     });
+
     this.pushRefreshSub = this.broadcastRefresh.onRefresh.subscribe(() => this.fetchBroadcasts());
 
     this.widgetPin.isAvailable().then(available => {
@@ -100,12 +145,49 @@ export class HomePage implements OnInit, OnDestroy {
     });
   }
 
+  ionViewWillEnter() {
+    if (!localStorage.getItem('api_token')) {
+      this.stopPolling();
+      return;
+    }
+    this.startPolling();
+  }
+
+  ionViewDidLeave() {
+    this.stopPolling();
+  }
+
   ngOnDestroy() {
-    this.pollSub?.unsubscribe();
+    this.stopPolling();
     this.pushRefreshSub?.unsubscribe();
+    this.echoEmergencySub?.unsubscribe();
+    this.echoBroadcastSub?.unsubscribe();
+    this.echoConnectedSub?.unsubscribe();
+  }
+
+  private startPolling() {
+    this.stopPolling();
+    this.fetchBroadcasts();
+    this.fetchLatestSos();
+    this.fallbackPollSub = interval(FALLBACK_POLL_MS).subscribe(() => {
+      if (!localStorage.getItem('api_token')) {
+        this.stopPolling();
+        return;
+      }
+      this.fetchBroadcasts();
+      this.fetchLatestSos();
+    });
+  }
+
+  private stopPolling() {
+    if (this.fallbackPollSub) {
+      this.fallbackPollSub.unsubscribe();
+      this.fallbackPollSub = undefined;
+    }
   }
 
   fetchBroadcasts() {
+    if (!localStorage.getItem('api_token')) return;
     this.api.getActiveBroadcast().subscribe({
       next: (res: any) => {
         this.activeBroadcasts = Array.isArray(res) ? res : (res?.message ? [res] : []);
@@ -127,25 +209,83 @@ export class HomePage implements OnInit, OnDestroy {
    * OfflineQueueService for the actual submit path.
    */
   fetchLatestSos() {
+    if (!localStorage.getItem('api_token')) return;
     const userStr = localStorage.getItem('user');
     if (!userStr) return;
-    const user = JSON.parse(userStr);
-    this.api.getMyEmergencies(user.user_id).subscribe({
-      next: (res: any) => {
-        const list: any[] = Array.isArray(res) ? res : [];
-        // Keep ALL active reports, newest-first (server already returns desc
-        // order). Each one gets its own stacked pill on the Home page.
-        this.activeSosReports = list.filter(
-          (r: any) => r.status === 'Pending' || r.status === 'Dispatched'
-        );
-      },
-      error: () => {}
-    });
+    try {
+      const user = JSON.parse(userStr);
+      if (!user?.user_id) return;
+      this.api.getMyEmergencies(user.user_id).subscribe({
+        next: (res: any) => {
+          const list: any[] = Array.isArray(res) ? res : [];
+          // Keep ALL active reports, newest-first (server already returns desc
+          // order). Each one gets its own stacked pill on the Home page.
+          this.activeSosReports = list.filter(
+            (r: any) => r.status === 'Pending' || r.status === 'Dispatched'
+          );
+        },
+        error: () => {}
+      });
+    } catch {}
   }
 
   /** Floating SOS Card tap — routes to History, where the full record (and its Cancel action) already lives. */
   goToSosStatus() {
     this.router.navigate(['/tabs/history']);
+  }
+
+  /**
+   * Cancel handler for the floating SOS pill's X button.
+   * Two cases:
+   *   1. Offline-queued item (queueId set, requestId null) — just remove from
+   *      IndexedDB, no API call needed since it never reached the server.
+   *   2. Server-confirmed Pending report (requestId set) — calls cancelEmergency
+   *      with a loading dialog open during the request, same pattern as the
+   *      History page's own cancel action.
+   */
+  async onSosCancel(ev: { requestId: number | null; queueId: string | null }) {
+    // Offline-queue item — simpler confirm, no API call needed.
+    if (ev.queueId) {
+      const confirmed = await this.dialog.confirm({
+        title: 'Remove Queued Report',
+        message: "This report hasn't reached MDRRMO yet. Remove it from the queue?",
+        icon: 'fa-solid fa-circle-xmark',
+        iconColor: '#eb445a',
+        confirmLabel: 'Remove',
+        confirmColor: 'danger',
+      });
+      if (confirmed) {
+        await this.offlineQueue.removeById(ev.queueId);
+        this.showToast('Queued report removed.', 'success');
+      }
+      return;
+    }
+
+    // Server-confirmed Pending report — onConfirm keeps the dialog open with
+    // a spinner while the API call is in flight, then closes on success.
+    await this.dialog.confirm({
+      title: 'Cancel SOS Report',
+      message: 'Are you sure you want to cancel this emergency report? Only do this if the situation has been resolved or was reported by mistake.',
+      icon: 'fa-solid fa-triangle-exclamation',
+      iconColor: '#eb445a',
+      confirmLabel: 'Yes, Cancel Report',
+      confirmColor: 'danger',
+      onConfirm: async () => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        await new Promise<void>((resolve, reject) => {
+          this.api.cancelEmergency({ request_id: ev.requestId, user_id: user.user_id }).subscribe({
+            next: () => {
+              this.showToast('SOS report cancelled.', 'success');
+              resolve();
+            },
+            error: (e) => reject(e),
+          });
+        });
+        // Refresh pill list immediately so it disappears without waiting
+        // for the next 30s fallback poll.
+        this.fetchLatestSos();
+      },
+    });
   }
 
   /** Queued-offline SOS items only — reads the shared reactive signal so no separate IndexedDB call is needed here. */
@@ -154,15 +294,15 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * Without this, every 60s poll re-assigns `activeBroadcasts` to a brand
-   * new array of freshly-parsed JSON objects — different references even
-   * when the underlying data hasn't changed. Angular's default *ngFor diffs
-   * by object identity, so with no trackBy it would read that as "every
-   * item removed, every item re-added", destroy and recreate every card,
-   * and (as a direct side effect) re-trigger appAnnouncementEnter's
-   * ngOnInit on all of them. Tracking by the real DB primary key instead
-   * lets Angular recognize "same broadcast, new object" and just patch the
-   * existing DOM node's bindings in place — no destroy, no replay.
+   * Without this, every poll re-assigns `activeBroadcasts` to a brand new
+   * array of freshly-parsed JSON objects — different references even when
+   * the underlying data hasn't changed. Angular's default *ngFor diffs by
+   * object identity, so with no trackBy it would read that as "every item
+   * removed, every item re-added", destroy and recreate every card, and (as
+   * a direct side effect) re-trigger appAnnouncementEnter's ngOnInit on all
+   * of them. Tracking by the real DB primary key instead lets Angular
+   * recognize "same broadcast, new object" and just patch the existing DOM
+   * node's bindings in place — no destroy, no replay.
    */
   trackByBroadcastId(_index: number, b: any): number {
     return b.broadcast_id;
@@ -239,4 +379,34 @@ export class HomePage implements OnInit, OnDestroy {
   goToSos() { this.openReport('emergency'); }
 
   goToHazard() { this.openReport('hazard'); }
+
+  async openAllAnnouncements() {
+    const modal = await this.modalCtrl.create({
+      component: AnnouncementsModalComponent,
+      componentProps: { broadcasts: this.activeBroadcasts }
+    });
+    await modal.present();
+  }
+
+  openMedia(path: string, isVideo = false, allMedia?: string[]) {
+    if (allMedia && Array.isArray(allMedia) && allMedia.length > 0) {
+      const items = allMedia.map(m => ({
+        url: this.getMediaUrl(m),
+        isVideo: this.isVideoFile(m)
+      }));
+      const idx = allMedia.indexOf(path);
+      this.dialog.openLightbox(items, Math.max(0, idx));
+      return;
+    }
+    const url = this.getMediaUrl(path);
+    this.dialog.openLightbox(url, isVideo);
+  }
+
+  isVideoFile(path: string): boolean {
+    return path?.toLowerCase().endsWith('.mp4') || path?.toLowerCase().endsWith('.webm');
+  }
+
+  getMediaUrl(path: string): string {
+    return this.api.resolveFileUrl(path);
+  }
 }
