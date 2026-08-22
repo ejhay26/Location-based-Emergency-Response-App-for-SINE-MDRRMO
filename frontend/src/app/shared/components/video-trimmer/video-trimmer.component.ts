@@ -1,6 +1,7 @@
-import { Component, Input, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, AfterViewInit, OnDestroy, ViewChild, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonButton, IonButtons, IonHeader, IonToolbar, IonTitle, IonContent, ModalController } from '@ionic/angular/standalone';
+import { UserSettingsService } from '../../../core/services/user-settings';
 
 type DragHandle = 'start' | 'end' | 'playhead' | null;
 
@@ -21,13 +22,17 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
 <ion-content class="ion-padding">
 
   <!-- Info banner -->
-  <div style="background:#eb445a15;border:1px solid #eb445a50;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px;">
-    <i class="fa-solid fa-circle-info" style="color:#eb445a;font-size:16px;margin-top:2px;flex-shrink:0;"></i>
-    <div style="font-size:13px;color:var(--ion-text-color);line-height:1.5;">
-      <strong>You can only attach clips up to {{ MAX_DURATION }} seconds.</strong><br>
-      Drag the <span style="color:#eb445a;font-weight:bold;">red handles</span> on the timeline to select your clip window.
-      Tap anywhere on the timeline to jump to that moment. Press <strong>Use This Clip</strong> when done.
+  <div style="background:#eb445a15;border:1px solid #eb445a50;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+    <div style="display:flex;align-items:flex-start;gap:10px;">
+      <i class="fa-solid fa-circle-info" style="color:#eb445a;font-size:16px;margin-top:2px;flex-shrink:0;"></i>
+      <div style="font-size:13px;color:var(--ion-text-color);line-height:1.5;">
+        <strong>Clips are capped at {{ MAX_DURATION }} seconds.</strong><br>
+        Drag the <span style="color:#eb445a;font-weight:bold;">red handles</span> to select your clip window.
+      </div>
     </div>
+    <button type="button" (click)="disableVideoTrimmerNow()" style="background:transparent;border:none;color:var(--ion-color-danger);font-weight:bold;font-size:12px;cursor:pointer;text-decoration:underline;white-space:nowrap;padding:0;margin-top:2px;">
+      Disable now
+    </button>
   </div>
 
   <!-- Video preview — hidden until metadata is ready; no poster/play-icon flash -->
@@ -138,7 +143,7 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
     Selection is {{ trimDuration.toFixed(1) }}s — drag a handle inward to reduce to {{ MAX_DURATION }}s or less.
   </div>
 
-  <ion-button expand="block" color="danger" style="font-weight:bold;height:48px;"
+  <ion-button expand="block" color="danger" style="font-weight:bold;height:48px;margin-top:14px;"
               [disabled]="trimDuration > MAX_DURATION || isExporting || !metaReady"
               (click)="exportTrim()">
     <span *ngIf="!isExporting">
@@ -147,12 +152,6 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
     <span *ngIf="isExporting" style="display:flex;align-items:center;gap:8px;">
       <i class="fa-solid fa-spinner fa-spin"></i>Exporting…
     </span>
-  </ion-button>
-
-  <ion-button expand="block" fill="outline" color="medium" style="font-weight:bold;height:44px;margin-top:8px;"
-              [disabled]="isExporting || !metaReady"
-              (click)="skipTrim()">
-    <i class="fa-solid fa-forward" style="margin-right:8px;"></i>Skip — Use First {{ MAX_DURATION }}s
   </ion-button>
 
 </ion-content>
@@ -189,6 +188,8 @@ export class VideoTrimmerComponent implements AfterViewInit, OnDestroy {
     const clamped = Math.min(Math.max(this.currentTime, this.startTime), this.endTime);
     return (clamped / this.videoDuration) * 100;
   }
+
+  private userSettings = inject(UserSettingsService);
 
   constructor(private modalCtrl: ModalController) {}
 
@@ -359,7 +360,8 @@ export class VideoTrimmerComponent implements AfterViewInit, OnDestroy {
    * is still a normal re-encoded clip. Lets a reporter in a hurry attach a
    * video without having to touch the trim handles at all.
    */
-  skipTrim() {
+  disableVideoTrimmerNow() {
+    this.userSettings.setBool('video_trimming_enabled', false);
     if (this.isExporting || !this.metaReady) return;
     this.startTime = 0;
     this.endTime   = Math.min(this.MAX_DURATION, this.videoDuration);
