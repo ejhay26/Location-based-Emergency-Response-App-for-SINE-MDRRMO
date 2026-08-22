@@ -1,0 +1,91 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.admin-desktop-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.admin-desktop-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.admin-sidebar {
+  background: var(--ion-card-background, #fff);
+  border-right: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.1));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px 10px;
+  z-index: 10;
+  transition: width 0.25s ease;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.admin-main-viewport {
+  flex: 1;
+  min-width: 0;
+  background: var(--ion-background-color, #f4f5f8);
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+:host-context(ion-app.electron-app) .admin-main-viewport {
+  padding: 38px 24px 18px 24px !important;
+}
+
+:host-context(ion-app.electron-app) .admin-sidebar {
+  padding-top: 24px !important;
+}
+
+.admin-sidebar::-webkit-scrollbar,
+.admin-scroll-panel::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+  background: transparent !important;
+}
+
+.admin-sidebar::-webkit-scrollbar-track,
+.admin-scroll-panel::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb,
+.admin-scroll-panel::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  border-radius: 9999px !important;
+  transition: background 0.3s ease;
+}
+
+.admin-sidebar:hover::-webkit-scrollbar-thumb,
+.admin-scroll-panel:hover::-webkit-scrollbar-thumb,
+.admin-sidebar::-webkit-scrollbar-thumb:active,
+.admin-scroll-panel::-webkit-scrollbar-thumb:active {
+  background: rgba(100, 116, 139, 0.35) !important;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-scroll-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.65) !important;
+}
+
+.admin-sidebar::-webkit-scrollbar-button,
+.admin-scroll-panel::-webkit-scrollbar-button {
+  display: none !important;
+}

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenuController } from '@ionic/angular';
-import { IonContent, IonItem, IonLabel, IonToggle } from '@ionic/angular/standalone';
+import { IonContent } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
@@ -20,10 +20,11 @@ import { VerificationsPanel } from './panels/verifications/verifications.panel';
 import { DispatchersPanel } from './panels/dispatchers/dispatchers.panel';
 import { CitizensPanel } from './panels/citizens/citizens.panel';
 import { FeedbackPanel } from './panels/feedback/feedback.panel';
+import { SettingsPanel } from './panels/settings/settings.panel';
 
 type ViewMode =
   | 'active' | 'hazards' | 'archive' | 'analytics' | 'broadcast'
-  | 'verifications' | 'dispatchers' | 'citizens' | 'feedback';
+  | 'verifications' | 'dispatchers' | 'citizens' | 'feedback' | 'settings';
 
 /**
  * AdminDashboardPage — thin shell. Owns the sidebar nav, dark mode toggle,
@@ -38,11 +39,13 @@ type ViewMode =
   selector: 'app-admin-dashboard',
   standalone: true,
   templateUrl: './admin-dashboard.page.html',
+  styleUrls: ['./admin-dashboard.page.scss'],
   imports: [
     CommonModule,
-    IonContent, IonItem, IonLabel, IonToggle,
+    IonContent,
     IncidentMapPanel, AnalyticsPanel, LogArchivePanel, BroadcastPanel,
     VerificationsPanel, DispatchersPanel, CitizensPanel, FeedbackPanel,
+    SettingsPanel,
   ],
 })
 export class AdminDashboardPage implements OnInit, OnDestroy {
@@ -50,6 +53,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   currentRole: string | null = '';
   viewMode: ViewMode = 'active';
   isSidebarCollapsed = false;
+  isElectron = false;
 
   // Only present in the DOM while viewMode is 'active'/'hazards'; undefined otherwise.
   @ViewChild(IncidentMapPanel) private incidentMapPanel?: IncidentMapPanel;
@@ -69,6 +73,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.isElectron = (window as unknown as { process?: { versions?: { electron?: string } } }).process?.versions?.electron != null || /electron/i.test(navigator.userAgent);
     // Apply dark mode from the settings service (same source as mobile pages).
     this.userSettings.applyToDom();
     // Stage 5 — desktop alert on new SOS/hazard reports. Dashboard-wide (not
@@ -114,8 +119,12 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   toggleDarkMode(event: any) {
-    this.userSettings.setBool('dark_mode', event.detail.checked);
-    document.documentElement.classList.toggle('ion-palette-dark', event.detail.checked);
+    const isDark: boolean = event.detail.checked;
+    this.userSettings.setBool('dark_mode', isDark);
+    document.documentElement.classList.toggle('ion-palette-dark', isDark);
+    // Sync Electron window-control button color immediately.
+    // isRedHeader = false: admin dashboard never uses the red auth header.
+    this.userSettings.syncElectronTitleBar(false);
   }
 
   logout() {
