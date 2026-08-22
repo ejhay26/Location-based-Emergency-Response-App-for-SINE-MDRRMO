@@ -1,10 +1,56 @@
 <div style="width:100%;">
   <ion-card color="light" style="margin: 0; box-shadow: none; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.04));">
-    <ion-card-header><ion-card-title style="font-weight: bold; font-size: 16px;">Send Alert</ion-card-title></ion-card-header>
+    <ion-card-header><ion-card-title style="font-weight: bold; font-size: 16px;">Create Announcement / Alert</ion-card-title></ion-card-header>
     <ion-card-content>
-      <ion-item fill="outline" class="ion-margin-bottom ion-margin-top">
-        <ion-input label="Alert Message" labelPlacement="floating" [(ngModel)]="broadcastForm.message" placeholder="e.g. Flood warning in Barangay Pulo..."></ion-input>
+      <!-- Title Input -->
+      <ion-item fill="outline" class="ion-margin-bottom ion-margin-top" style="--border-radius: 10px;">
+        <ion-input label="Announcement Headline / Title (Optional)" labelPlacement="floating" [(ngModel)]="broadcastForm.title" placeholder="e.g. Typhoon Warning, Relief Operation Notice..."></ion-input>
       </ion-item>
+
+      <!-- Message Body Input -->
+      <ion-item fill="outline" class="ion-margin-bottom" style="--border-radius: 10px;">
+        <ion-input label="Full Notice / Message" labelPlacement="floating" [(ngModel)]="broadcastForm.message" placeholder="e.g. MDRRMO is advising residents in low-lying areas..."></ion-input>
+      </ion-item>
+
+      <!-- Media Attachment Section -->
+      <div style="margin-bottom: 16px;">
+        <input
+          type="file"
+          id="broadcastMediaInput"
+          (change)="onFilesSelected($event)"
+          multiple
+          accept="image/jpeg,image/png,image/jpg,video/mp4"
+          style="display: none;" />
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 12px; font-weight: bold; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">Media Attachments (Photos / Videos, Max 4)</span>
+          <button
+            type="button"
+            (click)="triggerFileInput()"
+            [disabled]="selectedMedia.length >= 4"
+            style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc); background: var(--ion-card-background, white); color: var(--ion-text-color); font-size: 12px; font-weight: bold; cursor: pointer;">
+            <i class="fa-solid fa-paperclip" style="color: var(--ion-color-danger);"></i>
+            <span>Attach Files ({{ selectedMedia.length }}/4)</span>
+          </button>
+        </div>
+
+        <!-- Selected Media Thumbnails Strip -->
+        <div *ngIf="selectedMedia.length > 0" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+          <div *ngFor="let m of selectedMedia; let mi = index" style="position: relative; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 2px solid var(--ion-color-danger); background: #222;">
+            <img *ngIf="m.type === 'image'" [src]="m.preview" style="width: 100%; height: 100%; object-fit: cover;" />
+            <video *ngIf="m.type === 'video'" [src]="m.preview" style="width: 100%; height: 100%; object-fit: cover;" muted></video>
+            <div *ngIf="m.type === 'video'" style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); color: white; font-size: 9px; padding: 2px 4px; border-radius: 4px; font-weight: bold;">
+              <i class="fa-solid fa-video"></i> MP4
+            </div>
+            <button
+              type="button"
+              (click)="removeMedia(mi)"
+              style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: #eb445a; color: white; border: none; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <p style="font-size: 12px; font-weight: bold; color: var(--ion-color-medium); margin: 12px 0 8px;">TARGET AUDIENCE</p>
       <div style="display: flex; flex-wrap: wrap; gap: 6px;">
@@ -23,32 +69,101 @@
       </div>
       <p style="font-size: 11px; color: var(--ion-color-medium); margin: 8px 0 0;">
         <i class="fa-solid fa-circle-info" style="margin-right: 4px;"></i>
-        {{ isTownWide ? 'This alert will be sent to every citizen.' : 'Tap "All" to clear barangay selection.' }}
+        {{ isTownWide ? 'This announcement will be pushed to every citizen in San Isidro.' : 'Tap "All" to clear barangay selection.' }}
       </p>
 
-      <ion-button expand="block" color="danger" (click)="submitBroadcast()"
-        [class.btn-muted]="!broadcastForm.message && !isBroadcasting"
-        [class.btn-loading]="isBroadcasting"
+      <!-- Send Alert -->
+      <ion-button expand="block" color="danger" (click)="confirmSubmitBroadcast()"
+        [disabled]="!broadcastForm.message.trim()"
         style="font-weight: bold; height: 45px; margin-top: 16px;">
-        <ng-container *ngIf="!isBroadcasting"><i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Send Alert</ng-container>
-        <span *ngIf="isBroadcasting" class="dot-loader"><span></span><span></span><span></span></span>
+        <i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Send Announcement
       </ion-button>
     </ion-card-content>
   </ion-card>
 
-  <ion-card *ngFor="let broadcast of activeBroadcasts; let i = index; trackBy: trackByBroadcastId" [appAnnouncementEnter]="i" class="ion-margin-top" style="border: 2px solid var(--ion-color-danger); margin-left: 0; margin-right: 0; box-shadow: none;">
-    <ion-card-header style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0;">
-      <div>
-        <ion-card-subtitle style="font-weight: bold; color: var(--ion-color-danger);">Active Alert</ion-card-subtitle>
-        <p style="margin: 4px 0 0; font-size: 11px; font-weight: bold; color: var(--ion-color-medium);">
-          <i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i>{{ broadcast.location }}
-        </p>
+  <!-- Active Broadcasts List -->
+  <div *ngIf="activeBroadcasts.length === 0" style="margin-top: 16px; padding: 24px; border-radius: 14px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
+    <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      <i class="fa-solid fa-bullhorn" style="font-size: 16px; color: var(--ion-color-step-400, #aaa);"></i>
+    </div>
+    <div>
+      <p style="margin: 0; font-weight: 700; font-size: 13px; color: var(--ion-text-color);">No Active Broadcasts</p>
+      <p style="margin: 3px 0 0; font-size: 11px; color: var(--ion-color-medium); line-height: 1.4;">Create an announcement above to push alerts to citizens.</p>
+    </div>
+  </div>
+
+  <div *ngFor="let broadcast of activeBroadcasts; let i = index; trackBy: trackByBroadcastId"
+       [appAnnouncementEnter]="i"
+       style="margin-top: 16px; border-radius: 16px; overflow: hidden; border: 2px solid var(--ion-color-danger); background: var(--ion-card-background, white);">
+
+    <!-- Header Strip -->
+    <div style="padding: 14px 16px 10px; background: linear-gradient(135deg, rgba(198,40,40,0.08), rgba(235,68,90,0.04)); border-bottom: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; flex-shrink: 0;">
+          <i class="fa-solid fa-tower-broadcast"></i>
+        </div>
+        <div style="min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 11px; font-weight: 800; color: var(--ion-color-danger); text-transform: uppercase; letter-spacing: 0.4px;">Active Broadcast</span>
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block; animation: pulse-dot 1.5s ease-in-out infinite;"></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+            <span style="font-size: 10px; color: var(--ion-color-medium);">
+              <i class="fa-solid fa-clock" style="margin-right: 3px;"></i>{{ broadcast.created_at | utcDate:'medium' }}
+            </span>
+          </div>
+        </div>
       </div>
-      <ion-button fill="clear" color="medium" size="small" (click)="endBroadcast(broadcast)" style="font-weight: bold;"><i class="fa-solid fa-circle-stop" style="margin-right: 6px;"></i> Stop Alert</ion-button>
-    </ion-card-header>
-    <ion-card-content>
-      <h3 style="color: var(--ion-color-danger); font-weight: bold; margin-bottom: 5px;">{{ broadcast.message }}</h3>
-      <p style="font-size: 11px; color: var(--ion-color-medium);">Sent: {{ broadcast.created_at | utcDate:'medium' }}</p>
-    </ion-card-content>
-  </ion-card>
+      <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+        <span style="font-size: 9px; font-weight: 800; color: var(--ion-color-danger); background: rgba(235,68,90,0.12); padding: 3px 8px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap;">
+          <i class="fa-solid fa-location-dot" style="margin-right: 3px;"></i>{{ broadcast.location }}
+        </span>
+        <button type="button" (click)="endBroadcast(broadcast)"
+          style="display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(235,68,90,0.3); background: rgba(235,68,90,0.06); color: var(--ion-color-danger); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s;">
+          <i class="fa-solid fa-circle-stop"></i> Stop
+        </button>
+      </div>
+    </div>
+
+    <!-- Content Body -->
+    <div style="padding: 14px 16px;">
+      <!-- Title -->
+      <h4 *ngIf="broadcast.title" style="margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); line-height: 1.35;">
+        {{ broadcast.title }}
+      </h4>
+
+      <!-- Message / Description -->
+      <p style="margin: 0; font-size: 13px; color: var(--ion-text-color); line-height: 1.55; white-space: pre-line; word-break: break-word;">
+        {{ broadcast.message }}
+      </p>
+
+      <!-- Media Thumbnails Grid -->
+      <div *ngIf="broadcast.media_files?.length" style="margin-top: 12px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <div *ngFor="let mPath of broadcast.media_files"
+               (click)="ui.openLightbox(mPath, ui.isVideoFile(mPath), broadcast.media_files)"
+               style="width: 90px; height: 90px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: #1a1a1a; position: relative; cursor: pointer; border: 1.5px solid var(--ion-color-step-150, rgba(0,0,0,0.1));">
+            <img *ngIf="!ui.isVideoFile(mPath)" [src]="ui.getProxyUrl(mPath)" style="width: 100%; height: 100%; object-fit: cover;" />
+            <div *ngIf="ui.isVideoFile(mPath)" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">
+              <video [src]="ui.getProxyUrl(mPath)" style="width: 100%; height: 100%; object-fit: cover;" muted></video>
+              <div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.65); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                <i class="fa-solid fa-play" style="margin-left: 2px;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Meta -->
+      <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06)); display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 10px; color: var(--ion-color-medium); font-weight: 600;">
+          <i class="fa-solid fa-paper-plane" style="margin-right: 4px;"></i>Sent {{ broadcast.created_at | utcDate:'medium' }}
+        </span>
+        <span style="font-size: 10px; color: var(--ion-color-medium); font-weight: 600;">
+          <i class="fa-solid fa-photo-film" style="margin-right: 4px;"></i>{{ broadcast.media_files?.length || 0 }} attachment(s)
+        </span>
+      </div>
+    </div>
+
+  </div>
 </div>
