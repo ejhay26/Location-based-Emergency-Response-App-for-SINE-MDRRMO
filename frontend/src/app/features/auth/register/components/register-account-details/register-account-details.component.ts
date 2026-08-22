@@ -1,9 +1,10 @@
 import { Component, Input, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonList, IonItem, IonSelect, IonSelectOption, IonInput, IonInputPasswordToggle, IonChip, IonCheckbox } from '@ionic/angular/standalone';
+import { IonList, IonItem, IonSelect, IonSelectOption, IonInput, IonInputPasswordToggle, IonChip, IonCheckbox, ModalController } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
+import { TermsModalComponent } from '../../../../../shared/components/terms-modal/terms-modal.component';
 
 /**
  * RegisterAccountDetailsComponent — step 2 body of registration (barangay,
@@ -28,6 +29,7 @@ import { BARANGAYS } from '../../../../../shared/constants/barangays';
 })
 export class RegisterAccountDetailsComponent implements OnDestroy {
   private api = inject(ApiService);
+  private modalCtrl = inject(ModalController);
 
   @Input() userData: any;
 
@@ -58,31 +60,31 @@ export class RegisterAccountDetailsComponent implements OnDestroy {
     return /^[a-zA-Z0-9._]*$/.test(this.userData.username ?? '');
   }
 
-  isEmailFormatValid(): boolean {
-    return /^[^\s@]*@?[^\s@]*\.?[^\s@]*$/.test(this.userData.email ?? '');
-  }
-
   onUsernameInput(): void {
-    const username = this.userData.username?.trim() ?? '';
-    if (!username) { this.usernameAvailable = null; this.usernameSuggestions = []; return; }
-    if (!this.isUsernameFormatValid()) { this.usernameAvailable = false; this.usernameSuggestions = []; return; }
-    this.usernameAvailable = null;
+    const username = (this.userData.username ?? '').trim();
     this.usernameSuggestions = [];
+    if (!username) { this.usernameAvailable = null; return; }
+    if (!this.isUsernameFormatValid()) { this.usernameAvailable = false; return; }
+    this.usernameAvailable = null;
     if (this.usernameDebounceTimer) clearTimeout(this.usernameDebounceTimer);
-    if (username.length < 3) return;
     this.usernameDebounceTimer = setTimeout(() => {
       this.api.checkUsername(username).subscribe({
         next: (res: any) => {
-          if (res?.available) { this.usernameAvailable = true; this.usernameSuggestions = []; }
-          else { this.usernameAvailable = false; this.generateUsernameSuggestions(); }
+          this.usernameAvailable = res?.available ?? false;
+          if (!this.usernameAvailable) this.generateUsernameSuggestions();
         },
         error: () => { this.usernameAvailable = null; }
       });
     }, 500);
   }
 
+  isEmailFormatValid(): boolean {
+    const email = (this.userData.email ?? '').trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
   onEmailInput(): void {
-    const email = this.userData.email?.trim() ?? '';
+    const email = (this.userData.email ?? '').trim();
     if (!email) { this.emailAvailable = null; return; }
     if (!this.isEmailFormatValid()) { this.emailAvailable = false; return; }
     this.emailAvailable = null;
@@ -116,5 +118,19 @@ export class RegisterAccountDetailsComponent implements OnDestroy {
 
   selectOtpChannel(channel: 'email' | 'sms'): void {
     this.userData.otp_channel = channel;
+  }
+
+  async openTermsModal(tab: 'terms' | 'privacy', event?: MouseEvent): Promise<void> {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const modal = await this.modalCtrl.create({
+      component: TermsModalComponent,
+      componentProps: { activeTab: tab },
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.accepted) {
+      this.termsAccepted = true;
+    }
   }
 }

@@ -116,7 +116,7 @@
 
 <div style="display: flex; align-items: center; gap: 10px; margin-top: 16px; padding: 12px; background: var(--ion-color-light); border-radius: 12px;">
   <ion-checkbox [(ngModel)]="termsAccepted" style="min-width: 30px;"></ion-checkbox>
-  <span style="font-size: 13px; color: var(--ion-text-color);">
-    I agree to the <strong>Terms and Conditions</strong> and <strong>Privacy Policy</strong>
+  <span style="font-size: 13px; color: var(--ion-text-color); line-height: 1.4;">
+    I agree to the <a (click)="openTermsModal('terms', $event)" style="color: var(--ion-color-danger); font-weight: 700; text-decoration: underline; cursor: pointer;">Terms and Conditions</a> and <a (click)="openTermsModal('privacy', $event)" style="color: var(--ion-color-danger); font-weight: 700; text-decoration: underline; cursor: pointer;">Privacy Policy</a>
   </span>
 </div>
