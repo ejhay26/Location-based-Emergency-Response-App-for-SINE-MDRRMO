@@ -39,14 +39,23 @@ export class ApiService {
 
   // ── File URL helpers ─────────────────────────────────────────────────
   resolveFileUrl(path: string | null | undefined): string {
-    if (!path) return '';
+    if (!path || path.trim() === '') return '';
     if (path.includes('ionicframework.com')) return '';
-    if (path.startsWith('data:')) return path;
-    if (/^https?:\/\//i.test(path) && path.includes('/storage/')) {
-      path = path.replace(/^https?:\/\/[^/]+\//, '');
+    if (path.startsWith('data:') || path.startsWith('blob:')) return path;
+
+    let relative = path;
+    if (/^https?:\/\//i.test(path)) {
+      const storageMatch = path.match(/\/(storage\/.+)$/);
+      if (storageMatch) {
+        relative = storageMatch[1];
+      } else {
+        const reportsMatch = path.match(/\/(reports\/.+)$/);
+        if (reportsMatch) relative = reportsMatch[1];
+        else return path;
+      }
     }
-    if (/^https?:\/\//i.test(path)) return path;
-    return `${this.apiOrigin}/${path.replace(/^\/+/, '')}`;
+    const cleanPath = relative.replace(/^storage\//, '').replace(/^\/+/, '');
+    return `${this.apiOrigin}/storage-proxy/${cleanPath}`;
   }
 
   resolveImageUrl(path: string | null | undefined): string {
@@ -77,8 +86,13 @@ export class ApiService {
   getAnalytics(days: number): Observable<any>      { return this.http.get(`${this.url}/analytics?days=${days}`, this.opts(true)); }
   getArchivedEmergencies(): Observable<any>        { return this.http.get(`${this.url}/archived-emergencies`, this.opts(true)); }
 
+  static isLoggingOut = false;
+
   // ── Authenticated ────────────────────────────────────────────────────
-  logout(): Observable<any>                        { return this.http.post(`${this.url}/logout`, {}, this.opts(true)); }
+  logout(): Observable<any> {
+    ApiService.isLoggingOut = true;
+    return this.http.post(`${this.url}/logout`, {}, this.opts(true));
+  }
   savePushToken(data: any): Observable<any>        { return this.http.post(`${this.url}/save-push-token`, data, this.opts(true)); }
   deletePushToken(data: { token: string }): Observable<any> { return this.http.post(`${this.url}/delete-push-token`, data, this.opts(true)); }
 
@@ -105,7 +119,7 @@ export class ApiService {
   resolveHazard(data: any): Observable<any>       { return this.http.post(`${this.url}/resolve-hazard`, data, this.opts(true)); }
 
   // Broadcasts
-  createBroadcast(data: { message: string; barangay_ids?: number[] }): Observable<any> { return this.http.post(`${this.url}/create-broadcast`, data, this.opts(true)); }
+  createBroadcast(data: { title?: string; message: string; media_files?: string[]; barangay_ids?: number[] }): Observable<any> { return this.http.post(`${this.url}/create-broadcast`, data, this.opts(true)); }
   clearBroadcast(broadcastId: number): Observable<any> { return this.http.post(`${this.url}/clear-broadcast`, { broadcast_id: broadcastId }, this.opts(true)); }
 
   // Admin / dispatcher
