@@ -406,50 +406,70 @@ export class ReportMapComponent implements OnDestroy {
   toggleMapStyle(style: 'street' | 'satellite') {
     if (style === this.mapStyle) return;
     this.mapStyle = style;
-    // Single shared Leaflet instance now covers both small and fullscreen
-    // views (the container is reparented, not duplicated — see expandMap/
-    // finishCollapse), so swapping layers here already applies regardless of
-    // which slot #report-map currently lives in. No separate fullscreen-map
-    // branch needed.
     if (this.map) {
-      [this.streetLayer, this.satelliteLayer].forEach(l => { if (l) this.map.removeLayer(l); });
-      if (style === 'street')    this.streetLayer.addTo(this.map);
-      if (style === 'satellite') this.satelliteLayer.addTo(this.map);
+      [this.streetLayer, this.satelliteLayer].forEach(l => { if (l && this.map.hasLayer(l)) this.map.removeLayer(l); });
+      if (style === 'street') {
+        this.streetLayer.addTo(this.map);
+      }
+      if (style === 'satellite') {
+        this.satelliteLayer.addTo(this.map);
+      }
+      if (this.bgyLabelsLayer && !this.map.hasLayer(this.bgyLabelsLayer)) {
+        this.bgyLabelsLayer.addTo(this.map);
+      }
     }
   }
+
+  private bgyLabelsLayer: any;
 
   initMap() {
     this.map = L.map('report-map', { minZoom: 13, zoomControl: false }).setView([15.3014, 120.9274], 14);
     // @ts-ignore
-    this.streetLayer    = new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
-    this.satelliteLayer = L.layerGroup([
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 17, attribution: '© Esri' }),
-      // maxZoom capped to match maxNativeZoom (13): this layer's tiles don't
-      // exist past z13, and Leaflet's default behavior beyond maxNativeZoom
-      // is to keep reusing the last-fetched z13 tile bitmap, scaling it up to
-      // fill every zoom level up to maxZoom — a 2^6x stretch at z19, which is
-      // what caused the blurry/oversized place-name labels. Setting maxZoom
-      // to 13 as well stops the layer from rendering at all past its native
-      // resolution instead of upscaling it. Base imagery layer above still
-      // zooms to 19 (its own maxNativeZoom of 17 is only a 2-level stretch,
-      // not visually distracting the way stretched text is).
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 13, maxNativeZoom: 13, opacity: 0.9 })
-    ]);
-    if (this.mapStyle === 'satellite') { this.satelliteLayer.addTo(this.map); } else { this.streetLayer.addTo(this.map); }
-    // Barangay boundaries — PSA/PSGC-sourced, same file as the backend's copy
-    // (see backend/app/Services/BarangayResolver.php). Loaded independently
-    // of the San Isidro town boundary below; only used to populate
-    // barangayPolygons for the live resolveBarangayName() preview, never
-    // rendered as a visible layer.
+    this.streetLayer = new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+    this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri' });
+
+    if (this.mapStyle === 'street') {
+      this.streetLayer.addTo(this.map);
+    } else {
+      this.satelliteLayer.addTo(this.map);
+    }
+
+    // Local GeoJSON layers loaded directly from project assets
     this.http.get('assets/data/bgysubmuns-municity-304925000.0.1.json').subscribe((json: any) => {
       this.barangayPolygons = (json.features || [])
         .filter((f: any) => f.geometry?.type === 'Polygon')
         .map((f: any) => ({ name: f.properties.adm4_en, ring: f.geometry.coordinates[0] }));
-      // A location may already be resolved (updateCoords ran off the town-
-      // boundary load below before this arrives, or vice versa depending on
-      // which HTTP response lands first) — recompute once this data is in,
-      // so the live preview doesn't stay blank until the next map move.
-      if (this.map) { this.updateCoords(); }
+
+      const labelMarkers: any[] = [];
+      (json.features || []).forEach((f: any) => {
+        if (f.geometry?.type === 'Polygon' && f.geometry.coordinates[0]?.length) {
+          const coords = f.geometry.coordinates[0];
+          let latSum = 0; let lngSum = 0;
+          coords.forEach((c: number[]) => { lngSum += c[0]; latSum += c[1]; });
+          const centroid: [number, number] = [latSum / coords.length, lngSum / coords.length];
+          const bgyName = f.properties.adm4_en || 'Barangay';
+
+          const marker = L.marker(centroid, {
+            icon: L.divIcon({
+              className: 'bgy-clean-label-icon',
+              html: `<div class="bgy-map-badge"><span class="bgy-map-badge__dot"></span><span>${bgyName}</span></div>`,
+              iconSize: [0, 0],
+              iconAnchor: [0, 0]
+            }),
+            interactive: false
+          });
+          labelMarkers.push(marker);
+        }
+      });
+
+      const bgyBorder = L.geoJSON(json, {
+        style: { color: 'rgba(211, 47, 47, 0.4)', weight: 1.5, dashArray: '4,4', fillOpacity: 0.02, fillColor: '#D32F2F' }
+      });
+      this.bgyLabelsLayer = L.layerGroup([bgyBorder, ...labelMarkers]);
+      if (this.map) {
+        this.bgyLabelsLayer.addTo(this.map);
+        this.updateCoords();
+      }
     });
     this.http.get('assets/data/san-isidro.geojson').subscribe((json: any) => {
       this.sanIsidroPolygon = json.features[0].geometry.coordinates[0];

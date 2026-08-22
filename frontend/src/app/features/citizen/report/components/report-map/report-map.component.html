@@ -49,6 +49,13 @@
     <!-- Compress (fullscreen-off) button — same floating position/style as the small view's expand button, just moved over the map instead of a separate header bar. -->
     <button type="button" (click)="toggleMapExpand()" style="position:absolute;top:max(8px,env(safe-area-inset-top,8px));right:8px;z-index:1002;width:34px;height:34px;border-radius:8px;border:none;background:rgba(0,0,0,0.55);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-compress"></i></button>
 
+    <!-- Use My Location Floating Action Button on Fullscreen Map -->
+    <button type="button" (click)="getCurrentLocation()"
+      style="position:absolute;bottom:calc(82px + env(safe-area-inset-bottom,0px));right:16px;z-index:1002;background:var(--ion-card-background,#fff);color:var(--ion-text-color);border:1.5px solid var(--ion-color-step-200,#ccc);box-shadow:0 3px 14px rgba(0,0,0,0.25);border-radius:24px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s ease;">
+      <i class="fa-solid fa-location-crosshairs" style="color:var(--ion-color-danger);font-size:14px;"></i>
+      <span>Use My Location</span>
+    </button>
+
     <!-- Submit button floats over the map itself (not a dedicated bar) so the map keeps as much visible height as possible. Disabled visual now matches the non-fullscreen .btn-muted/.btn-loading treatment (solid grey, no shadow, not-allowed cursor) instead of a plain opacity fade — this is a plain <button>, not ion-button, so .btn-muted's ::part(native) selector can't reach it; the same look is replicated via inline bindings. -->
     <div *ngIf="submitLabel" style="position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:1002;">
       <button type="button" appPressFeedback [disabled]="submitDisabled" (click)="submitRequested.emit()"
