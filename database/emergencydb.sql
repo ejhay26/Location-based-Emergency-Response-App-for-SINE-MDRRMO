@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 21, 2026 at 07:27 AM
+-- Generation Time: Aug 23, 2026 at 07:35 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -55,7 +55,9 @@ INSERT INTO `barangays` (`barangay_id`, `barangay_name`) VALUES
 
 CREATE TABLE `broadcasts` (
   `broadcast_id` int(11) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
   `message` text DEFAULT NULL,
+  `media_files` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -64,21 +66,25 @@ CREATE TABLE `broadcasts` (
 -- Dumping data for table `broadcasts`
 --
 
-INSERT INTO `broadcasts` (`broadcast_id`, `message`, `is_active`, `created_at`) VALUES
-(1, 'Evacuate now', 0, '2026-05-09 21:21:36'),
-(2, 'Flooding in Tabon', 0, '2026-07-19 19:14:48'),
-(3, 'Broken Roads in Pulo', 0, '2026-07-30 00:33:40'),
-(4, 'test', 0, '2026-08-02 06:33:00'),
-(5, 'test', 0, '2026-08-02 06:34:00'),
-(6, 'test', 0, '2026-08-02 06:34:20'),
-(7, 'test', 0, '2026-08-02 06:35:03'),
-(8, 'alert', 0, '2026-08-02 06:48:27'),
-(9, 'test', 0, '2026-08-02 17:13:15'),
-(10, 'Flooding', 1, '2026-08-02 17:43:57'),
-(11, 'testing', 0, '2026-08-19 18:05:03'),
-(12, 'test', 0, '2026-08-19 18:11:48'),
-(13, 'test', 1, '2026-08-19 18:12:36'),
-(14, 'test', 1, '2026-08-20 06:02:36');
+INSERT INTO `broadcasts` (`broadcast_id`, `title`, `message`, `media_files`, `is_active`, `created_at`) VALUES
+(1, NULL, 'Evacuate now', NULL, 0, '2026-05-09 21:21:36'),
+(2, NULL, 'Flooding in Tabon', NULL, 0, '2026-07-19 19:14:48'),
+(3, NULL, 'Broken Roads in Pulo', NULL, 0, '2026-07-30 00:33:40'),
+(4, NULL, 'test', NULL, 0, '2026-08-02 06:33:00'),
+(5, NULL, 'test', NULL, 0, '2026-08-02 06:34:00'),
+(6, NULL, 'test', NULL, 0, '2026-08-02 06:34:20'),
+(7, NULL, 'test', NULL, 0, '2026-08-02 06:35:03'),
+(8, NULL, 'alert', NULL, 0, '2026-08-02 06:48:27'),
+(9, NULL, 'test', NULL, 0, '2026-08-02 17:13:15'),
+(10, NULL, 'Flooding', NULL, 1, '2026-08-02 17:43:57'),
+(11, NULL, 'testing', NULL, 0, '2026-08-19 18:05:03'),
+(12, NULL, 'test', NULL, 0, '2026-08-19 18:11:48'),
+(13, NULL, 'test', NULL, 0, '2026-08-19 18:12:36'),
+(14, NULL, 'test', NULL, 0, '2026-08-20 06:02:36'),
+(15, NULL, 'description', NULL, 1, '2026-08-21 17:30:11'),
+(16, NULL, 'description', NULL, 0, '2026-08-21 17:41:20'),
+(17, 'this is title', 'descriptive message', '[\"http:\\/\\/localhost:8080\\/storage\\/reports\\/broadcasts\\/4\\/broadcast_4_20260822024006_6a890c0694aab.jpg\"]', 1, '2026-08-21 18:40:06'),
+(18, 'test', 'test', '[\"http:\\/\\/localhost:8080\\/storage\\/reports\\/broadcasts\\/4\\/broadcast_4_20260822094651_6a89700b3e7fb.jpg\"]', 1, '2026-08-22 01:46:51');
 
 -- --------------------------------------------------------
 
@@ -164,7 +170,12 @@ INSERT INTO `device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`)
 (26, 1, 'cYQcX-GFTHCTv2pK-M8C8x:APA91bEtMN-q6bnkusba9ad9--kVft7qBoKBB_GrskD5rJ0Fu4cUxsPdi7GwbFZ_dAo44na8lcdYSDza8ThuhTIV6acWhaL_qCBUE4cuT3k839I8W-Jgijo', 'android', '2026-08-07 01:51:43'),
 (27, 1, 'cRVoECQDTd-FlFmKUpW3JJ:APA91bHmFfXLRmdVCXGD2kSuh1epegTcwfTv0sPuljFW3ecIzHCMsN4pDirdKbxn2I1uiAPH3mQHGcNEOJuaaZ7s9MTn4xWIcFT0dXFojUje7ppmv80HlEc', 'android', '2026-08-11 21:32:40'),
 (29, 3, 'dkQc3UTMTc24n2oKzyMTc7:APA91bEsj8n2V6SUDcf2iki3TdyYkxsHASxWNExfSvqwj8NUGS2u-KG4r9kuRl7Ys6GGoPWzfBpMpI6_odbNiydSqgb9Mxa_rk2m_eZuviYYNK3AEEH51HI', 'android', '2026-08-18 00:32:28'),
-(30, 3, 'cUUQtDnURxW3llPflEAAEk:APA91bGBGDQXvMOYwMnPBFVYfKBuyPAS5pVIKjb-KhtnTUHaXfoj3ee49Xx4C6m2XowzK_1sPEXaepsYh0II1AVlXdil4RDOc_5OMv1pUdCr8IjfzWHo2Pw', 'android', '2026-08-18 03:16:34');
+(30, 3, 'cUUQtDnURxW3llPflEAAEk:APA91bGBGDQXvMOYwMnPBFVYfKBuyPAS5pVIKjb-KhtnTUHaXfoj3ee49Xx4C6m2XowzK_1sPEXaepsYh0II1AVlXdil4RDOc_5OMv1pUdCr8IjfzWHo2Pw', 'android', '2026-08-18 03:16:34'),
+(31, 1, 'db4VgHq3RcujgVDKWm34jv:APA91bFhd4MvC2Rki-B5dZ0bgXAhEjIhEp5rOd1ITcGAOGrqXhzdzIeFHPMj14DMx42GwMMSVz8Nz_oh6qewj-92vPHs7DDXAWuuInm1UeKQgiMtGWQqvuM', 'android', '2026-08-21 04:26:04'),
+(32, 1, 'c8wwgwG2QZaM_hEp4RKlw9:APA91bFMnbsCQNTzECEAHRAMFjnai77aYLUGqlbMSr9mdgBR-6cnaBXp3JPAnvfg9BQr6p22TOFl94R9hJMRLMyZXJ94LY1U-Jb-ZujfupxQpgUUvsEeFvk', 'android', '2026-08-21 17:26:55'),
+(34, 1, 'e7WqWnXVSzCVlmF3qZnn0y:APA91bEl1VivJdeWIpWzOKqQ_nnULxELduGeyC0sSubsyVQYnxAm-8KchSEMdEXIWrlrxplBIPyBcLA2hT9JxXWYhGWIyq3RDeZwdmRWmHsESaH1BxnYIpE', 'android', '2026-08-21 19:44:12'),
+(35, 1, 'ctMNEcenTu-mCe3et0_Cme:APA91bHQ_Q2d-xLNEh8IYwFHzsGs2E437PlHk7zlHNHqeB24YGRFgroj2XBnrtOI4B0k2YDTqAOaay6grr8dH2oE2JcfgzRwlFws9XbpKkqCsYa3OSO-RSg', 'android', '2026-08-21 20:27:41'),
+(38, 1, 'fpga9R_nQYeYWdP8I1JzkU:APA91bER94Tb3NImejvXZcjvKa6gpc-USz_jqyFrNZJndf4xnlu6OOwlM8mUcB0m8dXiO840HVEjoW54HiRZA15Gxyy-fOACRR8qOGf8cocYhgjAFH1aRVk', 'android', '2026-08-22 01:15:00');
 
 -- --------------------------------------------------------
 
@@ -188,7 +199,9 @@ CREATE TABLE `dispatch` (
 
 INSERT INTO `dispatch` (`dispatch_id`, `request_id`, `responder_id`, `vehicle_id`, `dispatch_time`, `arrival_time`, `status`) VALUES
 (1, 4, 2, 2, '2026-06-13 09:41:33', '2026-06-13 09:43:20', 'Completed'),
-(2, 8, 4, 3, '2026-06-13 09:44:55', '2026-06-13 09:46:23', 'Completed');
+(2, 8, 4, 3, '2026-06-13 09:44:55', '2026-06-13 09:46:23', 'Completed'),
+(3, 14, 3, 4, '2026-08-22 10:43:04', '2026-08-22 10:43:47', 'Completed'),
+(4, 15, 4, 3, '2026-08-22 10:48:22', NULL, 'En Route');
 
 -- --------------------------------------------------------
 
@@ -226,7 +239,11 @@ INSERT INTO `emergency_requests` (`request_id`, `user_id`, `incident_type_id`, `
 (8, 3, 3, '[\"storage/emergencies/sos_20260613_094422_3.png\"]', NULL, 15.30951900, 120.90291000, 5, 'Resolved', '2026-06-13 01:44:22', '2026-06-13 01:44:22', '2026-08-17 05:09:39', NULL, 0),
 (9, 1, 2, '[\"storage\\/emergencies\\/sos_20260629_105213_6a424e5d615d6_1.png\",\"storage\\/emergencies\\/sos_20260629_105213_6a424e5d6675b_1.mp4\"]', NULL, 15.26077600, 120.91049400, 9, 'Cancelled', '2026-06-29 02:52:13', '2026-06-29 02:52:13', '2026-08-17 05:09:39', NULL, 0),
 (10, 1, 1, '[\"storage\\/reports\\/sos\\/1\\/20260721_054159_6a5f06a722073.png\",\"storage\\/reports\\/sos\\/1\\/20260721_054159_6a5f06a72471f.mp4\"]', '', 15.30971500, 120.90776500, 5, 'Cancelled', '2026-07-20 21:41:59', '2026-07-20 21:41:59', '2026-08-17 05:09:39', NULL, 0),
-(11, 1, 1, NULL, '', 15.26093000, 120.91037100, 9, 'Cancelled', '2026-08-11 21:32:45', '2026-08-11 21:32:45', '2026-08-20 06:05:50', NULL, 0);
+(11, 1, 1, NULL, '', 15.26093000, 120.91037100, 9, 'Cancelled', '2026-08-11 21:32:45', '2026-08-11 21:32:45', '2026-08-20 06:05:50', NULL, 0),
+(12, 1, 1, NULL, '', 15.26915300, 120.90281600, 9, 'Cancelled', '2026-08-20 22:18:56', '2026-08-20 22:18:56', '2026-08-20 22:25:37', NULL, 0),
+(13, 1, 4, NULL, '', 15.26915300, 120.90281600, 9, 'Cancelled', '2026-08-20 22:26:14', '2026-08-20 22:26:14', '2026-08-21 05:18:20', NULL, 0),
+(14, 1, 2, NULL, '', 15.30958100, 120.90573400, 5, 'Resolved', '2026-08-21 06:28:59', '2026-08-21 06:28:59', '2026-08-22 02:43:47', NULL, 0),
+(15, 3, 3, NULL, '', 15.26210500, 120.92288000, 6, 'Dispatched', '2026-08-21 18:38:56', '2026-08-21 18:38:56', '2026-08-22 02:48:22', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -337,7 +354,23 @@ INSERT INTO `jobs` (`id`, `queue`, `payload`, `attempts`, `reserved_at`, `availa
 (6, 'default', '{\"uuid\":\"8d46065f-dfff-4aa9-a718-c03fcc9835d5\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"cleared\\\";s:11:\\\"broadcastId\\\";i:12;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787191929,\"delay\":null}', 0, NULL, 1787191929, 1787191929),
 (7, 'default', '{\"uuid\":\"020c6e35-5eb4-4ca1-8155-4a73d2352374\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"created\\\";s:11:\\\"broadcastId\\\";i:13;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787191967,\"delay\":null}', 0, NULL, 1787191967, 1787191967),
 (8, 'default', '{\"uuid\":\"8179bf96-788f-413a-83a5-0cea1326a59d\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"created\\\";s:11:\\\"broadcastId\\\";i:14;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787234564,\"delay\":null}', 0, NULL, 1787234564, 1787234564),
-(9, 'default', '{\"uuid\":\"320071e6-b207-4f0d-8312-78ac76066438\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:9:\\\"cancelled\\\";s:9:\\\"requestId\\\";i:11;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787234750,\"delay\":null}', 0, NULL, 1787234750, 1787234750);
+(9, 'default', '{\"uuid\":\"320071e6-b207-4f0d-8312-78ac76066438\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:9:\\\"cancelled\\\";s:9:\\\"requestId\\\";i:11;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787234750,\"delay\":null}', 0, NULL, 1787234750, 1787234750),
+(10, 'default', '{\"uuid\":\"094c13d4-49e6-4a52-ad12-207db7cab8cf\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:9:\\\"submitted\\\";s:9:\\\"requestId\\\";i:12;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787293136,\"delay\":null}', 0, NULL, 1787293136, 1787293136),
+(11, 'default', '{\"uuid\":\"395a0618-ff24-4c2f-b375-1d3425e34958\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:9:\\\"cancelled\\\";s:9:\\\"requestId\\\";i:12;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787293537,\"delay\":null}', 0, NULL, 1787293537, 1787293537),
+(12, 'default', '{\"uuid\":\"26cdc862-7bc1-4631-95dd-c01128a05f0a\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:9:\\\"submitted\\\";s:9:\\\"requestId\\\";i:13;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787293574,\"delay\":null}', 0, NULL, 1787293574, 1787293574),
+(13, 'default', '{\"uuid\":\"ab1b3050-cc3a-499d-b636-d29f868af2f3\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:9:\\\"cancelled\\\";s:9:\\\"requestId\\\";i:13;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787318300,\"delay\":null}', 0, NULL, 1787318300, 1787318300),
+(14, 'default', '{\"uuid\":\"b7fff5bc-d837-4436-89f3-4a19940d7a66\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:9:\\\"submitted\\\";s:9:\\\"requestId\\\";i:14;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787322546,\"delay\":null}', 0, NULL, 1787322546, 1787322546),
+(15, 'default', '{\"uuid\":\"1c66bbdd-96bd-40ef-9491-ff07b5f7dc44\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"created\\\";s:11:\\\"broadcastId\\\";i:15;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787362220,\"delay\":null}', 0, NULL, 1787362220, 1787362220),
+(16, 'default', '{\"uuid\":\"b6df1fe1-3cd3-4969-b56a-8becabfa494c\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"created\\\";s:11:\\\"broadcastId\\\";i:16;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787362893,\"delay\":null}', 0, NULL, 1787362893, 1787362893),
+(17, 'default', '{\"uuid\":\"ff1cf6e5-c1ec-4fcb-87bb-23d07a7d7315\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:9:\\\"submitted\\\";s:9:\\\"requestId\\\";i:15;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787366337,\"delay\":null}', 0, NULL, 1787366337, 1787366337),
+(18, 'default', '{\"uuid\":\"f72c8a9a-6513-4363-a09a-4500c9a42e61\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"cleared\\\";s:11:\\\"broadcastId\\\";i:16;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787366371,\"delay\":null}', 0, NULL, 1787366371, 1787366371),
+(19, 'default', '{\"uuid\":\"44b6c236-ba4b-455b-ab03-3e4672c35700\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"cleared\\\";s:11:\\\"broadcastId\\\";i:14;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787366373,\"delay\":null}', 0, NULL, 1787366373, 1787366373),
+(20, 'default', '{\"uuid\":\"0eb3a778-63c1-402b-9ac5-605e4fb53f95\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"cleared\\\";s:11:\\\"broadcastId\\\";i:13;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787366380,\"delay\":null}', 0, NULL, 1787366380, 1787366380),
+(21, 'default', '{\"uuid\":\"e08b407e-f87e-4f9f-b0d5-7812d74a3ee6\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"created\\\";s:11:\\\"broadcastId\\\";i:17;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787366415,\"delay\":null}', 0, NULL, 1787366415, 1787366415),
+(22, 'default', '{\"uuid\":\"13fb0c55-cb17-493c-a815-a35795140f1e\",\"displayName\":\"App\\\\Events\\\\BroadcastMessageUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:34:\\\"App\\\\Events\\\\BroadcastMessageUpdated\\\":2:{s:6:\\\"action\\\";s:7:\\\"created\\\";s:11:\\\"broadcastId\\\";i:18;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787392021,\"delay\":null}', 0, NULL, 1787392021, 1787392021),
+(23, 'default', '{\"uuid\":\"d4ccb35e-f6ea-448f-9b51-437f89b3db84\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:10:\\\"dispatched\\\";s:9:\\\"requestId\\\";i:14;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787395393,\"delay\":null}', 0, NULL, 1787395393, 1787395393),
+(24, 'default', '{\"uuid\":\"15ecb63a-63b6-4abd-8444-b2489edbe772\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:8:\\\"resolved\\\";s:9:\\\"requestId\\\";i:14;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787395435,\"delay\":null}', 0, NULL, 1787395435, 1787395435),
+(25, 'default', '{\"uuid\":\"039007f1-4120-4b00-af56-4909201ad69d\",\"displayName\":\"App\\\\Events\\\\EmergencyUpdated\",\"job\":\"Illuminate\\\\Queue\\\\CallQueuedHandler@call\",\"maxTries\":null,\"maxExceptions\":null,\"failOnTimeout\":false,\"backoff\":null,\"timeout\":null,\"retryUntil\":null,\"deleteWhenMissingModels\":false,\"data\":{\"commandName\":\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\",\"command\":\"O:38:\\\"Illuminate\\\\Broadcasting\\\\BroadcastEvent\\\":18:{s:5:\\\"event\\\";O:27:\\\"App\\\\Events\\\\EmergencyUpdated\\\":2:{s:6:\\\"action\\\";s:10:\\\"dispatched\\\";s:9:\\\"requestId\\\";i:15;}s:5:\\\"tries\\\";N;s:7:\\\"timeout\\\";N;s:7:\\\"backoff\\\";N;s:13:\\\"maxExceptions\\\";N;s:23:\\\"deleteWhenMissingModels\\\";N;s:10:\\\"connection\\\";N;s:5:\\\"queue\\\";N;s:12:\\\"messageGroup\\\";N;s:12:\\\"deduplicator\\\";N;s:13:\\\"debounceOwner\\\";s:0:\\\"\\\";s:5:\\\"delay\\\";N;s:11:\\\"afterCommit\\\";N;s:10:\\\"middleware\\\";a:0:{}s:7:\\\"chained\\\";a:0:{}s:15:\\\"chainConnection\\\";N;s:10:\\\"chainQueue\\\";N;s:19:\\\"chainCatchCallbacks\\\";N;}\",\"batchId\":null},\"createdAt\":1787395705,\"delay\":null}', 0, NULL, 1787395705, 1787395705);
 
 -- --------------------------------------------------------
 
@@ -416,8 +449,8 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
-(100, 'App\\Models\\User', 1, 'app-token', '80d22a195d7b7f3db6d0230339595370d8192198af9f5a6c65270c20e405c8c4', '[\"citizen\"]', '2026-08-20 21:27:34', NULL, '2026-08-19 05:29:46', '2026-08-20 21:27:34'),
-(107, 'App\\Models\\User', 4, 'app-token', 'ceb15bb98b048c07884f92388f60d02f14f79643de09220333577889b54fa9a2', '[\"admin\",\"dispatcher\",\"citizen\"]', '2026-08-20 19:24:09', NULL, '2026-08-20 06:02:26', '2026-08-20 19:24:09');
+(124, 'App\\Models\\User', 1, 'app-token', '68e35973c63f2e280aea7553d9a1b28f6621682ebe73161965117b51d754e51c', '[\"citizen\"]', '2026-08-22 19:24:20', NULL, '2026-08-22 01:15:00', '2026-08-22 19:24:20'),
+(127, 'App\\Models\\User', 4, 'app-token', 'dc7aeeb6731c40b3d0284f4818ba9e50fe814fc16f2b9dec24ce385f8134343c', '[\"admin\",\"dispatcher\",\"citizen\"]', '2026-08-22 21:01:10', NULL, '2026-08-22 06:16:46', '2026-08-22 21:01:10');
 
 -- --------------------------------------------------------
 
@@ -528,14 +561,16 @@ CREATE TABLE `user_settings` (
 INSERT INTO `user_settings` (`id`, `user_id`, `key`, `value`, `updated_at`, `save_media_to_device`) VALUES
 (1, 1, 'dark_mode', 'false', '2026-08-18 07:08:17', 0),
 (2, 1, 'location_auto_fetch', 'true', '2026-08-15 20:00:06', 0),
-(3, 1, 'map_default_style', 'street', '2026-07-20 01:02:21', 0),
+(3, 1, 'map_default_style', 'street', '2026-08-21 17:27:26', 0),
 (4, 1, 'reduce_animations', 'false', '2026-08-15 20:04:55', 0),
-(5, 4, 'dark_mode', 'false', '2026-08-19 22:16:29', 0),
+(5, 4, 'dark_mode', 'true', '2026-08-22 02:51:40', 0),
 (6, 1, 'save_media_to_device', 'false', '2026-08-01 23:07:13', 0),
 (7, 3, 'dark_mode', 'true', '2026-08-18 03:17:42', 0),
 (8, 3, 'map_default_style', 'street', '2026-08-10 02:53:30', 0),
 (9, 3, 'reduce_animations', 'false', '2026-08-10 02:54:57', 0),
-(10, 3, 'notif_broadcast_alerts', 'true', '2026-08-18 00:41:04', 0);
+(10, 3, 'notif_broadcast_alerts', 'true', '2026-08-18 00:41:04', 0),
+(11, 4, 'map_default_style', 'street', '2026-08-20 21:58:22', 0),
+(12, 4, 'reduce_animations', 'false', '2026-08-21 22:23:15', 0);
 
 -- --------------------------------------------------------
 
@@ -734,25 +769,25 @@ ALTER TABLE `barangays`
 -- AUTO_INCREMENT for table `broadcasts`
 --
 ALTER TABLE `broadcasts`
-  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `broadcast_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `device_tokens`
 --
 ALTER TABLE `device_tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `dispatch`
 --
 ALTER TABLE `dispatch`
-  MODIFY `dispatch_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `dispatch_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `emergency_requests`
 --
 ALTER TABLE `emergency_requests`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `failed_jobs`
@@ -782,7 +817,7 @@ ALTER TABLE `incident_types`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `migrations`
@@ -794,7 +829,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=108;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
 
 --
 -- AUTO_INCREMENT for table `responders`
@@ -812,7 +847,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_settings`
 --
 ALTER TABLE `user_settings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
