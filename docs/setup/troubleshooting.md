@@ -86,6 +86,36 @@ Common issues, error codes, and step-by-step solutions when developing, running,
 
 </details>
 
+<details>
+<summary><b>1.6 Database Corruption, Accidental Data Deletion & Disaster Recovery</b></summary>
+
+**Symptoms:** Data corruption, lost tables, or need to restore to a previous point in time.
+
+**Solutions:**
+1. List available compressed snapshots:
+   ```bash
+   backup list
+   ```
+2. Inspect table counts of a snapshot without restoring:
+   ```bash
+   backup desc <filename>
+   ```
+3. Safely restore with live diff preview and automated pre-restore safety shield:
+   ```bash
+   backup restore <filename>
+   ```
+4. Scan storage and logs for unbacked registrations during the gap:
+   ```bash
+   backup salvage <filename>
+   ```
+5. Dispatch polite recovery notice SMS/emails to affected citizens:
+   ```bash
+   backup notify <filename>
+   ```
+   *(See the full [Disaster Recovery Guide](../architecture/disaster-recovery.md) for complete details).*
+
+</details>
+
 ---
 
 ## 2. Frontend & Mobile Issues (Ionic / Angular / Capacitor)
