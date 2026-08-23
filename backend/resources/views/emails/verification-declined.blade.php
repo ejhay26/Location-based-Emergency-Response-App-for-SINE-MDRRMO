@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to MDRRMO San Isidro</title>
+  <title>MDRRMO Account Verification Update</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f4f5f8;font-family:Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f8;padding:32px 0;">
@@ -29,37 +29,52 @@
           <!-- Body Content -->
           <tr>
             <td style="padding:32px;">
-              <div style="display:inline-block;background-color:#e8f5e9;border-left:4px solid #2e7d32;padding:8px 14px;border-radius:4px;margin-bottom:20px;">
-                <span style="color:#1b5e20;font-size:13px;font-weight:bold;">ACCOUNT VERIFIED & APPROVED</span>
+              <div style="display:inline-block;background-color:#ffebee;border-left:4px solid #D32F2F;padding:8px 14px;border-radius:4px;margin-bottom:20px;">
+                <span style="color:#c62828;font-size:13px;font-weight:bold;">REGISTRATION STATUS: NOT APPROVED</span>
               </div>
 
-              <p style="margin:0 0 16px 0;font-size:18px;font-weight:bold;color:#222428;line-height:1.4;">
-                Welcome to SINE MDRRMO, {{ $firstName }}!
+              <p style="margin:0 0 16px 0;font-size:17px;font-weight:bold;color:#222428;line-height:1.4;">
+                Account Verification Update
               </p>
 
               <p style="margin:0 0 16px 0;font-size:14px;color:#444444;line-height:1.6;">
-                Great news! Your citizen identification and account registration have been reviewed and approved by the MDRRMO San Isidro dispatch team.
+                Dear {{ $firstName }},
               </p>
 
-              <!-- App Features Box -->
+              <p style="margin:0 0 16px 0;font-size:14px;color:#444444;line-height:1.6;">
+                Thank you for your interest in registering for the <strong>SINE MDRRMO Emergency Response App</strong>. Our verification team has reviewed your submitted identification document, and unfortunately, we were unable to approve your registration at this time.
+              </p>
+
+              <!-- Common Reasons Box -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f9fa;border:1px solid #e9ecef;border-radius:8px;padding:16px 20px;margin:20px 0;">
                 <tr>
                   <td>
                     <p style="margin:0 0 8px 0;font-size:14px;font-weight:bold;color:#222428;">
-                      You can now use all app features:
+                      Common reasons for non-approval:
                     </p>
                     <p style="margin:0;font-size:13px;color:#555555;line-height:1.6;">
-                      🚨 <strong>One-Tap SOS:</strong> Instantly broadcast your exact GPS coordinates to 911 dispatchers.<br>
-                      🚧 <strong>Hazard Reports:</strong> Report road blockages, fallen trees, and flash floods.<br>
-                      📢 <strong>Emergency Broadcasts:</strong> Receive official municipal evacuation and weather alerts.<br>
-                      🚑 <strong>Live Dispatch Tracking:</strong> Track assigned emergency response teams in real time.
+                      • The uploaded ID photo or selfie was blurry, cropped, or illegible.<br>
+                      • The name or details on the ID do not match the registered profile.<br>
+                      • The uploaded document is expired or not in our accepted IDs list.
                     </p>
                   </td>
                 </tr>
               </table>
 
+              <!-- Steps to Re-apply -->
+              <p style="margin:0 0 8px 0;font-size:14px;font-weight:bold;color:#222428;">
+                How to register again:
+              </p>
               <p style="margin:0 0 16px 0;font-size:14px;color:#444444;line-height:1.6;">
-                You can now open the app on your mobile device or desktop and sign in with your credentials.
+                You are welcome to submit a new registration through the app. Please ensure:
+                <br>
+                1. You use a clear, well-lit photo of a valid government-issued ID.<br>
+                2. Your selfie with the ID clearly shows your face and the document details.<br>
+                3. Accepted IDs include: <em>Philippine Passport, Driver's License, UMID, PhilHealth ID, Postal ID, Voter's ID, or Barangay Certificate.</em>
+              </p>
+
+              <p style="margin:16px 0 0 0;font-size:13px;color:#666666;line-height:1.5;">
+                If you have questions or believe this was a mistake, you can contact the MDRRMO San Isidro desk directly.
               </p>
 
               <!-- 24/7 Hotline Section -->
