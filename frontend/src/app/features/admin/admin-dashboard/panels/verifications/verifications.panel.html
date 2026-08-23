@@ -51,15 +51,17 @@
           <p style="margin: 6px 0; font-size: 14px;"><b>Barangay:</b> {{ ui.getBarangayName(user.barangay_id) }}</p>
           <p style="margin: 6px 0; font-size: 14px;"><b>ID Type:</b> {{ user.valid_id_type }}</p>
           <div style="margin-top: 16px; display: flex; gap: 10px;">
-            <ion-button color="success" (click)="approveCitizen(user.user_id)" style="font-weight: bold; height: 42px;"><i class="fa-solid fa-user-check" style="margin-right: 8px;"></i> Approve</ion-button>
-            <ion-button color="danger" fill="outline" (click)="rejectCitizen(user.user_id)" style="font-weight: bold; height: 42px;"><i class="fa-solid fa-user-xmark" style="margin-right: 8px;"></i> Deny</ion-button>
+            <ion-button color="success" (click)="approveCitizen(user.user_id)" title="Approve citizen account and dispatch welcome email" style="font-weight: bold; height: 42px;"><i class="fa-solid fa-user-check" style="margin-right: 8px;"></i> Approve</ion-button>
+            <ion-button color="danger" fill="outline" (click)="rejectCitizen(user.user_id)" title="Deny verification request and provide feedback reason" style="font-weight: bold; height: 42px;"><i class="fa-solid fa-user-xmark" style="margin-right: 8px;"></i> Deny</ion-button>
           </div>
         </div>
         <div style="flex: 2; min-width: 280px; border-radius: 10px; overflow: hidden; border: 1px solid var(--ion-color-step-150, #ddd); background: #111; display: flex; align-items: center; justify-content: center; min-height: 180px; cursor: pointer;"
+             title="Click to zoom valid ID proof in full-screen lightbox"
              (click)="ui.openLightbox(user.valid_id_proof, false)">
           <img [proxySrc]="user.valid_id_proof" style="max-height: 200px; object-fit: contain; max-width: 100%;" />
         </div>
         <div style="flex: 2; min-width: 280px; border-radius: 10px; overflow: hidden; border: 1px solid var(--ion-color-step-150, #ddd); background: #111; display: flex; align-items: center; justify-content: center; min-height: 180px; cursor: pointer;"
+             title="Click to zoom selfie with ID in full-screen lightbox"
              (click)="ui.openLightbox(user.selfie_with_id_proof, false)">
           <img [proxySrc]="user.selfie_with_id_proof" style="max-height: 200px; object-fit: contain; max-width: 100%;" />
         </div>

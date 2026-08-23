@@ -1,8 +1,8 @@
 <div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;">
   <ion-card style="margin:0;box-shadow:none;border:1px solid var(--ion-color-step-150,rgba(0,0,0,0.04));flex:1;min-height:0;display:flex;flex-direction:column;">
     <div style="display:flex;gap:0;border-bottom:2px solid var(--ion-color-step-100,#eee);background:var(--ion-color-light);">
-      <button (click)="toggleMapStyle('street')" [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'transparent'" [style.color]="mapStyle==='street'?'white':'var(--ion-text-color)'" [style.border-bottom]="mapStyle==='street'?'3px solid var(--ion-color-danger)':'3px solid transparent'" style="flex:1;border:none;padding:12px 8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fa-solid fa-map"></i> Street</button>
-      <button (click)="toggleMapStyle('satellite')" [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'transparent'" [style.color]="mapStyle==='satellite'?'white':'var(--ion-text-color)'" [style.border-bottom]="mapStyle==='satellite'?'3px solid var(--ion-color-danger)':'3px solid transparent'" style="flex:1;border:none;padding:12px 8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fa-solid fa-satellite"></i> Satellite</button>
+      <button (click)="toggleMapStyle('street')" title="Switch to Standard Street Map View (OpenStreetMap)" [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'transparent'" [style.color]="mapStyle==='street'?'white':'var(--ion-text-color)'" [style.border-bottom]="mapStyle==='street'?'3px solid var(--ion-color-danger)':'3px solid transparent'" style="flex:1;border:none;padding:12px 8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fa-solid fa-map"></i> Street</button>
+      <button (click)="toggleMapStyle('satellite')" title="Switch to High-Resolution Satellite Imagery (ESRI)" [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'transparent'" [style.color]="mapStyle==='satellite'?'white':'var(--ion-text-color)'" [style.border-bottom]="mapStyle==='satellite'?'3px solid var(--ion-color-danger)':'3px solid transparent'" style="flex:1;border:none;padding:12px 8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fa-solid fa-satellite"></i> Satellite</button>
     </div>
     <ion-card-content class="ion-no-padding" style="height:100%;"><div id="dispatch-map" style="height:100%;width:100%;min-height:560px;background-color:#e5e5e5;"></div></ion-card-content>
   </ion-card>
@@ -19,6 +19,7 @@
         <button
           type="button"
           (click)="toggleBarangayFilter('all')"
+          title="Show all barangays"
           [style.background]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
           [style.color]="isBarangaySelected('all') ? 'white' : 'var(--ion-text-color)'"
           [style.border-color]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
@@ -29,6 +30,7 @@
           *ngFor="let b of barangayOptions"
           type="button"
           (click)="toggleBarangayFilter(b.id)"
+          [title]="'Filter by Barangay ' + b.name"
           [style.background]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
           [style.color]="isBarangaySelected(b.id) ? 'white' : 'var(--ion-text-color)'"
           [style.border-color]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
@@ -45,6 +47,7 @@
         <button
           type="button"
           (click)="toggleTypeFilter('all')"
+          title="Show all incident categories"
           [style.background]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
           [style.color]="isTypeSelected('all') ? 'white' : 'var(--ion-text-color)'"
           [style.border-color]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
@@ -57,6 +60,7 @@
           *ngFor="let t of (mode === 'active' ? emergencyTypeOptions : hazardTypeOptions)"
           type="button"
           (click)="toggleTypeFilter(t.id)"
+          [title]="'Filter by ' + t.label"
           [style.background]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
           [style.color]="isTypeSelected(t.id) ? 'white' : 'var(--ion-text-color)'"
           [style.border-color]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
@@ -75,6 +79,7 @@
           *ngFor="let d of dateFilterOptions"
           type="button"
           (click)="setDateFilter(d.id)"
+          [title]="'Filter incidents from ' + d.label"
           [style.background]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #444)' : 'var(--ion-card-background, white)'"
           [style.color]="!customCalendarFilter && dateFilter === d.id ? 'white' : 'var(--ion-text-color)'"
           [style.border-color]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #444)' : 'var(--ion-color-step-200, #ccc)'"
@@ -129,8 +134,8 @@
         <p *ngIf="!request.proof_files?.length" style="font-size: 11px; color: gray; margin: 8px 0 0 0;">No files attached</p>
 
         <div style="display: flex; gap: 8px; margin-top: 12px;" (click)="$event.stopPropagation()">
-          <ion-button *ngIf="request.status === 'Pending'" color="warning" size="small" (click)="openDispatchModal(request.request_id)" style="font-weight: bold; flex: 1; height: 35px; margin: 0;"><i class="fa-solid fa-truck-medical" style="margin-right: 6px;"></i> Dispatch</ion-button>
-          <ion-button color="success" size="small" (click)="resolveEmergency(request.request_id)" style="font-weight: bold; flex: 1; height: 35px; margin: 0;"><i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Resolve</ion-button>
+          <ion-button *ngIf="request.status === 'Pending'" color="warning" size="small" (click)="openDispatchModal(request.request_id)" title="Assign emergency responder team and vehicle" style="font-weight: bold; flex: 1; height: 35px; margin: 0;"><i class="fa-solid fa-truck-medical" style="margin-right: 6px;"></i> Dispatch</ion-button>
+          <ion-button color="success" size="small" (click)="resolveEmergency(request.request_id)" title="Mark this emergency incident as resolved and close ticket" style="font-weight: bold; flex: 1; height: 35px; margin: 0;"><i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Resolve</ion-button>
         </div>
       </div>
     </ng-container>
@@ -159,7 +164,7 @@
             <ng-template #hazImgThumb><img [proxySrc]="filePath" style="width:100%;height:100%;object-fit:cover;" /></ng-template>
           </div>
         </div>
-        <div style="margin-top: 12px;"><ion-button color="medium" fill="outline" expand="block" size="small" (click)="dismissHazard(haz.hazard_id)" style="font-weight: bold; height: 35px; margin: 0;"><i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Acknowledge</ion-button></div>
+        <div style="margin-top: 12px;"><ion-button color="medium" fill="outline" expand="block" size="small" (click)="dismissHazard(haz.hazard_id)" title="Acknowledge and archive this public hazard report" style="font-weight: bold; height: 35px; margin: 0;"><i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Acknowledge</ion-button></div>
       </div>
     </ng-container>
 
