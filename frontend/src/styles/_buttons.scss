@@ -1,0 +1,55 @@
+/* ===========================================================================
+   GLOBAL BUTTON STATES, LOADERS & ACTIVE MENU HIGHLIGHTS
+   =========================================================================== */
+
+/* =========================================
+   BUTTON STATE UTILITIES
+   ========================================= */
+ion-button.btn-muted::part(native) {
+  background:     #888 !important;
+  box-shadow:     none !important;
+  cursor:         not-allowed !important;
+  pointer-events: none;
+  transition:     background 0.2s;
+}
+
+ion-button.btn-loading::part(native) {
+  background:     #666 !important;
+  box-shadow:     none !important;
+  cursor:         not-allowed !important;
+  pointer-events: none;
+  transition:     background 0.2s;
+}
+
+/* =========================================
+   DOT LOADERS
+   ========================================= */
+.dot-loader { display: flex; gap: 5px; align-items: center; height: 16px; }
+.dot-loader span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ion-color-danger);
+  animation: dot-bounce 1.1s infinite ease-in-out both;
+}
+.dot-loader span:nth-child(1) { animation-delay: -0.24s; }
+.dot-loader span:nth-child(2) { animation-delay: -0.12s; }
+.dot-loader span:nth-child(3) { animation-delay: 0s; }
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.4); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.dot-loader-white span {
+  background: white !important;
+}
+
+/* Active menu item highlight */
+.menu-item-active {
+  --background: var(--app-red-light) !important;
+  --color: var(--app-red) !important;
+  font-weight: 700 !important;
+}
+
+.menu-item-active i {
+  color: var(--app-red) !important;
+}

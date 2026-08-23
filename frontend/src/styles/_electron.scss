@@ -1,0 +1,42 @@
+/* ===========================================================================
+   ELECTRON DESKTOP SHELL, TITLEBAR DRAG REGIONS & OFFSETS
+   =========================================================================== */
+
+/* =========================================
+   ELECTRON DESKTOP: CUSTOM TITLEBAR & DRAG REGION
+   Only the dedicated top drag area (.app-titlebar__drag) is draggable.
+   All buttons, headers, sidebars, and panels remain standard interactive DOM elements.
+   ========================================= */
+ion-app.electron-app app-titlebar .app-titlebar__drag {
+  -webkit-app-region: drag !important;
+}
+
+ion-app.electron-app app-titlebar .app-titlebar__controls,
+ion-app.electron-app app-titlebar .app-titlebar__btn,
+ion-app.electron-app app-titlebar button,
+ion-app.electron-app app-titlebar i {
+  -webkit-app-region: no-drag !important;
+  pointer-events: auto !important;
+}
+
+/* Reserve space on the right for normal start-aligned titles */
+ion-app.electron-app ion-toolbar ion-title {
+  padding-right: env(titlebar-area-width, 140px);
+}
+
+/* For centered titles (login, auth, modals), balance left and right padding */
+ion-app.electron-app ion-toolbar ion-title.ion-text-center,
+ion-app.electron-app ion-toolbar ion-title[style*="text-align: center"],
+ion-app.electron-app ion-toolbar ion-title[style*="text-align:center"] {
+  padding-left: 140px !important;
+  padding-right: 140px !important;
+  text-align: center !important;
+}
+
+/* Admin Dashboard Electron Top Spacing & Window Controls Clearance */
+ion-app.electron-app .admin-main-viewport {
+  padding: 38px 24px 18px 24px !important;
+}
+ion-app.electron-app .admin-sidebar {
+  padding-top: 24px !important;
+}

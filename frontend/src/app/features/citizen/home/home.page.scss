@@ -1,0 +1,83 @@
+/* ===========================================================================
+   CITIZEN HOME PAGE SCOPED STYLES
+   =========================================================================== */
+
+/* =========================================
+   SOS ACTION BUTTON
+   ========================================= */
+.sos-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.sos-button {
+  width: 200px;
+  height: 200px;
+  border-radius: 50% !important;
+  background-color: var(--app-red);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  box-shadow: 0 8px 24px var(--app-red-glow);
+  transition: transform 0.1s ease;
+}
+
+.sos-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 4px 12px var(--app-red-glow);
+}
+
+/* =========================================
+   SOS BUTTON RIPPLE RINGS
+   ========================================= */
+.sos-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2.5px solid var(--app-red-glow);
+  animation: sosRipple 2.4s ease-out infinite;
+  pointer-events: none;
+}
+.sos-ring-1 { width: 224px; height: 224px; animation-delay: 0s; }
+.sos-ring-2 { width: 258px; height: 258px; animation-delay: 0.8s; }
+.sos-ring-3 { width: 294px; height: 294px; animation-delay: 1.6s; }
+
+@keyframes sosRipple {
+  0%   { opacity: 0.7; transform: scale(0.92); }
+  100% { opacity: 0;   transform: scale(1.18); }
+}
+
+:host-context(html.reduce-animations) .sos-ring {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
+/* =========================================
+   PUBLIC BROADCAST MARQUEE ANIMATION
+   ========================================= */
+.broadcast-banner {
+  background-color: var(--app-red);
+  color: white;
+  padding: 12px;
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  border-radius: var(--app-radius);
+  margin-bottom: 15px;
+  box-shadow: 0 4px 10px var(--app-red-glow);
+  display: flex;
+  align-items: center;
+}
+
+.marquee-text {
+  display: inline-block;
+  padding-left: 100%;
+  animation: marquee 15s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-100%, 0); }
+}

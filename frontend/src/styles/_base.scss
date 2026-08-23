@@ -1,0 +1,100 @@
+/* ===========================================================================
+   BASE RESETS, ANTI-DRAG, TOUCH CALLOUT & STRICT UI ROUNDING
+   =========================================================================== */
+
+/* DESKTOP / ELECTRON: DISABLE ACCIDENTAL TEXT SELECTION & IMAGE DRAG */
+*, *::before, *::after {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+body, ion-app {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+img, svg, button, ion-button, a {
+  -webkit-user-drag: none;
+  user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea, [contenteditable="true"], .selectable-text {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Force Input text to be visible */
+ion-input, ion-select, ion-textarea {
+  --color: var(--ion-text-color) !important;
+}
+
+/* Suppress native Android/WebView tap highlight box */
+* {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+}
+
+button, ion-button, ion-item, ion-tab-button, a, [role="button"] {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  outline: none !important;
+}
+
+/* 1. STRICT GLOBAL UI ROUNDING */
+ion-card, ion-item, ion-list, ion-button, ion-input, ion-select, ion-avatar {
+  --border-radius: 16px !important;
+  border-radius: 16px !important;
+}
+
+/* Force rounding on physical HTML elements like Maps and Charts */
+.leaflet-container, canvas, #dispatch-map, #sos-map, #citizen-map, #hazard-map {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+/* 2. INPUT POLISH — only show red on explicitly invalid touched fields */
+ion-input.ion-touched.ion-invalid {
+  --color: var(--ion-color-danger) !important;
+}
+
+/* =========================================
+   REDUCE ANIMATIONS MODE
+   ========================================= */
+html.reduce-animations *,
+html.reduce-animations *::before,
+html.reduce-animations *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* =========================================
+   SMOOTH DARK MODE TRANSITION
+   ========================================= */
+ion-app, ion-content, ion-toolbar, ion-card, ion-item, ion-list, ion-menu {
+  --transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border 0.3s ease-in-out !important;
+}
+
+ion-label, ion-title, ion-input, ion-textarea, ion-select {
+  transition: color 0.3s ease-in-out !important;
+}
+
+/* =========================================
+   GLOBAL TOGGLE REDESIGN — flat pill switch
+   ========================================= */
+ion-toggle {
+  --track-background: var(--ion-color-step-250, #d1d1d6) !important;
+  --track-background-checked: var(--app-red) !important;
+  --handle-background: #ffffff !important;
+  --handle-background-checked: #ffffff !important;
+  --handle-box-shadow: none !important;
+  --border-radius: 999px !important;
+  --handle-border-radius: 999px !important;
+  --handle-spacing: 2px !important;
+  width: 50px;
+  height: 28px;
+}

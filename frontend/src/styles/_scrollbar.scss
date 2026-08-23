@@ -1,0 +1,122 @@
+/* ===========================================================================
+   GLOBAL MODULAR AUTO-HIDING FLOATING PILL SCROLLBAR
+   - Ultra-thin 6px track
+   - Zero track background (transparent)
+   - Zero up/down arrow buttons or corners (display: none !important)
+   - Auto-hides (transparent) on load & when idle
+   - Smoothly fades in when hovering/interacting with the container
+   - Adaptive color for Light Mode & Dark Mode
+   - Targets ALL elements (*), html/body, divs, panels, and Ionic shadow roots
+   =========================================================================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+*:hover {
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+}
+
+:root.ion-palette-dark * {
+  scrollbar-color: transparent transparent;
+}
+
+:root.ion-palette-dark *:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+/* WebKit / Chromium / Electron / Safari direct override */
+*::-webkit-scrollbar,
+::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+div::-webkit-scrollbar,
+ion-content::part(scroll)::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-track,
+::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+div::-webkit-scrollbar-track,
+ion-content::part(scroll)::-webkit-scrollbar-track {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Idle state: invisible thumb by default so it doesn't clutter initial page load */
+*::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+div::-webkit-scrollbar-thumb,
+ion-content::part(scroll)::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  transition: background 0.3s ease;
+}
+
+/* Hover/Active container state: smoothly fade-in floating pill */
+*:hover::-webkit-scrollbar-thumb,
+html:hover::-webkit-scrollbar-thumb,
+body:hover::-webkit-scrollbar-thumb,
+div:hover::-webkit-scrollbar-thumb,
+ion-content:hover::part(scroll)::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:active {
+  background: rgba(100, 116, 139, 0.35) !important;
+}
+
+/* Hovering directly on thumb */
+*::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+div::-webkit-scrollbar-thumb:hover,
+ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.65) !important;
+}
+
+*::-webkit-scrollbar-button,
+::-webkit-scrollbar-button,
+*::-webkit-scrollbar-corner,
+::-webkit-scrollbar-corner,
+ion-content::part(scroll)::-webkit-scrollbar-button,
+ion-content::part(scroll)::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Dark mode overrides */
+:root.ion-palette-dark *::-webkit-scrollbar-thumb,
+:root.ion-palette-dark ::-webkit-scrollbar-thumb,
+:root.ion-palette-dark html::-webkit-scrollbar-thumb,
+:root.ion-palette-dark body::-webkit-scrollbar-thumb,
+:root.ion-palette-dark div::-webkit-scrollbar-thumb,
+:root.ion-palette-dark ion-content::part(scroll)::-webkit-scrollbar-thumb {
+  background: transparent !important;
+}
+
+:root.ion-palette-dark *:hover::-webkit-scrollbar-thumb,
+:root.ion-palette-dark html:hover::-webkit-scrollbar-thumb,
+:root.ion-palette-dark body:hover::-webkit-scrollbar-thumb,
+:root.ion-palette-dark div:hover::-webkit-scrollbar-thumb,
+:root.ion-palette-dark ion-content:hover::part(scroll)::-webkit-scrollbar-thumb,
+:root.ion-palette-dark ::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+:root.ion-palette-dark *::-webkit-scrollbar-thumb:hover,
+:root.ion-palette-dark ::-webkit-scrollbar-thumb:hover,
+:root.ion-palette-dark html::-webkit-scrollbar-thumb:hover,
+:root.ion-palette-dark body::-webkit-scrollbar-thumb:hover,
+:root.ion-palette-dark div::-webkit-scrollbar-thumb:hover,
+:root.ion-palette-dark ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5) !important;
+}

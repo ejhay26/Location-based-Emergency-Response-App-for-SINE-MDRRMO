@@ -1,0 +1,32 @@
+/* ===========================================================================
+   SINE MDRRMO DESIGN TOKEN SYSTEM & PALETTES
+   =========================================================================== */
+
+:root {
+  --app-red:       #D32F2F;
+  --app-red-light: rgba(211, 47, 47, 0.15);
+  --app-red-glow:  rgba(211, 47, 47, 0.4);
+  --app-yellow:    #F9A825;
+  --app-radius:    16px;
+  --app-radius-sm: 8px;
+  --app-shadow:    0 2px 8px rgba(211, 47, 47, 0.18);
+  --app-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.30);
+}
+
+:root:not(.ion-palette-dark) {
+  --ion-background-color: #f4f5f8;
+  --ion-text-color: #222428;
+}
+
+/* SOFT LIGHT THEME: Reduces eye strain and fixes invisible input text */
+:root {
+  --ion-family: 'Roboto', sans-serif !important;
+  font-family: 'Roboto', sans-serif !important;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/assets/fonts/Roboto-Bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}

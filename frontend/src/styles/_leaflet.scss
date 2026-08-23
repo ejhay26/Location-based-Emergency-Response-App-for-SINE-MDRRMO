@@ -1,0 +1,126 @@
+/* ===========================================================================
+   LEAFLET MAP INTEGRATION, CUSTOM PINS, RADAR PULSES & BARANGAY BADGES
+   =========================================================================== */
+
+/* =========================================
+   LEAFLET POPUP DARK MODE SYNC
+   ========================================= */
+html.ion-palette-dark .leaflet-popup-content-wrapper,
+html.ion-palette-dark .leaflet-popup-tip {
+  background-color: var(--ion-background-color) !important;
+  color: var(--ion-text-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================
+   MAP BACKGROUND BLUR (FOCUS MODE)
+   ========================================= */
+.leaflet-tile-pane, .leaflet-marker-icon {
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+#dispatch-map.map-has-selection .leaflet-tile-pane {
+  filter: brightness(0.5) blur(3px);
+}
+
+#dispatch-map.map-has-selection .leaflet-marker-icon {
+  filter: brightness(0.4) grayscale(0.6);
+  opacity: 0.6;
+}
+
+#dispatch-map.map-has-selection .leaflet-marker-icon.selected-pin {
+  filter: brightness(1.1) !important;
+  opacity: 1 !important;
+  z-index: 10000 !important;
+}
+
+/* =========================================
+   MAP: MODERN INDUSTRY-STANDARD BARANGAY LABELS
+   Clean frosted glass pill badge with emergency red accent
+   ========================================= */
+.bgy-clean-label-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.bgy-map-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1e293b;
+  padding: 3px 9px 3px 7px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14), 0 1px 2px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.bgy-map-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #D32F2F;
+  box-shadow: 0 0 3px rgba(211, 47, 47, 0.5);
+  flex-shrink: 0;
+}
+
+/* =========================================
+   CLEAN LEAFLET MAP LABELS
+   ========================================= */
+.bgy-clean-label-icon,
+.leaflet-div-icon.bgy-clean-label-icon,
+.local-bgy-pill,
+.leaflet-div-icon.local-bgy-pill {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* =========================================
+   MAP MARKERS & RADAR PULSES
+   ========================================= */
+.leaflet-blank-div-icon { background: transparent !important; border: none !important; }
+.custom-fa-marker-wrapper { position: relative; width: 45px; height: 60px; display: flex; justify-content: center; align-items: flex-start; }
+.vector-pin-shape { width: 45px; height: 60px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+.pin-inner-fa-icon { position: absolute; top: 7px; left: 0; width: 45px; height: 29px; display: flex; align-items: center; justify-content: center; font-size: 13px; z-index: 10; }
+.sos-pulse-ripple::before {
+  content: ''; position: absolute; top: 8px; left: 8px; width: 28px; height: 28px;
+  border-radius: 50%; background: rgba(235, 68, 90, 0.4);
+  box-shadow: 0 0 18px rgba(235, 68, 90, 0.9);
+  animation: radarRipplePulse 1.6s infinite ease-out; z-index: 1;
+}
+@keyframes radarRipplePulse {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(3.5); opacity: 0; }
+}
+.accessible-popup-box { padding: 5px; min-width: 260px; }
+.leaflet-popup-content { margin: 12px 16px !important; line-height: 1.4; }
+
+/* =========================================
+   REPORT PAGE: FULLSCREEN MAP OVERLAY
+   ========================================= */
+.map-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  background: #000;
+}
+
+.map-fullscreen #report-map {
+  height: 100% !important;
+  width: 100% !important;
+  position: absolute !important;
+  inset: 0 !important;
+}

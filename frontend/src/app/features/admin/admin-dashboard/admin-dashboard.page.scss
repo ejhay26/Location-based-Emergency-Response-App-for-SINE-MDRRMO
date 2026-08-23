@@ -89,3 +89,27 @@
 .admin-scroll-panel::-webkit-scrollbar-button {
   display: none !important;
 }
+
+/* Slim scroll container with bottom fade-out mask */
+.admin-scroll-panel {
+  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
+          mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
+  padding-bottom: 28px;
+}
+
+/* Sidebar navigation menu capsule links */
+.menu-capsule-link {
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 14px 16px;
+  font-weight: bold;
+  font-size: 15px;
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
