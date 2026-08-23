@@ -9,22 +9,29 @@
   "homepage": "https://ionicframework.com/",
   "build": {
     "appId": "com.mdrrmo.emergencyapp",
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ]
+    "productName": "SINE MDRRMO Command Center",
+    "directories": {
+      "output": "dist"
     },
     "win": {
       "target": [
         "portable"
-      ]
+      ],
+      "icon": "src/assets/icon/icon.ico"
     },
     "linux": {
       "target": [
         "AppImage"
       ],
+      "icon": "src/assets/icon/icon.png",
       "category": "Utility"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "src/assets/icon/icon.png"
     }
   },
   "scripts": {
