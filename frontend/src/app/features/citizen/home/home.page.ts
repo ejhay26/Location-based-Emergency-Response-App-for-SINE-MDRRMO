@@ -42,6 +42,7 @@ const WIDGET_PROMPT_DISMISSED_KEY = 'widget_prompt_dismissed';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
+  styleUrl: './home.page.scss',
   standalone: true,
   imports: [
     CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonToast,
