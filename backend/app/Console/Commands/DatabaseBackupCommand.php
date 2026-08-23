@@ -5,12 +5,6 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\DatabaseBackupService;
 use App\Services\PhilSmsService;
-use function Laravel\Prompts\select;
-use function Laravel\Prompts\confirm;
-use function Laravel\Prompts\info;
-use function Laravel\Prompts\warning;
-use function Laravel\Prompts\error;
-use function Laravel\Prompts\note;
 
 class DatabaseBackupCommand extends Command
 {
@@ -19,7 +13,7 @@ class DatabaseBackupCommand extends Command
      */
     protected $signature = 'backup
                             {action=help : create|list|desc|restore|salvage|notify|prune|help}
-                            {target? : Snapshot filename for desc/restore/salvage/notify}
+                            {target? : Snapshot filename or index (#1, latest, partial name)}
                             {--force : Force execution without interactive confirmation}';
 
     /**
@@ -37,6 +31,9 @@ class DatabaseBackupCommand extends Command
         'salvage' => 'Scan storage files and logs for unbacked records in the snapshot gap',
         'notify'  => 'Send polite recovery notification emails/SMS to citizens affected by a restore',
         'prune'   => 'Clean up old backups beyond the retention limits (12 intraday, 7 daily)',
+        'status'  => 'Check automated backup schedule status and system health',
+        'watch'   => 'Run the automated background backup schedule worker',
+        'daemon'  => 'Alias for watch',
         'help'    => 'Display available disaster recovery commands and examples',
     ];
 
@@ -81,6 +78,13 @@ class DatabaseBackupCommand extends Command
 
             case 'prune':
                 return $this->handlePrune($service);
+
+            case 'status':
+                return $this->handleStatus($service);
+
+            case 'watch':
+            case 'daemon':
+                return $this->handleWatch();
 
             case 'help':
             default:
@@ -144,7 +148,7 @@ class DatabaseBackupCommand extends Command
     protected function handleDesc(DatabaseBackupService $service, ?string $target): int
     {
         $target = $this->resolveTarget($service, $target);
-        if (!$target) return 1;
+        if (!$target) return 0;
 
         $this->info(" 🔍 Inspecting snapshot: <fg=cyan>{$target}</>");
 
@@ -181,7 +185,7 @@ class DatabaseBackupCommand extends Command
     protected function handleRestore(DatabaseBackupService $service, ?string $target): int
     {
         $target = $this->resolveTarget($service, $target);
-        if (!$target) return 1;
+        if (!$target) return 0;
 
         $this->warn(" ⚠️  PRE-RESTORE COMPARISON (Live DB vs Snapshot):");
 
@@ -207,16 +211,7 @@ class DatabaseBackupCommand extends Command
         $this->table(['Table', 'Live Records', 'Backup Records', 'Net Difference'], $tableData);
 
         if (!$this->option('force')) {
-            $confirmed = function_exists('Laravel\Prompts\confirm')
-                ? confirm(
-                    label: "Are you sure you want to RESTORE from \"{$target}\"?",
-                    default: false,
-                    yes: 'Yes, restore database',
-                    no: 'No, cancel',
-                    hint: 'An automatic safety snapshot of the live database will be created first'
-                )
-                : $this->confirm(" ❓ Are you sure you want to RESTORE from \"{$target}\"?\n    (An automatic safety snapshot of the live database will be created first)", false);
-
+            $confirmed = $this->confirm(" ❓ Are you sure you want to RESTORE from \"{$target}\"?\n    (An automatic safety snapshot of the live database will be created first)", false);
             if (!$confirmed) {
                 $this->info(" ⏹️ Restoration cancelled by user.");
                 return 0;
@@ -242,7 +237,7 @@ class DatabaseBackupCommand extends Command
     protected function handleSalvage(DatabaseBackupService $service, ?string $target): int
     {
         $target = $this->resolveTarget($service, $target);
-        if (!$target) return 1;
+        if (!$target) return 0;
 
         $this->info(" 🔍 Scanning storage proofs and logs for unbacked gap data...");
 
@@ -291,18 +286,10 @@ class DatabaseBackupCommand extends Command
     protected function handleNotify(DatabaseBackupService $service, PhilSmsService $smsService, ?string $target): int
     {
         $target = $this->resolveTarget($service, $target);
-        if (!$target) return 1;
+        if (!$target) return 0;
 
         if (!$this->option('force')) {
-            $confirmed = function_exists('Laravel\Prompts\confirm')
-                ? confirm(
-                    label: "Send recovery notice emails and SMS to citizens identified in the gap of \"{$target}\"?",
-                    default: true,
-                    yes: 'Yes, dispatch notifications',
-                    no: 'No, cancel'
-                )
-                : $this->confirm(" ❓ Send recovery notice emails and SMS to citizens identified in the gap of \"{$target}\"?", true);
-
+            $confirmed = $this->confirm(" ❓ Send recovery notice emails and SMS to citizens identified in the gap of \"{$target}\"?", true);
             if (!$confirmed) {
                 $this->info(" ⏹️ Notification dispatch cancelled.");
                 return 0;
@@ -331,6 +318,47 @@ class DatabaseBackupCommand extends Command
         return 0;
     }
 
+    protected function handleStatus(DatabaseBackupService $service): int
+    {
+        $autoEnabled = filter_var(env('BACKUP_AUTO_ENABLED', true), FILTER_VALIDATE_BOOLEAN);
+        $intervalHours = (int) env('BACKUP_INTERVAL_HOURS', 2);
+        $maxIntraday = (int) env('BACKUP_MAX_INTRADAY', 12);
+        $maxDaily = (int) env('BACKUP_MAX_DAILY', 7);
+        $backups = $service->getBackupsList();
+
+        $this->newLine();
+        $this->line(" <fg=white;options=bold>📊 SINE MDRRMO Disaster Recovery Status & Health:</>");
+        $this->newLine();
+
+        $statusStr = $autoEnabled ? "<fg=green;options=bold>● ON (Active in .env)</>" : "<fg=red;options=bold>○ OFF (Disabled in .env)</>";
+        $this->line(" • Automated Backup:   {$statusStr}");
+        $this->line(" • Backup Interval:    <fg=yellow>Every {$intervalHours} Hours</>");
+        $this->line(" • Retention Limits:   <fg=cyan>{$maxIntraday} Intraday / {$maxDaily} Daily Snapshots</>");
+        $this->line(" • Total Snapshots:    <fg=white>" . count($backups) . " archives</>");
+
+        if (!empty($backups)) {
+            $latest = $backups[0];
+            $this->line(" • Latest Snapshot:    <fg=cyan>{$latest['filename']}</> ({$latest['size_human']}, <fg=yellow>{$latest['age_human']}</>)");
+        } else {
+            $this->line(" • Latest Snapshot:    <fg=gray>None yet (run 'backup create')</>");
+        }
+
+        $this->newLine();
+        $this->line(" <fg=white;options=bold>💡 How to run the automated daemon:</>");
+        $this->line(" • On Windows (local):   Run <fg=yellow>backend\\bin\\backup.bat watch</> in a background terminal");
+        $this->line(" • In Docker / VPS:      Automatically managed 24/7 by <fg=cyan>supervisord</>");
+        $this->newLine();
+        return 0;
+    }
+
+    protected function handleWatch(): int
+    {
+        $this->info(" 🔄 Starting SINE MDRRMO automated backup schedule daemon...");
+        $this->line(" Press <fg=yellow>Ctrl+C</> to stop.");
+        $this->newLine();
+        return $this->call('schedule:work');
+    }
+
     protected function resolveTarget(DatabaseBackupService $service, ?string $target): ?string
     {
         $backups = $service->getBackupsList();
@@ -339,7 +367,7 @@ class DatabaseBackupCommand extends Command
             return null;
         }
 
-        // 1. If target was provided, try exact, numeric index, or smart partial matching
+        // 1. If target was provided, try exact, numeric index, keyword, or smart partial matching
         if (!empty($target)) {
             $cleanTarget = trim($target);
 
@@ -382,53 +410,89 @@ class DatabaseBackupCommand extends Command
                 $this->line(" 🔍 Multiple snapshots matched \"{$cleanTarget}\":");
                 $choices = [];
                 foreach ($matches as $i => $m) {
-                    $choices[$m['filename']] = "{$m['filename']} ({$m['size_human']}, {$m['age_human']})";
+                    $choices[(string)$i] = "{$m['filename']} ({$m['size_human']}, {$m['age_human']})";
                 }
-                return $this->promptSelect("Select a snapshot", $choices);
+                $choices['c'] = "❌ Cancel / Exit";
+                $selected = $this->choice(" Select a snapshot", $choices, '0');
+                if ($selected === 'c' || $selected === '❌ Cancel / Exit') {
+                    $this->info(" ⏹️ Operation cancelled.");
+                    return null;
+                }
+                return $matches[(int)$selected]['filename'] ?? $selected;
             }
 
             $this->error(" ❌ No snapshot found matching \"{$cleanTarget}\".");
             $this->newLine();
         }
 
-        // 2. If only 1 backup exists, use it automatically
-        if (count($backups) === 1) {
-            $selected = $backups[0]['filename'];
-            $this->line(" ℹ️ Using only available snapshot: <fg=cyan>{$selected}</>");
-            return $selected;
-        }
-
-        // 3. If no target provided and running non-interactively (--force), default to latest
+        // 2. If no target provided and running non-interactively (--force), default to latest
         if ($this->option('force')) {
             return $backups[0]['filename'];
         }
 
-        // 4. Interactive selection menu with Up/Down arrow keys support
-        $choices = [];
-        foreach ($backups as $i => $b) {
-            $label = ($i === 0) ? "[Latest] " : "";
-            $choices[$b['filename']] = "{$label}{$b['filename']}  ({$b['size_human']}, {$b['age_human']})";
-        }
+        // 3. Paginated interactive selection menu with Cancel/Exit
+        $page = 0;
+        $perPage = 5;
+        $total = count($backups);
+        $totalPages = max(1, (int)ceil($total / $perPage));
 
-        return $this->promptSelect("Select a backup snapshot to proceed", $choices);
-    }
+        while (true) {
+            $slice = array_slice($backups, $page * $perPage, $perPage);
+            $pageNumber = $page + 1;
 
-    protected function promptSelect(string $label, array $choices): string
-    {
-        // Try Laravel Prompts select() for interactive Up/Down arrow keys navigation
-        if (function_exists('Laravel\Prompts\select')) {
-            try {
-                return \Laravel\Prompts\select(
-                    label: $label,
-                    options: $choices,
-                    default: array_key_first($choices)
-                );
-            } catch (\Throwable $e) {
-                // Fallback to Symfony Console choice
+            $this->newLine();
+            $this->info(" 📦 Available Snapshots (Page {$pageNumber} of {$totalPages}):");
+
+            $choices = [];
+            $choiceMap = [];
+
+            foreach ($slice as $i => $b) {
+                $globalIdx = ($page * $perPage) + $i + 1;
+                $label = ($globalIdx === 1) ? "[Latest] " : "";
+                $key = (string)($i);
+                $choices[$key] = "{$label}{$b['filename']}  ({$b['size_human']}, {$b['age_human']})";
+                $choiceMap[$key] = $b['filename'];
+            }
+
+            if ($pageNumber < $totalPages) {
+                $choices['n'] = "➡️  Next Page (Page " . ($pageNumber + 1) . ")";
+            }
+
+            if ($page > 0) {
+                $choices['p'] = "⬅️  Previous Page (Page " . ($pageNumber - 1) . ")";
+            }
+
+            $choices['c'] = "❌ Cancel / Exit";
+
+            $selected = $this->choice(" Select a snapshot to proceed", $choices, '0');
+
+            if ($selected === 'c' || $selected === '❌ Cancel / Exit') {
+                $this->info(" ⏹️ Operation cancelled.");
+                return null;
+            }
+
+            if ($selected === 'n' || str_starts_with($selected, '➡️')) {
+                $page++;
+                continue;
+            }
+
+            if ($selected === 'p' || str_starts_with($selected, '⬅️')) {
+                $page--;
+                continue;
+            }
+
+            if (isset($choiceMap[$selected])) {
+                $this->newLine();
+                return $choiceMap[$selected];
+            }
+
+            foreach ($choiceMap as $k => $filename) {
+                if ($selected === $choices[$k] || $selected === $filename) {
+                    $this->newLine();
+                    return $filename;
+                }
             }
         }
-
-        return $this->choice($label, array_keys($choices), 0);
     }
 
     protected function findClosestAction(string $input): ?string
@@ -467,7 +531,7 @@ class DatabaseBackupCommand extends Command
         $this->line(" <fg=white;options=bold>Examples:</>");
         $this->line(" • <fg=yellow>backup create</>                     Take an instant compressed database snapshot");
         $this->line(" • <fg=yellow>backup list</>                       Show all available snapshots and sizes");
-        $this->line(" • <fg=yellow>backup desc</>                       Inspect table record counts with arrow-key menu");
+        $this->line(" • <fg=yellow>backup desc</>                       Inspect table record counts (interactive select)");
         $this->line(" • <fg=yellow>backup desc 1</>                     Inspect snapshot #1");
         $this->line(" • <fg=yellow>backup desc 185124</>                Inspect snapshot matching timestamp fragment");
         $this->line(" • <fg=yellow>backup restore</>                    Safe interactive restore with diff preview");
@@ -476,4 +540,3 @@ class DatabaseBackupCommand extends Command
         $this->newLine();
     }
 }
-

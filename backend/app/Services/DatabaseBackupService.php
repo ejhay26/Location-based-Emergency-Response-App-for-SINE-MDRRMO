@@ -421,22 +421,10 @@ class DatabaseBackupService
             }
         }
 
-        // Send Emails
+        // Send Styled HTML Blade Emails
         foreach ($salvage['gap_emails'] as $email => $timestamp) {
             try {
-                Mail::raw(
-                    "Dear Citizen,\n\n" .
-                    "The San Isidro Municipal Disaster Risk Reduction and Management Office (MDRRMO) " .
-                    "recently performed an automated database synchronization.\n\n" .
-                    "Our records indicate you initiated or updated your registration right before this synchronization. " .
-                    "If your app prompts you to complete your verification or sign in, please log in or complete your registration at your convenience.\n\n" .
-                    "All physical emergency hotlines and response operations remain 100% operational.\n\n" .
-                    "MDRRMO San Isidro, Nueva Ecija",
-                    function ($message) use ($email) {
-                        $message->to($email)
-                                ->subject('Notice: SINE MDRRMO System Maintenance & Account Verification Update');
-                    }
-                );
+                Mail::to($email)->send(new \App\Mail\DisasterRecoveryNoticeMail($email, $salvage['snapshot_time']));
                 $notifiedCount++;
             } catch (\Throwable $e) {
                 $failedCount++;
