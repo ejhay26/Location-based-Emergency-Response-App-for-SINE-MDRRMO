@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Mail\WelcomeMail;
+use App\Mail\VerificationDeclinedMail;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -126,6 +127,22 @@ class CitizenController extends Controller
         $request->validate(['user_id' => 'required|integer']);
         $user = User::where('user_id', $request->user_id)->first();
         if ($user) {
+            $userEmail = $user->email;
+            $userFirstName = $user->first_name;
+
+            // Send polite rejection email before deleting record
+            if (!empty($userEmail)) {
+                try {
+                    Mail::to($userEmail)->send(new VerificationDeclinedMail($userFirstName, $userEmail));
+                } catch (\Throwable $e) {
+                    Log::error('CitizenController: failed to send VerificationDeclinedMail on reject.', [
+                        'user_id' => $user->user_id,
+                        'email'   => $userEmail,
+                        'error'   => $e->getMessage(),
+                    ]);
+                }
+            }
+
             if ($user->valid_id_proof) {
                 Storage::disk('public')->deleteDirectory('verification_ids/' . $user->username);
             }
