@@ -91,6 +91,7 @@ function createWindow() {
   patchBaseHref();
 
   const win = new BrowserWindow({
+    title: 'MDRRMO EMERGENCY RESPONSE APP',
     width: 1280,
     height: 800,
     minWidth: 960,

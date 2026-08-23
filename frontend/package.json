@@ -1,5 +1,5 @@
 {
-  "name": "mdrrmo-sine-emergency-response-app",
+  "name": "mdrrmo-emergency-response-app",
   "main": "main.js",
   "version": "0.0.1",
   "author": {
@@ -8,8 +8,8 @@
   },
   "homepage": "https://ionicframework.com/",
   "build": {
-    "appId": "com.mdrrmo.emergencyapp",
-    "productName": "SINE MDRRMO Command Center",
+    "appId": "ph.gov.sine.mdrrmo.emergencyresponse",
+    "productName": "MDRRMO EMERGENCY RESPONSE APP",
     "directories": {
       "output": "dist"
     },
