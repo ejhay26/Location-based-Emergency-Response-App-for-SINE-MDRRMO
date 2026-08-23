@@ -94,9 +94,13 @@ function createWindow() {
     width: 1280,
     height: 800,
     minWidth: 960,
-    minHeight: 600,
-    icon: path.join(__dirname, 'www', 'assets', 'icon', 'logo.jpg'),
-    // Frameless window with custom HTML controls
+    icon: process.platform === 'win32'
+      ? (fs.existsSync(path.join(__dirname, 'src', 'assets', 'icon', 'icon.ico'))
+          ? path.join(__dirname, 'src', 'assets', 'icon', 'icon.ico')
+          : path.join(__dirname, 'www', 'assets', 'icon', 'logo.jpg'))
+      : (fs.existsSync(path.join(__dirname, 'src', 'assets', 'icon', 'icon.png'))
+          ? path.join(__dirname, 'src', 'assets', 'icon', 'icon.png')
+          : path.join(__dirname, 'www', 'assets', 'icon', 'logo.jpg')),
     frame: false,
     webPreferences: {
       nodeIntegration: true,
