@@ -34,8 +34,18 @@ Executable wrappers are located in `backend/bin/` for self-contained deployment:
 | `backup restore [target]` | Restore | Shows a live vs. backup record diff preview, creates an automatic safety backup, and restores the database upon confirmation. Supports numeric index, fuzzy matching, or interactive selection. |
 | `backup salvage [target]` | Salvage | Scans storage proofs and logs for unbacked registrations or uploads created during the gap between snapshot time and crash time. |
 | `backup notify [target]` | Notify | Sends automated, polite recovery emails and SMS via PhilSMS to citizens affected by a restore. |
+| `backup status` | Health | Displays automated backup ON/OFF status, configured interval, retention limits, and latest snapshot. |
+| `backup watch` | Daemon | Starts the automated background schedule worker on local development machines. |
 | `backup prune` | Clean | Manually enforces the retention limits (12 intraday / 7 daily snapshots). |
 | `backup help` | Help | Displays interactive command usage and examples. |
+
+### Configuration (`.env`):
+```env
+BACKUP_AUTO_ENABLED=true        # Toggle automated backup schedule (true/false)
+BACKUP_INTERVAL_HOURS=2        # Frequency in hours (e.g. 1, 2, 4, 6)
+BACKUP_MAX_INTRADAY=12         # Number of recent intraday snapshots to keep
+BACKUP_MAX_DAILY=7             # Number of daily archives to keep
+```
 
 ### Smart Target Resolution Modes:
 - **Paginated Interactive Menu:** Run `backup restore` or `backup desc` with no arguments to navigate pages (`[n] Next`, `[p] Prev`) and safely abort with `[c] ❌ Cancel / Exit`.
