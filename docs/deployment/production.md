@@ -201,6 +201,16 @@ location /app/ {
     proxy_read_timeout 3600s;
     proxy_send_timeout 3600s;
 }
+
+# Static storage uploads — prevent PHP execution in uploaded files
+location ^~ /storage/ {
+    alias /var/www/html/public/storage/;
+    expires 7d;
+    location ~ \.php$ {
+        deny all;
+        return 404;
+    }
+}
 ```
 
 ---
