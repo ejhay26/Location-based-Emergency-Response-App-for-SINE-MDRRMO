@@ -144,8 +144,8 @@ export class LoginPage {
   }
 
   verifyLoginOtp() {
-    if (!this.emailOtpData.otp || this.emailOtpData.otp.length < 4) {
-      this.showToast('Please enter the 4-digit code.', 'warning'); return;
+    if (!this.emailOtpData.otp || this.emailOtpData.otp.length < 6) {
+      this.showToast('Please enter the 6-digit code.', 'warning'); return;
     }
     const payload = this.loginOtpChannel === 'phone'
       ? { otp_channel: 'phone', phone: this.emailOtpData.phone, otp: this.emailOtpData.otp }
@@ -378,8 +378,8 @@ export class LoginPage {
 
   /** Confirms the entered code is correct before revealing the new-password fields — see AuthController::verifyResetOtp(). */
   verifyResetOtp() {
-    if (!this.resetData.otp || this.resetData.otp.length < 4) {
-      this.showToast('Please enter the 4-digit code.', 'warning'); return;
+    if (!this.resetData.otp || this.resetData.otp.length < 6) {
+      this.showToast('Please enter the 6-digit code.', 'warning'); return;
     }
     const payload = this.otpChannel === 'email'
       ? { email: this.resetData.email, otp: this.resetData.otp, otp_channel: 'email' }

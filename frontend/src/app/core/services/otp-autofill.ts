@@ -56,7 +56,7 @@ export class OtpAutofillService {
       .then(({ AndroidSmsRetriever }) => AndroidSmsRetriever.retrieveSms())
       .then(({ message }) => {
         if (this.cancelled) return; // user navigated away before the SMS arrived
-        const code = message.match(/\d{4}/)?.[0];
+        const code = message.match(/\b\d{6}\b/)?.[0] ?? message.match(/\d{6}/)?.[0];
         if (code) this.zone.run(() => onReceived(code));
       })
       .catch(() => { /* TIMEOUT, user declined consent, or plugin unavailable — silent */ });

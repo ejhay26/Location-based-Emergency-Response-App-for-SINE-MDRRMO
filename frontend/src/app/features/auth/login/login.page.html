@@ -167,7 +167,7 @@
       <app-otp-box-input [code]="emailOtpData.otp" (codeChange)="emailOtpData.otp = $event" (completed)="verifyLoginOtp()"></app-otp-box-input>
 
       <ion-button expand="block" color="danger" class="ion-margin-top"
-                  [class.btn-muted]="emailOtpData.otp.length < 4"
+                  [class.btn-muted]="emailOtpData.otp.length < 6"
                   [class.btn-loading]="isVerifyingOtp"
                   (click)="verifyLoginOtp()"
                   style="font-weight: bold; height: 45px;">
@@ -275,12 +275,12 @@
     <div *ngIf="resetOtpSent && !resetOtpVerified" style="margin-top: 20px;">
       <h3 style="font-weight: bold; color: var(--ion-text-color); text-align: left; font-size: 16px;">Enter Code</h3>
       <p style="color: var(--ion-color-medium); font-weight: 500; text-align: left;" class="ion-margin-bottom">
-        Enter the 4-digit code sent to your {{ otpChannel === 'phone' ? 'phone number' : 'email' }}.
+        Enter the 6-digit code sent to your {{ otpChannel === 'phone' ? 'phone number' : 'email' }}.
       </p>
       <app-otp-box-input [code]="resetData.otp" (codeChange)="resetData.otp = $event" (completed)="verifyResetOtp()"></app-otp-box-input>
 
       <ion-button expand="block" color="danger" class="ion-margin-top"
-                  [class.btn-muted]="resetData.otp.length < 4"
+                  [class.btn-muted]="resetData.otp.length < 6"
                   [class.btn-loading]="isVerifyingResetOtp"
                   (click)="verifyResetOtp()"
                   style="font-weight: bold; height: 45px;">

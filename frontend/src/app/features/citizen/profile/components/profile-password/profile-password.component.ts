@@ -123,7 +123,7 @@ export class ProfilePasswordComponent implements OnDestroy {
   }
 
   verifyPwdChangeOtp() {
-    if (!this.pwdOtp || this.pwdOtp.length < 4 || this.pwdVerifying) return;
+    if (!this.pwdOtp || this.pwdOtp.length < 6 || this.pwdVerifying) return;
     this.pwdVerifying = true;
     this.api.verifyPasswordChangeOtp({ user_id: this.userId, otp: this.pwdOtp }).subscribe({
       next: () => {

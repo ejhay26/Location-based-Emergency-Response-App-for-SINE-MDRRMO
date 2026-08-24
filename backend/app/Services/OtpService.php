@@ -29,7 +29,7 @@ class OtpService
     private const MAX_REQUESTS_PER_HOUR   = 5;
 
     /**
-     * Generate a new 4-digit OTP and cache it under $key for $minutes.
+     * Generate a new 6-digit OTP and cache it under $key for $minutes.
      * Returns the generated code so the caller can send it (email/SMS).
      *
      * NOTE: this does NOT enforce the abuse limits below — it's kept as a
@@ -40,7 +40,7 @@ class OtpService
      */
     public function generateAndStore(string $key, int $minutes = 10): int
     {
-        $otp = rand(1000, 9999);
+        $otp = random_int(100000, 999999);
         Cache::put($key, $otp, now()->addMinutes($minutes));
         return $otp;
     }

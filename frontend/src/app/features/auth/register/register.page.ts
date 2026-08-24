@@ -174,7 +174,7 @@ export class RegisterPage implements OnDestroy {
   }
 
   verifyOtp(): void {
-    if (!this.otpCode?.trim() || this.otpCode.length < 4) { this.showToast('Please enter the 4-digit verification code.'); return; }
+    if (!this.otpCode?.trim() || this.otpCode.length < 6) { this.showToast('Please enter the 6-digit verification code.'); return; }
     if (this.isVerifyingOtp) return;
     this.isVerifyingOtp = true;
     this.api.verifyOtp({ email: this.userData.email, otp: this.otpCode }).subscribe({

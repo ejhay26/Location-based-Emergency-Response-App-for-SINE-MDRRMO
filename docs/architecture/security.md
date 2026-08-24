@@ -83,7 +83,7 @@ To protect citizens' identities and phone numbers from scraping or dictionary at
 
 ## 5. Multi-Channel OTP Security (`OtpService`)
 
-1. **Short-Lived Numeric Codes:** 4-digit codes generated using cryptographically secure random integers, valid for **10 minutes**.
+1. **Short-Lived Numeric Codes:** 6-digit codes generated using cryptographically secure random integers, valid for **10 minutes**.
 2. **Single-Use Invalidation:** The cached OTP is forgotten immediately upon successful verification.
 3. **Resend Cooldown & Hourly Cap:**
    - Minimum 60-second cooldown between resend attempts for the same phone/email.

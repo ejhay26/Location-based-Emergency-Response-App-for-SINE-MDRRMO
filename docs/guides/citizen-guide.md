@@ -27,8 +27,8 @@ Registration consists of three easy, guided steps:
 
 ### Step 3: Terms Agreement & Verification Code
 - **Terms & Privacy Modal:** Review the simplified Terms of Service (emergency scope, 3-strike false alarm rules) and Privacy Policy (Data Privacy Act RA 10173).
-- **Verification Channel:** Choose whether to receive your 4-digit code via **Email OTP** or **SMS OTP (PhilSMS)**.
-- **Enter Verification Code:** Enter the 4-digit code sent to your email or mobile number.
+- **Verification Channel:** Choose whether to receive your 6-digit code via **Email OTP** or **SMS OTP (PhilSMS)**.
+- **Enter Verification Code:** Enter the 6-digit code sent to your email or mobile number.
 - On Android phones, the app automatically detects the incoming SMS and presents a one-tap consent dialog to auto-fill the code.
 
 ---
@@ -49,11 +49,11 @@ Registration consists of three easy, guided steps:
 
 ### Login Methods
 - **Password Login:** Enter your username/email and password.
-- **Passwordless OTP Login:** Tap "Login with OTP instead", enter your registered email or phone number, and enter the 4-digit code received.
+- **Passwordless OTP Login:** Tap "Login with OTP instead", enter your registered email or phone number, and enter the 6-digit code received.
 
 ### Forgot Password
 1. Tap **Forgot Password?** on the login screen.
-2. Choose Email or Phone recovery and receive a 4-digit OTP.
+2. Choose Email or Phone recovery and receive a 6-digit OTP.
 3. Verify the OTP and immediately enter a new strong password.
 
 ---

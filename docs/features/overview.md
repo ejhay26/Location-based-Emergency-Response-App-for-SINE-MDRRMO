@@ -87,7 +87,7 @@ All administrative panels (Citizens, Dispatchers, Verifications, Log Archive, an
 ## 11. Multi-Channel OTP & Android SMS Retriever
 
 - **Multi-Channel Delivery:** Citizens can receive authentication codes via **Email** or **PhilSMS**.
-- **One-Tap Android Auto-Fill:** On Android devices, the native SMS User Consent API (`@capawesome/capacitor-android-sms-retriever`) reads the 4-digit code without requiring full SMS reading permissions.
+- **One-Tap Android Auto-Fill:** On Android devices, the native SMS User Consent API (`@capawesome/capacitor-android-sms-retriever`) reads the 6-digit code without requiring full SMS reading permissions.
 
 ---
 
