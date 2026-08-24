@@ -16,7 +16,7 @@
         {{
           currentStep === 1 ? 'Personal Details' :
           currentStep === 2 ? 'Account Credentials' :
-          currentStep === 3 ? 'Identity Verification' : 'Verification Code'
+          currentStep === 3 ? 'Identity Verification' : 'Verification & Agreement'
         }}
       </ion-text>
       <ion-text color="medium" style="font-weight: 600; font-size: 12px;">Step {{ currentStep }} of {{ totalSteps }}</ion-text>
@@ -92,7 +92,7 @@
     </div>
   </div>
 
-  <!-- ══ STEP 3: Identity Verification & Legal Consent ══ -->
+  <!-- ══ STEP 3: Identity Verification & OTP Channel ══ -->
   <div *ngIf="currentStep === 3">
     <!-- Verification Tips Box -->
     <div style="background: linear-gradient(135deg, rgba(235,68,90,0.08), rgba(235,68,90,0.03)); border: 1.5px solid rgba(235,68,90,0.25); border-radius: 14px; padding: 14px 16px; margin: 4px 0 16px 0;">
@@ -143,7 +143,7 @@
     <div style="margin-top: 18px; margin-bottom: 14px;">
       <p style="font-size: 13px; font-weight: bold; color: var(--ion-text-color); margin-bottom: 8px;">
         <i class="fa-solid fa-shield-halved" style="color: var(--ion-color-danger); margin-right: 6px;"></i>
-        Receive 6-Digit Code via:
+        Receive 6-Digit Verification Code via:
       </p>
       <div style="display: flex; gap: 10px;">
         <div (click)="selectOtpChannel('email')"
@@ -174,19 +174,6 @@
       </div>
     </div>
 
-    <!-- Terms & Privacy Agreement Checkbox -->
-    <div style="margin-top: 14px; padding: 10px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border-radius: 12px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
-      <ion-item lines="none" style="--background: transparent; --padding-start: 0;">
-        <ion-checkbox [(ngModel)]="termsAccepted" slot="start" color="danger" mode="md"></ion-checkbox>
-        <ion-label style="font-size: 12px; color: var(--ion-text-color); white-space: normal; line-height: 1.45;">
-          I agree to the
-          <a href="#" (click)="openTermsModal('terms', $event)" style="color: var(--ion-color-danger); font-weight: bold; text-decoration: underline;">Terms of Service</a>
-          and
-          <a href="#" (click)="openTermsModal('privacy', $event)" style="color: var(--ion-color-danger); font-weight: bold; text-decoration: underline;">Privacy Policy</a>.
-        </ion-label>
-      </ion-item>
-    </div>
-
     <div style="display: flex; gap: 10px; margin-top: 18px;">
       <ion-button expand="block" fill="outline" color="danger" (click)="prevStep()" style="font-weight: bold; height: 48px; flex: 1; border-radius: 12px;">
         <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> Back
@@ -194,13 +181,13 @@
       <ion-button expand="block" color="danger" (click)="nextStep()"
                   [class.btn-loading]="isRegistering"
                   style="font-weight: bold; height: 48px; flex: 1.8; border-radius: 12px;">
-        <ng-container *ngIf="!isRegistering">Agree &amp; Send Code <i class="fa-solid fa-paper-plane" style="margin-left: 8px;"></i></ng-container>
+        <ng-container *ngIf="!isRegistering">Send Verification Code <i class="fa-solid fa-paper-plane" style="margin-left: 8px;"></i></ng-container>
         <span *ngIf="isRegistering" class="dot-loader"><span></span><span></span><span></span></span>
       </ion-button>
     </div>
   </div>
 
-  <!-- ══ STEP 4: Final 6-Digit OTP Verification ══ -->
+  <!-- ══ STEP 4: Final 6-Digit OTP Verification & Legal Consent ══ -->
   <div *ngIf="currentStep === 4" class="ion-text-center">
     <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(235, 68, 90, 0.1); color: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 12px auto 16px auto;">
       <i [class]="userData.otp_channel === 'sms' ? 'fa-solid fa-comment-sms' : 'fa-solid fa-envelope-open-text'"></i>
@@ -219,11 +206,24 @@
       <app-otp-box-input [disabled]="isVerifyingOtp" [(code)]="otpCode" (completed)="verifyOtp()"></app-otp-box-input>
     </div>
 
+    <!-- Final Terms & Privacy Agreement Checkbox -->
+    <div style="margin: 16px 0 12px 0; padding: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border-radius: 12px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); text-align: left;">
+      <ion-item lines="none" style="--background: transparent; --padding-start: 0;">
+        <ion-checkbox [(ngModel)]="termsAccepted" slot="start" color="danger" mode="md"></ion-checkbox>
+        <ion-label style="font-size: 12px; color: var(--ion-text-color); white-space: normal; line-height: 1.45;">
+          I agree to the
+          <a href="#" (click)="openTermsModal('terms', $event)" style="color: var(--ion-color-danger); font-weight: bold; text-decoration: underline;">Terms of Service</a>
+          and
+          <a href="#" (click)="openTermsModal('privacy', $event)" style="color: var(--ion-color-danger); font-weight: bold; text-decoration: underline;">Privacy Policy</a>.
+        </ion-label>
+      </ion-item>
+    </div>
+
     <ion-button expand="block" color="danger" (click)="verifyOtp()"
                 [class.btn-loading]="isVerifyingOtp"
-                [disabled]="otpCode.length < 6"
+                [disabled]="otpCode.length < 6 || !termsAccepted"
                 style="font-weight: bold; height: 48px; border-radius: 12px; margin-top: 10px;">
-      <ng-container *ngIf="!isVerifyingOtp">Verify &amp; Submit Account <i class="fa-solid fa-circle-check" style="margin-left: 8px;"></i></ng-container>
+      <ng-container *ngIf="!isVerifyingOtp">Verify &amp; Complete Registration <i class="fa-solid fa-circle-check" style="margin-left: 8px;"></i></ng-container>
       <span *ngIf="isVerifyingOtp" class="dot-loader"><span></span><span></span><span></span></span>
     </ion-button>
 

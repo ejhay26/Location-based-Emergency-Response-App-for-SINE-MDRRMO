@@ -178,7 +178,7 @@ export class RegisterPage implements OnDestroy {
       return;
     }
 
-    // ── STEP 3: Identity Verification & Legal Consent ──
+    // ── STEP 3: Identity Verification ──
     if (this.currentStep === 3) {
       if (!this.userData.valid_id_type) {
         this.showToast('Please select your ID type.');
@@ -194,10 +194,6 @@ export class RegisterPage implements OnDestroy {
       }
       if (!this.userData.selfie_with_id_image) {
         this.showToast('A selfie holding your ID is required.');
-        return;
-      }
-      if (!this.termsAccepted) {
-        this.showToast('You must agree to the Terms of Service and Privacy Policy to continue.');
         return;
       }
 
@@ -273,6 +269,10 @@ export class RegisterPage implements OnDestroy {
   verifyOtp(): void {
     if (!this.otpCode?.trim() || this.otpCode.length < 6) {
       this.showToast('Please enter the 6-digit verification code.');
+      return;
+    }
+    if (!this.termsAccepted) {
+      this.showToast('Please accept the Terms of Service and Privacy Policy to complete registration.');
       return;
     }
     if (this.isVerifyingOtp) return;
