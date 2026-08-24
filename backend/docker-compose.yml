@@ -11,7 +11,7 @@ services:
     depends_on:
       - reverb
     ports:
-      - "8080:80"
+      - "80:80"
     env_file:
       - .env
       - path: .env.local
