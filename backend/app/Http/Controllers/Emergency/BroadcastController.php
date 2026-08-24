@@ -9,6 +9,7 @@ use App\Models\Broadcast;
 use App\Models\Barangay;
 use App\Services\NotificationService;
 use App\Traits\MediaHandling;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Admin/dispatcher-pushed alert broadcasts. A broadcast can be town-wide
@@ -81,13 +82,21 @@ class BroadcastController extends Controller
             'location'     => $location,
         ];
 
-        if (empty($barangayIds)) {
-            $this->notifications->notifyAllCitizens($notifTitle, $validated['message'], $data);
-        } else {
-            $this->notifications->notifyCitizensInBarangays($barangayIds, $notifTitle, $validated['message'], $data);
+        try {
+            if (empty($barangayIds)) {
+                $this->notifications->notifyAllCitizens($notifTitle, $validated['message'], $data);
+            } else {
+                $this->notifications->notifyCitizensInBarangays($barangayIds, $notifTitle, $validated['message'], $data);
+            }
+        } catch (\Throwable $e) {
+            Log::error('BroadcastController: notification failed: ' . $e->getMessage());
         }
 
-        broadcast(new BroadcastMessageUpdated('created', $broadcast->broadcast_id))->toOthers();
+        try {
+            broadcast(new BroadcastMessageUpdated('created', $broadcast->broadcast_id));
+        } catch (\Throwable $e) {
+            Log::error('BroadcastController: reverb broadcast failed: ' . $e->getMessage());
+        }
 
         return response()->json(['message' => "Broadcast pushed to {$location}!"]);
     }
@@ -146,7 +155,11 @@ class BroadcastController extends Controller
         $broadcast->is_active = 0;
         $broadcast->save();
 
-        broadcast(new BroadcastMessageUpdated('cleared', $broadcast->broadcast_id))->toOthers();
+        try {
+            broadcast(new BroadcastMessageUpdated('cleared', $broadcast->broadcast_id));
+        } catch (\Throwable $e) {
+            Log::error('BroadcastController: clear broadcast failed: ' . $e->getMessage());
+        }
 
         return response()->json(['message' => 'Broadcast alert cleared.']);
     }

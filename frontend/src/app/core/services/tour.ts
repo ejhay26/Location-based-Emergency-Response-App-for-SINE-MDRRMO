@@ -179,6 +179,8 @@ export class TourService {
   // The overlay hides itself when this is true so it doesn't cover modals.
   modalOpen  = signal(false);
 
+  private currentChapter: TourChapter = 'all';
+  private filteredSteps: TourStep[] = STEPS;
   private navigating = false;
 
   constructor(private router: Router, private alertCtrl: AlertController) {
@@ -187,15 +189,15 @@ export class TourService {
         if (!this.isActive()) return;
         if (this.navigating) { this.navigating = false; return; }
         const actual = (e.urlAfterRedirects as string).split('?')[0];
-        const validPages = new Set(STEPS.map(s => s.page.split('?')[0]));
+        const validPages = new Set(this.steps.map(s => s.page.split('?')[0]));
         if (!validPages.has(actual)) this.cancelSilent();
       });
   }
 
-  get steps()       { return STEPS; }
-  get currentStep() { return STEPS[this.stepIndex()]; }
-  get totalSteps()  { return STEPS.length; }
-  get isLastStep()  { return this.stepIndex() === STEPS.length - 1; }
+  get steps()       { return this.filteredSteps; }
+  get currentStep() { return this.filteredSteps[this.stepIndex()]; }
+  get totalSteps()  { return this.filteredSteps.length; }
+  get isLastStep()  { return this.stepIndex() === this.filteredSteps.length - 1; }
 
   async promptStart() {
     const alert = await this.alertCtrl.create({
@@ -210,7 +212,14 @@ export class TourService {
   }
 
   start(chapter: TourChapter = 'all') {
-    this.stepIndex.set(CHAPTER_START[chapter] ?? 0);
+    this.currentChapter = chapter;
+    if (chapter === 'all') {
+      this.filteredSteps = STEPS;
+      this.stepIndex.set(0);
+    } else {
+      this.filteredSteps = STEPS.filter(s => s.chapter === chapter);
+      this.stepIndex.set(0);
+    }
     this.isActive.set(true);
     this.applyStep();
   }
@@ -234,15 +243,16 @@ export class TourService {
   }
 
   // User explicitly exited mid-tour — treat this the same as finishing: don't nag them again.
-  cancel()       { this.isActive.set(false); this.targetId.set(''); this.stepIndex.set(0); this.markSeen(); }
+  cancel()       { this.isActive.set(false); this.targetId.set(''); this.stepIndex.set(0); this.filteredSteps = STEPS; this.markSeen(); }
   // Tour was interrupted by unrelated navigation (not a deliberate exit) — don't mark as seen,
   // so it can still be resumed/prompted normally later.
-  cancelSilent() { this.isActive.set(false); this.targetId.set(''); this.stepIndex.set(0); }
+  cancelSilent() { this.isActive.set(false); this.targetId.set(''); this.stepIndex.set(0); this.filteredSteps = STEPS; }
 
   finish() {
     this.isActive.set(false);
     this.targetId.set('');
     this.stepIndex.set(0);
+    this.filteredSteps = STEPS;
     this.markSeen();
     this.navigating = true;
     this.router.navigate(['/tabs/home']);

@@ -23,12 +23,15 @@ export class WelcomePage implements OnInit {
 
   locationGranted  = false;
   cameraGranted    = false;
+  photosGranted    = false;
   notifGranted     = false;
   locationRequested  = false;
   cameraRequested    = false;
+  photosRequested    = false;
   notifRequested     = false;
   locationLoading = false;
   cameraLoading   = false;
+  photosLoading   = false;
   notifLoading    = false;
 
   constructor(private router: Router) {}
@@ -82,11 +85,21 @@ export class WelcomePage implements OnInit {
   async requestCamera() {
     this.cameraLoading = true;
     try {
-      const result = await this.withMinDelay(Camera.requestPermissions({ permissions: ['camera', 'photos'] }));
-      this.cameraGranted = result.camera === 'granted' || result.photos === 'granted';
+      const result = await this.withMinDelay(Camera.requestPermissions({ permissions: ['camera'] }));
+      this.cameraGranted = result.camera === 'granted';
     } catch { this.cameraGranted = false; }
     this.cameraRequested = true;
     this.cameraLoading = false;
+  }
+
+  async requestPhotos() {
+    this.photosLoading = true;
+    try {
+      const result = await this.withMinDelay(Camera.requestPermissions({ permissions: ['photos'] }));
+      this.photosGranted = result.photos === 'granted';
+    } catch { this.photosGranted = false; }
+    this.photosRequested = true;
+    this.photosLoading = false;
   }
 
   async requestNotifications() {

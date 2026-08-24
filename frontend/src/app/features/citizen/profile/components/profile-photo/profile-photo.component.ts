@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, injec
 import { CommonModule } from '@angular/common';
 import { IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, AlertController } from '@ionic/angular/standalone';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ApiService } from '../../../../../core/services/api';
 import { ImageCacheService } from '../../../../../core/services/image-cache';
 import { TourService } from '../../../../../core/services/tour';
@@ -57,23 +58,33 @@ export class ProfilePhotoComponent implements OnChanges {
     const a = await this.alertCtrl.create({
       header: 'Change Profile Photo',
       buttons: [
-        { text: 'Choose from Gallery', handler: () => { document.getElementById('profileGalleryInput')?.click(); } },
-        { text: 'Take a Photo',        handler: () => { document.getElementById('profileCameraInput')?.click(); } },
+        { text: 'Choose from Gallery', handler: () => { this.selectFromSource(CameraSource.Photos); } },
+        { text: 'Take a Photo',        handler: () => { this.selectFromSource(CameraSource.Camera); } },
         { text: 'Cancel', role: 'cancel' }
       ]
     });
     await a.present();
   }
 
-  onPhotoFileSelected(event: any) {
-    const file: File = event.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/') || file.type === 'image/gif') {
-      this.toast.emit({ msg: 'Only photos are accepted (no GIFs or videos).', color: 'warning' }); return;
+  async selectFromSource(source: CameraSource) {
+    try {
+      const permissionType = source === CameraSource.Camera ? 'camera' : 'photos';
+      await Camera.requestPermissions({ permissions: [permissionType] });
+      const result = await Camera.getPhoto({
+        quality: 85,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: source
+      });
+      if (!result.dataUrl) return;
+      const res = await fetch(result.dataUrl);
+      const blob = await res.blob();
+      this.cropperFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+      this.croppedBase64 = '';
+      this.showCropper = true;
+    } catch {
+      // User cancelled picker or closed dialog
     }
-    if (file.size > 10 * 1024 * 1024) { this.toast.emit({ msg: 'Image too large. Max 10MB.', color: 'warning' }); return; }
-    this.cropperFile = file; this.croppedBase64 = ''; this.showCropper = true;
-    (event.target as HTMLInputElement).value = '';
   }
 
   onPhotoCropped(event: ImageCroppedEvent) {

@@ -63,15 +63,37 @@ export class DialogService {
   confirmLoading = signal(false);
   private resolver: ((confirmed: boolean) => void) | null = null;
 
+  private resolveColor(color?: string): string {
+    if (!color) return '#eb445a';
+    const map: Record<string, string> = {
+      danger:  '#eb445a',
+      success: '#2dd36f',
+      warning: '#ffc409',
+      primary: '#3880ff',
+      medium:  '#92949c',
+      dark:    '#222428',
+      light:   '#f4f5f8',
+    };
+    return map[color.toLowerCase()] ?? color;
+  }
+
   /** Shows a themed confirm dialog; resolves true if the user confirmed, false if they dismissed it. */
   confirm(cfg: ConfirmDialogConfig): Promise<boolean> {
     // A dialog request arriving while one is already open shouldn't leave the
     // first caller's promise hanging forever — resolve it as "cancelled".
     this.resolver?.(false);
     this.confirmLoading.set(false);
+    const resolvedConfirmColor = this.resolveColor(cfg.confirmColor);
+    const resolvedIconColor    = this.resolveColor(cfg.iconColor);
     return new Promise<boolean>(resolve => {
       this.resolver = resolve;
-      this.confirmDialog.set({ ...CLOSED_STATE, ...cfg, open: true });
+      this.confirmDialog.set({
+        ...CLOSED_STATE,
+        ...cfg,
+        confirmColor: resolvedConfirmColor,
+        iconColor: resolvedIconColor,
+        open: true
+      });
     });
   }
 

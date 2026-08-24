@@ -107,7 +107,7 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
    * silently disappears". See TourService.skipMissingStep().
    */
   private missingSince: number | null = null;
-  private readonly MISSING_TIMEOUT_MS = 3000;
+  private readonly MISSING_TIMEOUT_MS = 6000;
 
   constructor(public tour: TourService, private cdr: ChangeDetectorRef) {
     effect(() => {

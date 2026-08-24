@@ -58,7 +58,7 @@ class CitizenController extends Controller
         $user->save();
         $user->tokens()->delete();
 
-        broadcast(new UserVerified('suspended', $user->user_id))->toOthers();
+        broadcast(new UserVerified('suspended', $user->user_id));
 
         return response()->json(['message' => 'Account suspended.', 'user' => $user->fresh()]);
     }
@@ -73,7 +73,7 @@ class CitizenController extends Controller
         $user->banned_at      = null;
         $user->save();
 
-        broadcast(new UserVerified('reinstated', $user->user_id))->toOthers();
+        broadcast(new UserVerified('reinstated', $user->user_id));
 
         return response()->json(['message' => 'Account reactivated.', 'user' => $user->fresh()]);
     }
@@ -94,7 +94,7 @@ class CitizenController extends Controller
         $user->account_status = 'active';
         $user->save();
 
-        broadcast(new UserVerified('approved', $user->user_id))->toOthers();
+        broadcast(new UserVerified('approved', $user->user_id));
 
         // Best-effort welcome notification — a failure here must not undo
         // the approval that already succeeded above.
@@ -148,7 +148,7 @@ class CitizenController extends Controller
             }
             $userId = $user->user_id;
             $user->delete();
-            broadcast(new UserVerified('rejected', $userId))->toOthers();
+            broadcast(new UserVerified('rejected', $userId));
         }
         return response()->json(['message' => 'User request rejected and deleted.']);
     }

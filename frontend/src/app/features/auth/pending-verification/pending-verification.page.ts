@@ -38,8 +38,8 @@ type VerificationStatus = 'checking' | 'unverified' | 'active' | 'banned' | 'not
 })
 export class PendingVerificationPage implements OnInit, OnDestroy {
 
-  /** Fallback polling interval in ms — active when the WebSocket is down. */
-  readonly POLL_INTERVAL_MS = 30_000;
+  /** Fallback polling interval in ms — active when the WebSocket is down or reconnecting. */
+  readonly POLL_INTERVAL_MS = 4_000;
 
   identifier = '';
   status: VerificationStatus = 'checking';
@@ -64,13 +64,13 @@ export class PendingVerificationPage implements OnInit, OnDestroy {
     // Initial check immediately on mount.
     this.checkStatus();
 
-    // Primary: Echo fires the moment an admin approves/rejects any account.
+    // Primary: Reverb Echo fires the moment an admin approves/rejects any account.
     this.echo.connect();
     this.echoUserSub = this.echo.onUserVerified.subscribe(() => {
       this.checkStatus();
     });
 
-    // Fallback: 30s poll covers disconnected WebSocket scenarios.
+    // Fallback: 4s poll covers disconnected WebSocket scenarios.
     this.fallbackPollSub = interval(this.POLL_INTERVAL_MS).subscribe(() => {
       this.checkStatus();
     });
