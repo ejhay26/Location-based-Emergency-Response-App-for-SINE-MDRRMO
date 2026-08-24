@@ -347,21 +347,44 @@ class AuthController extends Controller
         $suggestions = [];
 
         // Generate smart suggestions if the username is taken or suggestions are requested
-        $firstName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string) $request->query('first_name', '')));
+        $rawFirst   = trim((string) $request->query('first_name', ''));
+        $firstWords = array_values(array_filter(preg_split('/[\s\-_]+/', strtolower($rawFirst))));
+        $firstWord  = $firstWords[0] ?? '';
+        $joinedFirst = preg_replace('/[^a-zA-Z0-9]/', '', strtolower($rawFirst));
+        $firstInitials = '';
+        foreach ($firstWords as $w) {
+            if (!empty($w)) $firstInitials .= $w[0];
+        }
+
         $lastName  = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string) $request->query('last_name', '')));
         $barangay  = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string) $request->query('barangay', '')));
         $birthdate = $request->query('birthdate');
         $year      = $birthdate ? date('Y', strtotime($birthdate)) : '';
         $shortYear = $birthdate ? date('y', strtotime($birthdate)) : date('y');
-        $baseName  = $requested ?: ($firstName . ($lastName ? substr($lastName, 0, 2) : ''));
+        $baseName  = $requested ?: ($firstWord ?: $joinedFirst);
 
         $candidates = array_values(array_filter([
-            $firstName && $lastName ? "{$firstName}.{$lastName}" : null,
-            $firstName && $lastName ? "{$firstName}_{$lastName}" : null,
-            $firstName && $lastName ? "{$firstName}{$lastName}" : null,
-            $firstName && $year     ? "{$firstName}{$year}" : null,
-            $firstName && $shortYear ? "{$firstName}{$shortYear}" : null,
-            $firstName && $barangay ? "{$firstName}_{$barangay}" : null,
+            // Multi-word initial handles (e.g. "Emmanuel John Ramos" -> "ej.ramos", "ej_ramos", "ejramos")
+            strlen($firstInitials) > 1 && $lastName ? "{$firstInitials}.{$lastName}" : null,
+            strlen($firstInitials) > 1 && $lastName ? "{$firstInitials}_{$lastName}" : null,
+            strlen($firstInitials) > 1 && $lastName ? "{$firstInitials}{$lastName}" : null,
+
+            // Primary first-name handles (e.g. "emmanuel.ramos", "emmanuel_ramos")
+            $firstWord && $lastName ? "{$firstWord}.{$lastName}" : null,
+            $firstWord && $lastName ? "{$firstWord}_{$lastName}" : null,
+            $firstWord && $lastName ? "{$firstWord}{$lastName}" : null,
+
+            // Full joined name handles (e.g. "emmanueljohn.ramos", "emmanueljohn")
+            $joinedFirst && $joinedFirst !== $firstWord && $lastName ? "{$joinedFirst}.{$lastName}" : null,
+            $joinedFirst && $joinedFirst !== $firstWord ? "{$joinedFirst}_{$lastName}" : null,
+
+            // Birthdate & Location handles (e.g. "emmanuel2001", "emmanuel_tabon", "ej_tabon")
+            $firstWord && $year     ? "{$firstWord}{$year}" : null,
+            $firstWord && $shortYear ? "{$firstWord}{$shortYear}" : null,
+            $firstWord && $barangay ? "{$firstWord}_{$barangay}" : null,
+            strlen($firstInitials) > 1 && $barangay ? "{$firstInitials}_{$barangay}" : null,
+
+            // SINE municipal branded handles
             $baseName ? "{$baseName}_sine" : null,
             $baseName ? "sine_{$baseName}" : null,
             $baseName ? "{$baseName}" . $shortYear : null,
