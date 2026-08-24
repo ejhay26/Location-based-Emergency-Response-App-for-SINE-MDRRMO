@@ -24,7 +24,7 @@ export interface MediaFile { preview: string; type: 'photo' | 'video'; }
   standalone: true,
   imports: [
     CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
-    IonButtons, IonModal, ImageCropperComponent
+    IonModal, ImageCropperComponent
   ],
   templateUrl: './report-media.component.html',
 })
@@ -142,6 +142,11 @@ export class ReportMediaComponent {
   }
 
   cancelCrop() { this.showCropper = false; this.cropperFile = null; this.croppedBase64 = ''; this.tour.modalOpen.set(false); }
+
+  async retakeCrop() {
+    this.croppedBase64 = '';
+    await this.takePhoto();
+  }
 
   disablePhotoCropperNow() {
     this.userSettings.setBool('photo_cropping_enabled', false);

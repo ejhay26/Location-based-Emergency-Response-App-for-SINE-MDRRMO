@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, AlertController } from '@ionic/angular/standalone';
+import { IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, AlertController } from '@ionic/angular/standalone';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { ApiService } from '../../../../../core/services/api';
 import { ImageCacheService } from '../../../../../core/services/image-cache';
@@ -16,7 +16,7 @@ import { ToastRequest } from '../profile-shared-types';
 @Component({
   selector: 'app-profile-photo',
   standalone: true,
-  imports: [CommonModule, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, ImageCropperComponent],
+  imports: [CommonModule, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, ImageCropperComponent],
   templateUrl: './profile-photo.component.html',
 })
 export class ProfilePhotoComponent implements OnChanges {

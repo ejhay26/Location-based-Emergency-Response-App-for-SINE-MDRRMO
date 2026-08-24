@@ -1,23 +1,17 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonCard, IonCardContent, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent } from '@ionic/angular/standalone';
+import { IonCard, IonCardContent, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/standalone';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
 
 /**
  * RegisterIdCaptureComponent — reusable capture+crop flow used for both the
  * "Valid ID" photo and the "Selfie with ID" photo during registration.
- * The original register.page duplicated this entire flow (capture button,
- * preview, crop modal) twice with only cosmetic differences (title, icon,
- * camera direction) — consolidated here into one component driven by
- * `variant`, written back onto the shared `userData` object via `fieldName`
- * so the parent's step-1 validation (`!!userData.valid_id_image` etc.) needs
- * no separate synced flag.
  */
 @Component({
   selector: 'app-register-id-capture',
   standalone: true,
-  imports: [CommonModule, IonCard, IonCardContent, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, ImageCropperComponent],
+  imports: [CommonModule, IonCard, IonCardContent, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, ImageCropperComponent],
   templateUrl: './register-id-capture.component.html',
 })
 export class RegisterIdCaptureComponent {
@@ -79,6 +73,11 @@ export class RegisterIdCaptureComponent {
       this.rawFile = new File([blob], this.config.fileName, { type: 'image/jpeg' });
       this.showCropper = true;
     } catch { /* cancelled */ }
+  }
+
+  async retakeCrop(): Promise<void> {
+    this.croppedBase64 = '';
+    await this.triggerCapture();
   }
 
   onCropped(event: ImageCroppedEvent): void { this.croppedBase64 = event.base64 ?? ''; }
