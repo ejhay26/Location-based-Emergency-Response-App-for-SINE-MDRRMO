@@ -27,6 +27,7 @@ services:
       - ./config:/var/www/html/config:Z
       - ./database:/var/www/html/database:Z
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:Z
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/99-app.ini:Z
       - ./docker/php/zz-docker.conf:/usr/local/etc/php-fpm.d/zz-docker.conf:Z
       - ./storage:/var/www/html/storage:Z
 

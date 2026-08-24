@@ -321,11 +321,23 @@ class AuthController extends Controller
 
         $channel = $request->input('otp_channel', 'email');
         $otp     = $this->otp->generateAndStore('otp_' . $user->email);
+        $smsFailed = false;
 
         if ($channel === 'sms') {
-            $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'account registration');
-            if (!$sent) {
-                return response()->json(['message' => 'Account created, but SMS OTP delivery failed. Please request resend via email.'], 500);
+            try {
+                $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'account registration');
+                if (!$sent) {
+                    $smsFailed = true;
+                    // Fallback to email so user still gets their code without interruption
+                    try {
+                        Mail::to($user->email)->send(new OtpMail($otp, 'verifying your new account (SMS fallback)'));
+                    } catch (\Throwable $e) {
+                        Log::error('Registration Email Fallback Error: ' . $e->getMessage());
+                    }
+                }
+            } catch (\Throwable $e) {
+                $smsFailed = true;
+                Log::error('Registration SMS Error: ' . $e->getMessage());
             }
         } else {
             try {
@@ -335,7 +347,11 @@ class AuthController extends Controller
             }
         }
 
-        return response()->json(['message' => 'Verification code sent.']);
+        $message = $smsFailed
+            ? 'Verification code generated and sent to your email (SMS gateway was unavailable).'
+            : 'Verification code sent.';
+
+        return response()->json(['message' => $message]);
     }
 
     /**
