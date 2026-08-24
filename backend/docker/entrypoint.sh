@@ -61,5 +61,9 @@ if [ ! -L public/storage ]; then
     php artisan storage:link >/dev/null 2>&1 || true
 fi
 
+# ── 7. Ensure backup CLI is executable and available globally in PATH ────
+chmod +x /var/www/html/bin/backup 2>/dev/null || true
+ln -sf /var/www/html/bin/backup /usr/local/bin/backup 2>/dev/null || true
+
 # Hand off to CMD (supervisord -c /etc/supervisord.conf)
 exec "$@"

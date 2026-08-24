@@ -51,7 +51,9 @@ COPY docker/php/php.ini           /usr/local/etc/php/conf.d/99-app.ini
 COPY docker/php/zz-docker.conf    /usr/local/etc/php-fpm.d/zz-docker.conf
 COPY docker/supervisord.conf      /etc/supervisord.conf
 COPY docker/entrypoint.sh         /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+ && chmod +x /var/www/html/bin/backup \
+ && ln -sf /var/www/html/bin/backup /usr/local/bin/backup
 
 EXPOSE 80
 
