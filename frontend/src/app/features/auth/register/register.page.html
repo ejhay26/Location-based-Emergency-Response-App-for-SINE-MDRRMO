@@ -17,18 +17,46 @@
   <!-- ══ STEP 1: Personal Details ══ -->
   <div *ngIf="currentStep === 1">
     <ion-list style="background: transparent;">
-      <ion-item><ion-input label="First Name" labelPlacement="stacked" placeholder="Tap to enter your first name" [(ngModel)]="userData.first_name" required></ion-input></ion-item>
-      <ion-item><ion-input label="Last Name" labelPlacement="stacked" placeholder="Tap to enter your last name" [(ngModel)]="userData.last_name" required></ion-input></ion-item>
-      <ion-item>
+      <ion-item class="boxed-input-item">
+        <ion-input label="First Name" labelPlacement="stacked" placeholder="Tap to enter your first name" [(ngModel)]="userData.first_name" required></ion-input>
+      </ion-item>
+      <ion-item class="boxed-input-item">
+        <ion-input label="Last Name" labelPlacement="stacked" placeholder="Tap to enter your last name" [(ngModel)]="userData.last_name" required></ion-input>
+      </ion-item>
+      <ion-item class="boxed-input-item">
         <ion-input label="Phone Number" labelPlacement="stacked" placeholder="9XXXXXXXXX" type="tel" inputmode="numeric" maxlength="10"
                    [ngModel]="phoneLocal" (ionInput)="onPhoneInput($event.detail.value)" required>
           <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:600;">+63</div>
         </ion-input>
       </ion-item>
-      <ion-item><ion-input label="Birthdate" labelPlacement="stacked" type="date" [(ngModel)]="userData.birthdate" required></ion-input></ion-item>
+
+      <!-- 3-Part Birthdate Selector -->
+      <div class="birthdate-container">
+        <label class="birthdate-label">Birthdate</label>
+        <div class="birthdate-grid">
+          <!-- Month -->
+          <div class="birthdate-select-box">
+            <ion-select placeholder="Month" [(ngModel)]="birthMonth" (ionChange)="updateBirthdate()" interface="popover">
+              <ion-select-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</ion-select-option>
+            </ion-select>
+          </div>
+          <!-- Day -->
+          <div class="birthdate-select-box">
+            <ion-select placeholder="Day" [(ngModel)]="birthDay" (ionChange)="updateBirthdate()" interface="popover">
+              <ion-select-option *ngFor="let d of daysInSelectedMonth" [value]="d">{{ d }}</ion-select-option>
+            </ion-select>
+          </div>
+          <!-- Year -->
+          <div class="birthdate-select-box">
+            <ion-select placeholder="Year" [(ngModel)]="birthYear" (ionChange)="updateBirthdate()" interface="popover">
+              <ion-select-option *ngFor="let y of birthYears" [value]="y">{{ y }}</ion-select-option>
+            </ion-select>
+          </div>
+        </div>
+      </div>
     </ion-list>
 
-    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="nextStep()" style="font-weight: bold; height: 45px;">Next</ion-button>
+    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="nextStep()" style="font-weight: bold; height: 45px; border-radius: 12px;">Next</ion-button>
   </div>
 
   <!-- ══ STEP 2: ID Verification ══ -->

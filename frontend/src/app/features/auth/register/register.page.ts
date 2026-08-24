@@ -29,6 +29,7 @@ import { OtpAutofillService } from '../../../core/services/otp-autofill';
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
+  styleUrls: ['./register.page.scss'],
   standalone: true,
   imports: [
     CommonModule, FormsModule,
@@ -58,6 +59,43 @@ export class RegisterPage implements OnDestroy {
    * a user types out of habit never has to round-trip through userData.phone.
    */
   phoneLocal = '';
+
+  birthMonth = '';
+  birthDay = '';
+  birthYear = '';
+
+  months = [
+    { value: '01', label: 'Jan' },
+    { value: '02', label: 'Feb' },
+    { value: '03', label: 'Mar' },
+    { value: '04', label: 'Apr' },
+    { value: '05', label: 'May' },
+    { value: '06', label: 'Jun' },
+    { value: '07', label: 'Jul' },
+    { value: '08', label: 'Aug' },
+    { value: '09', label: 'Sep' },
+    { value: '10', label: 'Oct' },
+    { value: '11', label: 'Nov' },
+    { value: '12', label: 'Dec' },
+  ];
+
+  birthYears = Array.from({ length: 90 }, (_, i) => String(new Date().getFullYear() - 12 - i));
+
+  get daysInSelectedMonth(): number[] {
+    const month = parseInt(this.birthMonth, 10) || 1;
+    const year = parseInt(this.birthYear, 10) || new Date().getFullYear();
+    const daysCount = new Date(year, month, 0).getDate();
+    return Array.from({ length: daysCount }, (_, i) => i + 1);
+  }
+
+  updateBirthdate(): void {
+    if (this.birthYear && this.birthMonth && this.birthDay) {
+      const dayStr = String(this.birthDay).padStart(2, '0');
+      this.userData.birthdate = `${this.birthYear}-${this.birthMonth}-${dayStr}`;
+    } else {
+      this.userData.birthdate = '';
+    }
+  }
 
   onPhoneInput(raw: string | null | undefined): void {
     this.phoneLocal = formatPhoneLocalPart(raw ?? '');

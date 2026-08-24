@@ -251,39 +251,47 @@ class AuthController extends Controller
             return response()->json(['message' => 'Selfie photo must be a PNG or JPEG image.'], 422);
         }
 
-        // Store ID proof and selfie-with-ID on the PUBLIC disk for now.
-        // TODO: Switch to storePrivate() once private retrieval endpoint is set up.
-        $ext        = $this->mimeToExtension($mime);
-        $idFileName = 'id_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $ext;
-        $idPath     = 'verification_ids/' . $request->username . '/' . $idFileName;
-        $idUrl      = $this->storePublic($idPath, $id_base64);
+        try {
+            DB::beginTransaction();
 
-        $idBackExt      = $this->mimeToExtension($idBackMime);
-        $idBackFileName = 'id_back_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $idBackExt;
-        $idBackPath     = 'verification_ids/' . $request->username . '/' . $idBackFileName;
-        $idBackUrl      = $this->storePublic($idBackPath, $idBack_base64);
+            $ext        = $this->mimeToExtension($mime);
+            $idFileName = 'id_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $ext;
+            $idPath     = 'verification_ids/' . $request->username . '/' . $idFileName;
+            $idUrl      = $this->storePublic($idPath, $id_base64);
 
-        $selfieExt      = $this->mimeToExtension($selfieMime);
-        $selfieFileName = 'selfie_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $selfieExt;
-        $selfiePath     = 'verification_ids/' . $request->username . '/' . $selfieFileName;
-        $selfieUrl      = $this->storePublic($selfiePath, $selfie_base64);
+            $idBackExt      = $this->mimeToExtension($idBackMime);
+            $idBackFileName = 'id_back_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $idBackExt;
+            $idBackPath     = 'verification_ids/' . $request->username . '/' . $idBackFileName;
+            $idBackUrl      = $this->storePublic($idBackPath, $idBack_base64);
 
-        $user = User::create([
-            'first_name'     => $request->first_name,
-            'last_name'      => $request->last_name,
-            'phone'          => $normalizedPhone,
-            'birthdate'      => $request->birthdate,
-            'username'       => $request->username,
-            'email'          => $request->email,
-            'password'       => Hash::make($request->password),
-            'barangay_id'    => $request->barangay_id,
-            'role'           => 'citizen',
-            'account_status' => 'unverified',
-            'valid_id_proof' => $idUrl,
-            'valid_id_proof_back' => $idBackUrl,
-            'valid_id_type'  => $request->valid_id_type,
-            'selfie_with_id_proof' => $selfieUrl,
-        ]);
+            $selfieExt      = $this->mimeToExtension($selfieMime);
+            $selfieFileName = 'selfie_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $selfieExt;
+            $selfiePath     = 'verification_ids/' . $request->username . '/' . $selfieFileName;
+            $selfieUrl      = $this->storePublic($selfiePath, $selfie_base64);
+
+            $user = User::create([
+                'first_name'     => $request->first_name,
+                'last_name'      => $request->last_name,
+                'phone'          => $normalizedPhone,
+                'birthdate'      => $request->birthdate,
+                'username'       => $request->username,
+                'email'          => $request->email,
+                'password'       => Hash::make($request->password),
+                'barangay_id'    => $request->barangay_id,
+                'role'           => 'citizen',
+                'account_status' => 'unverified',
+                'valid_id_proof' => $idUrl,
+                'valid_id_proof_back' => $idBackUrl,
+                'valid_id_type'  => $request->valid_id_type,
+                'selfie_with_id_proof' => $selfieUrl,
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Registration Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['message' => 'Registration failed: ' . $e->getMessage()], 500);
+        }
 
         $channel = $request->input('otp_channel', 'email');
         $otp     = $this->otp->generateAndStore('otp_' . $user->email);
@@ -291,10 +299,14 @@ class AuthController extends Controller
         if ($channel === 'sms') {
             $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'account registration');
             if (!$sent) {
-                return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
+                return response()->json(['message' => 'Account created, but SMS OTP delivery failed. Please request resend via email.'], 500);
             }
         } else {
-            Mail::to($user->email)->send(new OtpMail($otp, 'verifying your new account'));
+            try {
+                Mail::to($user->email)->send(new OtpMail($otp, 'verifying your new account'));
+            } catch (\Throwable $e) {
+                Log::error('Registration Email Error: ' . $e->getMessage());
+            }
         }
 
         return response()->json(['message' => 'Verification code sent.']);

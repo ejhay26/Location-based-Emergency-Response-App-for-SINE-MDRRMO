@@ -1,14 +1,17 @@
 <ion-list style="background: transparent;">
-  <ion-item>
+  <!-- Barangay Box -->
+  <ion-item class="boxed-input-item" style="border-radius: 12px; margin-bottom: 10px; border: 1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); --background: var(--ion-item-background, #fff);">
     <ion-select label="Barangay" labelPlacement="stacked" placeholder="Tap to select your barangay" [(ngModel)]="userData.barangay_id" required>
       <ion-select-option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</ion-select-option>
     </ion-select>
   </ion-item>
 
+  <!-- Username Box -->
   <ion-item
-    [style.border]="usernameAvailable === true ? '2px solid #2dd36f' : (usernameAvailable === false ? '2px solid #eb445a' : 'none')"
-    style="border-radius: 12px; margin-bottom: 5px;">
+    [style.border]="usernameAvailable === true ? '2px solid #2dd36f' : (usernameAvailable === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
+    style="border-radius: 12px; margin-bottom: 5px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
     <ion-input label="Username" labelPlacement="stacked" type="text" placeholder="Tap to enter a username"
+               maxlength="20"
                [(ngModel)]="userData.username" (ionInput)="onUsernameInput()" required></ion-input>
     <i class="fa-solid fa-spinner fa-spin" slot="end"
        *ngIf="usernameAvailable === null && (userData.username ?? '').length > 0" style="color: #8a8a8a;"></i>
@@ -19,7 +22,7 @@
   <p *ngIf="(userData.username ?? '').length > 0 && !isUsernameFormatValid()"
      style="color: #eb445a; font-size: 12px; margin: 4px 0 8px 8px;">
     <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-    Only letters, numbers, underscores and dots allowed.
+    Must be 3–20 characters (letters, numbers, dots, underscores).
   </p>
 
   <!-- Smart Suggested Usernames Strip -->
@@ -36,9 +39,10 @@
     </div>
   </div>
 
+  <!-- Email Box -->
   <ion-item
-    [style.border]="emailAvailable === true ? '2px solid #2dd36f' : (emailAvailable === false ? '2px solid #eb445a' : 'none')"
-    style="border-radius: 12px; margin-bottom: 5px;">
+    [style.border]="emailAvailable === true ? '2px solid #2dd36f' : (emailAvailable === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
+    style="border-radius: 12px; margin-bottom: 5px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
     <ion-input label="Email Address" labelPlacement="stacked" type="email" placeholder="Tap to enter your email address"
                [(ngModel)]="userData.email" (ionInput)="onEmailInput()" required></ion-input>
     <i class="fa-solid fa-spinner fa-spin" slot="end"
@@ -53,18 +57,27 @@
     Please enter a valid email address.
   </p>
 
-  <ion-item>
+  <!-- Password Box -->
+  <ion-item
+    [style.border]="isPasswordValid ? '2px solid #2dd36f' : (passwordFocused ? '2px solid var(--ion-color-danger)' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
+    style="border-radius: 12px; margin-bottom: 10px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
     <ion-input label="Password" labelPlacement="stacked" type="password" placeholder="Tap to enter a password"
                [(ngModel)]="userData.password"
                (ionFocus)="passwordFocused = true" (ionBlur)="passwordFocused = false" required>
       <ion-input-password-toggle slot="end"></ion-input-password-toggle>
     </ion-input>
   </ion-item>
-  <ion-item>
+
+  <!-- Confirm Password Box -->
+  <ion-item
+    [style.border]="passwordsMatch === true ? '2px solid #2dd36f' : (passwordsMatch === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
+    style="border-radius: 12px; margin-bottom: 5px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
     <ion-input label="Confirm Password" labelPlacement="stacked" type="password" placeholder="Tap to re-enter your password"
                [(ngModel)]="userData.confirm_password" required>
       <ion-input-password-toggle slot="end"></ion-input-password-toggle>
     </ion-input>
+    <i class="fa-solid fa-circle-check" slot="end" *ngIf="passwordsMatch === true" style="color: #2dd36f; margin-right: 6px;"></i>
+    <i class="fa-solid fa-circle-xmark" slot="end" *ngIf="passwordsMatch === false" style="color: #eb445a; margin-right: 6px;"></i>
   </ion-item>
 
   <!-- Password Requirements Checklist -->
@@ -92,7 +105,7 @@
     </p>
   </div>
 
-  <p *ngIf="(userData.confirm_password ?? '').length > 0 && userData.password !== userData.confirm_password"
+  <p *ngIf="passwordsMatch === false"
      style="color: #eb445a; font-size: 12px; margin: 4px 0 8px 8px;">
     <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
     Passwords do not match.

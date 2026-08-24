@@ -1,0 +1,56 @@
+.boxed-input-item {
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 1.5px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+  --background: var(--ion-item-background, #ffffff);
+  transition: all 0.2s ease;
+
+  &.ion-focused {
+    border-color: var(--ion-color-danger);
+    box-shadow: 0 0 0 2px rgba(235, 68, 90, 0.15);
+  }
+}
+
+.birthdate-container {
+  margin: 6px 0 14px 0;
+
+  .birthdate-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-color-step-600, #555555);
+    margin-bottom: 6px;
+    display: block;
+    padding-left: 2px;
+  }
+
+  .birthdate-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1.2fr;
+    gap: 8px;
+
+    .birthdate-select-box {
+      border-radius: 12px;
+      border: 1.5px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+      background: var(--ion-item-background, #ffffff);
+      padding: 0 4px;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s ease;
+
+      ion-select {
+        width: 100%;
+        font-size: 14px;
+        font-weight: 500;
+        --padding-start: 4px;
+        --padding-end: 4px;
+        --padding-top: 10px;
+        --padding-bottom: 10px;
+      }
+
+      &:focus-within {
+        border-color: var(--ion-color-danger);
+        box-shadow: 0 0 0 2px rgba(235, 68, 90, 0.15);
+      }
+    }
+  }
+}

@@ -54,13 +54,24 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
   get pwdNum(): boolean { return /\d/.test(this.userData.password ?? ''); }
   get pwdSym(): boolean { return /[@$!%*#?&]/.test(this.userData.password ?? ''); }
 
+  get isPasswordValid(): boolean {
+    return this.pwdLength && this.pwdUpper && this.pwdLower && this.pwdNum && this.pwdSym;
+  }
+
+  get passwordsMatch(): boolean | null {
+    const confirm = (this.userData.confirm_password ?? '').trim();
+    if (!confirm) return null;
+    return this.userData.password === this.userData.confirm_password;
+  }
+
   private getBarangayName(): string {
     const b = this.barangays.find(item => item.id === Number(this.userData?.barangay_id));
     return b ? b.name : '';
   }
 
   isUsernameFormatValid(): boolean {
-    return /^[a-zA-Z0-9._]*$/.test(this.userData.username ?? '');
+    const u = (this.userData.username ?? '').trim();
+    return u.length >= 3 && u.length <= 20 && /^[a-zA-Z0-9._]+$/.test(u);
   }
 
   fetchProactiveSuggestions(): void {
@@ -90,7 +101,6 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
     }
     if (!this.isUsernameFormatValid()) {
       this.usernameAvailable = false;
-      this.usernameSuggestions = [];
       return;
     }
     this.usernameAvailable = null;
@@ -104,10 +114,8 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
       }).subscribe({
         next: (res: any) => {
           this.usernameAvailable = res?.available ?? false;
-          if (!this.usernameAvailable && res?.suggestions?.length) {
+          if (res?.suggestions?.length) {
             this.usernameSuggestions = res.suggestions;
-          } else if (this.usernameAvailable) {
-            this.usernameSuggestions = [];
           }
         },
         error: () => { this.usernameAvailable = null; }
@@ -137,7 +145,7 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
   applySuggestion(name: string): void {
     this.userData.username = name;
     this.usernameAvailable = true;
-    this.usernameSuggestions = [];
+    this.onUsernameInput();
   }
 
   selectOtpChannel(channel: 'email' | 'sms'): void {
