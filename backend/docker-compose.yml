@@ -1,15 +1,3 @@
-# Local dev stack only (podman-compose up / docker compose up).
-# Hosting platforms (Northflank, Fly.io, etc.) build straight from the
-# Dockerfile and inject their own env vars in their dashboard — this file
-# is never used there.
-#
-# MinIO is optional and only starts with the "dev-storage" profile, so this
-# file still works if you'd rather point .env straight at real R2 locally:
-#   podman-compose up                        -> app + reverb, uses AWS_* from .env
-#   podman-compose --profile dev-storage up   -> app + reverb + local MinIO
-#                                                (put MinIO's AWS_* overrides
-#                                                in .env.local, see below)
-
 networks:
   mdrrmo_net:
     driver: bridge
@@ -17,20 +5,15 @@ networks:
 services:
   app:
     build: .
+    image: localhost/backend_app:latest
     container_name: mdrrmo_backend
     restart: unless-stopped
+    depends_on:
+      - reverb
     ports:
-      # Host port 8080 -> container port 80. Rootless Podman cannot bind
-      # host ports < 1024 without extra privileges, so avoid "80:80" here.
       - "8080:80"
     env_file:
-      # DB_* (Aiven) always comes from .env — reachable over the public
-      # internet, so no host.docker.internal / extra_hosts bridging needed.
       - .env
-      # Optional local-only overrides (gitignored). Put MinIO's AWS_* block
-      # here (AWS_ENDPOINT=http://minio:9000, AWS_ACCESS_KEY_ID=minioadmin,
-      # etc.) so real R2 credentials never need to touch a dev machine.
-      # `required: false` means this file simply doesn't apply if absent.
       - path: .env.local
         required: false
     networks:
@@ -38,14 +21,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "host.containers.internal:host-gateway"
-    depends_on:
-      minio:
-        condition: service_healthy
-        required: false
     volumes:
-      # :Z relabels the bind mount for SELinux (default on Podman machine's
-      # Fedora CoreOS VM and on Fedora/RHEL hosts). Harmless no-op on
-      # non-SELinux systems, so it's safe to leave on for both Docker and Podman.
       - ./app:/var/www/html/app:Z
       - ./routes:/var/www/html/routes:Z
       - ./config:/var/www/html/config:Z
@@ -53,28 +29,15 @@ services:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:Z
       - ./docker/php/zz-docker.conf:/usr/local/etc/php-fpm.d/zz-docker.conf:Z
       - ./storage:/var/www/html/storage:Z
-      # - ./bootstrap/cache:/var/www/html/bootstrap/cache:Z
 
   # ── Laravel Reverb WebSocket server ────────────────────────────────────
-  # Runs as a dedicated container sharing the same built image as `app`.
-  # Separation rationale: Reverb is a long-running blocking process —
-  # mixing it into the app container via supervisord couples lifecycle,
-  # logs, and resource limits in a way that complicates restarts and
-  # scaling. A dedicated container gets its own restart policy and logs.
-  #
-  # Nginx in the `app` container proxies /app/ and /apps/ to this
-  # container (see docker/nginx/nginx.conf), so the frontend only ever
-  # opens connections to port 8080 — no extra port exposed to the browser.
-  # Host port 6001 is exposed here for local testing / health checks only.
   reverb:
     build: .
+    image: localhost/backend_app:latest
     container_name: mdrrmo_reverb
     restart: unless-stopped
     command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=6001"]
     ports:
-      # Host 6001 -> container 6001 (for local dev / health checks).
-      # In production, Nginx proxies WebSocket traffic — this port
-      # does not need to be publicly reachable.
       - "6001:6001"
     env_file:
       - .env
@@ -85,39 +48,9 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "host.containers.internal:host-gateway"
-    depends_on:
-      - app
     volumes:
       - ./app:/var/www/html/app:Z
       - ./routes:/var/www/html/routes:Z
       - ./config:/var/www/html/config:Z
       - ./database:/var/www/html/database:Z
       - ./storage:/var/www/html/storage:Z
-      # - ./bootstrap/cache:/var/www/html/bootstrap/cache:Z
-
-  # Local S3-compatible storage so nobody needs real R2 credentials just to
-  # run the app on their machine. Only starts with --profile dev-storage.
-  minio:
-    image: docker.io/minio/minio:latest
-    container_name: mdrrmo_minio
-    profiles: ["dev-storage"]
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # Web console
-    volumes:
-      - minio_data:/data:Z
-    networks:
-      - mdrrmo_net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  minio_data:

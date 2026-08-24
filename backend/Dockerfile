@@ -1,3 +1,4 @@
+FROM docker.io/library/composer:2 AS composer_stage
 FROM php:8.4-fpm-alpine
 
 # ── System dependencies ───────────────────────────────────────────────────
@@ -23,7 +24,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache xml
 
 # ── Composer ──────────────────────────────────────────────────────────────
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer_stage /usr/bin/composer /usr/bin/composer
 
 # ── App source ────────────────────────────────────────────────────────────
 WORKDIR /var/www/html

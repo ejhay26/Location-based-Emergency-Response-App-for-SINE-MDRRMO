@@ -1,228 +1,223 @@
-# Production Deployment Guide — Linux Server / Cloud VPS
+# Production Deployment Guide — Linux Server / Cloud VPS (Ubuntu LTS)
 
-Step-by-step guide for deploying the containerized SINE MDRRMO backend API and Laravel Reverb WebSocket server to a **Linux Server / Cloud VPS (Ubuntu LTS)** using **Podman** (or **Docker**).
+Comprehensive, step-by-step guide for deploying the containerized SINE MDRRMO backend API and Laravel Reverb WebSocket server to a **Linux Server / Cloud VPS (Ubuntu LTS / DigitalOcean Droplet)** using **Podman** (or **Docker**).
 
 ---
 
 ## 1. Architecture Overview
 
-The production backend runs as a multi-container stack managed via `podman-compose` or `docker compose` on a Linux server:
+The production backend runs as a multi-container stack managed via `podman-compose` on a Linux server:
 
 ```
-┌────────────────────────────────────────────────────────┐
-│             Linux Server / Cloud VPS (Ubuntu LTS)      │
-│                                                        │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │                Nginx (Port 80 / 443 SSL)         │  │
-│  │  ├─ /api/*       ──▶ FastCGI (PHP 8.4-FPM)       │  │
-│  │  ├─ /storage/*   ──▶ Static Storage Symlinks     │  │
-│  │  └─ /app/, /apps ──▶ WebSocket Proxy (Reverb)    │  │
-│  └──────────────────────────┬───────────────────────┘  │
-│                             │                          │
-│         ┌───────────────────┴───────────────────┐      │
-│         ▼                                       ▼      │
-│  ┌──────────────┐                       ┌──────────────┐
-│  │ mdrrmo_app   │                       │mdrrmo_reverb │
-│  │ (PHP 8.4-FPM)│                       │ (Reverb WS)  │
-│  └──────┬───────┘                       └──────┬───────┘
-│         │                                      │       │
-│         └──────────────────┬───────────────────┘       │
-│                            ▼                           │
-│                 ┌─────────────────────┐                │
-│                 │  MariaDB / MySQL    │                │
-│                 │ (Port 3306 / Local) │                │
-│                 └─────────────────────┘                │
-└────────────────────────────┬───────────────────────────┘
-                             │
-                             ▼
-              ┌─────────────────────────────┐
-              │ S3 / Cloud Storage (R2/S3)  │
-              │  (Media & Proof Storage)    │
-              └─────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│               Linux Server / Cloud VPS (Ubuntu LTS)                    │
+│                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │                    Nginx (Port 80 / 443 SSL)                     │  │
+│  │  ├─ /api/*       ──▶ FastCGI (PHP 8.4-FPM on 127.0.0.1:9000)     │  │
+│  │  ├─ /storage/*   ──▶ Static Storage Symlinks                     │  │
+│  │  └─ /app/, /apps ──▶ WebSocket Proxy (host.containers.internal)  │  │
+│  └──────────────────────────────┬───────────────────────────────────┘  │
+│                                 │                                      │
+│             ┌───────────────────┴───────────────────┐                  │
+│             ▼                                       ▼                  │
+│      ┌──────────────┐                       ┌──────────────┐           │
+│      │ mdrrmo_app   │                       │mdrrmo_reverb │           │
+│      │ (PHP 8.4-FPM)│                       │ (Reverb WS)  │           │
+│      └──────┬───────┘                       └──────┬───────┘           │
+│             │                                      │                   │
+│             └──────────────────┬───────────────────┘                   │
+│                                ▼                                       │
+│                     ┌─────────────────────┐                            │
+│                     │  MariaDB / MySQL    │                            │
+│                     │ (Port 3306 / Host)  │                            │
+│                     └─────────────────────┘                            │
+└────────────────────────────────┬───────────────────────────────────────┘
+                                 │
+                                 ▼
+                  ┌─────────────────────────────┐
+                  │ S3 / Cloud Storage / Public │
+                  │  (Media & Proof Storage)    │
+                  └─────────────────────────────┘
 ```
 
 ---
 
-## 2. Server Requirements & Initialization
+## 2. Initial Server Setup & Prerequisites
 
-### Hardware Specs
-- **Minimum:** 1 vCPU / 1 GB RAM / 25 GB SSD (suitable for pilot/testing)
-- **Recommended:** 2 vCPU / 2–4 GB RAM / 50 GB SSD (suitable for municipal live operations)
-
-### Initial Server Setup
-SSH into your server:
+SSH into your droplet/VPS:
 ```bash
 ssh root@YOUR_SERVER_IP
 ```
 
-Update system packages and install essential utilities:
+Update system packages and install **Podman**, **Podman-Compose**, **MariaDB**, **Git**, and **UFW**:
 ```bash
+# 1. Update system packages
 apt update && apt upgrade -y
-apt install -y curl git ufw fail2ban
+
+# 2. Install container tools, database, and utilities
+apt install -y podman podman-compose mariadb-server git curl ufw fail2ban
 ```
 
 ---
 
-## 3. Container Engine Setup (Podman or Docker)
+## 3. Essential Ubuntu & Podman System Fixes
 
-You can run the stack with either **Podman** (recommended for rootless, daemonless, and lightweight operation) or standard **Docker**.
+When deploying on Ubuntu LTS with Podman, apply these 3 essential configurations:
 
-### Option A: Podman (Recommended & Lightweight)
+### 3.1 Fix Container DNS Resolution (Alpine Mirror Downloads)
+Ubuntu's default `systemd-resolved` stub (`127.0.0.53`) is unreachable inside container build namespaces. Add public nameservers to `/etc/resolv.conf`:
 ```bash
-apt install -y podman podman-compose
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+echo "nameserver 1.1.1.1" >> /etc/resolv.conf
 ```
 
-### Option B: Docker
+### 3.2 Enable UFW Container Packet Forwarding
+By default, UFW drops routed packets (`deny (routed)`), causing incoming traffic on port 80 to time out. Enable forwarding:
 ```bash
-curl -fsSL https://get.docker.com | sh
-systemctl enable docker
-systemctl start docker
-```
+# Allow UFW to forward incoming traffic to Podman containers
+sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
 
-Configure the UFW Firewall:
-```bash
+# Configure firewall rules
 ufw allow OpenSSH
 ufw allow 80/tcp
 ufw allow 443/tcp
-ufw enable
+ufw allow 3306/tcp
+ufw --force enable
+ufw reload
 ```
 
 ---
 
-## 4. Deploying the Backend Stack
+## 4. Setting Up MariaDB Database
 
-### 4.1 Clone Repository & Prepare Environment
+Configure MariaDB to listen on container gateway interfaces and create the application database:
+
 ```bash
-cd /var/www
-git clone https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO.git
-cd Location-based-Emergency-Response-App-for-SINE-MDRRMO/backend
+# 1. Allow MariaDB to listen on all interfaces
+sed -i 's/bind-address\s*=\s*127.0.0.1/bind-address = 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf 2>/dev/null || true
+systemctl enable mariadb
+systemctl restart mariadb
 
+# 2. Create database and dedicated user
+mysql -u root -e "
+CREATE DATABASE IF NOT EXISTS emergencydb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'mdrrmosineapp'@'%' IDENTIFIED BY 'YourStrongPassword123!';
+GRANT ALL PRIVILEGES ON emergencydb.* TO 'mdrrmosineapp'@'%';
+FLUSH PRIVILEGES;
+"
+```
+
+---
+
+## 5. Deploying the Backend Stack
+
+### 5.1 Clone Repository (Backend Only via Sparse Checkout)
+```bash
+mkdir -p /var/www/mdrrmo-backend && cd /var/www/mdrrmo-backend
+git init
+git remote add origin https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO.git
+git config core.sparseCheckout true
+echo "backend/*" >> .git/info/sparse-checkout
+echo "database/*" >> .git/info/sparse-checkout
+git pull --depth=1 origin main
+cd backend
+```
+
+### 5.2 Configure Environment (`.env`)
+```bash
 cp .env.example .env
 nano .env
 ```
 
-### 4.2 Production `.env` Settings
-Ensure these critical values are set for production:
+Ensure these production keys are set:
 ```env
-APP_NAME="MDRRMO San Isidro Emergency App"
+APP_NAME="MDRRMO SINE EMERGENCY RESPONSE APP"
 APP_ENV=production
+APP_KEY=base64:YOUR_GENERATED_APP_KEY
 APP_DEBUG=false
-APP_URL=https://api.yourdomain.com
+APP_URL=http://YOUR_DROPLET_IP
 
 DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
+DB_HOST=host.containers.internal
 DB_PORT=3306
 DB_DATABASE=emergencydb
-DB_USERNAME=mdrrmo_user
-DB_PASSWORD=your_super_secret_db_password
+DB_USERNAME=mdrrmosineapp
+DB_PASSWORD=YourStrongPassword123!
 
 BROADCAST_CONNECTION=reverb
-REVERB_APP_ID=mdrrmo_sine_app
-REVERB_APP_KEY=your_production_reverb_key
-REVERB_APP_SECRET=your_production_reverb_secret
-REVERB_HOST=0.0.0.0
-REVERB_PORT=6001
-REVERB_SCHEME=https
+REVERB_APP_ID=100996
+REVERB_APP_KEY=your_reverb_key
+REVERB_APP_SECRET=your_reverb_secret
+REVERB_HOST=YOUR_DROPLET_IP
+REVERB_PORT=80
+REVERB_SCHEME=http
 
-FILESYSTEM_DISK=s3
-AWS_ACCESS_KEY_ID=your_storage_access_key
-AWS_SECRET_ACCESS_KEY=your_storage_secret_key
-AWS_DEFAULT_REGION=auto
-AWS_BUCKET=mdrrmo-sine-media
-AWS_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
-AWS_USE_PATH_STYLE_ENDPOINT=false
+# ── Disaster Recovery & 2-Hour Automated Backups ──
+BACKUP_AUTO_ENABLED=true
+BACKUP_INTERVAL_HOURS=2
+BACKUP_MAX_INTRADAY=12
+BACKUP_MAX_DAILY=7
+```
 
-PHILSMS_API_TOKEN=your_philsms_api_token
-PHILSMS_SENDER_NAME="PhilSMS"
-
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=465
-MAIL_USERNAME=your_gmail@gmail.com
-MAIL_PASSWORD=your_16_char_app_password
-MAIL_ENCRYPTION=ssl
-MAIL_FROM_ADDRESS="no-reply@sinemdrrmo.gov.ph"
-MAIL_FROM_NAME="MDRRMO SINE Emergency Response"
-
-FIREBASE_PROJECT_ID=mdrrmo-sine-response-app
-FIREBASE_CREDENTIALS=storage/app/firebase-credentials.json
+### 5.3 Copy Firebase Credentials JSON
+```bash
+# Upload or paste your firebase credentials JSON into:
+nano storage/app/mdrrmo-sine-response-app-firebase-adminsdk-fbsvc-73bd4e4846.json
 ```
 
 ---
 
-### 4.3 Build & Start Containers
+## 6. Build & Launch Container Stack
 
-Using **Podman**:
 ```bash
-podman-compose up -d --build
-```
+# 1. Pre-pull multi-stage dependencies
+podman pull docker.io/library/composer:2
 
-*(Or using **Docker**: `docker compose up -d --build`)*
+# 2. Build the shared image using host network (for fast DNS)
+podman build --network=host --dns=8.8.8.8 -t backend_app .
 
----
+# 3. Launch both app & reverb containers in background
+podman-compose up -d
 
-### 4.4 Run Database Migrations & Cache Optimization
-
-Using **Podman**:
-```bash
-# Run migrations
+# 4. Run database migrations and seed default system data
 podman exec -it mdrrmo_backend php artisan migrate --force
+podman exec -it mdrrmo_backend php artisan db:seed --force
 
-# Optimize configurations
-podman exec -it mdrrmo_backend php artisan config:cache
-podman exec -it mdrrmo_backend php artisan route:cache
-podman exec -it mdrrmo_backend php artisan view:cache
-```
+# 5. Create storage symlink
+podman exec -it mdrrmo_backend php artisan storage:link
 
-*(Or with Docker: `docker compose exec app php artisan migrate --force`)*
-
----
-
-## 5. SSL & Domain Configuration (Let's Encrypt Certbot)
-
-Install Certbot to provision free SSL certificates for your domain:
-```bash
-apt install -y certbot python3-certbot-nginx
-certbot --nginx -d api.yourdomain.com
-```
-
-### Nginx WebSocket Proxy Configuration
-Ensure your Nginx configuration includes proxy parameters for Laravel Reverb WebSocket connections:
-```nginx
-# WebSocket reverse proxy for Laravel Reverb
-location /app/ {
-    proxy_pass http://127.0.0.1:6001;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_read_timeout 3600s;
-    proxy_send_timeout 3600s;
-}
-
-# Static storage uploads — prevent PHP execution in uploaded files
-location ^~ /storage/ {
-    alias /var/www/html/public/storage/;
-    expires 7d;
-    location ~ \.php$ {
-        deny all;
-        return 404;
-    }
-}
+# 6. Verify automated 2-hour backup daemon status
+podman exec -it mdrrmo_backend php artisan backup status
 ```
 
 ---
 
-## 6. Pre-Flight Production Checklist
+## 7. Default Seeded Accounts
 
-- [ ] `APP_DEBUG` is explicitly set to `false`.
-- [ ] `APP_ENV` is set to `production`.
-- [ ] Database credentials use a dedicated non-root user with strong password.
-- [ ] MariaDB binds securely to `127.0.0.1` and is not exposed to the public internet.
-- [ ] `storage/` directory is mounted as a persistent container volume.
-- [ ] S3-compatible bucket (Cloudflare R2 / AWS S3) has valid write credentials.
-- [ ] Firebase credentials JSON exists in `storage/app/` and is omitted from Git.
-- [ ] UFW firewall is active, allowing only ports 22, 80, and 443.
-- [ ] Frontend `environment.prod.ts` points to the production domain and Reverb WSS endpoint.
+Running `db:seed` automatically creates the initial administration accounts:
+
+* 👑 **Super Admin Account:**
+  * **Username:** `admin` (or `admin_user@sine.gov.ph`)
+  * **Password:** `Admin123!`
+  * **Role:** `admin`
+* 🎧 **Dispatcher Account:**
+  * **Username:** `dispatcher1` (or `dis@mail.com`)
+  * **Password:** `Dispatcher123!`
+  * **Role:** `dispatcher`
+
+---
+
+## 8. Verification & Health Checks
+
+1. **Local Health Check on Server:**
+   ```bash
+   curl -I http://127.0.0.1/api/health
+   # Returns: HTTP/1.1 200 OK
+   ```
+2. **External Browser Health Check:**
+   Open `http://YOUR_DROPLET_IP/api/health` in your browser.
+3. **Trigger Manual Database Snapshot:**
+   ```bash
+   podman exec -it mdrrmo_backend php artisan backup take
+   ```
