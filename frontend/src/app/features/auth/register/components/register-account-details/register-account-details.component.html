@@ -2,27 +2,43 @@
   <!-- Username Box -->
   <ion-item
     [style.border]="usernameAvailable === true ? '2px solid #2dd36f' : (usernameAvailable === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
-    style="border-radius: 12px; margin-bottom: 5px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
+    style="border-radius: 12px; margin-bottom: 4px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
     <ion-input label="Username" labelPlacement="stacked" type="text" placeholder="Choose your username"
                maxlength="20"
-               [(ngModel)]="userData.username" (ionInput)="onUsernameInput()" required></ion-input>
+               [(ngModel)]="userData.username"
+               (ionFocus)="usernameFocused = true" (ionBlur)="usernameFocused = false"
+               (ionInput)="onUsernameInput()" required></ion-input>
     <i class="fa-solid fa-spinner fa-spin" slot="end"
        *ngIf="usernameAvailable === null && (userData.username ?? '').length > 0" style="color: #8a8a8a;"></i>
     <i class="fa-solid fa-circle-check" slot="end" *ngIf="usernameAvailable === true" style="color: #2dd36f;"></i>
     <i class="fa-solid fa-circle-xmark" slot="end" *ngIf="usernameAvailable === false" style="color: #eb445a;"></i>
   </ion-item>
 
-  <p *ngIf="(userData.username ?? '').length > 0 && !isUsernameFormatValid()"
-     style="color: #eb445a; font-size: 12px; margin: 4px 0 8px 8px;">
-    <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-    Must be 3–20 characters (letters, numbers, dots, underscores).
-  </p>
+  <!-- Real-Time Username Status & Error Reason -->
+  <div *ngIf="(userData.username ?? '').length > 0" style="margin: 3px 0 8px 8px;">
+    <p *ngIf="!usernameLengthValid" style="color: #eb445a; font-size: 12px; margin: 2px 0;">
+      <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
+      Username must be between 3 and 20 characters (currently {{ (userData.username ?? '').length }}).
+    </p>
+    <p *ngIf="usernameLengthValid && !usernameCharsValid" style="color: #eb445a; font-size: 12px; margin: 2px 0;">
+      <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
+      Only letters (A-Z, a-z), numbers (0-9), dots (.), and underscores (_) allowed.
+    </p>
+    <p *ngIf="isUsernameFormatValid() && usernameAvailable === false" style="color: #eb445a; font-size: 12px; margin: 2px 0;">
+      <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
+      <strong>"{{ userData.username }}"</strong> is already registered. Pick a suggested handle below.
+    </p>
+    <p *ngIf="usernameAvailable === true" style="color: #2dd36f; font-size: 12px; margin: 2px 0;">
+      <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
+      <strong>"{{ userData.username }}"</strong> is available!
+    </p>
+  </div>
 
-  <!-- Smart Suggested Usernames Strip -->
+  <!-- Smart Suggested Usernames Strip (Always available when suggestions exist) -->
   <div *ngIf="usernameSuggestions.length > 0" class="suggestions-container">
     <div class="suggestions-header" [class.taken]="usernameAvailable === false">
       <i [class]="usernameAvailable === false ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-wand-magic-sparkles'"></i>
-      <span>{{ usernameAvailable === false ? 'Username is taken. Try these available handles:' : 'Suggested handles for you:' }}</span>
+      <span>{{ usernameAvailable === false ? 'Username is taken. Tap an available handle below:' : '💡 Suggested handles for you (Tap to fill):' }}</span>
     </div>
     <div class="chips-row">
       <button type="button" class="suggestion-chip" *ngFor="let name of usernameSuggestions" (click)="applySuggestion(name)">
@@ -35,25 +51,37 @@
   <!-- Email Box -->
   <ion-item
     [style.border]="emailAvailable === true ? '2px solid #2dd36f' : (emailAvailable === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
-    style="border-radius: 12px; margin-bottom: 5px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
-    <ion-input label="Email Address" labelPlacement="stacked" type="email" placeholder="Enter your email address"
-               [(ngModel)]="userData.email" (ionInput)="onEmailInput()" required></ion-input>
+    style="border-radius: 12px; margin-bottom: 4px; margin-top: 10px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
+    <ion-input label="Email Address" labelPlacement="stacked" type="email" placeholder="Enter your active email"
+               [(ngModel)]="userData.email"
+               (ionFocus)="emailFocused = true" (ionBlur)="emailFocused = false"
+               (ionInput)="onEmailInput()" required></ion-input>
     <i class="fa-solid fa-spinner fa-spin" slot="end"
        *ngIf="emailAvailable === null && (userData.email ?? '').length > 0" style="color: #8a8a8a;"></i>
     <i class="fa-solid fa-circle-check" slot="end" *ngIf="emailAvailable === true" style="color: #2dd36f;"></i>
     <i class="fa-solid fa-circle-xmark" slot="end" *ngIf="emailAvailable === false" style="color: #eb445a;"></i>
   </ion-item>
 
-  <p *ngIf="(userData.email ?? '').length > 0 && !isEmailFormatValid()"
-     style="color: #eb445a; font-size: 12px; margin: 4px 0 8px 8px;">
-    <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-    Please enter a valid email address.
-  </p>
+  <!-- Real-Time Email Status & Error Reason -->
+  <div *ngIf="(userData.email ?? '').length > 0" style="margin: 3px 0 8px 8px;">
+    <p *ngIf="!isEmailFormatValid()" style="color: #eb445a; font-size: 12px; margin: 2px 0;">
+      <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
+      Please enter a valid email address (e.g. yourname&#64;gmail.com).
+    </p>
+    <p *ngIf="isEmailFormatValid() && emailAvailable === false" style="color: #eb445a; font-size: 12px; margin: 2px 0;">
+      <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
+      This email is already registered. Please log in or use a different email.
+    </p>
+    <p *ngIf="emailAvailable === true" style="color: #2dd36f; font-size: 12px; margin: 2px 0;">
+      <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
+      Email is valid and available!
+    </p>
+  </div>
 
   <!-- Password Box -->
   <ion-item
     [style.border]="isPasswordValid ? '2px solid #2dd36f' : (passwordFocused ? '2px solid var(--ion-color-danger)' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
-    style="border-radius: 12px; margin-bottom: 10px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
+    style="border-radius: 12px; margin-bottom: 10px; margin-top: 10px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
     <ion-input label="Password" labelPlacement="stacked" type="password" placeholder="Create a strong password"
                [(ngModel)]="userData.password"
                (ionFocus)="passwordFocused = true" (ionBlur)="passwordFocused = false" required>
@@ -64,7 +92,7 @@
   <!-- Confirm Password Box -->
   <ion-item
     [style.border]="passwordsMatch === true ? '2px solid #2dd36f' : (passwordsMatch === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
-    style="border-radius: 12px; margin-bottom: 5px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
+    style="border-radius: 12px; margin-bottom: 4px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
     <ion-input label="Confirm Password" labelPlacement="stacked" type="password" placeholder="Re-enter your password"
                [(ngModel)]="userData.confirm_password" required>
       <ion-input-password-toggle slot="end"></ion-input-password-toggle>

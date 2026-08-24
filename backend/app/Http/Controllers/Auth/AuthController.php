@@ -200,8 +200,8 @@ class AuthController extends Controller
             'last_name'      => 'required|string',
             'phone'          => 'required|string',
             'birthdate'      => 'required|date',
-            'username'       => 'required|string|unique:users',
-            'email'          => 'required|email|unique:users',
+            'username'       => 'required|string|min:3|max:20',
+            'email'          => 'required|email',
             'password'       => CommonRules::strongPassword(),
             'barangay_id'    => 'required|integer',
             'valid_id_image'      => 'required|string',
@@ -214,6 +214,30 @@ class AuthController extends Controller
         if ($normalizedPhone === null) {
             return response()->json(['message' => 'Please enter a valid Philippine mobile number.'], 422);
         }
+
+        // Check if an existing ACTIVE or BANNED account already uses this username, email, or phone
+        $existingActive = User::where(function ($q) use ($request, $normalizedPhone) {
+            $q->where('username', $request->username)
+              ->orWhere('email', $request->email)
+              ->orWhere('phone', $normalizedPhone);
+        })->where('account_status', '!=', 'unverified')->first();
+
+        if ($existingActive) {
+            if ($existingActive->username === $request->username) {
+                return response()->json(['message' => 'This username is already registered.'], 422);
+            }
+            if ($existingActive->email === $request->email) {
+                return response()->json(['message' => 'This email address is already registered.'], 422);
+            }
+            return response()->json(['message' => 'This phone number is already registered.'], 422);
+        }
+
+        // Cleanly prune any stale unverified attempt from an aborted earlier session
+        User::where(function ($q) use ($request, $normalizedPhone) {
+            $q->where('username', $request->username)
+              ->orWhere('email', $request->email)
+              ->orWhere('phone', $normalizedPhone);
+        })->where('account_status', 'unverified')->delete();
 
         $id_base64 = $this->decodeBase64($request->valid_id_image);
         if ($id_base64 === false) {
@@ -355,7 +379,8 @@ class AuthController extends Controller
     public function checkUsername(Request $request)
     {
         $requested = trim((string) $request->query('username', ''));
-        $exists = !empty($requested) && User::where('username', $requested)->exists();
+        // Only count ACTIVE or BANNED accounts as taken — ignore aborted unverified attempts
+        $exists = !empty($requested) && User::where('username', $requested)->where('account_status', '!=', 'unverified')->exists();
         $suggestions = [];
 
         // Generate smart suggestions if the username is taken or suggestions are requested
@@ -403,17 +428,17 @@ class AuthController extends Controller
         ]));
 
         if (!empty($candidates)) {
-            $taken = User::whereIn('username', $candidates)->pluck('username')->all();
+            $taken = User::whereIn('username', $candidates)->where('account_status', '!=', 'unverified')->pluck('username')->all();
             $availableCandidates = array_values(array_diff($candidates, $taken));
             $suggestions = array_slice(array_unique($availableCandidates), 0, 4);
         }
 
         // Guaranteed fallback if candidates are exhausted
-        if (empty($suggestions) && ($firstName || $requested)) {
-            $prefix = $firstName ?: $requested ?: 'citizen';
+        if (empty($suggestions) && ($firstName ?? $firstWord ?? $requested)) {
+            $prefix = $firstWord ?: $requested ?: 'citizen';
             for ($i = 0; $i < 4; $i++) {
                 $candidate = $prefix . '_' . rand(10, 99);
-                if (!User::where('username', $candidate)->exists() && !in_array($candidate, $suggestions)) {
+                if (!User::where('username', $candidate)->where('account_status', '!=', 'unverified')->exists() && !in_array($candidate, $suggestions)) {
                     $suggestions[] = $candidate;
                 }
             }
@@ -421,7 +446,18 @@ class AuthController extends Controller
 
         return response()->json([
             'available'   => !$exists,
+            'reason'      => $exists ? 'taken' : null,
             'suggestions' => $suggestions,
+        ]);
+    }
+
+    public function checkEmail(Request $request)
+    {
+        $email = $request->query('email');
+        $exists = !empty($email) && User::where('email', $email)->where('account_status', '!=', 'unverified')->exists();
+        return response()->json([
+            'available' => !$exists,
+            'reason'    => $exists ? 'taken' : null,
         ]);
     }
 
@@ -455,11 +491,6 @@ class AuthController extends Controller
         return response()->json(['status' => $user->account_status]);
     }
 
-    public function checkEmail(Request $request)
-    {
-        $exists = User::where('email', $request->query('email'))->exists();
-        return response()->json(['available' => !$exists]);
-    }
 
     public function verifyOtp(Request $request)
     {

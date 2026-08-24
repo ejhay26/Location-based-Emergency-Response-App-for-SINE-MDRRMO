@@ -6,7 +6,11 @@ import { ApiService } from '../../../../../core/services/api';
 
 /**
  * RegisterAccountDetailsComponent — Step 2: Account Credentials & Security
- * (Username with live suggestions, Email availability check, Password + strength meter, Confirm Password match).
+ * Features:
+ * - Instant client + server smart username suggestions
+ * - Real-time username checklist & availability state feedback
+ * - Email format & availability verification
+ * - Password 5-rule strength meter + live confirm matching
  */
 @Component({
   selector: 'app-register-account-details',
@@ -20,6 +24,8 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
 
   @Input() userData: any;
 
+  usernameFocused = false;
+  emailFocused    = false;
   passwordFocused = false;
 
   usernameAvailable: boolean | null = null;
@@ -31,9 +37,8 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
   private emailDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
-    if (!this.userData.username && (this.userData.first_name || this.userData.last_name)) {
-      this.fetchProactiveSuggestions();
-    }
+    this.generateClientSuggestions();
+    this.fetchProactiveSuggestions();
   }
 
   ngOnDestroy(): void {
@@ -41,6 +46,7 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
     if (this.emailDebounceTimer) clearTimeout(this.emailDebounceTimer);
   }
 
+  // Password rules
   get pwdLength(): boolean { return (this.userData.password?.length ?? 0) >= 8; }
   get pwdUpper(): boolean { return /[A-Z]/.test(this.userData.password ?? ''); }
   get pwdLower(): boolean { return /[a-z]/.test(this.userData.password ?? ''); }
@@ -57,9 +63,43 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
     return this.userData.password === this.userData.confirm_password;
   }
 
-  isUsernameFormatValid(): boolean {
+  // Username rules
+  get usernameLengthValid(): boolean {
+    const len = (this.userData.username ?? '').trim().length;
+    return len >= 3 && len <= 20;
+  }
+
+  get usernameCharsValid(): boolean {
     const u = (this.userData.username ?? '').trim();
-    return u.length >= 3 && u.length <= 20 && /^[a-zA-Z0-9._]+$/.test(u);
+    return u.length > 0 && /^[a-zA-Z0-9._]+$/.test(u);
+  }
+
+  isUsernameFormatValid(): boolean {
+    return this.usernameLengthValid && this.usernameCharsValid;
+  }
+
+  generateClientSuggestions(): void {
+    const rawFirst = (this.userData.first_name ?? '').trim().toLowerCase();
+    const rawLast = (this.userData.last_name ?? '').trim().toLowerCase();
+    const firstWords = rawFirst.split(/[\s\-_]+/).filter((w: string) => w.length > 0);
+    const firstWord = firstWords[0] || '';
+    const joinedFirst = rawFirst.replace(/[^a-z0-9]/g, '');
+    const lastName = rawLast.replace(/[^a-z0-9]/g, '');
+    const firstInitials = firstWords.map((w: string) => w[0]).join('');
+    const birthYear = this.userData.birthdate ? new Date(this.userData.birthdate).getFullYear().toString() : '26';
+
+    const candidates: string[] = [];
+    if (firstInitials.length > 1 && lastName) candidates.push(`${firstInitials}.${lastName}`);
+    if (firstInitials.length > 1 && lastName) candidates.push(`${firstInitials}_${lastName}`);
+    if (firstWord && lastName) candidates.push(`${firstWord}.${lastName}`);
+    if (firstWord && lastName) candidates.push(`${firstWord}_${lastName}`);
+    if (firstWord && birthYear) candidates.push(`${firstWord}${birthYear}`);
+    if (joinedFirst && joinedFirst !== firstWord && lastName) candidates.push(`${joinedFirst}.${lastName}`);
+    if (firstWord) candidates.push(`${firstWord}_sine`);
+
+    if (candidates.length > 0 && this.usernameSuggestions.length === 0) {
+      this.usernameSuggestions = candidates.slice(0, 4);
+    }
   }
 
   fetchProactiveSuggestions(): void {
@@ -83,6 +123,7 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
     const username = (this.userData.username ?? '').trim();
     if (!username) {
       this.usernameAvailable = null;
+      this.generateClientSuggestions();
       this.fetchProactiveSuggestions();
       return;
     }
@@ -104,9 +145,11 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
             this.usernameSuggestions = res.suggestions;
           }
         },
-        error: () => { this.usernameAvailable = null; }
+        error: () => {
+          this.usernameAvailable = this.isUsernameFormatValid();
+        }
       });
-    }, 350);
+    }, 300);
   }
 
   isEmailFormatValid(): boolean {
@@ -123,9 +166,9 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
     this.emailDebounceTimer = setTimeout(() => {
       this.api.checkEmail(email).subscribe({
         next: (res: any) => { this.emailAvailable = res?.available ?? false; },
-        error: () => { this.emailAvailable = null; }
+        error: () => { this.emailAvailable = this.isEmailFormatValid(); }
       });
-    }, 400);
+    }, 350);
   }
 
   applySuggestion(name: string): void {
