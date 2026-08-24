@@ -1,33 +1,24 @@
-import { Component, Input, OnDestroy, inject } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonList, IonItem, IonSelect, IonSelectOption, IonInput, IonInputPasswordToggle, IonChip, IonCheckbox, ModalController } from '@ionic/angular/standalone';
+import { IonList, IonItem, IonSelect, IonSelectOption, IonInput, IonInputPasswordToggle, IonLabel, IonCheckbox, ModalController } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { TermsModalComponent } from '../../../../../shared/components/terms-modal/terms-modal.component';
 
 /**
  * RegisterAccountDetailsComponent — step 2 body of registration (barangay,
- * username/email availability checks, password + strength meter, OTP
- * channel selector, terms checkbox). Mutates the parent's shared `userData`
- * object directly (passed by reference, same object identity throughout),
- * matching the original single-file component's data flow. The Back/Continue
- * buttons stay on the parent page since they drive page-level step
- * navigation (`prevStep()`/`nextStep()`), consistent with how report.page
- * kept its "Use My Location" button on the parent while delegating to a
- * child method.
- *
- * `usernameAvailable`, `emailAvailable`, and `termsAccepted` are read
- * directly by the parent's nextStep() via a template reference / @ViewChild,
- * the same way report.page reads ReportMapComponent's public state.
+ * username/email availability checks, smart name-based suggestions, password + strength meter,
+ * OTP channel selector, terms checkbox).
  */
 @Component({
   selector: 'app-register-account-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonList, IonItem, IonSelect, IonSelectOption, IonInput, IonInputPasswordToggle, IonChip, IonCheckbox],
+  imports: [CommonModule, FormsModule, IonList, IonItem, IonSelect, IonSelectOption, IonInput, IonInputPasswordToggle, IonLabel, IonCheckbox],
   templateUrl: './register-account-details.component.html',
+  styleUrls: ['./register-account-details.component.scss']
 })
-export class RegisterAccountDetailsComponent implements OnDestroy {
+export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private modalCtrl = inject(ModalController);
 
@@ -41,9 +32,16 @@ export class RegisterAccountDetailsComponent implements OnDestroy {
   usernameAvailable: boolean | null = null;
   emailAvailable: boolean | null = null;
   usernameSuggestions: string[] = [];
+  isLoadingSuggestions = false;
 
   private usernameDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private emailDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  ngOnInit(): void {
+    if (!this.userData.username && (this.userData.first_name || this.userData.last_name)) {
+      this.fetchProactiveSuggestions();
+    }
+  }
 
   ngOnDestroy(): void {
     if (this.usernameDebounceTimer) clearTimeout(this.usernameDebounceTimer);
@@ -56,26 +54,65 @@ export class RegisterAccountDetailsComponent implements OnDestroy {
   get pwdNum(): boolean { return /\d/.test(this.userData.password ?? ''); }
   get pwdSym(): boolean { return /[@$!%*#?&]/.test(this.userData.password ?? ''); }
 
+  private getBarangayName(): string {
+    const b = this.barangays.find(item => item.id === Number(this.userData?.barangay_id));
+    return b ? b.name : '';
+  }
+
   isUsernameFormatValid(): boolean {
     return /^[a-zA-Z0-9._]*$/.test(this.userData.username ?? '');
   }
 
+  fetchProactiveSuggestions(): void {
+    this.isLoadingSuggestions = true;
+    this.api.checkUsername('', {
+      first_name: this.userData.first_name,
+      last_name: this.userData.last_name,
+      barangay: this.getBarangayName(),
+      birthdate: this.userData.birthdate
+    }).subscribe({
+      next: (res: any) => {
+        this.isLoadingSuggestions = false;
+        if (res?.suggestions?.length) {
+          this.usernameSuggestions = res.suggestions;
+        }
+      },
+      error: () => { this.isLoadingSuggestions = false; }
+    });
+  }
+
   onUsernameInput(): void {
     const username = (this.userData.username ?? '').trim();
-    this.usernameSuggestions = [];
-    if (!username) { this.usernameAvailable = null; return; }
-    if (!this.isUsernameFormatValid()) { this.usernameAvailable = false; return; }
+    if (!username) {
+      this.usernameAvailable = null;
+      this.fetchProactiveSuggestions();
+      return;
+    }
+    if (!this.isUsernameFormatValid()) {
+      this.usernameAvailable = false;
+      this.usernameSuggestions = [];
+      return;
+    }
     this.usernameAvailable = null;
     if (this.usernameDebounceTimer) clearTimeout(this.usernameDebounceTimer);
     this.usernameDebounceTimer = setTimeout(() => {
-      this.api.checkUsername(username).subscribe({
+      this.api.checkUsername(username, {
+        first_name: this.userData.first_name,
+        last_name: this.userData.last_name,
+        barangay: this.getBarangayName(),
+        birthdate: this.userData.birthdate
+      }).subscribe({
         next: (res: any) => {
           this.usernameAvailable = res?.available ?? false;
-          if (!this.usernameAvailable) this.generateUsernameSuggestions();
+          if (!this.usernameAvailable && res?.suggestions?.length) {
+            this.usernameSuggestions = res.suggestions;
+          } else if (this.usernameAvailable) {
+            this.usernameSuggestions = [];
+          }
         },
         error: () => { this.usernameAvailable = null; }
       });
-    }, 500);
+    }, 350);
   }
 
   isEmailFormatValid(): boolean {
@@ -94,20 +131,7 @@ export class RegisterAccountDetailsComponent implements OnDestroy {
         next: (res: any) => { this.emailAvailable = res?.available ?? false; },
         error: () => { this.emailAvailable = null; }
       });
-    }, 500);
-  }
-
-  private generateUsernameSuggestions(): void {
-    const firstName = this.userData.first_name?.toLowerCase().replace(/\s+/g, '') ?? 'user';
-    const lastName = this.userData.last_name?.toLowerCase().substring(0, 2) ?? '';
-    const birthYear = this.userData.birthdate
-      ? new Date(this.userData.birthdate).getFullYear().toString() : '26';
-    const base = firstName + lastName;
-    this.usernameSuggestions = [
-      `${base}_${birthYear}`,
-      `${base}${Math.floor(10 + Math.random() * 90)}`,
-      `sine_${base}`
-    ].filter(s => s.length > 0);
+    }, 400);
   }
 
   applySuggestion(name: string): void {

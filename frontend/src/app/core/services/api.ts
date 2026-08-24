@@ -72,7 +72,14 @@ export class ApiService {
   verifyOtp(data: any): Observable<any>            { return this.http.post(`${this.url}/verify-otp`, data, this.opts()); }
   resendRegistrationOtp(data: any): Observable<any> { return this.http.post(`${this.url}/resend-registration-otp`, data, this.opts()); }
   checkVerificationStatus(identifier: string): Observable<any> { return this.http.post(`${this.url}/check-verification-status`, { login: identifier }, this.opts()); }
-  checkUsername(username: string): Observable<any> { return this.http.get(`${this.url}/check-username?username=${username}`, this.opts()); }
+  checkUsername(username: string, extra?: { first_name?: string; last_name?: string; barangay?: string; birthdate?: string }): Observable<any> {
+    let params = `username=${encodeURIComponent(username)}`;
+    if (extra?.first_name) params += `&first_name=${encodeURIComponent(extra.first_name)}`;
+    if (extra?.last_name)  params += `&last_name=${encodeURIComponent(extra.last_name)}`;
+    if (extra?.barangay)   params += `&barangay=${encodeURIComponent(extra.barangay)}`;
+    if (extra?.birthdate)  params += `&birthdate=${encodeURIComponent(extra.birthdate)}`;
+    return this.http.get(`${this.url}/check-username?${params}`, this.opts());
+  }
   checkEmail(email: string): Observable<any>       { return this.http.get(`${this.url}/check-email?email=${email}`, this.opts()); }
   forgotPassword(data: any): Observable<any>       { return this.http.post(`${this.url}/forgot-password`, data, this.opts()); }
   verifyResetOtp(data: any): Observable<any>       { return this.http.post(`${this.url}/verify-reset-otp`, data, this.opts()); }

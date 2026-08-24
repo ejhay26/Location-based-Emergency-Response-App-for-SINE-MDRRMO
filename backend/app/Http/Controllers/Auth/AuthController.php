@@ -342,8 +342,52 @@ class AuthController extends Controller
 
     public function checkUsername(Request $request)
     {
-        $exists = User::where('username', $request->query('username'))->exists();
-        return response()->json(['available' => !$exists]);
+        $requested = trim((string) $request->query('username', ''));
+        $exists = !empty($requested) && User::where('username', $requested)->exists();
+        $suggestions = [];
+
+        // Generate smart suggestions if the username is taken or suggestions are requested
+        $firstName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string) $request->query('first_name', '')));
+        $lastName  = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string) $request->query('last_name', '')));
+        $barangay  = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string) $request->query('barangay', '')));
+        $birthdate = $request->query('birthdate');
+        $year      = $birthdate ? date('Y', strtotime($birthdate)) : '';
+        $shortYear = $birthdate ? date('y', strtotime($birthdate)) : date('y');
+        $baseName  = $requested ?: ($firstName . ($lastName ? substr($lastName, 0, 2) : ''));
+
+        $candidates = array_values(array_filter([
+            $firstName && $lastName ? "{$firstName}.{$lastName}" : null,
+            $firstName && $lastName ? "{$firstName}_{$lastName}" : null,
+            $firstName && $lastName ? "{$firstName}{$lastName}" : null,
+            $firstName && $year     ? "{$firstName}{$year}" : null,
+            $firstName && $shortYear ? "{$firstName}{$shortYear}" : null,
+            $firstName && $barangay ? "{$firstName}_{$barangay}" : null,
+            $baseName ? "{$baseName}_sine" : null,
+            $baseName ? "sine_{$baseName}" : null,
+            $baseName ? "{$baseName}" . $shortYear : null,
+        ]));
+
+        if (!empty($candidates)) {
+            $taken = User::whereIn('username', $candidates)->pluck('username')->all();
+            $availableCandidates = array_values(array_diff($candidates, $taken));
+            $suggestions = array_slice(array_unique($availableCandidates), 0, 4);
+        }
+
+        // Guaranteed fallback if candidates are exhausted
+        if (empty($suggestions) && ($firstName || $requested)) {
+            $prefix = $firstName ?: $requested ?: 'citizen';
+            for ($i = 0; $i < 4; $i++) {
+                $candidate = $prefix . '_' . rand(10, 99);
+                if (!User::where('username', $candidate)->exists() && !in_array($candidate, $suggestions)) {
+                    $suggestions[] = $candidate;
+                }
+            }
+        }
+
+        return response()->json([
+            'available'   => !$exists,
+            'suggestions' => $suggestions,
+        ]);
     }
 
     /**
