@@ -1,16 +1,9 @@
 <ion-list style="background: transparent;">
-  <!-- Barangay Box -->
-  <ion-item class="boxed-input-item" style="border-radius: 12px; margin-bottom: 10px; border: 1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); --background: var(--ion-item-background, #fff);">
-    <ion-select label="Barangay" labelPlacement="stacked" placeholder="Tap to select your barangay" [(ngModel)]="userData.barangay_id" required>
-      <ion-select-option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</ion-select-option>
-    </ion-select>
-  </ion-item>
-
   <!-- Username Box -->
   <ion-item
     [style.border]="usernameAvailable === true ? '2px solid #2dd36f' : (usernameAvailable === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
     style="border-radius: 12px; margin-bottom: 5px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
-    <ion-input label="Username" labelPlacement="stacked" type="text" placeholder="Tap to enter a username"
+    <ion-input label="Username" labelPlacement="stacked" type="text" placeholder="Choose your username"
                maxlength="20"
                [(ngModel)]="userData.username" (ionInput)="onUsernameInput()" required></ion-input>
     <i class="fa-solid fa-spinner fa-spin" slot="end"
@@ -43,7 +36,7 @@
   <ion-item
     [style.border]="emailAvailable === true ? '2px solid #2dd36f' : (emailAvailable === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
     style="border-radius: 12px; margin-bottom: 5px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
-    <ion-input label="Email Address" labelPlacement="stacked" type="email" placeholder="Tap to enter your email address"
+    <ion-input label="Email Address" labelPlacement="stacked" type="email" placeholder="Enter your email address"
                [(ngModel)]="userData.email" (ionInput)="onEmailInput()" required></ion-input>
     <i class="fa-solid fa-spinner fa-spin" slot="end"
        *ngIf="emailAvailable === null && (userData.email ?? '').length > 0" style="color: #8a8a8a;"></i>
@@ -61,7 +54,7 @@
   <ion-item
     [style.border]="isPasswordValid ? '2px solid #2dd36f' : (passwordFocused ? '2px solid var(--ion-color-danger)' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
     style="border-radius: 12px; margin-bottom: 10px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
-    <ion-input label="Password" labelPlacement="stacked" type="password" placeholder="Tap to enter a password"
+    <ion-input label="Password" labelPlacement="stacked" type="password" placeholder="Create a strong password"
                [(ngModel)]="userData.password"
                (ionFocus)="passwordFocused = true" (ionBlur)="passwordFocused = false" required>
       <ion-input-password-toggle slot="end"></ion-input-password-toggle>
@@ -72,7 +65,7 @@
   <ion-item
     [style.border]="passwordsMatch === true ? '2px solid #2dd36f' : (passwordsMatch === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
     style="border-radius: 12px; margin-bottom: 5px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
-    <ion-input label="Confirm Password" labelPlacement="stacked" type="password" placeholder="Tap to re-enter your password"
+    <ion-input label="Confirm Password" labelPlacement="stacked" type="password" placeholder="Re-enter your password"
                [(ngModel)]="userData.confirm_password" required>
       <ion-input-password-toggle slot="end"></ion-input-password-toggle>
     </ion-input>
@@ -110,52 +103,4 @@
     <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
     Passwords do not match.
   </p>
-
-  <!-- OTP Channel Preference -->
-  <div style="margin-top: 15px;">
-    <p style="font-size: 13px; font-weight: bold; color: var(--ion-text-color); margin-bottom: 8px;">
-      <i class="fa-solid fa-shield-halved" style="color: var(--ion-color-danger); margin-right: 6px;"></i>
-      Verify your account via:
-    </p>
-    <div style="display: flex; gap: 10px;">
-      <div (click)="selectOtpChannel('email')"
-           [style.border]="userData.otp_channel === 'email' ? '2px solid var(--ion-color-danger)' : '1px solid var(--ion-color-step-200, #ccc)'"
-           [style.background]="userData.otp_channel === 'email' ? 'rgba(235, 68, 90, 0.08)' : 'transparent'"
-           style="flex: 1; padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
-        <i class="fa-solid fa-envelope"
-           [style.color]="userData.otp_channel === 'email' ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'"
-           style="font-size: 22px; display: block; margin-bottom: 4px;"></i>
-        <span style="font-size: 12px; font-weight: bold;"
-              [style.color]="userData.otp_channel === 'email' ? 'var(--ion-color-danger)' : 'var(--ion-text-color)'">
-          Email OTP
-        </span>
-      </div>
-
-      <div (click)="selectOtpChannel('sms')"
-           [style.border]="userData.otp_channel === 'sms' ? '2px solid var(--ion-color-danger)' : '1px solid var(--ion-color-step-200, #ccc)'"
-           [style.background]="userData.otp_channel === 'sms' ? 'rgba(235, 68, 90, 0.08)' : 'transparent'"
-           style="flex: 1; padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
-        <i class="fa-solid fa-mobile-screen"
-           [style.color]="userData.otp_channel === 'sms' ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'"
-           style="font-size: 22px; display: block; margin-bottom: 4px;"></i>
-        <span style="font-size: 12px; font-weight: bold;"
-              [style.color]="userData.otp_channel === 'sms' ? 'var(--ion-color-danger)' : 'var(--ion-text-color)'">
-          SMS OTP
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Terms & Privacy Agreement Checkbox -->
-  <div style="margin-top: 15px;">
-    <ion-item lines="none" style="--background: transparent; --padding-start: 0;">
-      <ion-checkbox [(ngModel)]="termsAccepted" slot="start" color="danger" mode="md"></ion-checkbox>
-      <ion-label style="font-size: 12px; color: var(--ion-color-medium); white-space: normal; line-height: 1.4;">
-        I agree to the
-        <a href="#" (click)="openTermsModal('terms', $event)" style="color: var(--ion-color-danger); font-weight: bold; text-decoration: underline;">Terms of Service</a>
-        and
-        <a href="#" (click)="openTermsModal('privacy', $event)" style="color: var(--ion-color-danger); font-weight: bold; text-decoration: underline;">Privacy Policy</a>.
-      </ion-label>
-    </ion-item>
-  </div>
 </ion-list>

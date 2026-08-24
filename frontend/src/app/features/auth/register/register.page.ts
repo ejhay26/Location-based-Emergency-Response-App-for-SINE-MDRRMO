@@ -5,8 +5,8 @@ import { ToastController } from '@ionic/angular';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
-  IonSelect, IonSelectOption,
-  IonButton
+  IonSelect, IonSelectOption, IonCheckbox, IonLabel,
+  IonButton, ModalController
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api';
@@ -15,16 +15,15 @@ import { RegisterAccountDetailsComponent } from './components/register-account-d
 import { OtpBoxInputComponent } from '../../../shared/components/otp-box-input/otp-box-input.component';
 import { formatPhoneLocalPart, isValidPhonePH } from '../../../shared/utils/phone.util';
 import { OtpAutofillService } from '../../../core/services/otp-autofill';
+import { BARANGAYS } from '../../../shared/constants/barangays';
+import { TermsModalComponent } from '../../../shared/components/terms-modal/terms-modal.component';
 
 /**
- * Registration is a 4-step flow:
- *   1. Personal details (name, phone, birthdate)
- *   2. ID verification (type, front photo, back photo, selfie-with-ID)
- *   3. Account details (username/email/password + OTP channel choice)
- *   4. OTP verification
- * Steps 1 and 2 used to be merged into a single step 1 — split apart per
- * the redesign so ID capture reads as its own dedicated stage rather than
- * being buried under a wall of personal-info fields.
+ * Modern Restructured 4-Step Registration Flow:
+ *   1. Personal Identity & Residence (Name, Phone, 3-part Birthdate, Barangay)
+ *   2. Account Credentials & Security (Username with suggestions, Email, Password match)
+ *   3. Identity Verification & Legal Consent (Valid ID Front/Back, Selfie, OTP Channel choice, Terms & Privacy Agreement)
+ *   4. Final Verification Code (6-digit OTP entry, Resend Timer, Auto-submit)
  */
 @Component({
   selector: 'app-register',
@@ -35,13 +34,12 @@ import { OtpAutofillService } from '../../../core/services/otp-autofill';
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
-    IonSelect, IonSelectOption,
+    IonSelect, IonSelectOption, IonCheckbox, IonLabel,
     IonButton,
     RegisterIdCaptureComponent, RegisterAccountDetailsComponent, OtpBoxInputComponent
   ],
 })
 export class RegisterPage implements OnDestroy {
-
   readonly totalSteps = 4;
   currentStep = 1;
   otpCode = '';
@@ -49,17 +47,12 @@ export class RegisterPage implements OnDestroy {
   isVerifyingOtp   = false;
   isResendingOtp   = false;
   otpResendSecs    = 0;
+  termsAccepted    = false;
   private otpResendTimer: ReturnType<typeof setInterval> | null = null;
 
-  /**
-   * The 10-digit local part only ("9171234567"), what the phone input
-   * itself is bound to. `userData.phone` — what actually gets submitted —
-   * is kept as the full "63XXXXXXXXXX" canonical value, built from this on
-   * every keystroke via onPhoneInput(). Kept separate so a stray leading 0
-   * a user types out of habit never has to round-trip through userData.phone.
-   */
-  phoneLocal = '';
+  barangays = BARANGAYS;
 
+  phoneLocal = '';
   birthMonth = '';
   birthDay = '';
   birthYear = '';
@@ -114,53 +107,110 @@ export class RegisterPage implements OnDestroy {
     otp_channel: 'email' as 'email' | 'sms'
   };
 
+  private modalCtrl = inject(ModalController);
+  private otpAutofill = inject(OtpAutofillService);
+
   constructor(
     private router: Router,
     private api: ApiService,
     private toastController: ToastController,
   ) {}
 
-  private otpAutofill = inject(OtpAutofillService);
-
   ngOnDestroy(): void {
     this.otpAutofill.stop();
     this.stopOtpCountdown();
   }
 
+  selectOtpChannel(channel: 'email' | 'sms'): void {
+    this.userData.otp_channel = channel;
+  }
+
+  async openTermsModal(tab: 'terms' | 'privacy', event?: MouseEvent): Promise<void> {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const modal = await this.modalCtrl.create({
+      component: TermsModalComponent,
+      componentProps: { activeTab: tab },
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.accepted) {
+      this.termsAccepted = true;
+    }
+  }
+
   nextStep(): void {
+    // ── STEP 1: Personal Details & Residence ──
     if (this.currentStep === 1) {
       if (!this.userData.first_name?.trim() || !this.userData.last_name?.trim()
-          || !isValidPhonePH(this.userData.phone) || !this.userData.birthdate?.trim()) {
-        this.showToast('Please fill out all personal details.'); return;
+          || !isValidPhonePH(this.userData.phone) || !this.userData.birthdate?.trim()
+          || !this.userData.barangay_id) {
+        this.showToast('Please fill out all personal and residence details.');
+        return;
       }
+      this.currentStep = 2;
+      return;
     }
+
+    // ── STEP 2: Account Credentials & Security ──
     if (this.currentStep === 2) {
-      if (!this.userData.valid_id_type) { this.showToast('Please select your ID type.'); return; }
-      if (!this.userData.valid_id_image) { this.showToast('A photo of the front of your ID is required.'); return; }
-      if (!this.userData.valid_id_image_back) { this.showToast('A photo of the back of your ID is required.'); return; }
-      if (!this.userData.selfie_with_id_image) { this.showToast('A selfie holding your ID is required.'); return; }
+      if (!this.userData.username?.trim() || !this.userData.email?.trim()) {
+        this.showToast('Please enter both username and email.');
+        return;
+      }
+      if (this.accountDetailsCmp?.usernameAvailable !== true) {
+        this.showToast('Please choose an available username.');
+        return;
+      }
+      if (this.accountDetailsCmp?.emailAvailable !== true) {
+        this.showToast('Please enter a valid, available email address.');
+        return;
+      }
+      if (!this.accountDetailsCmp?.isPasswordValid) {
+        this.showToast('Password must meet all 5 security requirements.');
+        return;
+      }
+      if (this.accountDetailsCmp?.passwordsMatch !== true) {
+        this.showToast('Passwords do not match.');
+        return;
+      }
+      this.currentStep = 3;
+      return;
     }
+
+    // ── STEP 3: Identity Verification & Legal Consent ──
     if (this.currentStep === 3) {
-      if (!this.userData.username?.trim() || !this.userData.email?.trim() || !this.userData.barangay_id) {
-        this.showToast('Please fill out all account details.'); return;
+      if (!this.userData.valid_id_type) {
+        this.showToast('Please select your ID type.');
+        return;
       }
-      if (this.accountDetailsCmp?.usernameAvailable !== true) { this.showToast('Please verify your username availability.'); return; }
-      if (this.accountDetailsCmp?.emailAvailable !== true) { this.showToast('Please verify your email availability.'); return; }
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
-      if (!passwordRegex.test(this.userData.password ?? '')) {
-        this.showToast('Password must meet all security requirements.'); return;
+      if (!this.userData.valid_id_image) {
+        this.showToast('A photo of the front of your ID is required.');
+        return;
       }
-      if (this.userData.password !== this.userData.confirm_password) {
-        this.showToast('Passwords do not match.'); return;
+      if (!this.userData.valid_id_image_back) {
+        this.showToast('A photo of the back of your ID is required.');
+        return;
       }
-      if (!this.accountDetailsCmp?.termsAccepted) { this.showToast('You must accept the Terms and Conditions.'); return; }
+      if (!this.userData.selfie_with_id_image) {
+        this.showToast('A selfie holding your ID is required.');
+        return;
+      }
+      if (!this.termsAccepted) {
+        this.showToast('You must agree to the Terms of Service and Privacy Policy to continue.');
+        return;
+      }
+
       this.submitRegistration();
       return;
     }
-    this.currentStep++;
   }
 
-  prevStep(): void { if (this.currentStep > 1) this.currentStep--; }
+  prevStep(): void {
+    if (this.currentStep > 1 && this.currentStep <= 3) {
+      this.currentStep--;
+    }
+  }
 
   submitRegistration(): void {
     if (this.isRegistering) return;
@@ -171,19 +221,18 @@ export class RegisterPage implements OnDestroy {
         const channelLabel = this.userData.otp_channel === 'sms'
           ? `your phone number ${this.userData.phone}`
           : `your email ${this.userData.email}`;
-        this.showToast(`Verification code sent to ${channelLabel}.`);
+        this.showToast(`Verification code sent to ${channelLabel}.`, 'success');
         this.currentStep = 4;
         this.startOtpCountdown();
-        // Only meaningful on native Android — listen() silently no-ops
-        // everywhere else (iOS, web, desktop), so it's harmless to always
-        // call this rather than branch on platform.
         this.otpAutofill.listen(code => { this.otpCode = code; this.verifyOtp(); });
       },
-      error: (err: any) => { this.isRegistering = false; this.showToast(err?.error?.message ?? 'Registration failed.'); }
+      error: (err: any) => {
+        this.isRegistering = false;
+        this.showToast(err?.error?.message ?? 'Registration failed. Please check your connection.');
+      }
     });
   }
 
-  /** Starts (or restarts) the 60-second resend cooldown; mirrors the login-OTP page's existing pattern. */
   private startOtpCountdown(): void {
     this.stopOtpCountdown();
     this.otpResendSecs = 60;
@@ -194,25 +243,38 @@ export class RegisterPage implements OnDestroy {
   }
 
   private stopOtpCountdown(): void {
-    if (this.otpResendTimer) { clearInterval(this.otpResendTimer); this.otpResendTimer = null; }
+    if (this.otpResendTimer) {
+      clearInterval(this.otpResendTimer);
+      this.otpResendTimer = null;
+    }
     this.otpResendSecs = 0;
   }
 
   resendOtp(): void {
     if (this.isResendingOtp || this.otpResendSecs > 0) return;
     this.isResendingOtp = true;
-    this.api.resendRegistrationOtp({ email: this.userData.email, otp_channel: this.userData.otp_channel, phone: this.userData.phone }).subscribe({
+    this.api.resendRegistrationOtp({
+      email: this.userData.email,
+      otp_channel: this.userData.otp_channel,
+      phone: this.userData.phone
+    }).subscribe({
       next: () => {
         this.isResendingOtp = false;
         this.showToast('A new code was sent.', 'success');
         this.startOtpCountdown();
       },
-      error: (err: any) => { this.isResendingOtp = false; this.showToast(err?.error?.message ?? 'Failed to resend code.'); }
+      error: (err: any) => {
+        this.isResendingOtp = false;
+        this.showToast(err?.error?.message ?? 'Failed to resend code.');
+      }
     });
   }
 
   verifyOtp(): void {
-    if (!this.otpCode?.trim() || this.otpCode.length < 6) { this.showToast('Please enter the 6-digit verification code.'); return; }
+    if (!this.otpCode?.trim() || this.otpCode.length < 6) {
+      this.showToast('Please enter the 6-digit verification code.');
+      return;
+    }
     if (this.isVerifyingOtp) return;
     this.isVerifyingOtp = true;
     this.api.verifyOtp({ email: this.userData.email, otp: this.otpCode }).subscribe({
@@ -220,19 +282,22 @@ export class RegisterPage implements OnDestroy {
         this.isVerifyingOtp = false;
         this.otpAutofill.stop();
         this.stopOtpCountdown();
-        // Account is verified but still `unverified` account_status — no
-        // token comes back from this endpoint, so we don't touch
-        // localStorage['user']/['role'] here (that's only ever set on a
-        // real login). Medical profile info can be added later from the
-        // real Profile page once the account is approved.
         this.router.navigate(['/pending-verification'], { queryParams: { login: this.userData.email } });
       },
-      error: () => { this.isVerifyingOtp = false; this.showToast('Invalid verification code.'); }
+      error: () => {
+        this.isVerifyingOtp = false;
+        this.showToast('Invalid verification code. Please check and try again.');
+      }
     });
   }
 
   async showToast(msg: string, color = 'danger'): Promise<void> {
-    const toast = await this.toastController.create({ message: msg, duration: 3000, position: 'bottom', color });
+    const toast = await this.toastController.create({
+      message: msg,
+      duration: 3500,
+      position: 'bottom',
+      color
+    });
     await toast.present();
   }
 }

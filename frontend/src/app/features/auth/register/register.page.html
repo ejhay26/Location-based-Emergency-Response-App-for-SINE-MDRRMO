@@ -9,22 +9,32 @@
 
 <ion-content class="ion-padding">
 
+  <!-- Step Progress Header -->
   <div class="ion-text-center ion-margin-bottom">
-    <ion-text color="medium" style="font-weight: 500;">Step {{ currentStep }} of {{ totalSteps }}</ion-text>
-    <ion-progress-bar [value]="currentStep / totalSteps" color="danger"></ion-progress-bar>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding: 0 4px;">
+      <ion-text color="danger" style="font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+        {{
+          currentStep === 1 ? 'Personal Details' :
+          currentStep === 2 ? 'Account Credentials' :
+          currentStep === 3 ? 'Identity Verification' : 'Verification Code'
+        }}
+      </ion-text>
+      <ion-text color="medium" style="font-weight: 600; font-size: 12px;">Step {{ currentStep }} of {{ totalSteps }}</ion-text>
+    </div>
+    <ion-progress-bar [value]="currentStep / totalSteps" color="danger" style="border-radius: 4px; height: 6px;"></ion-progress-bar>
   </div>
 
-  <!-- ══ STEP 1: Personal Details ══ -->
+  <!-- ══ STEP 1: Personal Details & Residence ══ -->
   <div *ngIf="currentStep === 1">
     <ion-list style="background: transparent;">
       <ion-item class="boxed-input-item">
-        <ion-input label="First Name" labelPlacement="stacked" placeholder="Tap to enter your first name" [(ngModel)]="userData.first_name" required></ion-input>
+        <ion-input label="First Name" labelPlacement="stacked" placeholder="Enter your first name" [(ngModel)]="userData.first_name" required></ion-input>
       </ion-item>
       <ion-item class="boxed-input-item">
-        <ion-input label="Last Name" labelPlacement="stacked" placeholder="Tap to enter your last name" [(ngModel)]="userData.last_name" required></ion-input>
+        <ion-input label="Last Name" labelPlacement="stacked" placeholder="Enter your last name" [(ngModel)]="userData.last_name" required></ion-input>
       </ion-item>
       <ion-item class="boxed-input-item">
-        <ion-input label="Phone Number" labelPlacement="stacked" placeholder="9XXXXXXXXX" type="tel" inputmode="numeric" maxlength="10"
+        <ion-input label="Mobile Phone Number" labelPlacement="stacked" placeholder="9XXXXXXXXX" type="tel" inputmode="numeric" maxlength="10"
                    [ngModel]="phoneLocal" (ionInput)="onPhoneInput($event.detail.value)" required>
           <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:600;">+63</div>
         </ion-input>
@@ -54,14 +64,37 @@
           </div>
         </div>
       </div>
+
+      <!-- Barangay Selector -->
+      <ion-item class="boxed-input-item" style="border-radius: 12px; margin-bottom: 10px; border: 1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); --background: var(--ion-item-background, #fff);">
+        <ion-select label="Barangay / Residence" labelPlacement="stacked" placeholder="Select your barangay" [(ngModel)]="userData.barangay_id" required>
+          <ion-select-option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</ion-select-option>
+        </ion-select>
+      </ion-item>
     </ion-list>
 
-    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="nextStep()" style="font-weight: bold; height: 45px; border-radius: 12px;">Next</ion-button>
+    <ion-button expand="block" color="danger" class="ion-margin-top" (click)="nextStep()" style="font-weight: bold; height: 48px; border-radius: 12px;">
+      Next: Setup Login Credentials <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>
+    </ion-button>
   </div>
 
-  <!-- ══ STEP 2: ID Verification ══ -->
+  <!-- ══ STEP 2: Account Credentials & Security ══ -->
   <div *ngIf="currentStep === 2">
-    <!-- Verification Tips & Requirements Box -->
+    <app-register-account-details [userData]="userData"></app-register-account-details>
+
+    <div style="display: flex; gap: 10px; margin-top: 18px;">
+      <ion-button expand="block" fill="outline" color="danger" (click)="prevStep()" style="font-weight: bold; height: 48px; flex: 1; border-radius: 12px;">
+        <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> Back
+      </ion-button>
+      <ion-button expand="block" color="danger" (click)="nextStep()" style="font-weight: bold; height: 48px; flex: 1.5; border-radius: 12px;">
+        Next: Verify Identity <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 3: Identity Verification & Legal Consent ══ -->
+  <div *ngIf="currentStep === 3">
+    <!-- Verification Tips Box -->
     <div style="background: linear-gradient(135deg, rgba(235,68,90,0.08), rgba(235,68,90,0.03)); border: 1.5px solid rgba(235,68,90,0.25); border-radius: 14px; padding: 14px 16px; margin: 4px 0 16px 0;">
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
         <i class="fa-solid fa-id-card-clip" style="color: var(--ion-color-danger); font-size: 16px;"></i>
@@ -70,27 +103,24 @@
         </h4>
       </div>
       <p style="margin: 0 0 8px 0; font-size: 12px; color: var(--ion-text-color); line-height: 1.45;">
-        To keep our community safe and make sure help goes to real people, MDRRMO requires a valid ID.
+        To keep our community safe and make sure emergency help goes to real residents, MDRRMO requires identity review.
       </p>
       <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--ion-text-color);">
         <div style="display: flex; align-items: flex-start; gap: 8px;">
           <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 12px; margin-top: 2px; flex-shrink: 0;"></i>
-          <span><strong>Bright Lighting:</strong> Take the photo in a bright place. Avoid shadows and strong camera flash glare over your info.</span>
+          <span><strong>Bright Lighting:</strong> Avoid glare over text and keep ID corners inside the box.</span>
         </div>
         <div style="display: flex; align-items: flex-start; gap: 8px;">
           <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 12px; margin-top: 2px; flex-shrink: 0;"></i>
-          <span><strong>Clear &amp; Readable:</strong> Make sure all 4 corners of your ID are inside the box and your name and ID number can be read clearly.</span>
-        </div>
-        <div style="display: flex; align-items: flex-start; gap: 8px;">
-          <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 12px; margin-top: 2px; flex-shrink: 0;"></i>
-          <span><strong>Selfie with ID:</strong> Hold your ID next to your chest or face. Look straight at the camera and make sure your fingers don't cover your name or photo.</span>
+          <span><strong>Selfie with ID:</strong> Hold ID near your chest, looking straight at the camera.</span>
         </div>
       </div>
     </div>
 
+    <!-- ID Type Dropdown -->
     <ion-list style="background: transparent;">
-      <ion-item>
-        <ion-select label="Valid ID Type" labelPlacement="stacked" placeholder="Tap to select your ID type" [(ngModel)]="userData.valid_id_type" required>
+      <ion-item class="boxed-input-item" style="border-radius: 12px; margin-bottom: 12px; border: 1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); --background: var(--ion-item-background, #fff);">
+        <ion-select label="Valid ID Type" labelPlacement="stacked" placeholder="Select your ID type" [(ngModel)]="userData.valid_id_type" required>
           <ion-select-option value="Philippine National ID (PhilSys)">Philippine National ID (PhilSys)</ion-select-option>
           <ion-select-option value="Driver's License">Driver's License</ion-select-option>
           <ion-select-option value="Voter's ID">Voter's ID</ion-select-option>
@@ -109,69 +139,110 @@
     <app-register-id-capture variant="id-back" fieldName="valid_id_image_back" [userData]="userData" (toast)="showToast($event)"></app-register-id-capture>
     <app-register-id-capture variant="selfie" fieldName="selfie_with_id_image" [userData]="userData" (toast)="showToast($event)"></app-register-id-capture>
 
-    <div style="display: flex; gap: 10px; margin-top: 18px;">
-      <ion-button expand="block" fill="outline" color="danger" (click)="prevStep()" style="font-weight: bold; height: 45px;">Back</ion-button>
-      <ion-button expand="block" color="danger" (click)="nextStep()" style="font-weight: bold; height: 45px;">Next</ion-button>
+    <!-- OTP Channel Preference -->
+    <div style="margin-top: 18px; margin-bottom: 14px;">
+      <p style="font-size: 13px; font-weight: bold; color: var(--ion-text-color); margin-bottom: 8px;">
+        <i class="fa-solid fa-shield-halved" style="color: var(--ion-color-danger); margin-right: 6px;"></i>
+        Receive 6-Digit Code via:
+      </p>
+      <div style="display: flex; gap: 10px;">
+        <div (click)="selectOtpChannel('email')"
+             [style.border]="userData.otp_channel === 'email' ? '2px solid var(--ion-color-danger)' : '1px solid var(--ion-color-step-200, #ccc)'"
+             [style.background]="userData.otp_channel === 'email' ? 'rgba(235, 68, 90, 0.08)' : 'transparent'"
+             style="flex: 1; padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
+          <i class="fa-solid fa-envelope"
+             [style.color]="userData.otp_channel === 'email' ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'"
+             style="font-size: 22px; display: block; margin-bottom: 4px;"></i>
+          <span style="font-size: 12px; font-weight: bold;"
+                [style.color]="userData.otp_channel === 'email' ? 'var(--ion-color-danger)' : 'var(--ion-text-color)'">
+            Email OTP
+          </span>
+        </div>
+
+        <div (click)="selectOtpChannel('sms')"
+             [style.border]="userData.otp_channel === 'sms' ? '2px solid var(--ion-color-danger)' : '1px solid var(--ion-color-step-200, #ccc)'"
+             [style.background]="userData.otp_channel === 'sms' ? 'rgba(235, 68, 90, 0.08)' : 'transparent'"
+             style="flex: 1; padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
+          <i class="fa-solid fa-mobile-screen"
+             [style.color]="userData.otp_channel === 'sms' ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'"
+             style="font-size: 22px; display: block; margin-bottom: 4px;"></i>
+          <span style="font-size: 12px; font-weight: bold;"
+                [style.color]="userData.otp_channel === 'sms' ? 'var(--ion-color-danger)' : 'var(--ion-text-color)'">
+            SMS OTP
+          </span>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- ══ STEP 3: Account Details + OTP Channel ══ -->
-  <div *ngIf="currentStep === 3">
-    <app-register-account-details [userData]="userData"></app-register-account-details>
+    <!-- Terms & Privacy Agreement Checkbox -->
+    <div style="margin-top: 14px; padding: 10px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border-radius: 12px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
+      <ion-item lines="none" style="--background: transparent; --padding-start: 0;">
+        <ion-checkbox [(ngModel)]="termsAccepted" slot="start" color="danger" mode="md"></ion-checkbox>
+        <ion-label style="font-size: 12px; color: var(--ion-text-color); white-space: normal; line-height: 1.45;">
+          I agree to the
+          <a href="#" (click)="openTermsModal('terms', $event)" style="color: var(--ion-color-danger); font-weight: bold; text-decoration: underline;">Terms of Service</a>
+          and
+          <a href="#" (click)="openTermsModal('privacy', $event)" style="color: var(--ion-color-danger); font-weight: bold; text-decoration: underline;">Privacy Policy</a>.
+        </ion-label>
+      </ion-item>
+    </div>
 
     <div style="display: flex; gap: 10px; margin-top: 18px;">
-      <ion-button expand="block" fill="outline" color="danger" (click)="prevStep()" style="font-weight: bold; height: 45px;">
-        Back
+      <ion-button expand="block" fill="outline" color="danger" (click)="prevStep()" style="font-weight: bold; height: 48px; flex: 1; border-radius: 12px;">
+        <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> Back
       </ion-button>
       <ion-button expand="block" color="danger" (click)="nextStep()"
                   [class.btn-loading]="isRegistering"
-                  style="font-weight: bold; height: 45px;">
-        <ng-container *ngIf="!isRegistering">Continue</ng-container>
+                  style="font-weight: bold; height: 48px; flex: 1.8; border-radius: 12px;">
+        <ng-container *ngIf="!isRegistering">Agree &amp; Send Code <i class="fa-solid fa-paper-plane" style="margin-left: 8px;"></i></ng-container>
         <span *ngIf="isRegistering" class="dot-loader"><span></span><span></span><span></span></span>
       </ion-button>
     </div>
   </div>
 
-  <!-- ══ STEP 4: OTP VERIFICATION ══ -->
+  <!-- ══ STEP 4: Final 6-Digit OTP Verification ══ -->
   <div *ngIf="currentStep === 4" class="ion-text-center">
-    <h2 style="font-weight: bold; color: var(--ion-text-color);">
-      {{ userData.otp_channel === 'sms' ? 'Check Your SMS' : 'Check Your Email' }}
-    </h2>
-    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
-      Enter the 6-digit verification code we sent you.
-    </p>
-
-    <ion-list style="background: transparent;">
-      <ion-item>
-        <i [class]="userData.otp_channel === 'sms' ? 'fa-solid fa-mobile-screen' : 'fa-solid fa-envelope'"
-           slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-        <ion-input [label]="userData.otp_channel === 'sms' ? 'Registered Phone Number' : 'Registered Email'" labelPlacement="stacked"
-                   type="text" [value]="userData.otp_channel === 'sms' ? userData.phone : userData.email"
-                   readonly disabled></ion-input>
-        <ion-button slot="end" fill="solid" color="danger" size="small" type="button"
-                    [class.btn-muted]="otpResendSecs > 0"
-                    [class.btn-loading]="isResendingOtp"
-                    (click)="resendOtp()"
-                    style="font-weight: bold; margin: 0; --border-radius: 8px; min-width: 76px;">
-          <ng-container *ngIf="!isResendingOtp">
-            <ng-container *ngIf="otpResendSecs > 0">{{ otpResendSecs }}s</ng-container>
-            <ng-container *ngIf="otpResendSecs === 0">Resend</ng-container>
-          </ng-container>
-          <i *ngIf="isResendingOtp" class="fa-solid fa-spinner fa-spin"></i>
-        </ion-button>
-      </ion-item>
-    </ion-list>
-
-    <div class="ion-margin-top">
-      <app-otp-box-input [code]="otpCode" (codeChange)="otpCode = $event" (completed)="verifyOtp()"></app-otp-box-input>
+    <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(235, 68, 90, 0.1); color: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 12px auto 16px auto;">
+      <i [class]="userData.otp_channel === 'sms' ? 'fa-solid fa-comment-sms' : 'fa-solid fa-envelope-open-text'"></i>
     </div>
 
-    <ion-button expand="block" color="success" class="ion-margin-top" (click)="verifyOtp()"
+    <h2 style="font-weight: 800; color: var(--ion-text-color); margin-bottom: 4px;">
+      {{ userData.otp_channel === 'sms' ? 'Check Your SMS Messages' : 'Check Your Email Inbox' }}
+    </h2>
+    <p style="color: var(--ion-color-medium); font-size: 13px; font-weight: 500; margin-bottom: 18px;">
+      We sent a 6-digit verification code to
+      <strong style="color: var(--ion-text-color);">{{ userData.otp_channel === 'sms' ? ('+63 ' + phoneLocal) : userData.email }}</strong>.
+    </p>
+
+    <!-- 6-Box OTP Input -->
+    <div style="margin: 20px 0;">
+      <app-otp-box-input [disabled]="isVerifyingOtp" [(code)]="otpCode" (completed)="verifyOtp()"></app-otp-box-input>
+    </div>
+
+    <ion-button expand="block" color="danger" (click)="verifyOtp()"
                 [class.btn-loading]="isVerifyingOtp"
-                style="font-weight: bold; height: 50px;">
-      <ng-container *ngIf="!isVerifyingOtp">Verify {{ userData.otp_channel === 'sms' ? 'Code' : 'Email' }}</ng-container>
+                [disabled]="otpCode.length < 6"
+                style="font-weight: bold; height: 48px; border-radius: 12px; margin-top: 10px;">
+      <ng-container *ngIf="!isVerifyingOtp">Verify &amp; Submit Account <i class="fa-solid fa-circle-check" style="margin-left: 8px;"></i></ng-container>
       <span *ngIf="isVerifyingOtp" class="dot-loader"><span></span><span></span><span></span></span>
     </ion-button>
+
+    <!-- Resend Code Area -->
+    <div style="margin-top: 20px;">
+      <p style="font-size: 13px; color: var(--ion-color-medium); margin-bottom: 6px;">
+        Didn't receive your code?
+      </p>
+      <ion-button fill="clear" color="danger" (click)="resendOtp()"
+                  [disabled]="otpResendSecs > 0 || isResendingOtp"
+                  style="font-weight: 700; font-size: 13px;">
+        <ng-container *ngIf="otpResendSecs > 0">
+          Resend code in {{ otpResendSecs }}s
+        </ng-container>
+        <ng-container *ngIf="otpResendSecs === 0">
+          <i class="fa-solid fa-rotate-right" style="margin-right: 6px;"></i> Resend Verification Code
+        </ng-container>
+      </ion-button>
+    </div>
   </div>
 
 </ion-content>

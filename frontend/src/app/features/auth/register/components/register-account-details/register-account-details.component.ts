@@ -1,33 +1,26 @@
 import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonList, IonItem, IonSelect, IonSelectOption, IonInput, IonInputPasswordToggle, IonLabel, IonCheckbox, ModalController } from '@ionic/angular/standalone';
+import { IonList, IonItem, IonInput, IonInputPasswordToggle } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
-import { BARANGAYS } from '../../../../../shared/constants/barangays';
-import { TermsModalComponent } from '../../../../../shared/components/terms-modal/terms-modal.component';
 
 /**
- * RegisterAccountDetailsComponent — step 2 body of registration (barangay,
- * username/email availability checks, smart name-based suggestions, password + strength meter,
- * OTP channel selector, terms checkbox).
+ * RegisterAccountDetailsComponent — Step 2: Account Credentials & Security
+ * (Username with live suggestions, Email availability check, Password + strength meter, Confirm Password match).
  */
 @Component({
   selector: 'app-register-account-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonList, IonItem, IonSelect, IonSelectOption, IonInput, IonInputPasswordToggle, IonLabel, IonCheckbox],
+  imports: [CommonModule, FormsModule, IonList, IonItem, IonInput, IonInputPasswordToggle],
   templateUrl: './register-account-details.component.html',
   styleUrls: ['./register-account-details.component.scss']
 })
 export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
-  private modalCtrl = inject(ModalController);
 
   @Input() userData: any;
 
-  barangays = BARANGAYS;
-
   passwordFocused = false;
-  termsAccepted   = false;
 
   usernameAvailable: boolean | null = null;
   emailAvailable: boolean | null = null;
@@ -64,11 +57,6 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
     return this.userData.password === this.userData.confirm_password;
   }
 
-  private getBarangayName(): string {
-    const b = this.barangays.find(item => item.id === Number(this.userData?.barangay_id));
-    return b ? b.name : '';
-  }
-
   isUsernameFormatValid(): boolean {
     const u = (this.userData.username ?? '').trim();
     return u.length >= 3 && u.length <= 20 && /^[a-zA-Z0-9._]+$/.test(u);
@@ -79,7 +67,6 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
     this.api.checkUsername('', {
       first_name: this.userData.first_name,
       last_name: this.userData.last_name,
-      barangay: this.getBarangayName(),
       birthdate: this.userData.birthdate
     }).subscribe({
       next: (res: any) => {
@@ -109,7 +96,6 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
       this.api.checkUsername(username, {
         first_name: this.userData.first_name,
         last_name: this.userData.last_name,
-        barangay: this.getBarangayName(),
         birthdate: this.userData.birthdate
       }).subscribe({
         next: (res: any) => {
@@ -146,23 +132,5 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
     this.userData.username = name;
     this.usernameAvailable = true;
     this.onUsernameInput();
-  }
-
-  selectOtpChannel(channel: 'email' | 'sms'): void {
-    this.userData.otp_channel = channel;
-  }
-
-  async openTermsModal(tab: 'terms' | 'privacy', event?: MouseEvent): Promise<void> {
-    event?.preventDefault();
-    event?.stopPropagation();
-    const modal = await this.modalCtrl.create({
-      component: TermsModalComponent,
-      componentProps: { activeTab: tab },
-    });
-    await modal.present();
-    const { data } = await modal.onDidDismiss();
-    if (data?.accepted) {
-      this.termsAccepted = true;
-    }
   }
 }
