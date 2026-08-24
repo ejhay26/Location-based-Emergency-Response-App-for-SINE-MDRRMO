@@ -321,6 +321,7 @@ class AuthController extends Controller
 
         $channel = $request->input('otp_channel', 'email');
         $otp     = $this->otp->generateAndStore('otp_' . $user->email);
+        Log::info("Registration OTP generated for {$user->email}: {$otp} (Channel: {$channel})");
         $smsFailed = false;
 
         if ($channel === 'sms') {
@@ -381,17 +382,37 @@ class AuthController extends Controller
         }
         $otp     = $result['otp'];
         $channel = $request->input('otp_channel', 'email');
+        Log::info("Resend OTP generated for {$user->email}: {$otp} (Channel: {$channel})");
+        $smsFailed = false;
 
         if ($channel === 'sms') {
-            $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'account registration');
-            if (!$sent) {
-                return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
+            try {
+                $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'account registration');
+                if (!$sent) {
+                    $smsFailed = true;
+                    try {
+                        Mail::to($user->email)->send(new OtpMail($otp, 'verifying your new account (SMS fallback)'));
+                    } catch (\Throwable $e) {
+                        Log::error('Resend Registration Email Fallback Error: ' . $e->getMessage());
+                    }
+                }
+            } catch (\Throwable $e) {
+                $smsFailed = true;
+                Log::error('Resend Registration SMS Error: ' . $e->getMessage());
             }
         } else {
-            Mail::to($user->email)->send(new OtpMail($otp, 'verifying your new account'));
+            try {
+                Mail::to($user->email)->send(new OtpMail($otp, 'verifying your new account'));
+            } catch (\Throwable $e) {
+                Log::error('Resend Registration Email Error: ' . $e->getMessage());
+            }
         }
 
-        return response()->json(['message' => 'If a pending registration exists, a new code was sent.']);
+        $message = $smsFailed
+            ? 'A new code was sent to your email (SMS gateway was unavailable).'
+            : 'If a pending registration exists, a new code was sent.';
+
+        return response()->json(['message' => $message]);
     }
 
     public function checkUsername(Request $request)
