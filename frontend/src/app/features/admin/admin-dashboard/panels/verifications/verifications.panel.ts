@@ -13,6 +13,7 @@ import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
 import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 /**
  * VerificationsPanel — refreshes its queue in real-time via the Echo
@@ -27,6 +28,7 @@ import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../..
   imports: [
     CommonModule, FormsModule, IonButton, ProxyImageDirective,
     DateRangeFilterComponent, FilterSummaryBarComponent, RevealAnimateDirective, ListEnterDirective,
+    AppIconComponent
   ],
   templateUrl: './verifications.panel.html',
 })
@@ -106,33 +108,39 @@ export class VerificationsPanel implements OnInit, OnDestroy {
   }
 
   approveCitizen(userId: number) {
-    this.ui.confirm({
-      title: 'Approve Citizen',
-      message: 'Approve this citizen? They will be able to submit reports.',
-      icon: 'fa-solid fa-user-check',
-      iconColor: '#2dd36f',
-      confirmLabel: 'Approve',
-      confirmColor: '#2dd36f',
-      onConfirm: async () => {
-        await firstValueFrom(this.api.approveUser({ user_id: userId }));
-        this.ui.showToast('Citizen approved!', 'success');
-        this.loadPendingVerifications();
+    const user = this.pendingVerifications.find(u => u.user_id === userId);
+    const name = user ? `${user.first_name} ${user.last_name}` : 'this citizen';
+    this.ui.showConfirm({
+      title: 'Approve Verification',
+      message: `Are you sure you want to approve ID verification for ${name}?`,
+      icon: 'user-check', iconColor: '#2dd36f', confirmLabel: 'Approve', confirmColor: '#2dd36f',
+      action: async () => {
+        try {
+          await firstValueFrom(this.api.approveUser({ user_id: userId }));
+          this.ui.showToast('Citizen ID verified.', 'success');
+          this.loadPendingVerifications();
+        } catch {
+          this.ui.showToast('Approval failed.', 'danger');
+        }
       }
     });
   }
 
   rejectCitizen(userId: number) {
-    this.ui.confirm({
-      title: 'Deny Application',
-      message: 'Deny this registration? They will need to register again.',
-      icon: 'fa-solid fa-user-xmark',
-      iconColor: '#eb445a',
-      confirmLabel: 'Deny',
-      confirmColor: '#eb445a',
-      onConfirm: async () => {
-        await firstValueFrom(this.api.rejectUser({ user_id: userId }));
-        this.ui.showToast('Application denied.', 'medium');
-        this.loadPendingVerifications();
+    const user = this.pendingVerifications.find(u => u.user_id === userId);
+    const name = user ? `${user.first_name} ${user.last_name}` : 'this citizen';
+    this.ui.showConfirm({
+      title: 'Reject Verification',
+      message: `Reject ID verification for ${name}?`,
+      icon: 'user-xmark', iconColor: '#eb445a', confirmLabel: 'Reject', confirmColor: '#eb445a',
+      action: async () => {
+        try {
+          await firstValueFrom(this.api.rejectUser({ user_id: userId }));
+          this.ui.showToast('Verification rejected.', 'medium');
+          this.loadPendingVerifications();
+        } catch {
+          this.ui.showToast('Rejection failed.', 'danger');
+        }
       }
     });
   }

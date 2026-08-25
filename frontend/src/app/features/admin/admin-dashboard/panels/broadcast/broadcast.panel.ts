@@ -13,6 +13,7 @@ import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
 import { BARANGAYS, Barangay } from '../../../../../shared/constants/barangays';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 /**
  * BroadcastPanel — send an alert either town-wide (no barangays selected)
@@ -39,7 +40,11 @@ export interface BroadcastMediaItem {
 @Component({
   selector: 'app-broadcast-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonInput, IonButton, UtcDatePipe, ListEnterDirective, ProxyImageDirective],
+  imports: [
+    CommonModule, FormsModule,
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonInput, IonButton,
+    UtcDatePipe, ListEnterDirective, ProxyImageDirective, AppIconComponent
+  ],
   templateUrl: './broadcast.panel.html',
 })
 export class BroadcastPanel implements OnInit, OnDestroy {
@@ -162,23 +167,23 @@ export class BroadcastPanel implements OnInit, OnDestroy {
       : `citizens in: ${this.selectedBarangayIds.map(id => this.barangays.find(b => b.id === id)?.name).join(', ')}`;
 
     const details: any[] = [
-      { label: 'Target',  value: this.isTownWide ? 'Town-wide (all citizens)' : target, icon: 'fa-solid fa-location-dot' },
+      { label: 'Target',  value: this.isTownWide ? 'Town-wide (all citizens)' : target, icon: 'map-pin' },
     ];
 
     if (this.broadcastForm.title.trim()) {
-      details.push({ label: 'Title', value: this.broadcastForm.title.trim(), icon: 'fa-solid fa-heading' });
+      details.push({ label: 'Title', value: this.broadcastForm.title.trim(), icon: 'file-text' });
     }
 
-    details.push({ label: 'Message', value: this.broadcastForm.message.trim(), icon: 'fa-solid fa-comment-dots' });
+    details.push({ label: 'Message', value: this.broadcastForm.message.trim(), icon: 'message-square' });
 
     if (this.selectedMedia.length > 0) {
-      details.push({ label: 'Attachments', value: `${this.selectedMedia.length} file(s) attached`, icon: 'fa-solid fa-paperclip' });
+      details.push({ label: 'Attachments', value: `${this.selectedMedia.length} file(s) attached`, icon: 'paperclip' });
     }
 
     this.ui.confirm({
       title: 'Send Alert / Announcement',
       message: `This will immediately push an official notification and notice to ${target}. This cannot be unsent — only stopped.`,
-      icon: 'fa-solid fa-bullhorn',
+      icon: 'broadcast',
       iconColor: '#eb445a',
       confirmLabel: 'Send Announcement',
       confirmColor: 'danger',
@@ -221,13 +226,13 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     this.ui.confirm({
       title: 'Stop Alert',
       message: 'Citizens will immediately stop seeing this alert. This cannot be undone — you would need to send a new alert to notify them again.',
-      icon: 'fa-solid fa-circle-stop',
+      icon: 'close',
       iconColor: '#eb445a',
       confirmLabel: 'Stop Alert',
       confirmColor: 'danger',
       details: [
-        { label: 'Target',  value: broadcast.location,  icon: 'fa-solid fa-location-dot' },
-        { label: 'Message', value: broadcast.message,   icon: 'fa-solid fa-comment-dots' },
+        { label: 'Target',  value: broadcast.location,  icon: 'map-pin' },
+        { label: 'Message', value: broadcast.message,   icon: 'message-square' },
       ],
       onConfirm: () => new Promise<void>((resolve, reject) => {
         this.api.clearBroadcast(broadcast.broadcast_id).subscribe({
