@@ -57,6 +57,8 @@ export class ProfilePhotoComponent implements OnChanges {
   async triggerPhotoPicker() {
     const a = await this.alertCtrl.create({
       header: 'Change Profile Photo',
+      subHeader: '⚠️ Verification Notice',
+      message: 'Please upload an authentic and recognizable photo of yourself. Uploading inappropriate, misleading, or non-personal images will result in account warnings and suspension.',
       buttons: [
         { text: 'Choose from Gallery', handler: () => { this.selectFromSource(CameraSource.Photos); } },
         { text: 'Take a Photo',        handler: () => { this.selectFromSource(CameraSource.Camera); } },

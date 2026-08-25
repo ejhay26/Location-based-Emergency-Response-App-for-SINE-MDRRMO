@@ -23,15 +23,12 @@ export class WelcomePage implements OnInit {
 
   locationGranted  = false;
   cameraGranted    = false;
-  photosGranted    = false;
   notifGranted     = false;
   locationRequested  = false;
   cameraRequested    = false;
-  photosRequested    = false;
   notifRequested     = false;
   locationLoading = false;
   cameraLoading   = false;
-  photosLoading   = false;
   notifLoading    = false;
 
   constructor(private router: Router) {}
@@ -79,7 +76,6 @@ export class WelcomePage implements OnInit {
     try {
       const cam = await Camera.checkPermissions();
       this.cameraGranted = cam.camera === 'granted';
-      this.photosGranted = cam.photos === 'granted' || cam.photos === 'limited';
     } catch {}
     try {
       const notif = await PushNotifications.checkPermissions();
@@ -108,22 +104,6 @@ export class WelcomePage implements OnInit {
     } catch { this.cameraGranted = false; }
     this.cameraRequested = true;
     this.cameraLoading = false;
-  }
-
-  async requestPhotos() {
-    this.photosLoading = true;
-    try {
-      if (Capacitor.isNativePlatform()) {
-        const result = await this.withMinDelay(Camera.requestPermissions({ permissions: ['photos'] }));
-        this.photosGranted = result.photos === 'granted' || result.photos === 'limited';
-      } else {
-        this.photosGranted = true;
-      }
-    } catch {
-      this.photosGranted = false;
-    }
-    this.photosRequested = true;
-    this.photosLoading = false;
   }
 
   async requestNotifications() {

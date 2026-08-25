@@ -57,8 +57,8 @@ export class HelpPage implements OnInit {
   toggleFaq(item: FaqItem) {
     item.open = !item.open;
   }
-  startChapter(chapter: TourChapterCard) { this.tour.start(chapter.chapter); }
-  startFullTour() { this.tour.start('all'); }
+  startChapter(chapter: TourChapterCard) { this.tour.start(chapter.chapter, '/tabs/help'); }
+  startFullTour() { this.tour.start('all', '/tabs/home'); }
 
   async submitFeedback() {
     if (!this.feedback.message.trim() || this.feedback.message.trim().length < 10) {

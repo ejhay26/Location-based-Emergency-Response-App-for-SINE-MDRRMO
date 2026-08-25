@@ -182,6 +182,7 @@ export class TourService {
   private currentChapter: TourChapter = 'all';
   private filteredSteps: TourStep[] = STEPS;
   private navigating = false;
+  private returnUrl = '/tabs/home';
 
   constructor(
     private router: Router,
@@ -216,14 +217,15 @@ export class TourService {
       message: "Would you like a quick walkthrough of the app? It takes about a minute and shows you everything you need to know.",
       buttons: [
         { text: 'Skip for now', role: 'cancel',  handler: () => this.markSeen() },
-        { text: 'Yes, show me!', role: 'confirm', handler: () => this.start('all') }
+        { text: 'Yes, show me!', role: 'confirm', handler: () => this.start('all', '/tabs/home') }
       ]
     });
     await alert.present();
   }
 
-  start(chapter: TourChapter = 'all') {
+  start(chapter: TourChapter = 'all', returnUrl?: string) {
     this.currentChapter = chapter;
+    this.returnUrl = returnUrl || (chapter === 'all' ? '/tabs/home' : '/tabs/help');
     if (chapter === 'all') {
       this.filteredSteps = STEPS;
       this.stepIndex.set(0);
@@ -262,7 +264,7 @@ export class TourService {
     this.markSeen();
     this.dismissAnyModal();
     this.navigating = true;
-    this.router.navigate(['/tabs/home']);
+    this.router.navigate([this.returnUrl]);
   }
 
   // Tour was interrupted by unrelated navigation (not a deliberate exit) — don't mark as seen,
@@ -283,7 +285,7 @@ export class TourService {
     this.markSeen();
     this.dismissAnyModal();
     this.navigating = true;
-    this.router.navigate(['/tabs/home']);
+    this.router.navigate([this.returnUrl]);
   }
 
   markSeen()    { localStorage.setItem('tourSeen', 'true'); }
