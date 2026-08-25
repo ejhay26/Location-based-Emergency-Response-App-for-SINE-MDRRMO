@@ -1,8 +1,9 @@
 import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonList, IonItem, IonInput, IonInputPasswordToggle } from '@ionic/angular/standalone';
+import { IonItem, IonInput, IonInputPasswordToggle } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 /**
  * RegisterAccountDetailsComponent — Step 2: Account Credentials & Security
@@ -15,7 +16,7 @@ import { ApiService } from '../../../../../core/services/api';
 @Component({
   selector: 'app-register-account-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonList, IonItem, IonInput, IonInputPasswordToggle],
+  imports: [CommonModule, FormsModule, IonItem, IonInput, IonInputPasswordToggle, AppIconComponent],
   templateUrl: './register-account-details.component.html',
   styleUrls: ['./register-account-details.component.scss']
 })

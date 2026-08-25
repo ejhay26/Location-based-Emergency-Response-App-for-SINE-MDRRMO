@@ -1,134 +1,140 @@
-<ion-list style="background: transparent;">
+<div style="background: transparent;">
   <!-- Username Box -->
-  <ion-item
-    [style.border]="usernameAvailable === true ? '2px solid #2dd36f' : (usernameAvailable === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
-    style="border-radius: 12px; margin-bottom: 4px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
-    <ion-input label="Username" labelPlacement="stacked" type="text" placeholder="Choose your username"
-               maxlength="20"
-               [(ngModel)]="userData.username"
-               (ionFocus)="usernameFocused = true" (ionBlur)="usernameFocused = false"
-               (ionInput)="onUsernameInput()" required></ion-input>
-    <i class="fa-solid fa-spinner fa-spin" slot="end"
-       *ngIf="usernameAvailable === null && (userData.username ?? '').length > 0" style="color: #8a8a8a;"></i>
-    <i class="fa-solid fa-circle-check" slot="end" *ngIf="usernameAvailable === true" style="color: #2dd36f;"></i>
-    <i class="fa-solid fa-circle-xmark" slot="end" *ngIf="usernameAvailable === false" style="color: #eb445a;"></i>
-  </ion-item>
+  <div class="inset-card"
+       [style.border]="usernameAvailable === true ? '2px solid #2dd36f' : (usernameAvailable === false ? '2px solid #eb445a' : 'var(--card-border, 1px solid rgba(0,0,0,0.08))')"
+       style="margin-bottom: 4px; transition: all 0.2s ease;">
+    <ion-item lines="none">
+      <app-icon name="user" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
+      <ion-input label="Username" labelPlacement="stacked" type="text" placeholder="Choose your username"
+                 maxlength="20"
+                 [(ngModel)]="userData.username"
+                 (ionFocus)="usernameFocused = true" (ionBlur)="usernameFocused = false"
+                 (ionInput)="onUsernameInput()" required></ion-input>
+      <app-icon name="loader-2" slot="end" *ngIf="usernameAvailable === null && (userData.username ?? '').length > 0" [size]="18" color="#8a8a8a"></app-icon>
+      <app-icon name="check" slot="end" *ngIf="usernameAvailable === true" [size]="18" color="#2dd36f"></app-icon>
+      <app-icon name="close" slot="end" *ngIf="usernameAvailable === false" [size]="18" color="#eb445a"></app-icon>
+    </ion-item>
+  </div>
 
   <!-- Real-Time Username Status & Error Reason -->
-  <div *ngIf="(userData.username ?? '').length > 0" style="margin: 3px 0 8px 8px;">
-    <p *ngIf="!usernameLengthValid" style="color: #eb445a; font-size: 12px; margin: 2px 0;">
-      <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-      Username must be between 3 and 20 characters (currently {{ (userData.username ?? '').length }}).
+  <div *ngIf="(userData.username ?? '').length > 0" style="margin: 4px 0 10px 8px; font-size: 12px;">
+    <p *ngIf="!usernameLengthValid" style="color: #eb445a; margin: 2px 0; display: flex; align-items: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="14" color="#eb445a"></app-icon>
+      <span>Username must be between 3 and 20 characters (currently {{ (userData.username ?? '').length }}).</span>
     </p>
-    <p *ngIf="usernameLengthValid && !usernameCharsValid" style="color: #eb445a; font-size: 12px; margin: 2px 0;">
-      <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-      Only letters (A-Z, a-z), numbers (0-9), dots (.), and underscores (_) allowed.
+    <p *ngIf="usernameLengthValid && !usernameCharsValid" style="color: #eb445a; margin: 2px 0; display: flex; align-items: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="14" color="#eb445a"></app-icon>
+      <span>Only letters (A-Z, a-z), numbers (0-9), dots (.), and underscores (_) allowed.</span>
     </p>
-    <p *ngIf="isUsernameFormatValid() && usernameAvailable === false" style="color: #eb445a; font-size: 12px; margin: 2px 0;">
-      <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-      <strong>"{{ userData.username }}"</strong> is already registered. Pick a suggested handle below.
+    <p *ngIf="isUsernameFormatValid() && usernameAvailable === false" style="color: #eb445a; margin: 2px 0; display: flex; align-items: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="14" color="#eb445a"></app-icon>
+      <span><strong>"{{ userData.username }}"</strong> is already registered. Pick a suggested handle below.</span>
     </p>
-    <p *ngIf="usernameAvailable === true" style="color: #2dd36f; font-size: 12px; margin: 2px 0;">
-      <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
-      <strong>"{{ userData.username }}"</strong> is available!
+    <p *ngIf="usernameAvailable === true" style="color: #2dd36f; margin: 2px 0; display: flex; align-items: center; gap: 6px;">
+      <app-icon name="check" [size]="14" color="#2dd36f"></app-icon>
+      <span><strong>"{{ userData.username }}"</strong> is available!</span>
     </p>
   </div>
 
-  <!-- Smart Suggested Usernames Strip (Always available when suggestions exist) -->
-  <div *ngIf="usernameSuggestions.length > 0" class="suggestions-container">
-    <div class="suggestions-header" [class.taken]="usernameAvailable === false">
-      <i [class]="usernameAvailable === false ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-wand-magic-sparkles'"></i>
-      <span>{{ usernameAvailable === false ? 'Username is taken. Tap an available handle below:' : '💡 Suggested handles for you (Tap to fill):' }}</span>
+  <!-- Smart Suggested Usernames Strip -->
+  <div *ngIf="usernameSuggestions.length > 0" class="suggestions-container" style="background: var(--ion-card-background, white); border-radius: 16px; padding: 12px 14px; margin-bottom: 12px; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); box-shadow: var(--card-shadow);">
+    <div class="suggestions-header" [class.taken]="usernameAvailable === false" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--ion-color-medium); margin-bottom: 8px;">
+      <app-icon [name]="usernameAvailable === false ? 'circle-alert' : 'sparkles'" [size]="14" [color]="usernameAvailable === false ? '#eb445a' : 'var(--ion-color-danger)'"></app-icon>
+      <span>{{ usernameAvailable === false ? 'Username is taken. Tap an available handle below:' : 'Suggested handles for you (Tap to fill):' }}</span>
     </div>
-    <div class="chips-row">
-      <button type="button" class="suggestion-chip" *ngFor="let name of usernameSuggestions" (click)="applySuggestion(name)">
-        <i class="fa-solid fa-plus"></i>
+    <div class="chips-row" style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <button type="button" class="suggestion-chip" *ngFor="let name of usernameSuggestions" (click)="applySuggestion(name)"
+              style="background: var(--ion-color-step-50, rgba(0,0,0,0.04)); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.1)); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--ion-text-color); display: flex; align-items: center; gap: 6px; cursor: pointer;">
+        <app-icon name="plus" [size]="12" color="var(--ion-color-danger)"></app-icon>
         <span>{{ name }}</span>
       </button>
     </div>
   </div>
 
   <!-- Email Box -->
-  <ion-item
-    [style.border]="emailAvailable === true ? '2px solid #2dd36f' : (emailAvailable === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
-    style="border-radius: 12px; margin-bottom: 4px; margin-top: 10px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
-    <ion-input label="Email Address" labelPlacement="stacked" type="email" placeholder="Enter your active email"
-               [(ngModel)]="userData.email"
-               (ionFocus)="emailFocused = true" (ionBlur)="emailFocused = false"
-               (ionInput)="onEmailInput()" required></ion-input>
-    <i class="fa-solid fa-spinner fa-spin" slot="end"
-       *ngIf="emailAvailable === null && (userData.email ?? '').length > 0" style="color: #8a8a8a;"></i>
-    <i class="fa-solid fa-circle-check" slot="end" *ngIf="emailAvailable === true" style="color: #2dd36f;"></i>
-    <i class="fa-solid fa-circle-xmark" slot="end" *ngIf="emailAvailable === false" style="color: #eb445a;"></i>
-  </ion-item>
+  <div class="inset-card"
+       [style.border]="emailAvailable === true ? '2px solid #2dd36f' : (emailAvailable === false ? '2px solid #eb445a' : 'var(--card-border, 1px solid rgba(0,0,0,0.08))')"
+       style="margin-bottom: 4px; margin-top: 10px; transition: all 0.2s ease;">
+    <ion-item lines="none">
+      <app-icon name="mail" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
+      <ion-input label="Email Address" labelPlacement="stacked" type="email" placeholder="Enter your active email"
+                 [(ngModel)]="userData.email"
+                 (ionFocus)="emailFocused = true" (ionBlur)="emailFocused = false"
+                 (ionInput)="onEmailInput()" required></ion-input>
+      <app-icon name="loader-2" slot="end" *ngIf="emailAvailable === null && (userData.email ?? '').length > 0" [size]="18" color="#8a8a8a"></app-icon>
+      <app-icon name="check" slot="end" *ngIf="emailAvailable === true" [size]="18" color="#2dd36f"></app-icon>
+      <app-icon name="close" slot="end" *ngIf="emailAvailable === false" [size]="18" color="#eb445a"></app-icon>
+    </ion-item>
+  </div>
 
   <!-- Real-Time Email Status & Error Reason -->
-  <div *ngIf="(userData.email ?? '').length > 0" style="margin: 3px 0 8px 8px;">
-    <p *ngIf="!isEmailFormatValid()" style="color: #eb445a; font-size: 12px; margin: 2px 0;">
-      <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-      Please enter a valid email address (e.g. yourname&#64;gmail.com).
+  <div *ngIf="(userData.email ?? '').length > 0" style="margin: 4px 0 10px 8px; font-size: 12px;">
+    <p *ngIf="!isEmailFormatValid()" style="color: #eb445a; margin: 2px 0; display: flex; align-items: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="14" color="#eb445a"></app-icon>
+      <span>Please enter a valid email address (e.g. yourname&#64;gmail.com).</span>
     </p>
-    <p *ngIf="isEmailFormatValid() && emailAvailable === false" style="color: #eb445a; font-size: 12px; margin: 2px 0;">
-      <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-      This email is already registered. Please log in or use a different email.
+    <p *ngIf="isEmailFormatValid() && emailAvailable === false" style="color: #eb445a; margin: 2px 0; display: flex; align-items: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="14" color="#eb445a"></app-icon>
+      <span>This email is already registered. Please log in or use a different email.</span>
     </p>
-    <p *ngIf="emailAvailable === true" style="color: #2dd36f; font-size: 12px; margin: 2px 0;">
-      <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
-      Email is valid and available!
+    <p *ngIf="emailAvailable === true" style="color: #2dd36f; margin: 2px 0; display: flex; align-items: center; gap: 6px;">
+      <app-icon name="check" [size]="14" color="#2dd36f"></app-icon>
+      <span>Email is valid and available!</span>
     </p>
   </div>
 
-  <!-- Password Box -->
-  <ion-item
-    [style.border]="isPasswordValid ? '2px solid #2dd36f' : (passwordFocused ? '2px solid var(--ion-color-danger)' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
-    style="border-radius: 12px; margin-bottom: 10px; margin-top: 10px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
-    <ion-input label="Password" labelPlacement="stacked" type="password" placeholder="Create a strong password"
-               [(ngModel)]="userData.password"
-               (ionFocus)="passwordFocused = true" (ionBlur)="passwordFocused = false" required>
-      <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-    </ion-input>
-  </ion-item>
+  <!-- Password Box & Confirm Password Box grouped in Inset Card -->
+  <div class="inset-card" style="margin-top: 12px; margin-bottom: 6px;">
+    <ion-item lines="full"
+      [style.border-left]="isPasswordValid ? '3px solid #2dd36f' : (passwordFocused ? '3px solid var(--ion-color-danger)' : 'none')">
+      <app-icon name="lock" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
+      <ion-input label="Password" labelPlacement="stacked" type="password" placeholder="Create a strong password"
+                 [(ngModel)]="userData.password"
+                 (ionFocus)="passwordFocused = true" (ionBlur)="passwordFocused = false" required>
+        <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+      </ion-input>
+    </ion-item>
 
-  <!-- Confirm Password Box -->
-  <ion-item
-    [style.border]="passwordsMatch === true ? '2px solid #2dd36f' : (passwordsMatch === false ? '2px solid #eb445a' : '1.5px solid var(--ion-color-step-200, rgba(0,0,0,0.12))')"
-    style="border-radius: 12px; margin-bottom: 4px; --background: var(--ion-item-background, #fff); transition: all 0.2s ease;">
-    <ion-input label="Confirm Password" labelPlacement="stacked" type="password" placeholder="Re-enter your password"
-               [(ngModel)]="userData.confirm_password" required>
-      <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-    </ion-input>
-    <i class="fa-solid fa-circle-check" slot="end" *ngIf="passwordsMatch === true" style="color: #2dd36f; margin-right: 6px;"></i>
-    <i class="fa-solid fa-circle-xmark" slot="end" *ngIf="passwordsMatch === false" style="color: #eb445a; margin-right: 6px;"></i>
-  </ion-item>
+    <ion-item lines="none"
+      [style.border-left]="passwordsMatch === true ? '3px solid #2dd36f' : (passwordsMatch === false ? '3px solid #eb445a' : 'none')">
+      <app-icon name="lock" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
+      <ion-input label="Confirm Password" labelPlacement="stacked" type="password" placeholder="Re-enter your password"
+                 [(ngModel)]="userData.confirm_password" required>
+        <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+      </ion-input>
+      <app-icon name="check" slot="end" *ngIf="passwordsMatch === true" [size]="18" color="#2dd36f" style="margin-right: 6px;"></app-icon>
+      <app-icon name="close" slot="end" *ngIf="passwordsMatch === false" [size]="18" color="#eb445a" style="margin-right: 6px;"></app-icon>
+    </ion-item>
+  </div>
 
   <!-- Password Requirements Checklist -->
   <div *ngIf="passwordFocused || (userData.password ?? '').length > 0"
-       style="background: var(--ion-color-step-50, #f5f5f5); padding: 12px; border-radius: 10px; margin: 10px 0; border-left: 4px solid var(--ion-color-danger);">
-    <p style="margin: 3px 0; font-size: 12px; font-weight: 500;" [style.color]="pwdLength ? '#2dd36f' : '#8a8a8a'">
-      <i [class]="pwdLength ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px;"></i>
+       style="background: var(--ion-card-background, white); padding: 14px 16px; border-radius: 16px; margin: 10px 0; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); border-left: 4px solid var(--ion-color-danger); box-shadow: var(--card-shadow);">
+    <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdLength ? '#2dd36f' : 'var(--ion-color-medium)'">
+      <app-icon [name]="pwdLength ? 'check' : 'circle'" [size]="14" [color]="pwdLength ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
       Minimum 8 characters
     </p>
-    <p style="margin: 3px 0; font-size: 12px; font-weight: 500;" [style.color]="pwdUpper ? '#2dd36f' : '#8a8a8a'">
-      <i [class]="pwdUpper ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px;"></i>
+    <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdUpper ? '#2dd36f' : 'var(--ion-color-medium)'">
+      <app-icon [name]="pwdUpper ? 'check' : 'circle'" [size]="14" [color]="pwdUpper ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
       At least one uppercase letter (A-Z)
     </p>
-    <p style="margin: 3px 0; font-size: 12px; font-weight: 500;" [style.color]="pwdLower ? '#2dd36f' : '#8a8a8a'">
-      <i [class]="pwdLower ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px;"></i>
+    <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdLower ? '#2dd36f' : 'var(--ion-color-medium)'">
+      <app-icon [name]="pwdLower ? 'check' : 'circle'" [size]="14" [color]="pwdLower ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
       At least one lowercase letter (a-z)
     </p>
-    <p style="margin: 3px 0; font-size: 12px; font-weight: 500;" [style.color]="pwdNum ? '#2dd36f' : '#8a8a8a'">
-      <i [class]="pwdNum ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px;"></i>
+    <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdNum ? '#2dd36f' : 'var(--ion-color-medium)'">
+      <app-icon [name]="pwdNum ? 'check' : 'circle'" [size]="14" [color]="pwdNum ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
       At least one number (0-9)
     </p>
-    <p style="margin: 3px 0; font-size: 12px; font-weight: 500;" [style.color]="pwdSym ? '#2dd36f' : '#8a8a8a'">
-      <i [class]="pwdSym ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px;"></i>
+    <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdSym ? '#2dd36f' : 'var(--ion-color-medium)'">
+      <app-icon [name]="pwdSym ? 'check' : 'circle'" [size]="14" [color]="pwdSym ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
       At least one special character (@$!%*#?&)
     </p>
   </div>
 
   <p *ngIf="passwordsMatch === false"
-     style="color: #eb445a; font-size: 12px; margin: 4px 0 8px 8px;">
-    <i class="fa-solid fa-circle-xmark" style="margin-right: 6px;"></i>
-    Passwords do not match.
+     style="color: #eb445a; font-size: 12px; margin: 4px 0 8px 8px; display: flex; align-items: center; gap: 6px;">
+    <app-icon name="circle-alert" [size]="14" color="#eb445a"></app-icon>
+    <span>Passwords do not match.</span>
   </p>
-</ion-list>
+</div>

@@ -1,8 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonCard, IonCardContent, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/standalone';
+import { IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/standalone';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 /**
  * RegisterIdCaptureComponent — reusable capture+crop flow used for both the
@@ -11,7 +12,7 @@ import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capaci
 @Component({
   selector: 'app-register-id-capture',
   standalone: true,
-  imports: [CommonModule, IonCard, IonCardContent, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, ImageCropperComponent],
+  imports: [CommonModule, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, ImageCropperComponent, AppIconComponent],
   templateUrl: './register-id-capture.component.html',
 })
 export class RegisterIdCaptureComponent {
@@ -31,7 +32,7 @@ export class RegisterIdCaptureComponent {
         title: 'Selfie with Valid ID',
         description: "Take a selfie holding the same ID so we can confirm it's you.",
         buttonLabel: 'Capture Selfie',
-        buttonIcon: 'fa-solid fa-camera-retro',
+        buttonIcon: 'camera',
         modalTitle: 'Crop Your Selfie',
         fileName: 'selfie_capture.jpg',
         direction: CameraDirection.Front,
@@ -42,7 +43,7 @@ export class RegisterIdCaptureComponent {
         title: 'Valid ID — Back',
         description: 'Now the back of the same ID.',
         buttonLabel: 'Capture Back of ID',
-        buttonIcon: 'fa-solid fa-id-card',
+        buttonIcon: 'id-card',
         modalTitle: 'Crop the Back of Your ID',
         fileName: 'id_back_capture.jpg',
         direction: undefined as CameraDirection | undefined,
@@ -52,7 +53,7 @@ export class RegisterIdCaptureComponent {
       title: 'Valid ID — Front',
       description: 'A clear photo of the front of your ID is required for account verification.',
       buttonLabel: 'Capture ID Photo',
-      buttonIcon: 'fa-solid fa-id-card',
+      buttonIcon: 'id-card',
       modalTitle: 'Crop Your ID Photo',
       fileName: 'id_capture.jpg',
       direction: undefined as CameraDirection | undefined,

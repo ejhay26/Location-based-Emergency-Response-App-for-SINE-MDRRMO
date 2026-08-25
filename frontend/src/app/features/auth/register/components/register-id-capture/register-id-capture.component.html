@@ -1,34 +1,34 @@
-<ion-card style="margin: 20px 0 10px 0; border: 2px dashed var(--ion-color-danger); background: transparent;">
-  <ion-card-content class="ion-text-center">
-    <p style="margin-bottom: 4px; font-weight: 600; color: var(--ion-text-color);">{{ config.title }}</p>
-    <p style="font-size: 12px; margin-top: 0 0 12px 0; color: var(--ion-color-medium);">{{ config.description }}</p>
+<div style="margin: 14px 0; border: 2px dashed rgba(211,47,47,0.4); border-radius: 18px; background: var(--ion-card-background, white); padding: 16px; box-shadow: var(--card-shadow);">
+  <div class="ion-text-center">
+    <p style="margin-bottom: 4px; font-weight: 800; font-size: 14px; color: var(--ion-text-color);">{{ config.title }}</p>
+    <p style="font-size: 12px; margin: 0 0 14px 0; color: var(--ion-color-medium); line-height: 1.4;">{{ config.description }}</p>
     <div *ngIf="!preview" style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;">
-      <ion-button color="danger" fill="solid" (click)="triggerCapture()" style="font-weight: bold;">
-        <i [class]="config.buttonIcon" style="margin-right: 8px;"></i> {{ config.buttonLabel }}
+      <ion-button color="danger" fill="solid" (click)="triggerCapture()" style="font-weight: 800; --border-radius: 12px; height: 44px; --box-shadow: 0 4px 12px rgba(211,47,47,0.25);">
+        <app-icon [name]="config.buttonIcon" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> {{ config.buttonLabel }}
       </ion-button>
     </div>
     <div *ngIf="preview" style="margin-top: 10px;">
-      <div style="border-radius: 8px; overflow: hidden; border: 2px solid #2dd36f; margin-bottom: 10px;">
-        <img [src]="preview" style="max-height: 160px; object-fit: contain; width: 100%; background: #000;" />
+      <div style="border-radius: 14px; overflow: hidden; border: 2px solid #2dd36f; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(45,211,111,0.2);">
+        <img [src]="preview" style="max-height: 160px; object-fit: contain; width: 100%; background: #000; display: block;" />
       </div>
       <div style="display: flex; gap: 8px; justify-content: center;">
-        <ion-button color="medium" fill="outline" size="small" (click)="clearImage()" style="font-weight: bold;">
-          <i class="fa-solid fa-rotate" style="margin-right: 6px;"></i> Retake
+        <ion-button color="medium" fill="outline" size="small" (click)="clearImage()" style="font-weight: 700; --border-radius: 10px;">
+          <app-icon name="rotate-cw" [size]="14" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Retake
         </ion-button>
       </div>
     </div>
-  </ion-card-content>
-</ion-card>
+  </div>
+</div>
 
 <ion-modal [isOpen]="showCropper" [backdropDismiss]="false">
   <ng-template>
     <ion-header class="ion-no-border">
       <ion-toolbar color="danger">
-        <ion-title style="color: white; font-weight: bold;">{{ config.modalTitle }}</ion-title>
+        <ion-title style="color: white; font-weight: 800; font-size: 16px;">{{ config.modalTitle }}</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding" style="text-align: center;">
-      <p style="font-size: 13px; color: gray; margin-bottom: 12px;">Drag to reposition. Pinch or use handles to crop.</p>
+      <p style="font-size: 13px; color: var(--ion-color-medium); margin-bottom: 14px;">Drag to reposition. Pinch or use handles to crop.</p>
       <image-cropper
         [imageFile]="rawFile || undefined"
         [maintainAspectRatio]="true"
@@ -37,19 +37,19 @@
         [output]="'base64'"
         [roundCropper]="false"
         (imageCropped)="onCropped($event)"
-        style="max-height: 58vh;">
+        style="max-height: 56vh; border-radius: 12px; overflow: hidden;">
       </image-cropper>
 
       <!-- Bottom Action Controls: Cancel, Retake, Use This Crop -->
-      <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <ion-button fill="outline" color="medium" (click)="cancelCrop()" style="flex: 1; font-weight: bold; height: 46px; border-radius: 10px;">
-          <i class="fa-solid fa-xmark" style="margin-right: 6px;"></i> Cancel
+      <div style="display: flex; gap: 8px; margin-top: 18px;">
+        <ion-button fill="outline" color="medium" (click)="cancelCrop()" style="flex: 1; font-weight: 700; height: 48px; --border-radius: 12px;">
+          <app-icon name="close" [size]="16" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Cancel
         </ion-button>
-        <ion-button fill="outline" color="danger" (click)="retakeCrop()" style="flex: 1.1; font-weight: bold; height: 46px; border-radius: 10px;">
-          <i class="fa-solid fa-camera-rotate" style="margin-right: 6px;"></i> Retake
+        <ion-button fill="outline" color="danger" (click)="retakeCrop()" style="flex: 1.1; font-weight: 700; height: 48px; --border-radius: 12px;">
+          <app-icon name="rotate-cw" [size]="16" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon> Retake
         </ion-button>
-        <ion-button color="success" (click)="confirmCrop()" style="flex: 1.4; font-weight: bold; height: 46px; border-radius: 10px;">
-          <i class="fa-solid fa-crop-simple" style="margin-right: 6px;"></i> Use Crop
+        <ion-button color="success" (click)="confirmCrop()" style="flex: 1.4; font-weight: 800; height: 48px; --border-radius: 12px; --box-shadow: 0 4px 12px rgba(45,211,111,0.3);">
+          <app-icon name="crop" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Use Crop
         </ion-button>
       </div>
     </ion-content>

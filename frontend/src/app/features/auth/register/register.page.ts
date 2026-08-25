@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ToastController } from '@ionic/angular';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
+  IonContent, IonText, IonProgressBar, IonItem, IonInput,
   IonSelect, IonSelectOption, IonCheckbox, IonLabel,
   IonButton, ModalController
 } from '@ionic/angular/standalone';
@@ -17,6 +17,7 @@ import { formatPhoneLocalPart, isValidPhonePH } from '../../../shared/utils/phon
 import { OtpAutofillService } from '../../../core/services/otp-autofill';
 import { BARANGAYS } from '../../../shared/constants/barangays';
 import { TermsModalComponent } from '../../../shared/components/terms-modal/terms-modal.component';
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
 /**
  * Modern Restructured 4-Step Registration Flow:
@@ -33,10 +34,11 @@ import { TermsModalComponent } from '../../../shared/components/terms-modal/term
   imports: [
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-    IonContent, IonText, IonProgressBar, IonList, IonItem, IonInput,
+    IonContent, IonText, IonProgressBar, IonItem, IonInput,
     IonSelect, IonSelectOption, IonCheckbox, IonLabel,
     IonButton,
-    RegisterIdCaptureComponent, RegisterAccountDetailsComponent, OtpBoxInputComponent
+    RegisterIdCaptureComponent, RegisterAccountDetailsComponent, OtpBoxInputComponent,
+    AppIconComponent
   ],
 })
 export class RegisterPage implements OnDestroy {
