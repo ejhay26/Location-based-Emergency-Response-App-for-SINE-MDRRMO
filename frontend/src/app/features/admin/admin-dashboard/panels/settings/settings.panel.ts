@@ -12,6 +12,7 @@ import { UserSettingsService, SettingKey } from '../../../../../core/services/us
 import { AdminUiService } from '../../admin-ui.service';
 import { ApiService } from '../../../../../core/services/api';
 import { DesktopNotificationsService } from '../../../../../core/services/desktop-notifications';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 interface SettingToggle {
   key: SettingKey;
@@ -27,7 +28,8 @@ interface SettingToggle {
   imports: [
     CommonModule, FormsModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonToggle
+    IonList, IonItem, IonLabel, IonToggle,
+    AppIconComponent
   ],
   templateUrl: './settings.panel.html',
 })
@@ -41,12 +43,12 @@ export class SettingsPanel implements OnInit {
   phone = '';
 
   appearance: SettingToggle[] = [
-    { key: 'dark_mode',         label: 'Dark Theme',          hint: v => v ? 'Dark theme is active across the dashboard.' : 'Light theme is active.',               value: false, icon: 'fa-solid fa-moon' },
-    { key: 'reduce_animations', label: 'Reduce Animations',   hint: v => v ? 'Interface animations are minimized.' : 'Full interface animations are active.',       value: false, icon: 'fa-solid fa-wand-magic-sparkles' }
+    { key: 'dark_mode',         label: 'Dark Theme',          hint: v => v ? 'Dark theme is active across the dashboard.' : 'Light theme is active.',               value: false, icon: 'moon' },
+    { key: 'reduce_animations', label: 'Reduce Animations',   hint: v => v ? 'Interface animations are minimized.' : 'Full interface animations are active.',       value: false, icon: 'sliders' }
   ];
 
   notifications: SettingToggle[] = [
-    { key: 'notif_emergency_alerts', label: 'Emergency Alerts', hint: v => v ? 'Sound and push alerts for incoming citizen SOS reports are enabled.' : 'SOS alerts are muted.', value: true, icon: 'fa-solid fa-bell' }
+    { key: 'notif_emergency_alerts', label: 'Emergency Alerts', hint: v => v ? 'Sound and push alerts for incoming citizen SOS reports are enabled.' : 'SOS alerts are muted.', value: true, icon: 'bell' }
   ];
 
   mapDefaultStyle = 'street';
@@ -102,7 +104,7 @@ export class SettingsPanel implements OnInit {
     this.ui.confirm({
       title: 'Log Out',
       message: 'Are you sure you want to end your session?',
-      icon: 'fa-solid fa-right-from-bracket',
+      icon: 'logout',
       iconColor: '#eb445a',
       confirmLabel: 'Log Out',
       confirmColor: 'danger',

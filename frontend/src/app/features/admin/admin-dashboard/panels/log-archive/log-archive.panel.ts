@@ -16,6 +16,7 @@ import { FilterSummaryBarComponent } from '../../../../../shared/components/filt
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/flip-reflow.util';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 const ARCHIVE_FILTER_LABELS: Record<string, string> = {
   resolved: 'Resolved', false_alarm: 'False Alarms', cancelled: 'Cancelled',
@@ -27,6 +28,7 @@ const ARCHIVE_FILTER_LABELS: Record<string, string> = {
   imports: [
     CommonModule, FormsModule, IonButton, IonBadge, ProxyImageDirective, VideoThumbnailDirective, UtcDatePipe,
     DateRangeFilterComponent, FilterSummaryBarComponent, RevealAnimateDirective, ListEnterDirective,
+    AppIconComponent
   ],
   templateUrl: './log-archive.panel.html',
 })
@@ -293,7 +295,7 @@ export class LogArchivePanel implements OnInit {
     this.ui.confirm({
       title: 'Mark as False Alarm',
       message: `Mark this report by ${citizenName} as a false alarm? This will add a strike to their account. At 3 strikes, their account is automatically suspended.`,
-      icon: 'fa-solid fa-triangle-exclamation',
+      icon: 'alert',
       iconColor: '#eb445a',
       confirmLabel: 'Mark False Alarm',
       confirmColor: '#eb445a',

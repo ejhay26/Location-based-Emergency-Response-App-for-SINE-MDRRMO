@@ -1,12 +1,13 @@
 <div style="width:100%;" #archiveListContainer>
   <!-- Filter & Sort toolbar -->
-  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center;">
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center;">
     <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;align-items:center;">
       <button *ngFor="let f of [{v:'all',l:'All'},{v:'resolved',l:'Resolved'},{v:'false_alarm',l:'False Alarms'},{v:'cancelled',l:'Cancelled'}]"
         (click)="archiveFilter = $any(f.v)"
-        [style.background]="archiveFilter === f.v ? 'var(--ion-color-danger)' : 'var(--ion-color-light)'"
+        [style.background]="archiveFilter === f.v ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
         [style.color]="archiveFilter === f.v ? 'white' : 'var(--ion-text-color)'"
-        style="flex:1;border:none;border-radius:10px;padding:8px 10px;font-weight:bold;cursor:pointer;font-size:13px;transition:all 0.15s;">{{f.l}}</button>
+        [style.border-color]="archiveFilter === f.v ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+        style="flex:1;border:1px solid;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer;font-size:12.5px;transition:all 0.15s;box-shadow:var(--card-shadow, 0 1px 4px rgba(0,0,0,0.03));">{{f.l}}</button>
 
       <app-date-range-filter
         [value]="archiveDateFilter"
@@ -14,12 +15,12 @@
       </app-date-range-filter>
     </div>
 
-    <div style="display:flex;gap:6px;">
+    <div style="display:flex;gap:8px;align-items:center;">
       <select
         id="archiveTypeFilter"
         name="archiveTypeFilter"
         [(ngModel)]="archiveTypeFilter"
-        style="padding:6px 10px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
+        style="padding:8px 12px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12.5px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
         <option value="all">All Types</option>
         <option *ngFor="let t of archiveIncidentTypes" [value]="t">{{t}}</option>
       </select>
@@ -28,7 +29,7 @@
         id="archiveBarangayFilter"
         name="archiveBarangayFilter"
         [(ngModel)]="archiveBarangayFilter"
-        style="padding:6px 10px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
+        style="padding:8px 12px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12.5px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
         <option [ngValue]="'all'">All Barangays</option>
         <option *ngFor="let b of barangayOptions" [ngValue]="b.id">{{b.name}}</option>
       </select>
@@ -38,7 +39,7 @@
         name="archiveSort"
         [ngModel]="archiveSort"
         (ngModelChange)="onSortChange($event)"
-        style="padding:6px 10px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
+        style="padding:8px 12px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12.5px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
         <option value="newest">Newest First</option>
         <option value="oldest">Oldest First</option>
         <option value="type">By Type</option>
@@ -49,8 +50,8 @@
         type="button"
         (click)="openExportModal()"
         title="Export filtered emergency incident logs to an official PDF report"
-        style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;border:none;background:var(--ion-color-danger);color:white;font-size:12px;font-weight:bold;cursor:pointer;transition:transform 0.1s, opacity 0.15s;">
-        <i class="fa-solid fa-file-pdf"></i>
+        style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:none;background:var(--ion-color-danger);color:white;font-size:12.5px;font-weight:700;cursor:pointer;transition:transform 0.1s, opacity 0.15s;box-shadow:0 3px 10px rgba(235,68,90,0.3);">
+        <app-icon name="file-pdf" [size]="15" color="#ffffff"></app-icon>
         <span>Export PDF</span>
       </button>
     </div>
@@ -62,13 +63,13 @@
   </app-filter-summary-bar>
 
   <!-- Count -->
-  <p style="font-size:12px;color:var(--ion-color-medium);margin:0 0 10px 0;font-weight:600;">
+  <p style="font-size:12.5px;color:var(--ion-color-medium);margin:0 0 12px 0;font-weight:700;">
     {{ filteredArchivedRequests.length }} of {{ archivedRequests.length }} records
   </p>
 
   <div
     *ngIf="filteredArchivedRequests.length === 0"
-    class="ion-text-center ion-padding ion-color-medium">
+    class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
     <p>No matching log entries.</p>
   </div>
 
@@ -78,18 +79,20 @@
     [attr.data-flip-id]="req.request_id"
     [appRevealAnimate]="matchesArchiveFilter(req)"
     [appAnnouncementEnter]="i"
-    style="margin: 0 0 10px 0; background: var(--ion-card-background, #fff); border-radius: 12px; padding: 14px; color: var(--ion-text-color);"
+    style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 14px; padding: 16px; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 6px rgba(0,0,0,0.03)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)));"
     [style.border-left]="req.is_false_alarm ? '4px solid #eb445a' : req.status === 'Resolved' ? '4px solid #2dd36f' : '4px solid var(--ion-color-step-200,#ccc)'">
 
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <i
-          [class]="req.incident_name === 'Fire' ? 'fa-solid fa-fire' : req.incident_name === 'Flood' ? 'fa-solid fa-cloud-showers-heavy' : req.incident_name === 'Medical' ? 'fa-solid fa-heart-pulse' : 'fa-solid fa-handcuffs'"
-          [style.color]="req.incident_name === 'Fire' ? '#eb445a' : req.incident_name === 'Flood' ? '#3880ff' : req.incident_name === 'Medical' ? '#2dd36f' : '#bc6fff'"
-          style="font-size:15px;width:18px;text-align:center;">
-        </i>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;" [style.background]="req.incident_name === 'Fire' ? '#eb445a18' : (req.incident_name === 'Flood' ? '#3880ff18' : (req.incident_name === 'Medical' ? '#2dd36f18' : '#bc6fff18'))">
+          <app-icon
+            [name]="req.incident_name === 'Fire' ? 'flame' : req.incident_name === 'Flood' ? 'droplet' : req.incident_name === 'Medical' ? 'medical' : 'shield-alert'"
+            [size]="18"
+            [color]="req.incident_name === 'Fire' ? '#eb445a' : req.incident_name === 'Flood' ? '#3880ff' : req.incident_name === 'Medical' ? '#2dd36f' : '#bc6fff'">
+          </app-icon>
+        </div>
 
-        <h4 style="margin: 0; font-weight: bold; font-size: 15px;">
+        <h4 style="margin: 0; font-weight: 800; font-size: 15.5px; color: var(--ion-text-color);">
           {{ req.incident_name }} Log
         </h4>
       </div>
@@ -97,35 +100,30 @@
       <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
         <span
           *ngIf="req.is_false_alarm"
-          style="background: #eb445a18; color: #eb445a; border: 1px solid #eb445a50; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 800; white-space: nowrap;">
+          style="background: rgba(235,68,90,0.12); color: var(--ion-color-danger); border: 1px solid rgba(235,68,90,0.3); border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 800; white-space: nowrap;">
           FALSE ALARM
         </span>
 
         <ion-badge
           [color]="req.status === 'Resolved' ? 'success' : 'medium'"
-          style="font-weight: bold;">
+          style="font-weight: 800; font-size: 11px; padding: 4px 8px; border-radius: 6px;">
           {{ req.status }}
         </ion-badge>
       </div>
     </div>
 
-    <p style="margin: 2px 0; font-size: 12px; color: gray;">
-      Citizen: {{ req.first_name }} {{ req.last_name }} |
-      {{ req.request_time | utcDate:'medium' }}
+    <p style="margin: 3px 0; font-size: 13px; color: var(--ion-color-medium);">
+      <strong>Citizen:</strong> {{ req.first_name }} {{ req.last_name }} · {{ req.request_time | utcDate:'medium' }}
     </p>
-    <p style="margin: 2px 0; font-size: 12px; color: gray;">
-      Barangay: {{ req.barangay_name || 'Unresolved' }}
+    <p style="margin: 2px 0; font-size: 13px; color: var(--ion-color-medium);">
+      <strong>Barangay:</strong> {{ req.barangay_name || 'Unresolved' }}
     </p>
 
     <p
       *ngIf="req.false_alarm_strikes > 0"
-      style="margin: 5px 0 0 0; font-size: 11px; color: #eb445a; font-weight: 700;">
-      <i
-        class="fa-solid fa-triangle-exclamation"
-        style="margin-right: 4px;">
-      </i>
-      {{ req.false_alarm_strikes }}
-      false alarm strike{{ req.false_alarm_strikes > 1 ? 's' : '' }}
+      style="margin: 6px 0 0 0; font-size: 12px; color: var(--ion-color-danger); font-weight: 700; display: flex; align-items: center; gap: 5px;">
+      <app-icon name="alert" [size]="14" color="var(--ion-color-danger)"></app-icon>
+      <span>{{ req.false_alarm_strikes }} false alarm strike{{ req.false_alarm_strikes > 1 ? 's' : '' }}</span>
     </p>
 
     <div *ngIf="req.proof_files?.length" class="media-thumb-grid">
@@ -138,9 +136,8 @@
           <img
             [videoThumbSrc]="filePath"
             style="width:100%;height:100%;object-fit:cover;background:#1a1a1a;" />
-
           <div class="video-badge">
-            <i class="fa-solid fa-play"></i>
+            <app-icon name="play" [size]="11" color="#ffffff"></app-icon>
           </div>
         </ng-container>
 
@@ -155,17 +152,14 @@
 
     <div
       *ngIf="req.status === 'Resolved' && !req.is_false_alarm"
-      style="margin-top: 10px;">
+      style="margin-top: 12px;">
       <ion-button
         fill="outline"
         color="danger"
         size="small"
         (click)="markFalseAlarm(req.request_id, req.first_name + ' ' + req.last_name)"
-        style="font-weight: bold; height: 32px; margin: 0;">
-        <i
-          class="fa-solid fa-triangle-exclamation"
-          style="margin-right: 6px;">
-        </i>
+        style="font-weight: 700; height: 34px; margin: 0; --border-radius: 10px;">
+        <app-icon name="alert" [size]="14" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon>
         Mark False Alarm
       </ion-button>
     </div>
@@ -175,77 +169,77 @@
   <!-- Custom PDF Export Preview Modal -->
   <div
     *ngIf="showExportModal"
-    style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px; backdrop-filter: blur(4px);">
+    style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px; backdrop-filter: blur(8px);">
     <div
-      style="background: var(--ion-card-background, white); color: var(--ion-text-color); border-radius: 16px; width: 100%; max-width: 680px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.35); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.1));">
+      style="background: var(--ion-card-background, white); color: var(--ion-text-color); border-radius: 18px; width: 100%; max-width: 680px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,0.4); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.1)));">
       
       <!-- Modal Header -->
-      <div style="padding: 16px 20px; border-bottom: 1px solid var(--ion-color-step-150, #eee); display: flex; align-items: center; justify-content: space-between; background: var(--ion-color-step-50, #fafafa);">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(235,68,90,0.12); color: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; font-size: 16px;">
-            <i class="fa-solid fa-file-pdf"></i>
+      <div style="padding: 16px 20px; border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); display: flex; align-items: center; justify-content: space-between; background: var(--ion-color-step-50, #fafafa);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(235,68,90,0.12); color: var(--ion-color-danger); display: flex; align-items: center; justify-content: center;">
+            <app-icon name="file-pdf" [size]="20" color="var(--ion-color-danger)"></app-icon>
           </div>
           <div>
-            <h3 style="margin: 0; font-size: 16px; font-weight: bold;">Export Log Archive Report</h3>
+            <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: var(--ion-text-color);">Export Log Archive Report</h3>
             <p style="margin: 2px 0 0; font-size: 12px; color: var(--ion-color-medium);">Review the report details before printing or saving to PDF</p>
           </div>
         </div>
         <button
           (click)="closeExportModal()"
-          style="background: none; border: none; font-size: 20px; color: var(--ion-color-medium); cursor: pointer; padding: 4px 8px;">
-          <i class="fa-solid fa-xmark"></i>
+          style="background: none; border: none; font-size: 20px; color: var(--ion-color-medium); cursor: pointer; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <app-icon name="close" [size]="20" color="var(--ion-color-medium)"></app-icon>
         </button>
       </div>
 
       <!-- Modal Body / Summary Preview -->
       <div style="padding: 20px; overflow-y: auto; flex: 1;">
-        <div style="background: var(--ion-color-step-50, #f8f9fa); border-radius: 12px; padding: 14px; margin-bottom: 16px; border: 1px solid var(--ion-color-step-150, #e9ecef);">
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+        <div style="background: var(--ion-color-step-50, #f8f9fa); border-radius: 14px; padding: 16px; margin-bottom: 18px; border: 1px solid var(--ion-color-step-150, #e9ecef);">
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;">
             <div>
-              <span style="font-size: 10px; font-weight: bold; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">Matching Records</span>
-              <p style="margin: 2px 0 0; font-size: 15px; font-weight: bold; color: var(--ion-color-danger);">{{ filteredArchivedRequests.length }} incident log(s)</p>
+              <span style="font-size: 10.5px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Matching Records</span>
+              <p style="margin: 3px 0 0; font-size: 16px; font-weight: 800; color: var(--ion-color-danger);">{{ filteredArchivedRequests.length }} incident log(s)</p>
             </div>
             <div>
-              <span style="font-size: 10px; font-weight: bold; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">Applied Filter Scope</span>
-              <p style="margin: 2px 0 0; font-size: 12px; font-weight: 600; color: var(--ion-text-color);">
+              <span style="font-size: 10.5px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Applied Filter Scope</span>
+              <p style="margin: 3px 0 0; font-size: 13px; font-weight: 700; color: var(--ion-text-color);">
                 {{ activeFilterChips.length > 0 ? activeFilterChips.join(' • ') : 'All logs (no filter)' }}
               </p>
             </div>
             <div>
-              <span style="font-size: 10px; font-weight: bold; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">Sort Sequence</span>
-              <p style="margin: 2px 0 0; font-size: 12px; font-weight: 600; text-transform: capitalize;">{{ archiveSort }} first</p>
+              <span style="font-size: 10.5px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Sort Sequence</span>
+              <p style="margin: 3px 0 0; font-size: 13px; font-weight: 700; text-transform: capitalize;">{{ archiveSort }} first</p>
             </div>
             <div>
-              <span style="font-size: 10px; font-weight: bold; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">Report Format</span>
-              <p style="margin: 2px 0 0; font-size: 12px; font-weight: 600;">Landscape PDF / Print Table</p>
+              <span style="font-size: 10.5px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Report Format</span>
+              <p style="margin: 3px 0 0; font-size: 13px; font-weight: 700;">Landscape PDF / Print Table</p>
             </div>
           </div>
         </div>
 
-        <h4 style="margin: 0 0 10px 0; font-size: 13px; font-weight: bold; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">
-          Records to be included (First {{ filteredArchivedRequests.length > 5 ? '5 of ' + filteredArchivedRequests.length : filteredArchivedRequests.length }} preview)
+        <h4 style="margin: 0 0 12px 0; font-size: 12px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">
+          Records Preview (First {{ filteredArchivedRequests.length > 5 ? '5 of ' + filteredArchivedRequests.length : filteredArchivedRequests.length }})
         </h4>
 
-        <div style="border: 1px solid var(--ion-color-step-150, #eee); border-radius: 10px; overflow: hidden;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+        <div style="border: 1px solid var(--ion-color-step-150, #eee); border-radius: 12px; overflow: hidden;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
             <thead>
               <tr style="background: var(--ion-color-step-100, #f1f3f5); text-align: left;">
-                <th style="padding: 8px 10px; font-size: 11px;">Type</th>
-                <th style="padding: 8px 10px; font-size: 11px;">Citizen</th>
-                <th style="padding: 8px 10px; font-size: 11px;">Barangay</th>
-                <th style="padding: 8px 10px; font-size: 11px;">Status</th>
+                <th style="padding: 10px 12px; font-size: 11px; font-weight: 800;">Type</th>
+                <th style="padding: 10px 12px; font-size: 11px; font-weight: 800;">Citizen</th>
+                <th style="padding: 10px 12px; font-size: 11px; font-weight: 800;">Barangay</th>
+                <th style="padding: 10px 12px; font-size: 11px; font-weight: 800;">Status</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let rec of filteredArchivedRequests.slice(0, 5)" style="border-top: 1px solid var(--ion-color-step-150, #eee);">
-                <td style="padding: 8px 10px; font-weight: bold;">{{ rec.incident_name }}</td>
-                <td style="padding: 8px 10px;">{{ rec.first_name }} {{ rec.last_name }}</td>
-                <td style="padding: 8px 10px;">{{ rec.barangay_name || 'Unresolved' }}</td>
-                <td style="padding: 8px 10px;">
-                  <span [style.color]="rec.status === 'Resolved' ? 'var(--ion-color-success)' : 'var(--ion-color-medium)'" style="font-weight: bold;">
+                <td style="padding: 10px 12px; font-weight: 700;">{{ rec.incident_name }}</td>
+                <td style="padding: 10px 12px;">{{ rec.first_name }} {{ rec.last_name }}</td>
+                <td style="padding: 10px 12px;">{{ rec.barangay_name || 'Unresolved' }}</td>
+                <td style="padding: 10px 12px;">
+                  <span [style.color]="rec.status === 'Resolved' ? 'var(--ion-color-success)' : 'var(--ion-color-medium)'" style="font-weight: 700;">
                     {{ rec.status }}
                   </span>
-                  <span *ngIf="rec.is_false_alarm" style="color: var(--ion-color-danger); font-size: 10px; margin-left: 4px; font-weight: bold;">(FA)</span>
+                  <span *ngIf="rec.is_false_alarm" style="color: var(--ion-color-danger); font-size: 10.5px; margin-left: 4px; font-weight: 800;">(FA)</span>
                 </td>
               </tr>
             </tbody>
@@ -254,18 +248,18 @@
       </div>
 
       <!-- Modal Footer Actions -->
-      <div style="padding: 14px 20px; border-top: 1px solid var(--ion-color-step-150, #eee); display: flex; justify-content: flex-end; gap: 10px; background: var(--ion-color-step-50, #fafafa);">
+      <div style="padding: 14px 20px; border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); display: flex; justify-content: flex-end; gap: 10px; background: var(--ion-color-step-50, #fafafa);">
         <button
           type="button"
           (click)="closeExportModal()"
-          style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); background: transparent; color: var(--ion-text-color); font-weight: 600; cursor: pointer; font-size: 13px;">
+          style="padding: 10px 18px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); background: transparent; color: var(--ion-text-color); font-weight: 700; cursor: pointer; font-size: 13px;">
           Cancel
         </button>
         <button
           type="button"
           (click)="printPdfReport()"
-          style="padding: 8px 20px; border-radius: 10px; border: none; background: var(--ion-color-danger); color: white; font-weight: bold; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-print"></i>
+          style="padding: 10px 20px; border-radius: 10px; border: none; background: var(--ion-color-danger); color: white; font-weight: 800; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(235,68,90,0.35);">
+          <app-icon name="file-pdf" [size]="16" color="#ffffff"></app-icon>
           <span>Print / Save as PDF</span>
         </button>
       </div>

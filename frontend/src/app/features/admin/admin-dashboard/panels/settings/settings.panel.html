@@ -1,44 +1,45 @@
-<div style="width:100%; max-width: 780px; margin: 0 auto;">
+<div style="width:100%; max-width: 800px; margin: 0 auto;">
 
   <!-- Master Console Card for Superadmin OR Officer Profile Card for Dispatcher -->
-  <ion-card color="light" style="margin: 0 0 16px 0; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)); border-radius: 16px; box-shadow: none;">
+  <ion-card color="light" style="margin: 0 0 16px 0; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); border-radius: 16px; box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
     <ion-card-content style="padding: 20px;">
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
         
         <!-- Superadmin View: System Authority Badge (No personal phone/email) -->
         <div *ngIf="rawRole === 'admin'" style="display: flex; align-items: center; gap: 14px;">
-          <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #b71c1c, #d32f2f); color: white; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; box-shadow: 0 4px 12px rgba(211,47,47,0.35);">
-            <i class="fa-solid fa-shield-halved"></i>
+          <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #b71c1c, #d32f2f); color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(211,47,47,0.35);">
+            <app-icon name="shield-check" [size]="24" color="#ffffff"></app-icon>
           </div>
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--ion-text-color);">MDRRMO Superadmin Console</h2>
-              <span style="font-size: 10px; font-weight: 800; background: rgba(235,68,90,0.15); color: var(--ion-color-danger); padding: 2px 8px; border-radius: 6px; letter-spacing: 0.5px;">
+              <span style="font-size: 10px; font-weight: 800; background: rgba(235,68,90,0.15); color: var(--ion-color-danger); padding: 3px 8px; border-radius: 6px; letter-spacing: 0.6px;">
                 MASTER AUTHORITY
               </span>
             </div>
-            <p style="margin: 3px 0 0; font-size: 12px; color: var(--ion-color-medium);">
-              <i class="fa-solid fa-circle-check" style="color: var(--ion-color-success); margin-right: 5px;"></i>Full Database, Dispatcher & Citizen Account Clearance
+            <p style="margin: 4px 0 0; font-size: 12.5px; color: var(--ion-color-medium); display: flex; align-items: center; gap: 6px;">
+              <app-icon name="check" [size]="14" color="var(--ion-color-success)"></app-icon>
+              <span>Full Database, Dispatcher & Citizen Account Clearance</span>
             </p>
           </div>
         </div>
 
         <!-- Dispatcher View: Officer Details -->
         <div *ngIf="rawRole !== 'admin'" style="display: flex; align-items: center; gap: 14px;">
-          <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #1565c0, #1e88e5); color: white; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; box-shadow: 0 4px 12px rgba(30,136,229,0.3);">
-            <i class="fa-solid fa-user-shield"></i>
+          <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #1565c0, #1e88e5); color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(30,136,229,0.3);">
+            <app-icon name="user" [size]="24" color="#ffffff"></app-icon>
           </div>
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--ion-text-color);">{{ userName }}</h2>
-              <span style="font-size: 10px; font-weight: 800; background: rgba(56,128,255,0.12); color: var(--ion-color-primary); padding: 2px 8px; border-radius: 6px; letter-spacing: 0.5px;">
+              <span style="font-size: 10px; font-weight: 800; background: rgba(56,128,255,0.12); color: var(--ion-color-primary); padding: 3px 8px; border-radius: 6px; letter-spacing: 0.6px;">
                 DISPATCHER
               </span>
             </div>
-            <p style="margin: 3px 0 0; font-size: 13px; color: var(--ion-color-medium);">
-              <span *ngIf="username" style="margin-right: 8px;">@{{ username }}</span>
-              <i *ngIf="userEmail" class="fa-solid fa-envelope" style="margin-right: 4px;"></i>{{ userEmail }}
-              <span *ngIf="phone" style="margin-left: 8px;"><i class="fa-solid fa-phone" style="margin-right: 4px;"></i>{{ phone }}</span>
+            <p style="margin: 4px 0 0; font-size: 13px; color: var(--ion-color-medium); display: flex; align-items: center; gap: 8px;">
+              <span *ngIf="username" style="font-weight: 600;">@{{ username }}</span>
+              <span *ngIf="userEmail" style="display: flex; align-items: center; gap: 4px;"><app-icon name="mail" [size]="13" color="var(--ion-color-medium)"></app-icon>{{ userEmail }}</span>
+              <span *ngIf="phone" style="display: flex; align-items: center; gap: 4px;"><app-icon name="phone" [size]="13" color="var(--ion-color-medium)"></app-icon>{{ phone }}</span>
             </p>
           </div>
         </div>
@@ -46,8 +47,8 @@
         <button
           type="button"
           (click)="logout()"
-          style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: 1.5px solid #eb445a; background: transparent; color: #eb445a; font-weight: bold; font-size: 13px; cursor: pointer; transition: all 0.15s;">
-          <i class="fa-solid fa-right-from-bracket"></i>
+          style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: 1.5px solid #eb445a; background: transparent; color: #eb445a; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.15s;">
+          <app-icon name="logout" [size]="15" color="#eb445a"></app-icon>
           <span>Log Out</span>
         </button>
       </div>
@@ -55,22 +56,22 @@
   </ion-card>
 
   <!-- Appearance Settings -->
-  <ion-card color="light" style="margin: 0 0 16px 0; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)); border-radius: 16px; box-shadow: none;">
+  <ion-card color="light" style="margin: 0 0 16px 0; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); border-radius: 16px; box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
     <ion-card-header style="padding-bottom: 8px;">
-      <ion-card-title style="font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-palette" style="color: var(--ion-color-danger);"></i>
+      <ion-card-title style="font-size: 15.5px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--ion-text-color);">
+        <app-icon name="sliders" [size]="16" color="var(--ion-color-danger)"></app-icon>
         <span>Appearance & Display</span>
       </ion-card-title>
-      <ion-card-subtitle style="font-size: 12px;">Customize theme and motion behavior</ion-card-subtitle>
+      <ion-card-subtitle style="font-size: 12.5px; color: var(--ion-color-medium);">Customize theme and motion behavior</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content style="padding-top: 0;">
       <ion-list lines="inset" style="background: transparent;">
         <ion-item *ngFor="let s of appearance" style="--background: transparent; --padding-start: 0; padding: 6px 0;">
-          <div slot="start" style="width: 34px; height: 34px; border-radius: 8px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; color: var(--ion-color-danger); font-size: 15px;">
-            <i [class]="s.icon"></i>
+          <div slot="start" style="width: 36px; height: 36px; border-radius: 10px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center;">
+            <app-icon [name]="s.icon" [size]="16" color="var(--ion-color-danger)"></app-icon>
           </div>
           <ion-label>
-            <h3 style="font-weight: 700; font-size: 14px; margin: 0 0 2px;">{{ s.label }}</h3>
+            <h3 style="font-weight: 700; font-size: 14px; margin: 0 0 2px; color: var(--ion-text-color);">{{ s.label }}</h3>
             <p style="font-size: 12px; color: var(--ion-color-medium); margin: 0;">{{ s.hint(s.value) }}</p>
           </ion-label>
           <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size: 11px; font-weight: 800; min-width: 26px; text-align: right; margin-right: 6px;">{{ s.value ? 'ON' : 'OFF' }}</span>
@@ -81,13 +82,13 @@
   </ion-card>
 
   <!-- Map Preferences -->
-  <ion-card color="light" style="margin: 0 0 16px 0; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)); border-radius: 16px; box-shadow: none;">
+  <ion-card color="light" style="margin: 0 0 16px 0; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); border-radius: 16px; box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
     <ion-card-header style="padding-bottom: 8px;">
-      <ion-card-title style="font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-map-location-dot" style="color: var(--ion-color-danger);"></i>
+      <ion-card-title style="font-size: 15.5px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--ion-text-color);">
+        <app-icon name="map" [size]="16" color="var(--ion-color-danger)"></app-icon>
         <span>Map Defaults</span>
       </ion-card-title>
-      <ion-card-subtitle style="font-size: 12px;">Default layer view when opening incident & hazard maps</ion-card-subtitle>
+      <ion-card-subtitle style="font-size: 12.5px; color: var(--ion-color-medium);">Default layer view when opening incident & hazard maps</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content style="padding-top: 0;">
       <div style="display: flex; gap: 10px; margin-top: 6px;">
@@ -96,8 +97,9 @@
           (click)="onMapStyleChange('street')"
           [style.background]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
           [style.color]="mapDefaultStyle === 'street' ? 'white' : 'var(--ion-text-color)'"
-          style="flex: 1; padding: 12px; border-radius: 10px; border: 1.5px solid var(--ion-color-step-150, #ddd); font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.15s;">
-          <i class="fa-solid fa-road"></i>
+          [style.border-color]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+          style="flex: 1; padding: 12px; border-radius: 12px; border: 1.5px solid; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.15s;">
+          <app-icon name="map" [size]="15" [color]="mapDefaultStyle === 'street' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
           <span>Street Map</span>
         </button>
 
@@ -106,8 +108,9 @@
           (click)="onMapStyleChange('satellite')"
           [style.background]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
           [style.color]="mapDefaultStyle === 'satellite' ? 'white' : 'var(--ion-text-color)'"
-          style="flex: 1; padding: 12px; border-radius: 10px; border: 1.5px solid var(--ion-color-step-150, #ddd); font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.15s;">
-          <i class="fa-solid fa-satellite"></i>
+          [style.border-color]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+          style="flex: 1; padding: 12px; border-radius: 12px; border: 1.5px solid; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.15s;">
+          <app-icon name="satellite" [size]="15" [color]="mapDefaultStyle === 'satellite' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
           <span>Satellite Map</span>
         </button>
       </div>
@@ -115,22 +118,22 @@
   </ion-card>
 
   <!-- Notification Preferences -->
-  <ion-card color="light" style="margin: 0 0 16px 0; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)); border-radius: 16px; box-shadow: none;">
+  <ion-card color="light" style="margin: 0 0 16px 0; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); border-radius: 16px; box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
     <ion-card-header style="padding-bottom: 8px;">
-      <ion-card-title style="font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-bell" style="color: var(--ion-color-danger);"></i>
+      <ion-card-title style="font-size: 15.5px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--ion-text-color);">
+        <app-icon name="bell" [size]="16" color="var(--ion-color-danger)"></app-icon>
         <span>Emergency Notifications & Audio Alerts</span>
       </ion-card-title>
-      <ion-card-subtitle style="font-size: 12px;">Control desktop notification alerts for dispatcher response</ion-card-subtitle>
+      <ion-card-subtitle style="font-size: 12.5px; color: var(--ion-color-medium);">Control desktop notification alerts for dispatcher response</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content style="padding-top: 0;">
       <ion-list lines="inset" style="background: transparent;">
         <ion-item *ngFor="let s of notifications" style="--background: transparent; --padding-start: 0; padding: 6px 0;">
-          <div slot="start" style="width: 34px; height: 34px; border-radius: 8px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center; color: var(--ion-color-danger); font-size: 15px;">
-            <i [class]="s.icon"></i>
+          <div slot="start" style="width: 36px; height: 36px; border-radius: 10px; background: rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: center;">
+            <app-icon [name]="s.icon" [size]="16" color="var(--ion-color-danger)"></app-icon>
           </div>
           <ion-label>
-            <h3 style="font-weight: 700; font-size: 14px; margin: 0 0 2px;">{{ s.label }}</h3>
+            <h3 style="font-weight: 700; font-size: 14px; margin: 0 0 2px; color: var(--ion-text-color);">{{ s.label }}</h3>
             <p style="font-size: 12px; color: var(--ion-color-medium); margin: 0;">{{ s.hint(s.value) }}</p>
           </ion-label>
           <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size: 11px; font-weight: 800; min-width: 26px; text-align: right; margin-right: 6px;">{{ s.value ? 'ON' : 'OFF' }}</span>
@@ -141,23 +144,24 @@
   </ion-card>
 
   <!-- Account & Session -->
-  <ion-card color="light" style="margin: 0 0 16px 0; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)); border-radius: 16px; box-shadow: none;">
+  <ion-card color="light" style="margin: 0 0 16px 0; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); border-radius: 16px; box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
     <ion-card-header style="padding-bottom: 8px;">
-      <ion-card-title style="font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-user-shield" style="color: var(--ion-color-danger);"></i>
+      <ion-card-title style="font-size: 15.5px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--ion-text-color);">
+        <app-icon name="shield-check" [size]="16" color="var(--ion-color-danger)"></app-icon>
         <span>Session & Account</span>
       </ion-card-title>
-      <ion-card-subtitle style="font-size: 12px;">Manage current authenticated administrative session</ion-card-subtitle>
+      <ion-card-subtitle style="font-size: 12.5px; color: var(--ion-color-medium);">Manage current authenticated administrative session</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content style="padding-top: 4px;">
       <button
         type="button"
         (click)="logout()"
         style="width: 100%; padding: 13px 18px; border-radius: 12px; border: 1.5px solid var(--ion-color-danger); background: transparent; color: var(--ion-color-danger); font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease;">
-        <i class="fa-solid fa-right-from-bracket" style="font-size: 16px;"></i>
+        <app-icon name="logout" [size]="16" color="var(--ion-color-danger)"></app-icon>
         <span>Log Out of Dashboard</span>
       </button>
     </ion-card-content>
   </ion-card>
 
 </div>
+
