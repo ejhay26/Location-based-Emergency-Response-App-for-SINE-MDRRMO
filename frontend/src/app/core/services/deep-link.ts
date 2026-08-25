@@ -48,17 +48,19 @@ export class DeepLinkService {
 
     if (url.protocol !== `${DEEP_LINK_SCHEME}:`) return; // not ours — ignore
 
+    if (url.hostname === 'report') {
+      const type = url.searchParams.get('type') === 'hazard' ? 'hazard' : 'emergency';
+      this.navigateOrDefer(`/tabs/home?open_report=${type}`);
+      return;
+    }
+
     const route = DEEP_LINK_ROUTES[url.hostname];
     if (!route) {
       console.warn('DeepLinkService: unknown deep-link host', url.hostname);
       return;
     }
 
-    // Preserve any query string (e.g. ?type=hazard from the Report Hazard
-    // widget) instead of dropping it — url.search already includes the
-    // leading '?' when present, empty string otherwise.
     const target = route + url.search;
-
     this.navigateOrDefer(target);
   }
 
