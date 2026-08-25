@@ -26,7 +26,7 @@
   --ion-color-danger-shade: #ba2929;
   --ion-color-danger-tint: #d74444;
 
-  --ion-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+  --ion-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   font-family: var(--ion-family);
 }
 
@@ -36,13 +36,13 @@
   --ion-background-color-rgb: 242, 242, 247;
   --ion-card-background: #ffffff;
   --ion-item-background: #ffffff;
-  --ion-text-color: #1c1c1e;
+  --ion-text-color: #111113;
   --ion-color-step-50: #f8f8fa;
   --ion-color-step-100: #e5e5ea;
   --ion-color-step-150: #d1d1d6;
   --ion-color-step-200: #c7c7cc;
   --ion-color-step-300: #aeaeb2;
-  --ion-color-medium: #8e8e93;
+  --ion-color-medium: #5c5c60;
 
   /* Crisp Container Borders and Depth */
   --card-border: 1px solid rgba(0, 0, 0, 0.09);
@@ -55,7 +55,7 @@
   --segment-indicator-bg: #ffffff;
   --segment-indicator-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
   --segment-active-color: #d32f2f;
-  --segment-inactive-color: #8e8e93;
+  --segment-inactive-color: #5c5c60;
 }
 
 /* ── DARK THEME (OLED Pure Black with Apple Inset Grouped Contrast) ── */
@@ -70,7 +70,7 @@
   --ion-color-step-150: #2c2c2e;
   --ion-color-step-200: #3a3a3c;
   --ion-color-step-300: #48484a;
-  --ion-color-medium: #8e8e93;
+  --ion-color-medium: #b0b0b8;
 
   /* Dark Mode Inset Group Elevation & Crisp High-Contrast Borders */
   --card-border: 1px solid rgba(255, 255, 255, 0.12);
@@ -83,12 +83,5 @@
   --segment-indicator-bg: #3a3a3c;
   --segment-indicator-shadow: 0 3px 10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   --segment-active-color: #ffffff;
-  --segment-inactive-color: rgba(235, 235, 245, 0.6);
-}
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('/assets/fonts/Roboto-Bold.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
+  --segment-inactive-color: rgba(235, 235, 245, 0.7);
 }

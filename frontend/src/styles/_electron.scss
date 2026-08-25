@@ -40,3 +40,10 @@ ion-app.electron-app .admin-main-viewport {
 ion-app.electron-app .admin-sidebar {
   padding-top: 24px !important;
 }
+
+/* Electron Font Crispness & Subpixel Antialiasing (Windows ClearType Support) */
+ion-app.electron-app {
+  -webkit-font-smoothing: subpixel-antialiased !important;
+  -moz-osx-font-smoothing: auto !important;
+  text-rendering: optimizeLegibility !important;
+}
