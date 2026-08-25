@@ -1,107 +1,122 @@
 <ion-content [scrollY]="false">
   <div style="
     width: 100%; height: 100vh;
-    background: var(--ion-color-danger);
+    background: radial-gradient(circle at 50% -10%, rgba(235,68,90,0.18), transparent 70%), var(--ion-background-color, #f8f9fa);
     display: flex; flex-direction: column;
     overflow: hidden;
     position: relative;
   ">
+
+    <!-- Top Floating Progress Pill -->
+    <div style="position: absolute; top: 16px; left: 0; right: 0; z-index: 10; display: flex; justify-content: center; pointer-events: none;">
+      <div style="background: var(--ion-card-background, #ffffff); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding: 6px 14px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 11.5px; font-weight: 800; color: var(--ion-color-danger); text-transform: uppercase; letter-spacing: 0.8px;">Step {{ currentSlide + 1 }} of {{ TOTAL_SLIDES }}</span>
+      </div>
+    </div>
+
+    <!-- Slides Rail -->
     <div style="
       display: flex; height: 100%;
-      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     " [style.width.%]="TOTAL_SLIDES * 100" [style.transform]="'translateX(-' + (currentSlide * (100 / TOTAL_SLIDES)) + '%)'">
 
       <!-- SLIDE 1: Welcome + optional profile photo -->
-      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 150px 28px; text-align: center; overflow-y: auto; box-sizing: border-box;">
-        <p style="margin: 0 0 4px 0; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 2px; text-transform: uppercase;">Account Setup</p>
-        <h1 style="margin: 0 0 12px 0; font-size: 26px; font-weight: 900; color: white; line-height: 1.2;">Welcome, {{ userData.first_name }}! 🎉</h1>
-        <p style="margin: 0 0 28px 0; font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.6; max-width: 300px;">Let's get your account set up — takes about 30 seconds. Everything here is optional and can always be changed later.</p>
-        <div style="width: 100%; max-width: 320px; background: white; border-radius: 20px; padding: 20px;">
+      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 68px 24px 120px 24px; text-align: center; overflow-y: auto; box-sizing: border-box;">
+        <div style="width: 72px; height: 72px; background: rgba(235,68,90,0.12); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; flex-shrink: 0;">
+          <app-icon name="user" [size]="32" color="var(--ion-color-danger)"></app-icon>
+        </div>
+        <p style="margin: 0 0 4px 0; font-size: 11.5px; font-weight: 800; color: var(--ion-color-danger); letter-spacing: 1.2px; text-transform: uppercase;">Quick Setup</p>
+        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 900; color: var(--ion-text-color); line-height: 1.25;">Welcome, {{ userData.first_name }}!</h1>
+        <p style="margin: 0 0 20px 0; font-size: 13.5px; color: var(--ion-color-medium); line-height: 1.5; max-width: 320px;">Let's get your profile ready. Everything here is optional and can be updated anytime in Settings.</p>
+        
+        <div style="width: 100%; max-width: 350px; background: var(--ion-card-background, white); border-radius: 20px; padding: 22px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 4px 18px rgba(0,0,0,0.05));">
           <app-profile-photo
             [profilePicturePath]="userData.profile_picture"
             [userId]="userData.user_id"
             (userUpdated)="onUserUpdated($event)"
             (toast)="onToast($event)">
           </app-profile-photo>
-          <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--ion-color-medium); line-height: 1.4;">A clear photo helps MDRRMO personnel identify you during emergencies. Optional — skip if you'd rather not.</p>
+          <p style="margin: 12px 0 0 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.45;">A clear photo helps responders identify you during emergency dispatches.</p>
         </div>
       </div>
 
       <!-- SLIDE 2: Quick settings -->
-      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px 150px 24px; text-align: center; overflow-y: auto; box-sizing: border-box;">
-        <div style="width: 84px; height: 84px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; flex-shrink: 0;">
-          <i class="fa-solid fa-sliders" style="font-size: 36px; color: white;"></i>
+      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 68px 20px 130px 20px; text-align: center; overflow-y: auto; box-sizing: border-box;">
+        <div style="width: 72px; height: 72px; background: rgba(235,68,90,0.12); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; flex-shrink: 0;">
+          <app-icon name="sliders" [size]="32" color="var(--ion-color-danger)"></app-icon>
         </div>
-        <h2 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 800; color: white;">Your Preferences</h2>
-        <p style="margin: 0 0 22px 0; font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.6; max-width: 320px;">Same settings you'll find later in the Settings tab — set them now or skip and change them anytime.</p>
+        <h2 style="margin: 0 0 6px 0; font-size: 24px; font-weight: 800; color: var(--ion-text-color);">Your Preferences</h2>
+        <p style="margin: 0 0 20px 0; font-size: 13px; color: var(--ion-color-medium); line-height: 1.5; max-width: 320px;">Configure how you'd like the app to work. You can adjust these anytime in Settings.</p>
 
-        <div style="width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 18px; text-align: left;">
+        <div style="width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; text-align: left;">
+          
+          <!-- Appearance Section -->
           <div>
-            <p style="margin: 0 0 8px 2px; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.8px;">Appearance</p>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <div *ngFor="let s of appearance" style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+            <p style="margin: 0 0 8px 6px; font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Appearance</p>
+            <div style="background: var(--ion-card-background, white); border-radius: 18px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow); overflow: hidden;">
+              <div *ngFor="let s of appearance; let last = last" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px;" [style.border-bottom]="last ? 'none' : '1px solid var(--ion-color-step-100, rgba(0,0,0,0.05))'">
                 <div style="flex: 1; min-width: 0;">
-                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">{{ s.label }}</p>
-                  <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: var(--ion-text-color);">{{ s.label }}</p>
+                  <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.35;">{{ s.hint(s.value) }}</p>
                 </div>
-                <span style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); min-width: 26px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-                <ion-toggle mode="ios" color="light" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+                <ion-toggle mode="ios" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
               </div>
             </div>
           </div>
 
+          <!-- Location Section -->
           <div>
-            <p style="margin: 0 0 8px 2px; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.8px;">Map &amp; Location</p>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <div *ngFor="let s of location" style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+            <p style="margin: 0 0 8px 6px; font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Map &amp; Location</p>
+            <div style="background: var(--ion-card-background, white); border-radius: 18px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow); overflow: hidden;">
+              <div *ngFor="let s of location; let last = last" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px;" [style.border-bottom]="last ? 'none' : '1px solid var(--ion-color-step-100, rgba(0,0,0,0.05))'">
                 <div style="flex: 1; min-width: 0;">
-                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">{{ s.label }}</p>
-                  <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: var(--ion-text-color);">{{ s.label }}</p>
+                  <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.35;">{{ s.hint(s.value) }}</p>
                 </div>
-                <span style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); min-width: 26px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-                <ion-toggle mode="ios" color="light" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+                <ion-toggle mode="ios" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
               </div>
             </div>
           </div>
 
+          <!-- Notifications Section -->
           <div>
-            <p style="margin: 0 0 8px 2px; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.8px;">Notifications</p>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <div *ngFor="let s of notifications" style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+            <p style="margin: 0 0 8px 6px; font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Notifications</p>
+            <div style="background: var(--ion-card-background, white); border-radius: 18px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow); overflow: hidden;">
+              <div *ngFor="let s of notifications; let last = last" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px;" [style.border-bottom]="last ? 'none' : '1px solid var(--ion-color-step-100, rgba(0,0,0,0.05))'">
                 <div style="flex: 1; min-width: 0;">
-                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">{{ s.label }}</p>
-                  <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: var(--ion-text-color);">{{ s.label }}</p>
+                  <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.35;">{{ s.hint(s.value) }}</p>
                 </div>
-                <span style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); min-width: 26px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-                <ion-toggle mode="ios" color="light" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+                <ion-toggle mode="ios" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
               </div>
             </div>
           </div>
 
+          <!-- Reporting Section -->
           <div>
-            <p style="margin: 0 0 8px 2px; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.8px;">Reporting</p>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <div *ngFor="let s of reporting" style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+            <p style="margin: 0 0 8px 6px; font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Reporting &amp; Media</p>
+            <div style="background: var(--ion-card-background, white); border-radius: 18px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow); overflow: hidden;">
+              <div *ngFor="let s of reporting; let last = last" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px;" [style.border-bottom]="last ? 'none' : '1px solid var(--ion-color-step-100, rgba(0,0,0,0.05))'">
                 <div style="flex: 1; min-width: 0;">
-                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: white;">{{ s.label }}</p>
-                  <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+                  <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 700; color: var(--ion-text-color);">{{ s.label }}</p>
+                  <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.35;">{{ s.hint(s.value) }}</p>
                 </div>
-                <span style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.85); min-width: 26px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-                <ion-toggle mode="ios" color="light" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+                <ion-toggle mode="ios" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
       <!-- SLIDE 3: Medical profile -->
-      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px 150px 24px; text-align: center; overflow-y: auto; box-sizing: border-box;">
-        <div style="width: 84px; height: 84px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; flex-shrink: 0;">
-          <i class="fa-solid fa-notes-medical" style="font-size: 36px; color: white;"></i>
+      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 68px 20px 130px 20px; text-align: center; overflow-y: auto; box-sizing: border-box;">
+        <div style="width: 72px; height: 72px; background: rgba(45,211,111,0.12); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; flex-shrink: 0;">
+          <app-icon name="medical" [size]="32" color="#2dd36f"></app-icon>
         </div>
-        <h2 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 800; color: white;">Medical Profile</h2>
-        <p style="margin: 0 0 18px 0; font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.6; max-width: 320px;">Optional — but this is what helps responders prepare before they arrive in a real emergency.</p>
-        <div style="width: 100%; max-width: 340px;">
+        <h2 style="margin: 0 0 6px 0; font-size: 24px; font-weight: 800; color: var(--ion-text-color);">Medical Profile</h2>
+        <p style="margin: 0 0 20px 0; font-size: 13px; color: var(--ion-color-medium); line-height: 1.5; max-width: 320px;">Helps medical dispatchers prepare appropriate first-aid before arriving at the scene.</p>
+        <div style="width: 100%; max-width: 380px; background: var(--ion-card-background, white); border-radius: 20px; padding: 18px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow);">
           <app-profile-medical
             [userId]="userData.user_id"
             [medicalData]="medicalData"
@@ -111,59 +126,79 @@
         </div>
       </div>
 
-      <!-- SLIDE 4: Report widget (Android only — see widgetAvailable in the component) -->
-      <div *ngIf="widgetAvailable" [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 150px 28px; text-align: center; overflow-y: auto; box-sizing: border-box;">
-        <div style="width: 84px; height: 84px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; flex-shrink: 0;">
-          <i class="fa-solid fa-table-cells-large" style="font-size: 36px; color: white;"></i>
+      <!-- SLIDE 4: Report widget (Android only) -->
+      <div *ngIf="widgetAvailable" [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 68px 24px 130px 24px; text-align: center; overflow-y: auto; box-sizing: border-box;">
+        <div style="width: 72px; height: 72px; background: rgba(235,68,90,0.12); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; flex-shrink: 0;">
+          <app-icon name="sliders" [size]="32" color="var(--ion-color-danger)"></app-icon>
         </div>
-        <h2 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 800; color: white;">One More Thing</h2>
-        <p style="margin: 0 0 28px 0; font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.7; max-width: 300px;">In an emergency, every second counts. Add a "Report Emergency" widget to your home screen so it's one tap away — no unlocking through the app, no digging for the right screen. Add it now, or skip and turn it on anytime later from Settings.</p>
-        <div style="width: 100%; display: flex; flex-direction: column; gap: 14px; max-width: 340px;">
-          <ion-button expand="block" (click)="addWidgetNow()" style="--background: white; --color: var(--ion-color-danger); --border-radius: 14px; --box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-weight: 800; font-size: 16px; height: 54px;">
-            <i class="fa-solid fa-table-cells-large" style="margin-right: 10px;"></i>Add to Home Screen
+        <h2 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 800; color: var(--ion-text-color);">Home Screen Widget</h2>
+        <p style="margin: 0 0 24px 0; font-size: 13.5px; color: var(--ion-color-medium); line-height: 1.6; max-width: 320px;">Put a 1-tap SOS button right on your home screen for rapid emergency reporting without unlocking or digging through menus.</p>
+        
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 12px; max-width: 350px;">
+          <ion-button expand="block" color="danger" (click)="addWidgetNow()" style="--border-radius: 16px; font-weight: 800; font-size: 15px; height: 50px; --box-shadow: 0 4px 16px rgba(235,68,90,0.3);">
+            <app-icon name="sliders" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> Add to Home Screen
           </ion-button>
-          <ion-button expand="block" fill="outline" (click)="next()" style="--border-color: rgba(255,255,255,0.5); --color: white; --border-radius: 14px; font-weight: 700; font-size: 15px; height: 50px;">
+          <ion-button expand="block" fill="outline" color="medium" (click)="next()" style="--border-radius: 16px; font-weight: 700; font-size: 14px; height: 48px;">
             Skip for now
           </ion-button>
         </div>
       </div>
 
       <!-- SLIDE 5: All set + tour offer -->
-      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px 150px 28px; text-align: center; overflow-y: auto; box-sizing: border-box;">
-        <div style="width: 100px; height: 100px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px;">
-          <img src="assets/icon/logo.jpg" style="width: 70px; height: 70px; object-fit: contain; border-radius: 16px;" alt="MDRRMO Logo" />
+      <div [style.width.%]="100 / TOTAL_SLIDES" style="height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 68px 28px 120px 28px; text-align: center; overflow-y: auto; box-sizing: border-box;">
+        <div style="width: 90px; height: 90px; background: rgba(235,68,90,0.1); border-radius: 28px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(235,68,90,0.12); border: 2px solid rgba(235,68,90,0.2);">
+          <img src="assets/icon/logo.jpg" style="width: 64px; height: 64px; object-fit: contain; border-radius: 16px;" alt="MDRRMO Logo" />
         </div>
-        <h2 style="margin: 0 0 12px 0; font-size: 26px; font-weight: 900; color: white;">You're all set!</h2>
-        <p style="margin: 0 0 36px 0; font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.7; max-width: 280px;">Want a quick 1-minute walkthrough of how the app works? You can always replay it later from the Help tab.</p>
-        <div style="width: 100%; display: flex; flex-direction: column; gap: 14px; max-width: 340px;">
-          <ion-button expand="block" (click)="startTourNow()" [disabled]="isFinishing" style="--background: white; --color: var(--ion-color-danger); --border-radius: 14px; --box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-weight: 800; font-size: 16px; height: 54px;">
-            <i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 10px;"></i>Yes, show me around
+        <h2 style="margin: 0 0 10px 0; font-size: 26px; font-weight: 900; color: var(--ion-text-color);">You're all set!</h2>
+        <p style="margin: 0 0 28px 0; font-size: 14px; color: var(--ion-color-medium); line-height: 1.6; max-width: 300px;">Take a quick 1-minute guided tour of the key features, or jump straight into the application.</p>
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 12px; max-width: 340px;">
+          <ion-button expand="block" color="danger" (click)="startTourNow()" [disabled]="isFinishing" style="--border-radius: 16px; --box-shadow: 0 6px 20px rgba(235,68,90,0.3); font-weight: 800; font-size: 15px; height: 52px;">
+            <app-icon name="sparkles" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> Start Guided Tour
           </ion-button>
-          <ion-button expand="block" fill="outline" (click)="skipTour()" [disabled]="isFinishing" style="--border-color: rgba(255,255,255,0.5); --color: white; --border-radius: 14px; font-weight: 700; font-size: 15px; height: 50px;">
-            <i class="fa-solid fa-arrow-right"></i>&nbsp; No thanks, take me to the app
+          <ion-button expand="block" fill="outline" color="danger" (click)="skipTour()" [disabled]="isFinishing" style="--border-radius: 16px; font-weight: 700; font-size: 14.5px; height: 48px;">
+            Take me to the App <app-icon name="arrow-right" [size]="16" color="var(--ion-color-danger)" style="margin-left: 8px;"></app-icon>
           </ion-button>
         </div>
       </div>
 
     </div>
 
-    <!-- Bottom nav -->
-    <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 28px 36px 28px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
-      <div style="display: flex; gap: 8px; align-items: center;">
+    <!-- Fixed Bottom Glass Navigation Dock -->
+    <div style="
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      padding: 12px 20px 24px 20px;
+      background: var(--ion-card-background, #ffffff);
+      border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+      display: flex; align-items: center; justify-content: space-between;
+    ">
+      <!-- Back Button -->
+      <div style="min-width: 90px;">
+        <button *ngIf="!isFirstSlide && !isLastSlide" (click)="prev()"
+          style="background: var(--ion-color-step-100, rgba(0,0,0,0.05)); border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.08)); border-radius: 12px; color: var(--ion-text-color); font-size: 13.5px; font-weight: 700; padding: 10px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s;">
+          <app-icon name="arrow-left" [size]="15" color="currentColor"></app-icon> <span>Back</span>
+        </button>
+      </div>
+
+      <!-- Center Animated Page Indicator Dots -->
+      <div style="display: flex; gap: 7px; align-items: center; justify-content: center;">
         <div *ngFor="let s of slideIndices; let i = index" (click)="goToSlide(i)"
-             [style.width]="i === currentSlide ? '24px' : '8px'"
-             [style.background]="i === currentSlide ? 'white' : 'rgba(255,255,255,0.4)'"
-             style="height: 8px; border-radius: 4px; cursor: pointer; transition: all 0.3s;"></div>
+             [style.width]="i === currentSlide ? '22px' : '7px'"
+             [style.background]="i === currentSlide ? 'var(--ion-color-danger)' : 'var(--ion-color-step-300, #ccc)'"
+             style="height: 7px; border-radius: 4px; cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);"></div>
       </div>
-      <div *ngIf="!isLastSlide" style="width: 100%; display: flex; align-items: center; max-width: 380px;">
-        <button *ngIf="!isFirstSlide" (click)="prev()" style="background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.35); border-radius: 14px; color: white; font-size: 15px; font-weight: 700; padding: 12px 22px; cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(4px);">
-          <i class="fa-solid fa-arrow-left"></i> Back
-        </button>
-        <button (click)="next()" style="margin-left: auto; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); border-radius: 14px; color: white; font-size: 15px; font-weight: 700; padding: 12px 28px; cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(4px);">
-          Continue <i class="fa-solid fa-arrow-right"></i>
+
+      <!-- Continue / Forward Button -->
+      <div style="min-width: 90px; display: flex; justify-content: flex-end;">
+        <button *ngIf="!isLastSlide" (click)="next()"
+          style="background: var(--ion-color-danger); border: none; border-radius: 12px; color: white; font-size: 13.5px; font-weight: 800; padding: 10px 18px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 12px rgba(235,68,90,0.3); transition: all 0.15s;">
+          <span>Continue</span> <app-icon name="arrow-right" [size]="15" color="#ffffff"></app-icon>
         </button>
       </div>
     </div>
+
   </div>
 
   <ion-toast [isOpen]="toastOpen" [message]="toastMessage" [color]="toastColor" [duration]="2500" (didDismiss)="toastOpen = false"></ion-toast>

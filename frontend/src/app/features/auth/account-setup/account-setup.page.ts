@@ -11,6 +11,7 @@ import { WidgetPinService } from '../../../core/services/widget-pin';
 import { ProfilePhotoComponent } from '../../citizen/profile/components/profile-photo/profile-photo.component';
 import { ProfileMedicalComponent, MedicalData } from '../../citizen/profile/components/profile-medical/profile-medical.component';
 import { ToastRequest } from '../../citizen/profile/components/profile-shared-types';
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
 interface SetupToggle { key: SettingKey; label: string; hint: (val: boolean) => string; value: boolean; }
 
@@ -38,6 +39,7 @@ const WIDGET_PROMPT_DISMISSED_KEY = 'widget_prompt_dismissed';
     CommonModule, FormsModule,
     IonContent, IonButton, IonToast, IonToggle,
     ProfilePhotoComponent, ProfileMedicalComponent,
+    AppIconComponent
   ],
 })
 export class AccountSetupPage implements OnInit {

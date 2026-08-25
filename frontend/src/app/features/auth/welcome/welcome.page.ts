@@ -6,12 +6,13 @@ import { Camera } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { IonContent, IonButton } from '@ionic/angular/standalone';
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
 @Component({
   selector: 'app-welcome',
   templateUrl: './welcome.page.html',
   standalone: true,
-  imports: [CommonModule, IonContent, IonButton]
+  imports: [CommonModule, IonContent, IonButton, AppIconComponent]
 })
 export class WelcomePage implements OnInit {
 
