@@ -3,4 +3,18 @@
 # SINE MDRRMO Disaster Recovery & Backup CLI (Linux / Docker / macOS)
 # ==============================================================================
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
+
+# 1. If Podman container mdrrmo_backend is running, execute inside container
+if command -v podman >/dev/null 2>&1 && podman ps --format "{{.Names}}" | grep -q "mdrrmo_backend"; then
+    podman exec -i mdrrmo_backend php artisan backup "$@"
+    exit $?
+fi
+
+# 2. If Docker container mdrrmo_backend is running, execute inside container
+if command -v docker >/dev/null 2>&1 && docker ps --format "{{.Names}}" | grep -q "mdrrmo_backend"; then
+    docker exec -i mdrrmo_backend php artisan backup "$@"
+    exit $?
+fi
+
+# 3. Fallback to host PHP environment
 php "$DIR/artisan" backup "$@"
