@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
+import { ModalController } from '@ionic/angular/standalone';
+import { reportModalEnter, reportModalLeave } from '../animations/report-modal-transition';
+import { ReportPage } from '../../features/citizen/report/report.page';
 
 /**
  * Custom URL scheme used for all in-app deep links (Home Screen Widgets,
@@ -10,23 +13,15 @@ import { App, URLOpenListenerEvent } from '@capacitor/app';
  *  - ios/App/App/Info.plist (CFBundleURLTypes)
  */
 const DEEP_LINK_SCHEME = 'sinemdrrmo';
-
-/**
- * Maps a deep-link host (the part right after "sinemdrrmo://") to the
- * in-app route it should open. Add new widget/shortcut targets here —
- * both the Android AppWidgetProvider and the iOS WidgetKit extension only
- * need to know the host string, not the Angular route shape.
- */
-const DEEP_LINK_ROUTES: Record<string, string> = {
-  report: '/report',
-};
-
 const PENDING_KEY = 'pending_deep_link';
 
 @Injectable({ providedIn: 'root' })
 export class DeepLinkService {
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private modalCtrl: ModalController,
+  ) {}
 
   /** Call once, from AppComponent.ngOnInit(). No-op on web/Electron. */
   init(): void {
@@ -37,7 +32,7 @@ export class DeepLinkService {
     });
   }
 
-  private handleUrl(rawUrl: string): void {
+  handleUrl(rawUrl: string): void {
     let url: URL;
     try {
       url = new URL(rawUrl);
@@ -48,44 +43,63 @@ export class DeepLinkService {
 
     if (url.protocol !== `${DEEP_LINK_SCHEME}:`) return; // not ours — ignore
 
-    const route = DEEP_LINK_ROUTES[url.hostname];
-    if (!route) {
-      console.warn('DeepLinkService: unknown deep-link host', url.hostname);
+    const host = url.hostname;
+    if (host !== 'report') {
+      console.warn('DeepLinkService: unknown deep-link host', host);
       return;
     }
 
-    // Preserve any query string (e.g. ?type=hazard from the Report Hazard
-    // widget) instead of dropping it — url.search already includes the
-    // leading '?' when present, empty string otherwise.
-    const target = route + url.search;
-
-    this.navigateOrDefer(target);
+    const type = url.searchParams.get('type') === 'hazard' ? 'hazard' : 'emergency';
+    this.openReportOrDefer(type);
   }
 
-  private navigateOrDefer(target: string): void {
+  private async openReportOrDefer(type: 'emergency' | 'hazard'): Promise<void> {
     const user = localStorage.getItem('user');
     const role = localStorage.getItem('role');
 
     if (user && role === 'citizen') {
-      // Already logged in as the only role this widget applies to — go now.
-      this.router.navigateByUrl(target);
+      // Ensure we are on the citizen home screen
+      if (!this.router.url.includes('/tabs/')) {
+        await this.router.navigateByUrl('/tabs/home');
+      }
+
+      // Dismiss any open modal before presenting a fresh report modal
+      const topModal = await this.modalCtrl.getTop();
+      if (topModal) {
+        await topModal.dismiss();
+      }
+
+      setTimeout(async () => {
+        const modal = await this.modalCtrl.create({
+          component: ReportPage,
+          componentProps: { reportType: type, presentedAsModal: true },
+          cssClass: 'report-modal',
+          backdropDismiss: false,
+          enterAnimation: reportModalEnter,
+          leaveAnimation: reportModalLeave,
+        });
+        await modal.present();
+      }, 80);
       return;
     }
 
-    // Not logged in (or logged in as admin/dispatcher, for whom this
-    // citizen-only target doesn't apply): stash it and send to login.
-    // consumePendingDeepLink() is called after a successful citizen login.
-    sessionStorage.setItem(PENDING_KEY, target);
+    // Not logged in (or logged in as admin/dispatcher): stash it and send to login
+    sessionStorage.setItem(PENDING_KEY, type);
     this.router.navigate(['/login']);
   }
 
   /**
-   * Called by LoginPage right after a successful citizen login. Returns the
-   * deferred deep-link target (and clears it) if one is pending, else null.
+   * Called by LoginPage right after a successful citizen login.
+   * If a report deep link was pending, opens it as a modal on the home screen.
    */
   consumePendingDeepLink(): string | null {
-    const target = sessionStorage.getItem(PENDING_KEY);
-    if (target) sessionStorage.removeItem(PENDING_KEY);
-    return target;
+    const pendingType = sessionStorage.getItem(PENDING_KEY);
+    if (pendingType) {
+      sessionStorage.removeItem(PENDING_KEY);
+      setTimeout(() => {
+        this.openReportOrDefer(pendingType === 'hazard' ? 'hazard' : 'emergency');
+      }, 300);
+    }
+    return null;
   }
 }

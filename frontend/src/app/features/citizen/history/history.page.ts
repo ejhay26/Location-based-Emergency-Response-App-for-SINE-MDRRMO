@@ -4,13 +4,16 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonItem,
-  IonLabel, IonBadge, IonRefresher, IonRefresherContent, IonSkeletonText, IonList
+  IonLabel, IonBadge, IonRefresher, IonRefresherContent, IonSkeletonText, IonList,
+  ModalController
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
 import { TourService } from '../../../core/services/tour';
 import { EchoService } from '../../../core/services/echo.service';
 import { OfflineQueueService, QueuedReport } from '../../../core/services/offline-queue';
 import { DialogService } from '../../../core/services/dialog.service';
+import { reportModalEnter, reportModalLeave } from '../../../core/animations/report-modal-transition';
+import { ReportPage } from '../report/report.page';
 import { DateRangeFilterComponent } from '../../../shared/components/date-range-filter/date-range-filter.component';
 import { FilterSummaryBarComponent } from '../../../shared/components/filter-summary-bar/filter-summary-bar.component';
 import { ProxyImageDirective } from '../../../shared/directives/proxy-image.directive';
@@ -92,6 +95,7 @@ export class HistoryPage implements OnInit, OnDestroy {
     private router: Router,
     private dialog: DialogService,
     private echo: EchoService,
+    private modalCtrl: ModalController,
     public tour: TourService,
     public offlineQueue: OfflineQueueService,
   ) {}
@@ -281,8 +285,22 @@ export class HistoryPage implements OnInit, OnDestroy {
     if (confirmed) await this.offlineQueue.removeById(id);
   }
 
-  goToSos()    { this.router.navigate(['/report'], { queryParams: { type: 'emergency' } }); }
-  goToHazard() { this.router.navigate(['/report'], { queryParams: { type: 'hazard' } }); }
+  private async openReport(type: 'emergency' | 'hazard') {
+    this.tour.onInteraction();
+    if (this.tour.isActive()) return;
+    const modal = await this.modalCtrl.create({
+      component: ReportPage,
+      componentProps: { reportType: type, presentedAsModal: true },
+      cssClass: 'report-modal',
+      backdropDismiss: false,
+      enterAnimation: reportModalEnter,
+      leaveAnimation: reportModalLeave,
+    });
+    await modal.present();
+  }
+
+  goToSos()    { this.openReport('emergency'); }
+  goToHazard() { this.openReport('hazard'); }
 
   statusColor(status: string): string {
     switch (status) {
