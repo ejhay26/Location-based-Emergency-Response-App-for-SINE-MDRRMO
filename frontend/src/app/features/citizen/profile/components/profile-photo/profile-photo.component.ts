@@ -68,8 +68,13 @@ export class ProfilePhotoComponent implements OnChanges {
 
   async selectFromSource(source: CameraSource) {
     try {
-      const permissionType = source === CameraSource.Camera ? 'camera' : 'photos';
-      await Camera.requestPermissions({ permissions: [permissionType] });
+      if (source === CameraSource.Camera) {
+        try {
+          await Camera.requestPermissions({ permissions: ['camera'] });
+        } catch {
+          // Camera permission fallback handled by getPhoto
+        }
+      }
       const result = await Camera.getPhoto({
         quality: 85,
         allowEditing: false,
@@ -82,8 +87,8 @@ export class ProfilePhotoComponent implements OnChanges {
       this.cropperFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
       this.croppedBase64 = '';
       this.showCropper = true;
-    } catch {
-      // User cancelled picker or closed dialog
+    } catch (e) {
+      console.warn('ProfilePhoto: selection dismissed or error', e);
     }
   }
 

@@ -182,10 +182,14 @@ export class AccountSetupPage implements OnInit {
     const proceed = () => {
       this.isFinishing = false;
       if (startTour) {
-        this.router.navigate(['/tabs/home']).then(() => this.tour.start('all'));
+        this.router.navigate(['/tabs/home'], { replaceUrl: true }).then(() => {
+          setTimeout(() => {
+            this.tour.start('all');
+          }, 450);
+        });
       } else {
         this.tour.markSeen();
-        this.router.navigate(['/tabs/home']);
+        this.router.navigate(['/tabs/home'], { replaceUrl: true });
       }
     };
     this.api.completeAccountSetup(this.userData.user_id).subscribe({

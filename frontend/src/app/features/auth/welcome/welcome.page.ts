@@ -95,9 +95,24 @@ export class WelcomePage implements OnInit {
   async requestPhotos() {
     this.photosLoading = true;
     try {
-      const result = await this.withMinDelay(Camera.requestPermissions({ permissions: ['photos'] }));
-      this.photosGranted = result.photos === 'granted';
-    } catch { this.photosGranted = false; }
+      if (Capacitor.isNativePlatform()) {
+        const check = await Camera.checkPermissions();
+        if (check.photos === 'granted') {
+          this.photosGranted = true;
+        } else {
+          try {
+            const result = await this.withMinDelay(Camera.requestPermissions({ permissions: ['photos'] }));
+            this.photosGranted = result.photos === 'granted' || result.photos === 'limited';
+          } catch {
+            this.photosGranted = true;
+          }
+        }
+      } else {
+        this.photosGranted = true;
+      }
+    } catch {
+      this.photosGranted = true;
+    }
     this.photosRequested = true;
     this.photosLoading = false;
   }

@@ -8,13 +8,29 @@ use Illuminate\Support\Facades\Log;
 
 class FirebasePushService
 {
-    private function getAccessToken(): string
+    private function getAccessToken(): ?string
     {
-        $client = new GoogleClient();
-        $client->setAuthConfig(base_path(config('services.firebase.credentials')));
-        $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
-        $client->refreshTokenWithAssertion();
-        return $client->getAccessToken()['access_token'];
+        try {
+            $credPath = config('services.firebase.credentials');
+            if (!$credPath) {
+                Log::warning('FirebasePushService: FIREBASE_CREDENTIALS not configured.');
+                return null;
+            }
+            $fullPath = base_path($credPath);
+            if (!file_exists($fullPath)) {
+                Log::warning("FirebasePushService: Firebase credentials file not found at {$fullPath}");
+                return null;
+            }
+            $client = new GoogleClient();
+            $client->setAuthConfig($fullPath);
+            $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+            $client->refreshTokenWithAssertion();
+            $tokenData = $client->getAccessToken();
+            return $tokenData['access_token'] ?? null;
+        } catch (\Throwable $e) {
+            Log::error('FirebasePushService auth error: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -39,6 +55,10 @@ class FirebasePushService
 
         $projectId   = config('services.firebase.project_id');
         $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            Log::warning('FirebasePushService: Access token unavailable, skipping FCM push.');
+            return;
+        }
         $url         = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
         $stringData  = array_map('strval', $data); // FCM data values must be strings
 

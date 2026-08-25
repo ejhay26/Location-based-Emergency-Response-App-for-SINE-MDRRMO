@@ -12,6 +12,7 @@ use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Password change for an already-logged-in user: send/verify an OTP to
@@ -44,14 +45,39 @@ class PasswordController extends Controller
             return response()->json(['message' => 'Too many code requests. Please try again later.'], 429);
         }
         $otp = $result['otp'];
+        Log::info("Password Change OTP generated for {$user->email} ({$user->phone}): {$otp} (Channel: {$request->channel})");
 
+        $smsFailed = false;
         if ($request->channel === 'phone') {
-            $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'changing your password');
-            if (!$sent) return response()->json(['message' => 'Failed to send SMS OTP.'], 500);
+            try {
+                $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'changing your password');
+                if (!$sent) {
+                    $smsFailed = true;
+                    if ($user->email) {
+                        try {
+                            Mail::to($user->email)->send(new OtpMail($otp, 'changing your password (SMS fallback)'));
+                        } catch (\Throwable $e) {
+                            Log::error('Password Change Email Fallback Error: ' . $e->getMessage());
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                $smsFailed = true;
+                Log::error('Password Change SMS Error: ' . $e->getMessage());
+            }
         } else {
-            Mail::to($user->email)->send(new OtpMail($otp, 'changing your password'));
+            try {
+                Mail::to($user->email)->send(new OtpMail($otp, 'changing your password'));
+            } catch (\Throwable $e) {
+                Log::error('Password Change Email Error: ' . $e->getMessage());
+            }
         }
-        return response()->json(['message' => 'Verification code sent.']);
+
+        $message = $smsFailed
+            ? 'Verification code sent to your email (SMS gateway was unavailable).'
+            : 'Verification code sent.';
+
+        return response()->json(['message' => $message]);
     }
 
     public function verifyPasswordChangeOtp(Request $request)

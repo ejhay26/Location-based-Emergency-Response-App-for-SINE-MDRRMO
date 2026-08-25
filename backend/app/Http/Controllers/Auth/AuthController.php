@@ -85,17 +85,37 @@ class AuthController extends Controller
             return response()->json(['message' => 'If that account exists, an OTP was sent.'], 200);
         }
         $otp = $result['otp'];
+        Log::info("Login OTP generated for {$user->email} ({$user->phone}): {$otp} (Channel: {$channel})");
 
+        $smsFailed = false;
         if ($channel === 'phone') {
-            $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'logging in');
-            if (!$sent) {
-                return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
+            try {
+                $sent = $this->sms->sendOtp($user->phone, (string) $otp, 'logging in');
+                if (!$sent) {
+                    $smsFailed = true;
+                    try {
+                        Mail::to($user->email)->send(new OtpMail($otp, 'logging in (SMS fallback)'));
+                    } catch (\Throwable $e) {
+                        Log::error('Login Email Fallback Error: ' . $e->getMessage());
+                    }
+                }
+            } catch (\Throwable $e) {
+                $smsFailed = true;
+                Log::error('Login SMS Error: ' . $e->getMessage());
             }
         } else {
-            Mail::to($user->email)->send(new OtpMail($otp, 'logging in'));
+            try {
+                Mail::to($user->email)->send(new OtpMail($otp, 'logging in'));
+            } catch (\Throwable $e) {
+                Log::error('Login Email Error: ' . $e->getMessage());
+            }
         }
 
-        return response()->json(['message' => 'If that account exists, an OTP was sent.']);
+        $message = $smsFailed
+            ? 'If that account exists, an OTP was sent to your email (SMS gateway was unavailable).'
+            : 'If that account exists, an OTP was sent.';
+
+        return response()->json(['message' => $message]);
     }
 
     public function loginVerifyOtp(Request $request)
@@ -587,13 +607,39 @@ class AuthController extends Controller
             return response()->json(['message' => 'If an account exists, an OTP was sent.'], 200);
         }
         $otp = $result['otp'];
+        $recipient = $channel === 'email' ? $request->email : $normalizedPhone;
+        Log::info("Forgot Password OTP generated for {$recipient}: {$otp} (Channel: {$channel})");
+
+        $smsFailed = false;
         if ($channel === 'phone') {
-            $sent = $this->sms->sendOtp($normalizedPhone, (string) $otp, 'resetting your password');
-            if (!$sent) return response()->json(['message' => 'Failed to send SMS OTP. Try email instead.'], 500);
+            try {
+                $sent = $this->sms->sendOtp($normalizedPhone, (string) $otp, 'resetting your password');
+                if (!$sent) {
+                    $smsFailed = true;
+                    if ($user->email) {
+                        try {
+                            Mail::to($user->email)->send(new OtpMail($otp, 'resetting your password (SMS fallback)'));
+                        } catch (\Throwable $e) {
+                            Log::error('Forgot Password Email Fallback Error: ' . $e->getMessage());
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                $smsFailed = true;
+                Log::error('Forgot Password SMS Error: ' . $e->getMessage());
+            }
         } else {
-            Mail::to($request->email)->send(new OtpMail($otp, 'resetting your password'));
+            try {
+                Mail::to($request->email)->send(new OtpMail($otp, 'resetting your password'));
+            } catch (\Throwable $e) {
+                Log::error('Forgot Password Email Error: ' . $e->getMessage());
+            }
         }
-        return response()->json(['message' => 'If an account exists, an OTP was sent.'], 200);
+        $message = $smsFailed
+            ? 'If an account exists, an OTP was sent to your email (SMS gateway was unavailable).'
+            : 'If an account exists, an OTP was sent.';
+
+        return response()->json(['message' => $message], 200);
     }
 
     /**

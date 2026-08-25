@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
-import { AlertController } from '@ionic/angular/standalone';
+import { AlertController, ModalController } from '@ionic/angular/standalone';
 import { filter } from 'rxjs/operators';
 
 export type TourChapter = 'all' | 'home' | 'emergency' | 'hazard' | 'history' | 'profile' | 'settings';
@@ -87,7 +87,7 @@ const STEPS: TourStep[] = [
   },
   // ── HISTORY ───────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-history', page: '/tabs/home', chapter: 'home',
+    id: 'tour-tab-history', page: '/tabs/home', chapter: 'all',
     callout: 'Tap the History tab to check your submitted reports.',
     subtext: 'You can track whether your report is Pending, Dispatched, or Resolved in real time.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
@@ -100,7 +100,7 @@ const STEPS: TourStep[] = [
   },
   // ── PROFILE ───────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-profile', page: '/tabs/history', chapter: 'history',
+    id: 'tour-tab-profile', page: '/tabs/history', chapter: 'all',
     callout: 'Tap the Profile tab to manage your account.',
     subtext: '',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
@@ -119,7 +119,7 @@ const STEPS: TourStep[] = [
   },
   // ── SETTINGS ──────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-settings', page: '/tabs/profile', chapter: 'profile',
+    id: 'tour-tab-settings', page: '/tabs/profile', chapter: 'all',
     callout: 'Tap the Settings tab to customize the app.',
     subtext: '',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
@@ -132,7 +132,7 @@ const STEPS: TourStep[] = [
   },
   // ── HELP ──────────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-help', page: '/tabs/settings', chapter: 'settings',
+    id: 'tour-tab-help', page: '/tabs/settings', chapter: 'all',
     callout: 'The Help tab is your guide whenever you need it.',
     subtext: 'Find FAQs, replay any chapter of this tutorial, or send feedback to the development team.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
@@ -183,7 +183,11 @@ export class TourService {
   private filteredSteps: TourStep[] = STEPS;
   private navigating = false;
 
-  constructor(private router: Router, private alertCtrl: AlertController) {
+  constructor(
+    private router: Router,
+    private alertCtrl: AlertController,
+    private modalCtrl: ModalController
+  ) {
     this.router.events.pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: any) => {
         if (!this.isActive()) return;
@@ -192,6 +196,13 @@ export class TourService {
         const validPages = new Set(this.steps.map(s => s.page.split('?')[0]));
         if (!validPages.has(actual)) this.cancelSilent();
       });
+  }
+
+  private async dismissAnyModal() {
+    try {
+      const top = await this.modalCtrl.getTop();
+      if (top) await this.modalCtrl.dismiss();
+    } catch {}
   }
 
   get steps()       { return this.filteredSteps; }
@@ -243,10 +254,26 @@ export class TourService {
   }
 
   // User explicitly exited mid-tour — treat this the same as finishing: don't nag them again.
-  cancel()       { this.isActive.set(false); this.targetId.set(''); this.stepIndex.set(0); this.filteredSteps = STEPS; this.markSeen(); }
+  cancel() {
+    this.isActive.set(false);
+    this.targetId.set('');
+    this.stepIndex.set(0);
+    this.filteredSteps = STEPS;
+    this.markSeen();
+    this.dismissAnyModal();
+    this.navigating = true;
+    this.router.navigate(['/tabs/home']);
+  }
+
   // Tour was interrupted by unrelated navigation (not a deliberate exit) — don't mark as seen,
   // so it can still be resumed/prompted normally later.
-  cancelSilent() { this.isActive.set(false); this.targetId.set(''); this.stepIndex.set(0); this.filteredSteps = STEPS; }
+  cancelSilent() {
+    this.isActive.set(false);
+    this.targetId.set('');
+    this.stepIndex.set(0);
+    this.filteredSteps = STEPS;
+    this.dismissAnyModal();
+  }
 
   finish() {
     this.isActive.set(false);
@@ -254,6 +281,7 @@ export class TourService {
     this.stepIndex.set(0);
     this.filteredSteps = STEPS;
     this.markSeen();
+    this.dismissAnyModal();
     this.navigating = true;
     this.router.navigate(['/tabs/home']);
   }
