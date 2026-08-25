@@ -1,63 +1,79 @@
-<div id="report-map-card" [class.is-fullscreen]="mapExpanded">
-  <!-- Map container: NEVER moved or reparented in DOM -->
-  <div id="report-map" style="width:100%;height:100%;position:relative;"></div>
-
-  <!-- Center Crosshairs -->
-  <div class="map-center-crosshairs">
-    <i class="fa-solid fa-crosshairs" [style.color]="crosshairColor"></i>
+<div style="border-radius:12px;overflow:hidden;margin-bottom:0;position:relative;">
+  <!-- report-map-slot is the small view's permanent, never-removed home for the
+       #report-map Leaflet container. #report-map itself gets reparented into
+       the fullscreen slot on expand and back here on collapse (see expandMap/
+       finishCollapse in the .ts) — one single Leaflet instance is reused,
+       never recreated, so there's no second map init/tile refetch pass and
+       no visible resize flinch when opening/closing fullscreen. -->
+  <div id="report-map-slot" style="height:280px;background:#e5e5e5;position:relative;overflow:hidden;">
+    <div id="report-map" style="width:100%;height:100%;position:relative;"></div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;pointer-events:none;"><i class="fa-solid fa-crosshairs" [style.color]="crosshairColor" style="font-size:32px;text-shadow:0 2px 5px rgba(0,0,0,0.4);"></i></div>
+    <!-- Live-resolved barangay for the crosshair's current position (see resolveBarangayName() in the .ts) — preview only, the backend recomputes independently before persisting. Hidden while unresolved rather than showing a wrong guess. -->
+    <div *ngIf="resolvedBarangayName" style="position:absolute;top:8px;left:8px;z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.62);color:white;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-location-dot" style="font-size:12px;"></i>{{ resolvedBarangayName }}</div>
+    <div *ngIf="showMapHint && !mapExpanded" style="position:absolute;bottom:44px;left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.62);color:white;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-arrows-up-down-left-right" style="font-size:13px;"></i>Drag the map to move the pin</div>
+    <button type="button" (click)="toggleMapExpand()" style="position:absolute;top:8px;right:8px;z-index:1002;width:34px;height:34px;border-radius:8px;border:none;background:rgba(0,0,0,0.55);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-expand"></i></button>
   </div>
+</div>
 
-  <!-- Live resolved barangay badge (top-left) -->
-  <div *ngIf="resolvedBarangayName" class="map-bgy-badge">
-    <i class="fa-solid fa-location-dot"></i>
-    <span>{{ resolvedBarangayName }}</span>
-  </div>
+<!-- report-map-toggle-slot: the small view's real, on-screen Street|Satellite bar. Its rect is read (alongside #report-map-slot's) by smallMapRect() in the .ts to seed the fullscreen curtain's clip-path band — so the fullscreen toggle bar below rides the same physical clip growth as the map from frame one, instead of only appearing once the tween happens to grow past it. -->
+<div id="report-map-toggle-slot" style="display:flex;border-radius:10px;overflow:hidden;margin-bottom:14px;border:2px solid var(--ion-color-step-150,#ddd);">
+  <button type="button" (click)="toggleMapStyle('street')" [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'var(--ion-color-light)'" [style.color]="mapStyle==='street'?'white':'var(--ion-text-color)'" style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;"><i class="fa-solid fa-map"></i> Street</button>
+  <button type="button" (click)="toggleMapStyle('satellite')" [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'var(--ion-color-light)'" [style.color]="mapStyle==='satellite'?'white':'var(--ion-text-color)'" style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;border-left:2px solid var(--ion-color-step-150,#ddd);"><i class="fa-solid fa-satellite"></i> Satellite</button>
+</div>
 
-  <!-- Drag hint (bottom/top center) -->
-  <div *ngIf="showMapHint" class="map-drag-hint-badge">
-    <i class="fa-solid fa-arrows-up-down-left-right"></i>
-    <span>Drag map to move pin</span>
-  </div>
+<!-- Kept mounted through mapCollapsing too (not just mapExpanded) so the close tween in report-map.component.ts has a real, still-attached node to animate before *ngIf actually tears it down — same temporary-mount pattern as RevealAnimateDirective's accordion usage. -->
+<!--
+  Curtain reveal: the overlay is mounted full-viewport and LOCKED there for
+  the entire animation (position:fixed;inset:0, never translated/scaled) —
+  see playCurtainReveal() in the .ts file. Only its `clip-path` animates,
+  starting as a thin vertical band matching the small map's real on-screen
+  top/bottom, then growing outward to the full screen (and shrinking back
+  into that same band on close). That's what makes the top/bottom edges of
+  the map appear to push outward like a curtain opening, while the map
+  content itself never moves or scales.
+-->
+<div *ngIf="mapExpanded || mapCollapsing" #fullscreenOverlay style="position:fixed;inset:0;z-index:99999;background:var(--ion-background-color,#fff);display:flex;flex-direction:column;">
+  <div id="report-map-fullscreen-wrap" style="position:relative;flex:1;min-height:0;">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;pointer-events:none;"><i class="fa-solid fa-crosshairs" [style.color]="crosshairColor" style="font-size:40px;text-shadow:0 2px 8px rgba(0,0,0,0.5);"></i></div>
+    <!-- Same live barangay preview as the small view, positioned top-left so it doesn't collide with the top-center drag hint or the top-right compress button. -->
+    <div *ngIf="resolvedBarangayName" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:16px;z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.62);color:white;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-location-dot" style="font-size:13px;"></i>{{ resolvedBarangayName }}</div>
+    <div *ngIf="showMapHint" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.62);color:white;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-arrows-up-down-left-right" style="font-size:13px;"></i>Drag the map to move the pin</div>
 
-  <!-- Expand / Compress Button (top-right) -->
-  <button type="button" (click)="toggleMapExpand()" class="map-expand-toggle-btn" [attr.aria-label]="mapExpanded ? 'Exit full screen map' : 'Open full screen map'">
-    <i [class]="mapExpanded ? 'fa-solid fa-compress' : 'fa-solid fa-expand'"></i>
-  </button>
+    <!-- report-map-fullscreen-slot: destination for the reparented #report-map
+         Leaflet container (see expandMap/finishCollapse in the .ts). No second
+         Leaflet instance is created here — the single #report-map node is
+         moved in and out of this slot, so the map never re-inits, never
+         refetches tiles, and never visibly resizes/flinches on curtain reveal. -->
+    <div id="report-map-fullscreen-slot" style="width:100%;height:100%;"></div>
 
-  <!-- Fullscreen Floating Controls (Only shown when expanded) -->
-  <ng-container *ngIf="mapExpanded">
-    <!-- Floating 'Use My Location' button -->
-    <button type="button" (click)="getCurrentLocation()" class="map-fs-loc-btn">
-      <i class="fa-solid fa-location-crosshairs" style="color:var(--ion-color-danger,#eb445a);"></i>
+    <!-- Compress (fullscreen-off) button — same floating position/style as the small view's expand button, just moved over the map instead of a separate header bar. -->
+    <button type="button" (click)="toggleMapExpand()" style="position:absolute;top:max(8px,env(safe-area-inset-top,8px));right:8px;z-index:1002;width:34px;height:34px;border-radius:8px;border:none;background:rgba(0,0,0,0.55);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-compress"></i></button>
+
+    <!-- Use My Location Floating Action Button on Fullscreen Map -->
+    <button type="button" (click)="getCurrentLocation()"
+      style="position:absolute;bottom:calc(82px + env(safe-area-inset-bottom,0px));right:16px;z-index:1002;background:var(--ion-card-background,#fff);color:var(--ion-text-color);border:1.5px solid var(--ion-color-step-200,#ccc);box-shadow:0 3px 14px rgba(0,0,0,0.25);border-radius:24px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s ease;">
+      <i class="fa-solid fa-location-crosshairs" style="color:var(--ion-color-danger);font-size:14px;"></i>
       <span>Use My Location</span>
     </button>
 
-    <!-- Floating Submit button -->
-    <div *ngIf="submitLabel" class="map-fs-submit-container">
+    <!-- Submit button floats over the map itself (not a dedicated bar) so the map keeps as much visible height as possible. Disabled visual now matches the non-fullscreen .btn-muted/.btn-loading treatment (solid grey, no shadow, not-allowed cursor) instead of a plain opacity fade — this is a plain <button>, not ion-button, so .btn-muted's ::part(native) selector can't reach it; the same look is replicated via inline bindings. -->
+    <div *ngIf="submitLabel" style="position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:1002;">
       <button type="button" appPressFeedback [disabled]="submitDisabled" (click)="submitRequested.emit()"
-        [style.background]="submitLoading ? '#666' : (submitDisabled ? '#888' : (reportType === 'hazard' ? 'var(--ion-color-warning,#ffc409)' : 'var(--ion-color-danger,#eb445a)'))"
+        [style.background]="submitLoading ? '#666' : (submitDisabled ? '#888' : (reportType === 'hazard' ? 'var(--ion-color-warning)' : 'var(--ion-color-danger)'))"
+        [style.box-shadow]="(submitDisabled || submitLoading) ? 'none' : '0 4px 16px rgba(0,0,0,0.4)'"
         [style.cursor]="submitDisabled ? 'not-allowed' : 'pointer'"
-        class="map-fs-submit-btn">
-        <ng-container *ngIf="!submitLoading">
-          <i [class]="reportType === 'hazard' ? 'fa-solid fa-road-barrier' : 'fa-solid fa-triangle-exclamation'"></i>
-          {{ submitLabel }}
-        </ng-container>
+        style="width:100%;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:800;color:white;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s;">
+        <ng-container *ngIf="!submitLoading"><i [class]="reportType === 'hazard' ? 'fa-solid fa-road-barrier' : 'fa-solid fa-triangle-exclamation'"></i>{{ submitLabel }}</ng-container>
         <span *ngIf="submitLoading" class="dot-loader"><span></span><span></span><span></span></span>
       </button>
     </div>
+  </div>
 
-    <!-- Fullscreen Top/Bottom Street | Satellite bar -->
-    <div class="map-fs-bottom-bar">
-      <div class="map-style-btn-group">
-        <button type="button" (click)="toggleMapStyle('street')" [class.active]="mapStyle==='street'"><i class="fa-solid fa-map"></i> Street</button>
-        <button type="button" (click)="toggleMapStyle('satellite')" [class.active]="mapStyle==='satellite'"><i class="fa-solid fa-satellite"></i> Satellite</button>
-      </div>
+  <!-- Street|Satellite — now a real rounded button-group (border-radius, 2px border, overflow hidden, drop shadow), matching the small-view container exactly instead of a flush edge-to-edge strip. Still an ordinary bottom bar inside #fullscreenOverlay — the same element the curtain clip-path animates — so it opens/closes together with the map with no separate tween needed. -->
+  <div style="flex-shrink:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--ion-background-color,#fff);">
+    <div style="display:flex;border-radius:10px;overflow:hidden;border:2px solid var(--ion-color-step-150,#ddd);box-shadow:0 2px 10px rgba(0,0,0,0.15);">
+      <button type="button" (click)="toggleMapStyle('street')" [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'var(--ion-color-light)'" [style.color]="mapStyle==='street'?'white':'var(--ion-text-color)'" style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;"><i class="fa-solid fa-map"></i> Street</button>
+      <button type="button" (click)="toggleMapStyle('satellite')" [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'var(--ion-color-light)'" [style.color]="mapStyle==='satellite'?'white':'var(--ion-text-color)'" style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;border-left:2px solid var(--ion-color-step-150,#ddd);"><i class="fa-solid fa-satellite"></i> Satellite</button>
     </div>
-  </ng-container>
-</div>
-
-<!-- Inline Street | Satellite bar (Only shown when not expanded) -->
-<div *ngIf="!mapExpanded" style="display:flex;border-radius:10px;overflow:hidden;margin-bottom:14px;border:2px solid var(--ion-color-step-150,#ddd);">
-  <button type="button" (click)="toggleMapStyle('street')" [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'var(--ion-color-light)'" [style.color]="mapStyle==='street'?'white':'var(--ion-text-color)'" style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;"><i class="fa-solid fa-map"></i> Street</button>
-  <button type="button" (click)="toggleMapStyle('satellite')" [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'var(--ion-color-light)'" [style.color]="mapStyle==='satellite'?'white':'var(--ion-text-color)'" style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;border-left:2px solid var(--ion-color-step-150,#ddd);"><i class="fa-solid fa-satellite"></i> Satellite</button>
+  </div>
 </div>

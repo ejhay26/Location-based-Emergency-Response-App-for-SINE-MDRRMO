@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonToast, ModalController, ToastController } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
@@ -79,12 +79,10 @@ export class HomePage implements OnInit, OnDestroy {
   private echoEmergencySub?: Subscription;
   private echoBroadcastSub?: Subscription;
   private echoConnectedSub?: Subscription;
-  private queryParamsSub?: Subscription;
 
   constructor(
     private api: ApiService,
     private router: Router,
-    private route: ActivatedRoute,
     public tour: TourService,
     private broadcastRefresh: BroadcastRefreshService,
     private echo: EchoService,
@@ -115,15 +113,6 @@ export class HomePage implements OnInit, OnDestroy {
     // Initial fetch regardless of socket state.
     this.fetchBroadcasts();
     this.fetchLatestSos();
-
-    // Listen for widget launch deep link (open_report query parameter)
-    this.queryParamsSub = this.route.queryParams.subscribe(params => {
-      if (params['open_report']) {
-        const type = params['open_report'] === 'hazard' ? 'hazard' : 'emergency';
-        this.router.navigate([], { queryParams: {}, replaceUrl: true });
-        setTimeout(() => this.openReport(type), 180);
-      }
-    });
 
     // ── Hybrid real-time strategy ─────────────────────────────────────
     // Primary: Reverb WebSocket events trigger immediate re-fetches.
@@ -172,7 +161,6 @@ export class HomePage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.stopPolling();
-    this.queryParamsSub?.unsubscribe();
     this.pushRefreshSub?.unsubscribe();
     this.echoEmergencySub?.unsubscribe();
     this.echoBroadcastSub?.unsubscribe();
