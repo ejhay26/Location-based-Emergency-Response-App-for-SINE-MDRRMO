@@ -1,21 +1,21 @@
 <div *ngIf="reportType === 'emergency'">
   <p style="font-weight:bold;font-size:14px;margin:0 0 10px 0;color:var(--ion-text-color);">What is your emergency?</p>
   <div id="tour-incident-grid" [class.tour-highlight]="tour.targetId() === 'tour-incident-grid'" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;">
-    <div *ngFor="let type of incidentTypes" (click)="selectIncident(type)" [style.border]="selectedIncidentId===type.id?'3px solid '+type.color:'2px solid #ddd'" [style.background]="selectedIncidentId===type.id?type.color+'15':'var(--ion-card-background,white)'" style="border-radius:16px;padding:22px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:all 0.2s;">
-      <i [class]="type.icon" [style.color]="type.color" style="font-size:30px;margin-bottom:8px;"></i>
+    <div *ngFor="let type of incidentTypes" (click)="selectIncident(type)" [style.border]="selectedIncidentId===type.id?'3px solid '+type.color:'2px solid var(--ion-color-step-100, rgba(0,0,0,0.08))'" [style.background]="selectedIncidentId===type.id?type.color+'15':'var(--ion-card-background,white)'" style="border-radius:18px;padding:20px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:all 0.2s;">
+      <app-icon [name]="type.icon" [size]="32" [color]="type.color" style="margin-bottom:8px;"></app-icon>
       <div style="font-weight:bold;font-size:13px;color:var(--ion-text-color);">{{ type.name }}</div>
     </div>
   </div>
-  <div style="padding:6px 10px;background:var(--ion-color-light);border-radius:8px;margin-bottom:16px;text-align:center;"><span style="font-weight:bold;font-size:14px;">Selected: <span style="color:var(--ion-color-danger);">{{ selectedIncidentName }}</span></span></div>
+  <div style="padding:8px 12px;background:var(--ion-color-step-50, rgba(0,0,0,0.03));border-radius:12px;margin-bottom:16px;text-align:center;"><span style="font-weight:bold;font-size:13.5px;">Selected: <span style="color:var(--ion-color-danger);">{{ selectedIncidentName }}</span></span></div>
 </div>
 
 <div *ngIf="reportType === 'hazard'">
   <p style="font-weight:bold;font-size:14px;margin:0 0 10px 0;color:var(--ion-text-color);">What type of hazard?</p>
   <div id="tour-hazard-grid" [class.tour-highlight]="tour.targetId() === 'tour-hazard-grid'" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;">
-    <div *ngFor="let cat of hazardCategories" (click)="selectHazard(cat)" [style.border]="selectedHazardId===cat.id?'3px solid #ffc409':'2px solid #ddd'" [style.background]="selectedHazardId===cat.id?'#ffc40920':'var(--ion-card-background,white)'" style="border-radius:16px;padding:22px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:all 0.2s;">
-      <i [class]="cat.icon" [style.color]="cat.color" style="font-size:30px;margin-bottom:8px;"></i>
+    <div *ngFor="let cat of hazardCategories" (click)="selectHazard(cat)" [style.border]="selectedHazardId===cat.id?'3px solid #ffc409':'2px solid var(--ion-color-step-100, rgba(0,0,0,0.08))'" [style.background]="selectedHazardId===cat.id?'#ffc40920':'var(--ion-card-background,white)'" style="border-radius:18px;padding:20px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:all 0.2s;">
+      <app-icon [name]="cat.icon" [size]="32" [color]="cat.color" style="margin-bottom:8px;"></app-icon>
       <div style="font-weight:bold;font-size:13px;color:var(--ion-text-color);">{{ cat.name }}</div>
     </div>
   </div>
-  <div style="padding:6px 10px;background:var(--ion-color-light);border-radius:8px;margin-bottom:16px;text-align:center;"><span style="font-weight:bold;font-size:14px;">Selected: <span style="color:#e0ac00;">{{ selectedHazardName }}</span></span></div>
+  <div style="padding:8px 12px;background:var(--ion-color-step-50, rgba(0,0,0,0.03));border-radius:12px;margin-bottom:16px;text-align:center;"><span style="font-weight:bold;font-size:13.5px;">Selected: <span style="color:#e0ac00;">{{ selectedHazardName }}</span></span></div>
 </div>

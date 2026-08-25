@@ -48,13 +48,22 @@ const CachedTileLayer = L.TileLayer.extend({
 
 export interface ReportCoords { latitude: string; longitude: string; barangayName: string | null; }
 
+import { IonSegment, IonSegmentButton, IonLabel } from '@ionic/angular/standalone';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+
 @Component({
   selector: 'app-report-map',
   standalone: true,
-  imports: [CommonModule, PressFeedbackDirective],
+  imports: [CommonModule, PressFeedbackDirective, IonSegment, IonSegmentButton, IonLabel, AppIconComponent],
   templateUrl: './report-map.component.html',
 })
 export class ReportMapComponent implements AfterViewInit, OnDestroy {
+  onMapStyleChange(event: any) {
+    const val = event.detail.value;
+    if (val === 'street' || val === 'satellite') {
+      this.toggleMapStyle(val);
+    }
+  }
   private http           = inject(HttpClient);
   private toastCtrl      = inject(ToastController);
   private userSettings   = inject(UserSettingsService);
@@ -124,7 +133,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   sanIsidroPolygon: any[] = [];
   /** Loaded once in initMap() from the same PSA/PSGC-sourced geojson used server-side (see backend/app/Services/BarangayResolver.php) — client-side result is a live preview only, never trusted for what's actually persisted (the backend recomputes independently on submit). */
   private barangayPolygons: { name: string; ring: number[][] }[] = [];
-  /** Live-resolved barangay for the crosshair's current position, null while outside every mapped polygon (or outside San Isidro entirely). Read by report.page.ts via ReportCoords.barangayName for the pre-submit confirmation dialog. */
+  /** Live-resolved barangay for the pin's current position, null while outside every mapped polygon (or outside San Isidro entirely). Read by report.page.ts via ReportCoords.barangayName for the pre-submit confirmation dialog. */
   resolvedBarangayName: string | null = null;
 
   mapStyle: 'street' | 'satellite' = 'street';
@@ -141,7 +150,8 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   private resizeObserver?: ResizeObserver;
   private locationSub?: Subscription;
 
-  get crosshairColor(): string { return this.reportType === 'hazard' ? '#ffc409' : '#eb445a'; }
+  get pinColor(): string { return this.reportType === 'hazard' ? '#ffc409' : '#eb445a'; }
+  get crosshairColor(): string { return this.pinColor; }
 
   ngAfterViewInit() {
     this.tryInit();
@@ -571,7 +581,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     if (this.sanIsidroPolygon.length > 0 && !this.isInsideSanIsidro(center.lat, center.lng)) {
       this.resolvedBarangayName = null;
       this.coordsChanged.emit(null);
-      this.showToast('Move the crosshair inside San Isidro.', 'danger');
+      this.showToast('Move the pin inside San Isidro.', 'danger');
       return;
     }
     this.resolvedBarangayName = this.resolveBarangayName(center.lat, center.lng);

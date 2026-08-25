@@ -19,12 +19,14 @@ export interface MediaFile { preview: string; type: 'photo' | 'video'; }
  * parent can use it for isFormReady / submitReport without duplicating the
  * capture/crop logic.
  */
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+
 @Component({
   selector: 'app-report-media',
   standalone: true,
   imports: [
     CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
-    IonModal, ImageCropperComponent
+    IonModal, ImageCropperComponent, AppIconComponent
   ],
   templateUrl: './report-media.component.html',
 })

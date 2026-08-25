@@ -1,13 +1,21 @@
-<div *ngIf="canAddMore" id="tour-media-buttons" [class.tour-highlight]="tour.targetId() === 'tour-media-buttons'" style="display:flex;gap:8px;margin-bottom:14px;">
-  <ion-button type="button" expand="block" color="dark" style="flex:1;font-weight:bold;height:45px;" (click)="takePhoto()"><i class="fa-solid fa-camera" style="margin-right:6px;"></i> Photo</ion-button>
-  <ion-button type="button" expand="block" color="dark" fill="outline" style="flex:1;font-weight:bold;height:45px;" (click)="triggerVideo()"><i class="fa-solid fa-video" style="margin-right:6px;"></i> Video (≤10s)</ion-button>
+<div *ngIf="canAddMore" id="tour-media-buttons" [class.tour-highlight]="tour.targetId() === 'tour-media-buttons'" style="display:flex;gap:10px;margin-bottom:14px;">
+  <button type="button" (click)="takePhoto()"
+    style="flex:1;height:46px;border:none;border-radius:14px;background:var(--ion-color-step-100, rgba(0,0,0,0.06));color:var(--ion-text-color);font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:all 0.15s ease;">
+    <app-icon name="camera" [size]="18" color="var(--ion-color-danger)"></app-icon> Photo
+  </button>
+  <button type="button" (click)="triggerVideo()"
+    style="flex:1;height:46px;border:none;border-radius:14px;background:var(--ion-color-step-100, rgba(0,0,0,0.06));color:var(--ion-text-color);font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:all 0.15s ease;">
+    <app-icon name="video" [size]="18" color="var(--ion-color-danger)"></app-icon> Video (≤10s)
+  </button>
 </div>
-<div *ngIf="mediaFiles.length > 0" style="text-align:center;font-size:12px;color:gray;margin-bottom:10px;">{{ mediaFiles.length }} of 2 files attached<span *ngIf="!canAddMore" style="color:#ffc409;font-weight:bold;"> — Maximum reached</span></div>
+<div *ngIf="mediaFiles.length > 0" style="text-align:center;font-size:12px;color:var(--ion-color-medium);margin-bottom:10px;font-weight:600;">{{ mediaFiles.length }} of 2 files attached<span *ngIf="!canAddMore" style="color:#ffc409;font-weight:bold;"> — Maximum reached</span></div>
 <div *ngIf="mediaFiles.length > 0" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-  <div *ngFor="let media of mediaFiles; let i = index" style="position:relative;flex:1;min-width:120px;">
-    <img *ngIf="media.type==='photo'" [src]="media.preview" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;border:2px solid var(--ion-color-danger);" />
-    <video *ngIf="media.type==='video'" [src]="media.preview" controls playsinline style="width:100%;max-height:140px;border-radius:10px;border:2px solid var(--ion-color-danger);"></video>
-    <button type="button" (click)="removeMedia(i)" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.65);border:none;border-radius:50%;width:26px;height:26px;color:white;font-size:13px;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+  <div *ngFor="let media of mediaFiles; let i = index" style="position:relative;flex:1;min-width:120px;border-radius:14px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.12);">
+    <img *ngIf="media.type==='photo'" [src]="media.preview" style="width:100%;max-height:140px;object-fit:cover;display:block;border-radius:14px;border:2px solid var(--ion-color-danger);" />
+    <video *ngIf="media.type==='video'" [src]="media.preview" controls playsinline style="width:100%;max-height:140px;display:block;border-radius:14px;border:2px solid var(--ion-color-danger);"></video>
+    <button type="button" (click)="removeMedia(i)" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);border:none;border-radius:50%;width:28px;height:28px;color:white;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+      <app-icon name="close" [size]="14" color="#ffffff"></app-icon>
+    </button>
   </div>
 </div>
 <input id="videoInput" type="file" accept="video/*" capture="environment" style="display:none;" (change)="onVideoSelected($event)" />
@@ -20,27 +28,27 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding" style="text-align:center;">
-      <div style="background:var(--ion-color-light);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--ion-text-color);display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;">
+      <div style="background:var(--ion-color-step-50, rgba(0,0,0,0.03));border:1px solid var(--ion-color-step-100, rgba(0,0,0,0.06));border-radius:14px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:var(--ion-text-color);display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;">
         <div style="display:flex;align-items:center;gap:8px;">
-          <i class="fa-solid fa-circle-info" style="color:var(--ion-color-danger);font-size:14px;flex-shrink:0;"></i>
+          <app-icon name="circle-info" [size]="15" color="var(--ion-color-danger)"></app-icon>
           <span>Turn off editor in Settings for faster reports.</span>
         </div>
-        <button type="button" (click)="disablePhotoCropperNow()" style="background:transparent;border:none;color:var(--ion-color-danger);font-weight:bold;font-size:12px;cursor:pointer;text-decoration:underline;white-space:nowrap;padding:0;">
+        <button type="button" (click)="disablePhotoCropperNow()" style="background:transparent;border:none;color:var(--ion-color-danger);font-weight:700;font-size:12px;cursor:pointer;text-decoration:underline;white-space:nowrap;padding:0;">
           Disable now
         </button>
       </div>
       <image-cropper [imageFile]="cropperFile || undefined" [maintainAspectRatio]="false" format="jpeg" [output]="'base64'" (imageCropped)="onPhotoCropped($event)" style="max-height:55vh;"></image-cropper>
 
-      <!-- Bottom Action Controls: Cancel, Retake, Use This Crop -->
+      <!-- Bottom Action Controls -->
       <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <ion-button fill="outline" color="medium" (click)="cancelCrop()" style="flex: 1; font-weight: bold; height: 46px; border-radius: 10px;">
-          <i class="fa-solid fa-xmark" style="margin-right: 6px;"></i> Cancel
+        <ion-button fill="outline" color="medium" (click)="cancelCrop()" style="flex: 1; font-weight: bold; height: 46px; --border-radius: 14px;">
+          <app-icon name="close" [size]="16" style="margin-right: 6px;"></app-icon> Cancel
         </ion-button>
-        <ion-button fill="outline" [color]="reportType==='hazard'?'warning':'danger'" (click)="retakeCrop()" style="flex: 1.1; font-weight: bold; height: 46px; border-radius: 10px;">
-          <i class="fa-solid fa-camera-rotate" style="margin-right: 6px;"></i> Retake
+        <ion-button fill="outline" [color]="reportType==='hazard'?'warning':'danger'" (click)="retakeCrop()" style="flex: 1.1; font-weight: bold; height: 46px; --border-radius: 14px;">
+          <app-icon name="camera" [size]="16" [color]="reportType==='hazard'?'var(--ion-color-warning)':'var(--ion-color-danger)'" style="margin-right: 6px;"></app-icon> Retake
         </ion-button>
-        <ion-button [color]="reportType==='hazard'?'warning':'danger'" (click)="confirmCrop()" style="flex: 1.4; font-weight: bold; height: 46px; border-radius: 10px;">
-          <i class="fa-solid fa-crop-simple" style="margin-right: 6px;"></i> Use Crop
+        <ion-button [color]="reportType==='hazard'?'warning':'danger'" (click)="confirmCrop()" style="flex: 1.4; font-weight: bold; height: 46px; --border-radius: 14px; box-shadow: 0 4px 16px rgba(211,47,47,0.3);">
+          <app-icon name="check" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Use Crop
         </ion-button>
       </div>
     </ion-content>

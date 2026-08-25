@@ -18,15 +18,16 @@ import type { ConfirmDialogDetail } from '../../../core/services/dialog.service'
 import { ReportMapComponent, ReportCoords } from './components/report-map/report-map.component';
 import { ReportMediaComponent, MediaFile } from './components/report-media/report-media.component';
 
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
+
 @Component({
   selector: 'app-report',
   templateUrl: './report.page.html',
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonTitle, IonContent,
-    IonCard, IonCardContent, IonItem, IonButton, IonInput, IonButtons,
-    IonTextarea, IonRow, IonCol, PressFeedbackDirective,
-    ReportTypeSelectorComponent, ReportMapComponent, ReportMediaComponent
+    IonItem, IonButton, IonButtons, IonTextarea, PressFeedbackDirective,
+    ReportTypeSelectorComponent, ReportMapComponent, ReportMediaComponent, AppIconComponent
   ]
 })
 export class ReportPage implements OnDestroy {
@@ -108,31 +109,31 @@ export class ReportPage implements OnDestroy {
   private buildConfirmDetails(): ConfirmDialogDetail[] {
     const details: ConfirmDialogDetail[] = [];
     if (this.reportType === 'emergency') {
-      details.push({ label: 'Type', value: this.typeSelectorCmp?.selectedIncidentName || 'None', icon: 'fa-solid fa-triangle-exclamation' });
+      details.push({ label: 'Type', value: this.typeSelectorCmp?.selectedIncidentName || 'None', icon: 'alert' });
     } else {
-      details.push({ label: 'Hazard', value: this.typeSelectorCmp?.selectedHazardName || 'None', icon: 'fa-solid fa-road-barrier' });
+      details.push({ label: 'Hazard', value: this.typeSelectorCmp?.selectedHazardName || 'None', icon: 'hazard' });
     }
     const desc = (this.reportForm.value.description || '').trim();
     details.push({
       label: 'Details',
       value: desc ? (desc.length > 60 ? desc.slice(0, 57) + '…' : desc) : 'None provided',
-      icon: 'fa-solid fa-align-left',
+      icon: 'file-text',
     });
     details.push({
       label: 'Attachments',
       value: this.mediaFiles.length > 0 ? `${this.mediaFiles.length} file${this.mediaFiles.length !== 1 ? 's' : ''}` : 'None',
-      icon: 'fa-solid fa-paperclip',
+      icon: 'paperclip',
     });
     details.push({
       label: 'Barangay',
       value: this.resolvedBarangayName || 'Unresolved',
-      icon: 'fa-solid fa-map-location-dot',
+      icon: 'map',
     });
     const lat = this.reportForm.value.latitude, lng = this.reportForm.value.longitude;
     details.push({
       label: 'Location',
       value: lat && lng ? `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}` : 'Not set',
-      icon: 'fa-solid fa-location-dot',
+      icon: 'map-pin',
     });
     return details;
   }
@@ -162,7 +163,7 @@ export class ReportPage implements OnDestroy {
     const msg   = this.reportType === 'emergency' ? 'Only submit for real emergencies. False reports are legally actionable.' : 'Are you sure you want to submit this hazard report?';
     const confirmed = await this.dialog.confirm({
       title: label, message: msg,
-      icon: this.reportType === 'emergency' ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-road-barrier',
+      icon: this.reportType === 'emergency' ? 'alert' : 'hazard',
       iconColor: 'var(--ion-color-danger)',
       confirmLabel: 'Confirm', confirmColor: 'var(--ion-color-danger)',
       details: this.buildConfirmDetails(),
