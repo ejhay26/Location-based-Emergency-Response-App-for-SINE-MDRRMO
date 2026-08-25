@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
   IonButton,
-  IonList, IonItem, IonLabel, IonPopover, IonBadge
+  IonList, IonItem, IonLabel, IonPopover, IonBadge,
+  IonSegment, IonSegmentButton
 } from '@ionic/angular/standalone';
 import Chart from 'chart.js/auto';
 import { ApiService } from '../../../../../core/services/api';
@@ -11,9 +12,8 @@ import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
 import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
-import { RevealAnimateDirective } from '../../../../../shared/directives/reveal-animate.directive';
-import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 @Component({
   selector: 'app-analytics-panel',
@@ -23,7 +23,9 @@ import { BARANGAYS } from '../../../../../shared/constants/barangays';
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
     IonButton,
     IonList, IonItem, IonLabel, IonPopover, IonBadge,
-    UtcDatePipe, DateRangeFilterComponent, FilterSummaryBarComponent, RevealAnimateDirective, ListEnterDirective,
+    IonSegment, IonSegmentButton,
+    UtcDatePipe, DateRangeFilterComponent, FilterSummaryBarComponent,
+    AppIconComponent
   ],
   templateUrl: './analytics.panel.html',
   styleUrl: './analytics.panel.scss',
@@ -37,85 +39,125 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
 
   readonly barangayOptions = BARANGAYS;
 
-  // Type-click (chart/popover), barangay, and date filters are independent
-  // and combine (AND) - e.g. "Fire" + "Poblacion" + "Aug 1-3" narrows to
-  // fires in Poblacion reported in that window.
   activeTypeFilter: string | null = null;
-  /** Selected barangay_id, or null (no filter). A null record barangay_id (unresolved location) never matches a specific filter. */
   activeBarangayFilter: number | null = null;
   analyticsDateFilter: DateFilterValue | null = null;
 
-  private trendChartInstance: any;
-  private typeChartInstance: any;
-  private barangayChartInstance: any;
-  private hazardTrendChartInstance: any;
-  private hazardTypeChartInstance: any;
-  private hazardBarangayChartInstance: any;
+  filteredAnalyticsRecords: any[] = [];
+  activeFilterChips: string[] = [];
+  isLoading = false;
 
-  constructor(public api: ApiService) {}
+  private trendChartInstance: any = null;
+  private typeChartInstance: any = null;
+  private barangayChartInstance: any = null;
+  private hazardTrendChartInstance: any = null;
+  private hazardTypeChartInstance: any = null;
+  private hazardBarangayChartInstance: any = null;
+
+  constructor(
+    public api: ApiService,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit() {
+    console.log('[AnalyticsPanel] ngOnInit');
     this.loadAnalytics();
   }
 
   ngOnDestroy() {
-    if (this.trendChartInstance)          this.trendChartInstance.destroy();
-    if (this.typeChartInstance)           this.typeChartInstance.destroy();
-    if (this.barangayChartInstance)       this.barangayChartInstance.destroy();
-    if (this.hazardTrendChartInstance)    this.hazardTrendChartInstance.destroy();
-    if (this.hazardTypeChartInstance)     this.hazardTypeChartInstance.destroy();
-    if (this.hazardBarangayChartInstance) this.hazardBarangayChartInstance.destroy();
+    console.log('[AnalyticsPanel] ngOnDestroy');
+    this.destroyAllCharts();
+  }
+
+  private destroyAllCharts() {
+    this.ngZone.runOutsideAngular(() => {
+      if (this.trendChartInstance)          { try { this.trendChartInstance.destroy(); } catch (_) {} this.trendChartInstance = null; }
+      if (this.typeChartInstance)           { try { this.typeChartInstance.destroy(); } catch (_) {} this.typeChartInstance = null; }
+      if (this.barangayChartInstance)       { try { this.barangayChartInstance.destroy(); } catch (_) {} this.barangayChartInstance = null; }
+      if (this.hazardTrendChartInstance)    { try { this.hazardTrendChartInstance.destroy(); } catch (_) {} this.hazardTrendChartInstance = null; }
+      if (this.hazardTypeChartInstance)     { try { this.hazardTypeChartInstance.destroy(); } catch (_) {} this.hazardTypeChartInstance = null; }
+      if (this.hazardBarangayChartInstance) { try { this.hazardBarangayChartInstance.destroy(); } catch (_) {} this.hazardBarangayChartInstance = null; }
+    });
   }
 
   setChartRange(days: number) {
+    if (this.chartRange === days && !this.analyticsDateFilter) return;
     this.chartRange = days;
-    this.loadAnalytics(); // loadAnalytics() clears analyticsDateFilter, re-focusing the preset row
+    this.analyticsDateFilter = null;
+    this.loadAnalytics();
   }
 
-  /** Applying a custom date from the calendar re-focuses the calendar chip and deselects the Today/7/30/90 presets (handled reactively in the template). Clearing it falls back to "Today", not whatever preset happened to be active before. */
   onAnalyticsDateFilterChange(value: DateFilterValue | null) {
     if (value === null) {
       this.setChartRange(1);
     } else {
       this.analyticsDateFilter = value;
+      this.updateFilteredRecords();
     }
   }
 
   loadAnalytics() {
-    this.api.getAnalytics(this.chartRange).subscribe((res: any) => {
-      this.analyticsData = res;
-      this.activeTypeFilter = null;
-      this.activeBarangayFilter = null;
-      this.analyticsDateFilter = null;
-      this.analyticsTab === 'emergency' ? this.renderCharts() : this.renderHazardCharts();
+    this.isLoading = true;
+    this.api.getAnalytics(this.chartRange).subscribe({
+      next: (res: any) => {
+        console.log('[AnalyticsPanel] getAnalytics response received');
+        this.analyticsData = res || { daily_stats: [], type_stats: [], recent_records: [], barangay_stats: [], hazard_stats: [], hazard_daily_stats: [], hazard_barangay_stats: [] };
+        this.activeTypeFilter = null;
+        this.activeBarangayFilter = null;
+        this.updateFilteredRecords();
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          if (this.analyticsTab === 'emergency') {
+            this.renderCharts();
+          } else {
+            this.renderHazardCharts();
+          }
+        }, 50);
+      },
+      error: (err: any) => {
+        console.error('[AnalyticsPanel] getAnalytics error:', err);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
   switchAnalyticsTab(tab: 'emergency' | 'hazard') {
+    if (this.analyticsTab === tab) return;
     this.analyticsTab = tab;
-    setTimeout(() => { tab === 'emergency' ? this.renderCharts() : this.renderHazardCharts(); }, 100);
+    this.destroyAllCharts();
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      if (tab === 'emergency') {
+        this.renderCharts();
+      } else {
+        this.renderHazardCharts();
+      }
+    }, 50);
   }
 
-  // Redraws whichever trend/type pair is currently visible, since both
-  // chart types (bar/line) are shared across the emergency and hazard tabs.
   toggleChartType() {
     this.trendChartType = this.trendChartType === 'bar' ? 'line' : 'bar';
-    this.analyticsTab === 'emergency' ? this.renderCharts() : this.renderHazardCharts();
+    if (this.analyticsTab === 'emergency') {
+      this.renderCharts();
+    } else {
+      this.renderHazardCharts();
+    }
   }
 
-  /** The visible record list: recent_records narrowed by whichever filters (type/date) are active, combined with AND. */
-  get filteredAnalyticsRecords(): any[] {
-    return (this.analyticsData.recent_records || []).filter((r: any) => this.matchesAnalyticsFilter(r));
+  updateFilteredRecords() {
+    const raw = this.analyticsData.recent_records || [];
+    this.filteredAnalyticsRecords = raw.filter((r: any) => this.matchesAnalyticsFilter(r));
+
+    const chips: string[] = [];
+    if (this.activeTypeFilter) chips.push(this.activeTypeFilter);
+    if (this.activeBarangayFilter) chips.push(this.barangayOptions.find(b => b.id === this.activeBarangayFilter)?.name || '');
+    if (this.analyticsDateFilter) chips.push(formatDateFilterLabel(this.analyticsDateFilter));
+    this.activeFilterChips = chips;
   }
 
-  /**
-   * Filter shrink-and-reflow (RevealAnimateDirective, permanent-mount
-   * pattern) — Trend Logs is a single-column list, same as Log
-   * Archive/Verifications, so it uses the simpler height-collapse reflow:
-   * the template iterates the FULL (unfiltered) recent_records list so
-   * every card stays mounted, and this predicate drives each card's
-   * [appRevealAnimate] instead of removing non-matching cards outright.
-   */
   matchesAnalyticsFilter(r: any): boolean {
     const recordType    = r.incident_name || r.hazard_type;
     const matchType     = !this.activeTypeFilter || recordType === this.activeTypeFilter;
@@ -126,148 +168,256 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
   }
 
   trackByRequestId(_index: number, r: any): number {
-    return r.request_id || r.hazard_id;
-  }
-
-  /** Chip labels for the active-filters summary bar; empty array hides the bar. */
-  get activeFilterChips(): string[] {
-    const chips: string[] = [];
-    if (this.activeTypeFilter)   chips.push(this.activeTypeFilter);
-    if (this.activeBarangayFilter) chips.push(this.barangayOptions.find(b => b.id === this.activeBarangayFilter)?.name || '');
-    if (this.analyticsDateFilter) chips.push(formatDateFilterLabel(this.analyticsDateFilter));
-    return chips;
+    return r.request_id || r.hazard_id || _index;
   }
 
   filterListByType(type: string) {
-    this.activeTypeFilter = type;
+    this.activeTypeFilter = this.activeTypeFilter === type ? null : type;
+    this.updateFilteredRecords();
   }
 
-  /** Quick filter triggered by clicking a slice on the barangay doughnut chart, or picking one from the filter popover. */
   filterListByBarangay(barangayName: string) {
-    this.activeBarangayFilter = this.barangayOptions.find(b => b.name === barangayName)?.id ?? null;
+    const foundId = this.barangayOptions.find(b => b.name === barangayName)?.id ?? null;
+    this.activeBarangayFilter = this.activeBarangayFilter === foundId ? null : foundId;
+    this.updateFilteredRecords();
   }
 
-  /** Quick filter triggered by clicking a bar/point on the trend chart - narrows to that single day. */
   filterListByDate(date: string) {
     this.analyticsDateFilter = { mode: 'single', dates: [date] };
+    this.updateFilteredRecords();
   }
 
   clearAllFilters() {
     this.activeTypeFilter = null;
     this.activeBarangayFilter = null;
     this.analyticsDateFilter = null;
+    this.updateFilteredRecords();
   }
 
   renderCharts() {
-    const trendCanvas    = document.getElementById('trendChart')    as HTMLCanvasElement;
-    const typeCanvas     = document.getElementById('typeChart')     as HTMLCanvasElement;
-    const barangayCanvas = document.getElementById('barangayChart') as HTMLCanvasElement;
-    if (!trendCanvas || !typeCanvas || !barangayCanvas) return;
-    if (this.trendChartInstance)    this.trendChartInstance.destroy();
-    if (this.typeChartInstance)     this.typeChartInstance.destroy();
-    if (this.barangayChartInstance) this.barangayChartInstance.destroy();
-    const dates = this.analyticsData.daily_stats.map((d: any) => d.date);
-    this.trendChartInstance = new Chart(trendCanvas, {
-      type: this.trendChartType,
-      data: {
-        labels: dates,
-        datasets: [
-          { label: 'Fire',    data: this.analyticsData.daily_stats.map((d: any) => Number(d.fire)    || 0), backgroundColor: 'rgba(235,68,90,0.6)',  borderColor: '#eb445a', borderWidth: 2, tension: 0.2 },
-          { label: 'Flood',   data: this.analyticsData.daily_stats.map((d: any) => Number(d.flood)   || 0), backgroundColor: 'rgba(56,128,255,0.6)',  borderColor: '#3880ff', borderWidth: 2, tension: 0.2 },
-          { label: 'Medical', data: this.analyticsData.daily_stats.map((d: any) => Number(d.medical) || 0), backgroundColor: 'rgba(45,211,111,0.6)',  borderColor: '#2dd36f', borderWidth: 2, tension: 0.2 },
-          { label: 'Crime',   data: this.analyticsData.daily_stats.map((d: any) => Number(d.crime)   || 0), backgroundColor: 'rgba(181,95,230,0.6)',  borderColor: '#bc6fff', borderWidth: 2, tension: 0.2 },
-          { label: 'Others',  data: this.analyticsData.daily_stats.map((d: any) => Number(d.others)  || 0), backgroundColor: 'rgba(146,148,156,0.6)', borderColor: '#92949c', borderWidth: 2, tension: 0.2 }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { stepSize: 1 }, beginAtZero: true } }, onClick: (_e, elements) => { if (elements.length > 0) this.filterListByDate(dates[elements[0].index]); } }
-    });
-    const types = this.analyticsData.type_stats.map((t: any) => t.incident_name);
-    this.typeChartInstance = new Chart(typeCanvas, {
-      type: 'doughnut',
-      data: { labels: types, datasets: [{ data: this.analyticsData.type_stats.map((t: any) => t.total), backgroundColor: ['#eb445a','#3880ff','#2dd36f','#bc6fff'], hoverOffset: 10 }] },
-      options: { responsive: true, maintainAspectRatio: false, onClick: (_e, elements) => { if (elements.length > 0) this.filterListByType(types[elements[0].index]); } }
-    });
+    this.ngZone.runOutsideAngular(() => {
+      const trendCanvas    = document.getElementById('trendChart')    as HTMLCanvasElement;
+      const typeCanvas     = document.getElementById('typeChart')     as HTMLCanvasElement;
+      const barangayCanvas = document.getElementById('barangayChart') as HTMLCanvasElement;
+      if (!trendCanvas || !typeCanvas || !barangayCanvas) return;
 
-    const barangayNames  = (this.analyticsData.barangay_stats || []).map((b: any) => b.barangay_name);
-    const barangayTotals = (this.analyticsData.barangay_stats || []).map((b: any) => b.total);
-    this.barangayChartInstance = new Chart(barangayCanvas, {
-      type: 'doughnut',
-      data: { labels: barangayNames, datasets: [{ data: barangayTotals, backgroundColor: ['#eb445a','#3880ff','#2dd36f','#bc6fff','#ffc409','#92949c','#e0ac00','#5260ff','#f4a942'], hoverOffset: 10 }] },
-      options: { responsive: true, maintainAspectRatio: false, onClick: (_e, elements) => { if (elements.length > 0) this.filterListByBarangay(barangayNames[elements[0].index]); } }
+      if (this.trendChartInstance)    { try { this.trendChartInstance.destroy(); } catch (_) {} this.trendChartInstance = null; }
+      if (this.typeChartInstance)     { try { this.typeChartInstance.destroy(); } catch (_) {} this.typeChartInstance = null; }
+      if (this.barangayChartInstance) { try { this.barangayChartInstance.destroy(); } catch (_) {} this.barangayChartInstance = null; }
+
+      const daily = this.analyticsData.daily_stats || [];
+      const dates = daily.map((d: any) => d.date);
+      
+      try {
+        this.trendChartInstance = new Chart(trendCanvas, {
+          type: this.trendChartType,
+          data: {
+            labels: dates.length > 0 ? dates : ['No records'],
+            datasets: [
+              { label: 'Fire',    data: daily.map((d: any) => Number(d.fire)    || 0), backgroundColor: 'rgba(235,68,90,0.6)',  borderColor: '#eb445a', borderWidth: 2, tension: 0.2 },
+              { label: 'Flood',   data: daily.map((d: any) => Number(d.flood)   || 0), backgroundColor: 'rgba(56,128,255,0.6)',  borderColor: '#3880ff', borderWidth: 2, tension: 0.2 },
+              { label: 'Medical', data: daily.map((d: any) => Number(d.medical) || 0), backgroundColor: 'rgba(45,211,111,0.6)',  borderColor: '#2dd36f', borderWidth: 2, tension: 0.2 },
+              { label: 'Crime',   data: daily.map((d: any) => Number(d.crime)   || 0), backgroundColor: 'rgba(181,95,230,0.6)',  borderColor: '#bc6fff', borderWidth: 2, tension: 0.2 },
+              { label: 'Others',  data: daily.map((d: any) => Number(d.others)  || 0), backgroundColor: 'rgba(146,148,156,0.6)', borderColor: '#92949c', borderWidth: 2, tension: 0.2 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 150,
+            animation: { duration: 600, easing: 'easeOutQuart' },
+            scales: { y: { ticks: { stepSize: 1 }, beginAtZero: true } },
+            onClick: (_e, elements) => {
+              if (elements.length > 0 && dates[elements[0].index]) {
+                this.ngZone.run(() => {
+                  this.filterListByDate(dates[elements[0].index]);
+                });
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('trendChart init warning:', e);
+      }
+
+      const typeStats = this.analyticsData.type_stats || [];
+      const types = typeStats.map((t: any) => t.incident_name);
+      const typeTotals = typeStats.map((t: any) => Number(t.total) || 0);
+
+      try {
+        this.typeChartInstance = new Chart(typeCanvas, {
+          type: 'doughnut',
+          data: {
+            labels: types.length > 0 ? types : ['No records'],
+            datasets: [{
+              data: typeTotals.length > 0 ? typeTotals : [1],
+              backgroundColor: typeTotals.length > 0 ? ['#eb445a','#3880ff','#2dd36f','#bc6fff'] : ['#e0e0e0'],
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 150,
+            animation: { animateRotate: true, animateScale: true, duration: 600, easing: 'easeOutQuart' },
+            onClick: (_e, elements) => {
+              if (elements.length > 0 && types[elements[0].index]) {
+                this.ngZone.run(() => {
+                  this.filterListByType(types[elements[0].index]);
+                });
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('typeChart init warning:', e);
+      }
+
+      const bgyStats = this.analyticsData.barangay_stats || [];
+      const barangayNames  = bgyStats.map((b: any) => b.barangay_name);
+      const barangayTotals = bgyStats.map((b: any) => Number(b.total) || 0);
+
+      try {
+        this.barangayChartInstance = new Chart(barangayCanvas, {
+          type: 'doughnut',
+          data: {
+            labels: barangayNames.length > 0 ? barangayNames : ['No records'],
+            datasets: [{
+              data: barangayTotals.length > 0 ? barangayTotals : [1],
+              backgroundColor: barangayTotals.length > 0 ? ['#eb445a','#3880ff','#2dd36f','#bc6fff','#ffc409','#92949c','#e0ac00','#5260ff','#f4a942'] : ['#e0e0e0'],
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 150,
+            animation: { animateRotate: true, animateScale: true, duration: 600, easing: 'easeOutQuart' },
+            onClick: (_e, elements) => {
+              if (elements.length > 0 && barangayNames[elements[0].index]) {
+                this.ngZone.run(() => {
+                  this.filterListByBarangay(barangayNames[elements[0].index]);
+                });
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('barangayChart init warning:', e);
+      }
     });
   }
 
   renderHazardCharts() {
-    const tc = document.getElementById('hazardTrendChart')    as HTMLCanvasElement;
-    const dc = document.getElementById('hazardTypeChart')     as HTMLCanvasElement;
-    const bc = document.getElementById('hazardBarangayChart') as HTMLCanvasElement;
-    if (!tc || !dc || !bc) return;
-    if (this.hazardTrendChartInstance)    this.hazardTrendChartInstance.destroy();
-    if (this.hazardTypeChartInstance)     this.hazardTypeChartInstance.destroy();
-    if (this.hazardBarangayChartInstance) this.hazardBarangayChartInstance.destroy();
+    this.ngZone.runOutsideAngular(() => {
+      const tc = document.getElementById('hazardTrendChart')    as HTMLCanvasElement;
+      const dc = document.getElementById('hazardTypeChart')     as HTMLCanvasElement;
+      const bc = document.getElementById('hazardBarangayChart') as HTMLCanvasElement;
+      if (!tc || !dc || !bc) return;
 
-    const dates = (this.analyticsData.hazard_daily_stats || []).map((d: any) => d.date);
-    this.hazardTrendChartInstance = new Chart(tc, {
-      type: this.trendChartType,
-      data: {
-        labels: dates,
-        datasets: [
-          { label: 'Flood',       data: (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.flood)      || 0), backgroundColor: 'rgba(56,128,255,0.6)',  borderColor: '#3880ff', borderWidth: 2, tension: 0.2 },
-          { label: 'Road Issue',  data: (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.road)       || 0), backgroundColor: 'rgba(255,196,9,0.6)',   borderColor: '#ffc409', borderWidth: 2, tension: 0.2 },
-          { label: 'Fallen Tree', data: (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.tree)       || 0), backgroundColor: 'rgba(45,211,111,0.6)',  borderColor: '#2dd36f', borderWidth: 2, tension: 0.2 },
-          { label: 'Electrical',  data: (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.electrical) || 0), backgroundColor: 'rgba(235,68,90,0.6)',   borderColor: '#eb445a', borderWidth: 2, tension: 0.2 },
-          { label: 'Others',      data: (this.analyticsData.hazard_daily_stats || []).map((d: any) => Number(d.others)     || 0), backgroundColor: 'rgba(146,148,156,0.6)', borderColor: '#92949c', borderWidth: 2, tension: 0.2 }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: { y: { ticks: { stepSize: 1 }, beginAtZero: true } },
-        onClick: (_e, elements) => {
-          if (elements.length > 0) this.filterListByDate(dates[elements[0].index]);
-        }
+      if (this.hazardTrendChartInstance)    { try { this.hazardTrendChartInstance.destroy(); } catch (_) {} this.hazardTrendChartInstance = null; }
+      if (this.hazardTypeChartInstance)     { try { this.hazardTypeChartInstance.destroy(); } catch (_) {} this.hazardTypeChartInstance = null; }
+      if (this.hazardBarangayChartInstance) { try { this.hazardBarangayChartInstance.destroy(); } catch (_) {} this.hazardBarangayChartInstance = null; }
+
+      const hazDaily = this.analyticsData.hazard_daily_stats || [];
+      const dates = hazDaily.map((d: any) => d.date);
+
+      try {
+        this.hazardTrendChartInstance = new Chart(tc, {
+          type: this.trendChartType,
+          data: {
+            labels: dates.length > 0 ? dates : ['No records'],
+            datasets: [
+              { label: 'Flood',       data: hazDaily.map((d: any) => Number(d.flood)      || 0), backgroundColor: 'rgba(56,128,255,0.6)',  borderColor: '#3880ff', borderWidth: 2, tension: 0.2 },
+              { label: 'Road Issue',  data: hazDaily.map((d: any) => Number(d.road)       || 0), backgroundColor: 'rgba(255,196,9,0.6)',   borderColor: '#ffc409', borderWidth: 2, tension: 0.2 },
+              { label: 'Fallen Tree', data: hazDaily.map((d: any) => Number(d.tree)       || 0), backgroundColor: 'rgba(45,211,111,0.6)',  borderColor: '#2dd36f', borderWidth: 2, tension: 0.2 },
+              { label: 'Electrical',  data: hazDaily.map((d: any) => Number(d.electrical) || 0), backgroundColor: 'rgba(235,68,90,0.6)',   borderColor: '#eb445a', borderWidth: 2, tension: 0.2 },
+              { label: 'Others',      data: hazDaily.map((d: any) => Number(d.others)     || 0), backgroundColor: 'rgba(146,148,156,0.6)', borderColor: '#92949c', borderWidth: 2, tension: 0.2 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 150,
+            animation: { duration: 600, easing: 'easeOutQuart' },
+            scales: { y: { ticks: { stepSize: 1 }, beginAtZero: true } },
+            onClick: (_e, elements) => {
+              if (elements.length > 0 && dates[elements[0].index]) {
+                this.ngZone.run(() => {
+                  this.filterListByDate(dates[elements[0].index]);
+                });
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('hazardTrendChart init warning:', e);
       }
-    });
 
-    const types  = (this.analyticsData.hazard_stats || []).map((t: any) => t.hazard_type || 'Others');
-    const counts = (this.analyticsData.hazard_stats || []).map((t: any) => Number(t.total) || 0);
-    this.hazardTypeChartInstance = new Chart(dc, {
-      type: 'doughnut',
-      data: {
-        labels: types,
-        datasets: [{
-          data: counts,
-          backgroundColor: ['#3880ff','#ffc409','#2dd36f','#eb445a','#92949c','#bc6fff','#e0ac00'],
-          hoverOffset: 10
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (_e, elements) => {
-          if (elements.length > 0) this.filterListByType(types[elements[0].index]);
-        }
+      const hazStats = this.analyticsData.hazard_stats || [];
+      const types  = hazStats.map((t: any) => t.hazard_type || 'Others');
+      const counts = hazStats.map((t: any) => Number(t.total) || 0);
+
+      try {
+        this.hazardTypeChartInstance = new Chart(dc, {
+          type: 'doughnut',
+          data: {
+            labels: types.length > 0 ? types : ['No records'],
+            datasets: [{
+              data: counts.length > 0 ? counts : [1],
+              backgroundColor: counts.length > 0 ? ['#3880ff','#ffc409','#2dd36f','#eb445a','#92949c','#bc6fff','#e0ac00'] : ['#e0e0e0'],
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 150,
+            animation: { animateRotate: true, animateScale: true, duration: 600, easing: 'easeOutQuart' },
+            onClick: (_e, elements) => {
+              if (elements.length > 0 && types[elements[0].index]) {
+                this.ngZone.run(() => {
+                  this.filterListByType(types[elements[0].index]);
+                });
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('hazardTypeChart init warning:', e);
       }
-    });
 
-    const hazBarangayNames  = (this.analyticsData.hazard_barangay_stats || []).map((b: any) => b.barangay_name);
-    const hazBarangayTotals = (this.analyticsData.hazard_barangay_stats || []).map((b: any) => Number(b.total) || 0);
-    this.hazardBarangayChartInstance = new Chart(bc, {
-      type: 'doughnut',
-      data: {
-        labels: hazBarangayNames,
-        datasets: [{
-          data: hazBarangayTotals,
-          backgroundColor: ['#eb445a','#3880ff','#2dd36f','#bc6fff','#ffc409','#92949c','#e0ac00','#5260ff','#f4a942'],
-          hoverOffset: 10
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (_e, elements) => {
-          if (elements.length > 0) this.filterListByBarangay(hazBarangayNames[elements[0].index]);
-        }
+      const hazBgyStats = this.analyticsData.hazard_barangay_stats || [];
+      const hazBarangayNames  = hazBgyStats.map((b: any) => b.barangay_name);
+      const hazBarangayTotals = hazBgyStats.map((b: any) => Number(b.total) || 0);
+
+      try {
+        this.hazardBarangayChartInstance = new Chart(bc, {
+          type: 'doughnut',
+          data: {
+            labels: hazBarangayNames.length > 0 ? hazBarangayNames : ['No records'],
+            datasets: [{
+              data: hazBarangayTotals.length > 0 ? hazBarangayTotals : [1],
+              backgroundColor: hazBarangayTotals.length > 0 ? ['#eb445a','#3880ff','#2dd36f','#bc6fff','#ffc409','#92949c','#e0ac00','#5260ff','#f4a942'] : ['#e0e0e0'],
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 150,
+            animation: { animateRotate: true, animateScale: true, duration: 600, easing: 'easeOutQuart' },
+            onClick: (_e, elements) => {
+              if (elements.length > 0 && hazBarangayNames[elements[0].index]) {
+                this.ngZone.run(() => {
+                  this.filterListByBarangay(hazBarangayNames[elements[0].index]);
+                });
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('hazardBarangayChart init warning:', e);
       }
     });
   }

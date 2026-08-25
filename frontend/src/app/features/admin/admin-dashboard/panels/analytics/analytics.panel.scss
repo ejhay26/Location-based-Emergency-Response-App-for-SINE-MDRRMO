@@ -1,7 +1,90 @@
 :host {
   display: flex;
-  gap: 15px;
+  gap: 14px;
   flex: 1;
   min-width: 0;
   overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+.analytics-main-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.analytics-top-bar {
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 16px;
+  border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08)));
+  box-shadow: var(--card-shadow, 0 2px 8px rgba(0, 0, 0, 0.04));
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.analytics-range-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.range-pill-btn {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--ion-color-step-200, #ccc);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--ion-card-background, #ffffff);
+  color: var(--ion-text-color, #1c1c1e);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.analytics-side-col {
+  width: 360px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-left: 6px;
+}
+
+.chart-card {
+  margin: 0;
+  box-shadow: var(--card-shadow, 0 2px 8px rgba(0, 0, 0, 0.04));
+  border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.06)));
+  border-radius: 16px;
+  background: var(--ion-card-background, #ffffff);
+
+  ion-card-title {
+    font-weight: 800;
+    font-size: 15.5px;
+    color: var(--ion-text-color);
+  }
+}
+
+.chart-canvas-container {
+  position: relative;
+  height: 210px;
+  width: 100%;
 }
