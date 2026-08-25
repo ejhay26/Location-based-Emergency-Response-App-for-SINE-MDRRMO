@@ -23,10 +23,12 @@ import { ToastRequest } from '../profile-shared-types';
  * animating this component is revisited later, it should be a fresh,
  * carefully-isolated attempt, not a repeat of the same approach.
  */
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+
 @Component({
   selector: 'app-profile-password',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonButton, IonItem, IonInput, IonCard, IonCardContent, OtpBoxInputComponent],
+  imports: [CommonModule, FormsModule, IonButton, OtpBoxInputComponent, AppIconComponent],
   templateUrl: './profile-password.component.html',
 })
 export class ProfilePasswordComponent implements OnDestroy {

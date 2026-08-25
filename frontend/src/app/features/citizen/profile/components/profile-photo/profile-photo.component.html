@@ -1,9 +1,11 @@
 <div id="tour-avatar-area" [class.tour-highlight]="tour.targetId() === 'tour-avatar-area'" class="ion-text-center ion-margin-vertical">
-  <div style="width:120px;height:120px;margin:0 auto;border-radius:50%;overflow:hidden;border:4px solid var(--ion-color-danger);background:var(--ion-color-light);display:flex;align-items:center;justify-content:center;">
+  <div style="width:120px;height:120px;margin:0 auto;border-radius:50%;overflow:hidden;border:4px solid var(--ion-color-danger);background:var(--ion-color-step-100, #f0f0f0);display:flex;align-items:center;justify-content:center;">
     <img *ngIf="resolvedAvatarUrl" [src]="resolvedAvatarUrl" style="width:100%;height:100%;object-fit:cover;" />
-    <i *ngIf="!resolvedAvatarUrl" class="fa-solid fa-circle-user" style="font-size:80px;color:var(--ion-color-medium);"></i>
+    <app-icon *ngIf="!resolvedAvatarUrl" name="user" [size]="64" color="var(--ion-color-medium)"></app-icon>
   </div>
-  <ion-button fill="clear" color="danger" size="small" class="ion-margin-top" (click)="triggerPhotoPicker()" style="font-weight:bold;"><i class="fa-solid fa-camera" style="margin-right:6px;"></i> Change Photo</ion-button>
+  <ion-button fill="clear" color="danger" size="small" class="ion-margin-top" (click)="triggerPhotoPicker()" style="font-weight:bold;">
+    <app-icon name="camera" [size]="16" color="var(--ion-color-danger)" style="margin-right:6px;"></app-icon> Change Photo
+  </ion-button>
 </div>
 
 <ion-modal [isOpen]="showCropper" [backdropDismiss]="false">
@@ -14,20 +16,22 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding" style="text-align:center;">
-      <p style="font-size: 13px; color: gray; margin-bottom: 12px;">Pinch or drag to position your avatar photo.</p>
+      <p style="font-size: 13px; color: var(--ion-color-medium); margin-bottom: 12px;">Pinch or drag to position your avatar photo.</p>
       <image-cropper [imageFile]="cropperFile || undefined" [maintainAspectRatio]="true" [aspectRatio]="1" format="jpeg" [output]="'base64'" (imageCropped)="onPhotoCropped($event)" style="max-height:60vh;"></image-cropper>
 
       <!-- Bottom Action Controls: Cancel, Reselect / Retake, Use This Photo -->
       <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <ion-button fill="outline" color="medium" (click)="cancelCrop()" style="flex: 1; font-weight: bold; height: 46px; border-radius: 10px;">
-          <i class="fa-solid fa-xmark" style="margin-right: 6px;"></i> Cancel
+        <ion-button fill="outline" color="medium" (click)="cancelCrop()" style="flex: 1; font-weight: bold; height: 46px; --border-radius: 14px;">
+          <app-icon name="close" [size]="16" style="margin-right: 6px;"></app-icon> Cancel
         </ion-button>
-        <ion-button fill="outline" color="danger" (click)="triggerPhotoPicker()" style="flex: 1.2; font-weight: bold; height: 46px; border-radius: 10px;">
-          <i class="fa-solid fa-images" style="margin-right: 6px;"></i> Reselect
+        <ion-button fill="outline" color="danger" (click)="triggerPhotoPicker()" style="flex: 1.2; font-weight: bold; height: 46px; --border-radius: 14px;">
+          <app-icon name="camera" [size]="16" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon> Reselect
         </ion-button>
-        <ion-button color="danger" (click)="confirmCrop()" [class.btn-loading]="isCropping" style="flex: 1.4; font-weight: bold; height: 46px; border-radius: 10px;">
-          <ng-container *ngIf="!isCropping"><i class="fa-solid fa-check" style="margin-right: 6px;"></i> Use Photo</ng-container>
-          <span *ngIf="isCropping" class="dot-loader"><span></span><span></span><span></span></span>
+        <ion-button color="danger" (click)="confirmCrop()" [class.btn-loading]="isCropping" style="flex: 1.4; font-weight: bold; height: 46px; --border-radius: 14px; box-shadow: 0 4px 16px rgba(211,47,47,0.3);">
+          <ng-container *ngIf="!isCropping">
+            <app-icon name="check" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Use Photo
+          </ng-container>
+          <span *ngIf="isCropping" class="dot-loader dot-loader-white"><span></span><span></span><span></span></span>
         </ion-button>
       </div>
     </ion-content>

@@ -20,10 +20,12 @@ export interface MedicalData {
  * behavior of re-deriving medicalData from userData on every loadLocalUser()
  * call (including cross-tab storage-event reloads).
  */
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+
 @Component({
   selector: 'app-profile-medical',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonItem, IonSelect, IonSelectOption, IonInput, IonButton, IonCard, IonCardContent],
+  imports: [CommonModule, FormsModule, IonItem, IonSelect, IonSelectOption, IonInput, IonButton, AppIconComponent],
   templateUrl: './profile-medical.component.html',
 })
 export class ProfileMedicalComponent {

@@ -14,10 +14,12 @@ import { ToastRequest } from '../profile-shared-types';
  * (imageCache lookups) so that logic isn't split across parent and child;
  * the parent only ever passes the raw `profile_picture` path down.
  */
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+
 @Component({
   selector: 'app-profile-photo',
   standalone: true,
-  imports: [CommonModule, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, ImageCropperComponent],
+  imports: [CommonModule, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, ImageCropperComponent, AppIconComponent],
   templateUrl: './profile-photo.component.html',
 })
 export class ProfilePhotoComponent implements OnChanges {

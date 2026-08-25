@@ -18,15 +18,17 @@ import { ProfileMedicalComponent, MedicalData } from './components/profile-medic
 import { ProfilePasswordComponent } from './components/profile-password/profile-password.component';
 import { ToastRequest } from './components/profile-shared-types';
 
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
+
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonList, IonListHeader,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
     IonLabel, IonItem, IonToast,
-    ProfilePhotoComponent, ProfileMedicalComponent, ProfilePasswordComponent
+    ProfilePhotoComponent, ProfileMedicalComponent, ProfilePasswordComponent, AppIconComponent
   ]
 })
 export class ProfilePage implements OnInit, OnDestroy {
@@ -105,7 +107,7 @@ export class ProfilePage implements OnInit, OnDestroy {
   logout() {
     this.dialog.confirm({
       title: 'Logout', message: 'Are you sure you want to log out?',
-      icon: 'fa-solid fa-right-from-bracket', iconColor: 'var(--ion-color-danger)',
+      icon: 'logout', iconColor: 'var(--ion-color-danger)',
       confirmLabel: 'Logout', confirmColor: 'var(--ion-color-danger)',
       // The dialog itself now owns the loading state (its Confirm button
       // shows the spinner and blocks Cancel while this runs) — see

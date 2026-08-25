@@ -1,13 +1,35 @@
-<ion-card id="tour-medical-section" [class.tour-highlight]="tour.targetId() === 'tour-medical-section'" color="light" style="margin:10px 0 0 0;">
-  <ion-card-content>
-    <p style="margin-bottom:15px;color:var(--ion-color-medium);font-weight:500;font-size:13px;">Optional — helps responders prepare before arriving at your location.</p>
-    <ion-item class="ion-margin-bottom" fill="outline"><ion-select label="Blood Type" labelPlacement="stacked" placeholder="Tap to select your blood type" [(ngModel)]="formData.blood_type"><ion-select-option value="A+">A+</ion-select-option><ion-select-option value="A-">A-</ion-select-option><ion-select-option value="B+">B+</ion-select-option><ion-select-option value="B-">B-</ion-select-option><ion-select-option value="AB+">AB+</ion-select-option><ion-select-option value="AB-">AB-</ion-select-option><ion-select-option value="O+">O+</ion-select-option><ion-select-option value="O-">O-</ion-select-option></ion-select></ion-item>
-    <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="Allergies" labelPlacement="stacked" [(ngModel)]="formData.allergies" placeholder="e.g. Penicillin, Peanuts"></ion-input></ion-item>
-    <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="Medical Conditions" labelPlacement="stacked" [(ngModel)]="formData.medical_conditions" placeholder="e.g. Asthma, Hypertension"></ion-input></ion-item>
-    <ion-item class="ion-margin-bottom" fill="outline"><ion-input label="PWD Status" labelPlacement="stacked" [(ngModel)]="formData.pwd_status" placeholder="e.g. Wheelchair user, Deaf"></ion-input></ion-item>
-    <ion-button expand="block" color="danger" (click)="saveMedicalProfile()" [class.btn-loading]="isSavingMedical" style="font-weight:bold;height:45px;">
-      <ng-container *ngIf="!isSavingMedical"><i class="fa-solid fa-floppy-disk" style="margin-right:8px;"></i> Save Medical Profile</ng-container>
-      <span *ngIf="isSavingMedical" class="dot-loader"><span></span><span></span><span></span></span>
-    </ion-button>
-  </ion-card-content>
-</ion-card>
+<div>
+  <p style="margin: 0 4px 10px; color: var(--ion-color-medium); font-weight: 500; font-size: 13px; line-height: 1.4;">
+    Optional — helps responders prepare before arriving at your location.
+  </p>
+  <div id="tour-medical-section" [class.tour-highlight]="tour.targetId() === 'tour-medical-section'" class="inset-card">
+    <ion-item lines="full">
+      <ion-select label="Blood Type" labelPlacement="stacked" placeholder="Tap to select your blood type" [(ngModel)]="formData.blood_type" style="width: 100%;">
+        <ion-select-option value="A+">A+</ion-select-option>
+        <ion-select-option value="A-">A-</ion-select-option>
+        <ion-select-option value="B+">B+</ion-select-option>
+        <ion-select-option value="B-">B-</ion-select-option>
+        <ion-select-option value="AB+">AB+</ion-select-option>
+        <ion-select-option value="AB-">AB-</ion-select-option>
+        <ion-select-option value="O+">O+</ion-select-option>
+        <ion-select-option value="O-">O-</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item lines="full">
+      <ion-input label="Allergies" labelPlacement="stacked" [(ngModel)]="formData.allergies" placeholder="e.g. Penicillin, Peanuts"></ion-input>
+    </ion-item>
+    <ion-item lines="full">
+      <ion-input label="Medical Conditions" labelPlacement="stacked" [(ngModel)]="formData.medical_conditions" placeholder="e.g. Asthma, Hypertension"></ion-input>
+    </ion-item>
+    <ion-item lines="none">
+      <ion-input label="PWD Status" labelPlacement="stacked" [(ngModel)]="formData.pwd_status" placeholder="e.g. Wheelchair user, Deaf"></ion-input>
+    </ion-item>
+  </div>
+
+  <ion-button expand="block" color="danger" (click)="saveMedicalProfile()" [class.btn-loading]="isSavingMedical" style="font-weight:bold;height:46px;--border-radius:14px;box-shadow:0 4px 16px rgba(211,47,47,0.3);margin-top:12px;">
+    <ng-container *ngIf="!isSavingMedical">
+      <app-icon name="check" [size]="16" color="#ffffff" style="margin-right:8px;"></app-icon> Save Medical Profile
+    </ng-container>
+    <span *ngIf="isSavingMedical" class="dot-loader dot-loader-white"><span></span><span></span><span></span></span>
+  </ion-button>
+</div>
