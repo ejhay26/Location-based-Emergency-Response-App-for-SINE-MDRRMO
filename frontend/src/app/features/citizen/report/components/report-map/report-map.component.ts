@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, Renderer2, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, Renderer2, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ToastController } from '@ionic/angular/standalone';
@@ -47,28 +47,19 @@ const CachedTileLayer = L.TileLayer.extend({
 
 export interface ReportCoords { latitude: string; longitude: string; barangayName: string | null; }
 
-/**
- * ReportMapComponent — Leaflet map, street/satellite toggle, fullscreen
- * overlay, San Isidro boundary polygon, crosshair → coordinates.
- *
- * Ionic page lifecycle hooks (ionViewDidEnter / ionViewWillLeave) are only
- * dispatched by IonRouterOutlet to the routed page component, not to nested
- * children — so the parent report.page still owns those hooks and calls
- * tryInit()/cleanup() on this component via @ViewChild, preserving the exact
- * original 250ms-after-enter init timing and teardown-on-leave behavior.
- */
 @Component({
   selector: 'app-report-map',
   standalone: true,
   imports: [CommonModule, PressFeedbackDirective],
   templateUrl: './report-map.component.html',
 })
-export class ReportMapComponent implements OnDestroy {
+export class ReportMapComponent implements AfterViewInit, OnDestroy {
   private http           = inject(HttpClient);
   private toastCtrl      = inject(ToastController);
   private userSettings   = inject(UserSettingsService);
   private locationSvc    = inject(LocationService);
-  public  tour            = inject(TourService);
+  private cdr            = inject(ChangeDetectorRef);
+  public  tour           = inject(TourService);
 
   @Input() reportType: 'emergency' | 'hazard' = 'emergency';
   @Output() coordsChanged = new EventEmitter<ReportCoords | null>();
@@ -148,7 +139,11 @@ export class ReportMapComponent implements OnDestroy {
 
   get crosshairColor(): string { return this.reportType === 'hazard' ? '#ffc409' : '#eb445a'; }
 
-  /** Called by the parent page's ionViewDidEnter (after its 250ms settle delay). */
+  ngAfterViewInit() {
+    this.tryInit();
+  }
+
+  /** Called by the parent page's ionViewDidEnter (after its 250ms settle delay) or on demand. */
   tryInit() {
     if (this.mapCanvasRef?.nativeElement && !this.map) {
       this.mapStyle = this.userSettings.get('map_default_style') as 'street' | 'satellite';
@@ -266,50 +261,34 @@ export class ReportMapComponent implements OnDestroy {
   private expandMap(): void {
     if (this.mapExpanded) return; // already open or already mid-way through opening
 
+    this.tryInit(); // Ensure map is initialized
+
     // Capture the small map's rect BEFORE the overlay mounts and steals
     // layout — this seeds the curtain's closed (starting) clip band.
     const srcRect = this.smallMapRect();
 
     this.mapExpanded = true;
     this.mapCollapsing = false;
+    this.cdr.detectChanges(); // Force Angular to evaluate *ngIf and mount the overlay immediately!
 
-    // Wait for the *ngIf'd overlay to actually be mounted AND queryable
-    // before reparenting/animating it. A single requestAnimationFrame is
-    // enough on a warm in-app open (Modal, JS already parsed/JIT'd), but not
-    // reliably enough right after a COLD START via the Home Screen Widget
-    // deep link — Angular can still be finishing lazy-chunk parsing/change
-    // detection at that point, so the very first rAF can fire before the
-    // view has actually committed. Retrying for a few frames (instead of
-    // giving up after one) costs nothing once things are warm — it resolves
-    // immediately — but fixes the cold-start race where fullscreenSlotRef
-    // came back undefined on the only attempt that was ever made, silently
-    // skipping the map reparent while the rest of the overlay went on to
-    // render fine a frame or two later.
-    this.mountFullscreenOverlay(srcRect, 0);
+    this.mountFullscreenOverlay(srcRect);
   }
 
-  private mountFullscreenOverlay(srcRect: DOMRect | null, attempt: number): void {
-    const node = this.fullscreenOverlayRef?.nativeElement;
-    const slotEl = this.fullscreenSlotRef?.nativeElement;
-    if ((!node || !slotEl) && attempt < 15) {
-      requestAnimationFrame(() => this.mountFullscreenOverlay(srcRect, attempt + 1));
-      return;
+  private mountFullscreenOverlay(srcRect: DOMRect | null): void {
+    let node = this.fullscreenOverlayRef?.nativeElement;
+    let slotEl = this.fullscreenSlotRef?.nativeElement;
+
+    if (!node || !slotEl) {
+      this.cdr.detectChanges();
+      node = this.fullscreenOverlayRef?.nativeElement;
+      slotEl = this.fullscreenSlotRef?.nativeElement;
     }
-    if (!node) return;
+
+    if (!node || !slotEl) return;
 
     // Reparenting all the way out to document.body is what actually escapes
     // ion-content's CSS `contain` (which makes it the containing block for
     // any position:fixed descendant, trapping our overlay inside its box).
-    // This deliberately does NOT reparent to ion-app instead — that was
-    // tried as a fix for the Home Screen Widget deep-link case, but ion-app
-    // is an Ionic-owned element that can carry its own safe-area padding /
-    // containing-block behavior, which produced a NEW bug: the overlay
-    // landing inset from ion-app's own padded box instead of the true
-    // screen edges (visible as slivers of the underlying page and header
-    // around a smaller-than-fullscreen black box). document.body has no
-    // Ionic styling applied to it at all, so it's a genuine, unambiguous
-    // escape regardless of whether this component is reached via a Modal
-    // (the normal in-app flow) or a plain route (the widget deep link).
     if (!this.overlayOriginalParent) {
       this.overlayOriginalParent = node.parentNode;
       this.overlayOriginalNextSibling = node.nextSibling;
@@ -320,7 +299,7 @@ export class ReportMapComponent implements OnDestroy {
     // into the fullscreen slot — no second Leaflet instance is created, so
     // there's no re-init/tile-refetch pass to visibly flinch mid-animation.
     const mapEl = this.mapCanvasRef?.nativeElement;
-    if (mapEl && slotEl && !this.mapCanvasOriginalParent) {
+    if (mapEl && !this.mapCanvasOriginalParent) {
       this.mapCanvasOriginalParent = mapEl.parentNode;
       this.mapCanvasOriginalNextSibling = mapEl.nextSibling;
       this.renderer.appendChild(slotEl, mapEl);
@@ -459,6 +438,7 @@ export class ReportMapComponent implements OnDestroy {
     }
     this.mapExpanded = false;
     this.mapCollapsing = false;
+    this.cdr.detectChanges();
   }
 
   toggleMapStyle(style: 'street' | 'satellite') {
