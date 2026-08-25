@@ -18,6 +18,7 @@ import { FilterSummaryBarComponent } from '../../../../../shared/components/filt
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/flip-reflow.util';
 import { formatPhoneLocalPart, formatPhoneDisplayPH } from '../../../../../shared/utils/phone.util';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 interface DispatcherForm {
   first_name: string; last_name: string; phone: string;
@@ -32,6 +33,7 @@ interface DispatcherForm {
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
     ProxyImageDirective, DateRangeFilterComponent, FilterSummaryBarComponent, ListEnterDirective,
+    AppIconComponent
   ],
   templateUrl: './dispatchers.panel.html',
 })
@@ -159,7 +161,7 @@ export class DispatchersPanel implements OnInit, OnDestroy {
     this.ui.showConfirm({
       title: 'Remove Dispatcher',
       message: `Remove ${dispatcher.first_name} ${dispatcher.last_name}? They will no longer be able to log in.`,
-      icon: 'fa-solid fa-user-slash', iconColor: '#eb445a', confirmLabel: 'Remove', confirmColor: '#eb445a',
+      icon: 'user-slash', iconColor: '#eb445a', confirmLabel: 'Remove', confirmColor: '#eb445a',
       action: () => {
         this.api.deactivateDispatcher({ user_id: dispatcher.user_id }).subscribe({
           next: () => { this.ui.showToast('Dispatcher removed.', 'medium'); this.loadDispatchers(); },

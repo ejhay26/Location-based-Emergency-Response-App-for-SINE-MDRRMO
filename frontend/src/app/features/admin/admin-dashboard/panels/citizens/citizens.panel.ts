@@ -15,6 +15,7 @@ import { DateRangeFilterComponent } from '../../../../../shared/components/date-
 import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/flip-reflow.util';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 @Component({
   selector: 'app-citizens-panel',
@@ -22,6 +23,7 @@ import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/f
   imports: [
     CommonModule, FormsModule, IonButton, ProxyImageDirective, UtcDatePipe,
     DateRangeFilterComponent, FilterSummaryBarComponent, ListEnterDirective,
+    AppIconComponent
   ],
   templateUrl: './citizens.panel.html',
 })
@@ -114,7 +116,7 @@ export class CitizensPanel implements OnInit, OnDestroy {
       message: isSuspended
         ? `Reinstate ${citizen.first_name} ${citizen.last_name}? They will regain full access.`
         : `Suspend ${citizen.first_name} ${citizen.last_name}? They will be locked out immediately.`,
-      icon: isSuspended ? 'fa-solid fa-user-check' : 'fa-solid fa-user-slash',
+      icon: isSuspended ? 'user-check' : 'user-slash',
       iconColor: isSuspended ? '#2dd36f' : '#eb445a',
       confirmLabel: isSuspended ? 'Reinstate' : 'Suspend',
       confirmColor: isSuspended ? '#2dd36f' : '#eb445a',

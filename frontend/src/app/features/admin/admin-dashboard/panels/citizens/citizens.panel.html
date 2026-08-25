@@ -1,21 +1,21 @@
 <div style="width:100%;">
-  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
     <div>
-      <h2 style="margin: 0; font-weight: bold; font-size: 22px; color: var(--ion-text-color);">Citizens</h2>
-      <p style="margin: 2px 0 0 0; font-size: 13px; color: gray;">{{ filteredCitizens.length }} of {{ citizens.length }} shown</p>
+      <h2 style="margin: 0; font-weight: 800; font-size: 22px; color: var(--ion-text-color);">Citizens</h2>
+      <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--ion-color-medium); font-weight: 600;">{{ filteredCitizens.length }} of {{ citizens.length }} shown</p>
     </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
       <div style="position: relative;">
-        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: gray; font-size: 13px; pointer-events: none;"></i>
-        <input id="citizenSearch" name="citizenSearch" [ngModel]="citizenSearch" (ngModelChange)="onSearchChange($event)" placeholder="Search name, email…" style="padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); min-width: 200px;" />
+        <app-icon name="search" [size]="14" color="var(--ion-color-medium)" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"></app-icon>
+        <input id="citizenSearch" name="citizenSearch" [ngModel]="citizenSearch" (ngModelChange)="onSearchChange($event)" placeholder="Search name, email…" style="padding: 9px 14px 9px 34px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); min-width: 220px; font-weight: 500;" />
       </div>
-      <select id="citizenFilterStatus" name="citizenFilterStatus" [ngModel]="citizenFilterStatus" (ngModelChange)="onStatusFilterChange($event)" style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color);">
-        <option value="all">All</option>
+      <select id="citizenFilterStatus" name="citizenFilterStatus" [ngModel]="citizenFilterStatus" (ngModelChange)="onStatusFilterChange($event)" style="padding: 9px 12px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); font-weight: 600;">
+        <option value="all">All Status</option>
         <option value="active">Active</option>
         <option value="suspended">Suspended</option>
       </select>
       <select id="citizenBarangayFilter" name="citizenBarangayFilter" [ngModel]="citizenBarangayFilter" (ngModelChange)="onBarangayFilterChange($event === 'all' ? 'all' : +$event)"
-        style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color);">
+        style="padding: 9px 12px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); font-weight: 600;">
         <option value="all">All Barangays</option>
         <option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</option>
       </select>
@@ -25,38 +25,44 @@
 
   <app-filter-summary-bar [chips]="activeFilterChips" (clearAll)="clearAllFilters()"></app-filter-summary-bar>
 
-  <div *ngIf="citizens.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 16px; border: 2px dashed var(--ion-color-step-150, #ddd);">
-    <i class="fa-solid fa-users" style="font-size: 48px; color: var(--ion-color-step-400, #aaa); margin-bottom: 14px;"></i>
-    <h4 style="font-weight: bold; margin: 0 0 6px 0; color: var(--ion-text-color);">No Citizens Yet</h4>
-    <p style="margin: 0; color: gray; font-size: 14px;">Registered citizens will appear here.</p>
+  <div *ngIf="citizens.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 18px; border: 2px dashed var(--ion-color-step-200, #ddd); box-shadow: var(--card-shadow);">
+    <div style="width: 72px; height: 72px; border-radius: 20px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+      <app-icon name="users" [size]="36" color="var(--ion-color-medium)"></app-icon>
+    </div>
+    <h4 style="font-weight: 800; margin: 0 0 6px 0; color: var(--ion-text-color); font-size: 18px;">No Citizens Yet</h4>
+    <p style="margin: 0; color: var(--ion-color-medium); font-size: 13.5px;">Registered citizens will appear here.</p>
   </div>
 
-  <div *ngIf="citizens.length > 0 && filteredCitizens.length === 0" class="ion-text-center ion-padding ion-color-medium">
+  <div *ngIf="citizens.length > 0 && filteredCitizens.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
     <p>No citizens match the current filters.</p>
   </div>
 
   <div #citizensGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-    <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="c.user_id" [appAnnouncementEnter]="i" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: 0 1px 4px rgba(0,0,0,0.06);" [style.border]="c.account_status === 'banned' ? '2px solid #eb445a' : '1px solid var(--ion-color-step-150, rgba(0,0,0,0.07))'">
-      <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
-        <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--ion-color-step-150, #ddd); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
-          <i class="fa-solid fa-circle-user" style="font-size: 40px; color: var(--ion-color-step-400, #aaa);"></i>
+    <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="c.user_id" [appAnnouncementEnter]="i" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)));" [style.border-color]="c.account_status === 'banned' ? '#eb445a' : 'var(--ion-color-step-150, rgba(0,0,0,0.07))'">
+      <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px;">
+        <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
+          <app-icon name="user" [size]="24" color="var(--ion-color-medium)"></app-icon>
           <img *ngIf="ui.getProxyUrl(c.profile_picture)"
                [proxySrc]="c.profile_picture"
-               style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;border-radius:50%;" />
+               style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
         </div>
         <div style="flex: 1; min-width: 0;">
-          <p style="margin: 0; font-weight: bold; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.first_name }} {{ c.last_name }}</p>
-          <p style="margin: 1px 0 0 0; font-size: 12px; color: gray;">&#64;{{ c.username }}</p>
+          <p style="margin: 0; font-weight: 800; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.first_name }} {{ c.last_name }}</p>
+          <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--ion-color-medium); font-weight: 500;">&#64;{{ c.username }}</p>
         </div>
-        <span style="border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: bold; white-space: nowrap; flex-shrink: 0;" [style.background]="c.account_status === 'banned' ? '#eb445a1a' : (c.account_status === 'active' ? '#2dd36f1a' : '#ffc4091a')" [style.color]="c.account_status === 'banned' ? '#eb445a' : (c.account_status === 'active' ? '#2dd36f' : '#e0ac00')" [style.border]="c.account_status === 'banned' ? '1px solid #eb445a50' : (c.account_status === 'active' ? '1px solid #2dd36f50' : '1px solid #ffc40950')">{{ c.account_status === 'banned' ? 'Suspended' : (c.account_status === 'active' ? 'Active' : 'Pending') }}</span>
+        <span style="border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 800; white-space: nowrap; flex-shrink: 0;" [style.background]="c.account_status === 'banned' ? 'rgba(235,68,90,0.12)' : (c.account_status === 'active' ? 'rgba(45,211,111,0.12)' : 'rgba(255,196,9,0.12)')" [style.color]="c.account_status === 'banned' ? '#eb445a' : (c.account_status === 'active' ? '#2dd36f' : '#e0ac00')" [style.border]="c.account_status === 'banned' ? '1px solid rgba(235,68,90,0.3)' : (c.account_status === 'active' ? '1px solid rgba(45,211,111,0.3)' : '1px solid rgba(255,196,9,0.3)')">{{ c.account_status === 'banned' ? 'Suspended' : (c.account_status === 'active' ? 'Active' : 'Pending') }}</span>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 10px; margin-bottom: 12px; font-size: 13px;">
-        <div style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-phone" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i><span>{{ c.phone }}</span></div>
-        <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;"><i class="fa-solid fa-envelope" style="color: var(--ion-color-danger); width: 14px; text-align: center; flex-shrink: 0;"></i><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.email }}</span></div>
-        <div style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-location-dot" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i><span>{{ ui.getBarangayName(c.barangay_id) }}</span></div>
-        <div style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-calendar" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i><span>Joined {{ c.created_at | utcDate:'mediumDate' }}</span></div>
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 12px; margin-bottom: 16px; font-size: 13px; border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.04));">
+        <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="phone" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ c.phone }}</span></div>
+        <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;"><app-icon name="mail" [size]="13" color="var(--ion-color-danger)"></app-icon><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.email }}</span></div>
+        <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ ui.getBarangayName(c.barangay_id) }}</span></div>
+        <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="calendar" [size]="13" color="var(--ion-color-danger)"></app-icon><span>Joined {{ c.created_at | utcDate:'mediumDate' }}</span></div>
       </div>
-      <ion-button [color]="c.account_status === 'banned' ? 'success' : 'danger'" fill="outline" size="small" expand="block" (click)="suspendCitizen(c)" style="font-weight: bold; height: 36px; margin: 0;"><i class="fa-solid" [class.fa-user-check]="c.account_status === 'banned'" [class.fa-user-slash]="c.account_status !== 'banned'" style="margin-right: 6px;"></i>{{ c.account_status === 'banned' ? 'Reinstate Account' : 'Suspend Account' }}</ion-button>
+      <ion-button [color]="c.account_status === 'banned' ? 'success' : 'danger'" fill="outline" size="small" expand="block" (click)="suspendCitizen(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
+        <app-icon [name]="c.account_status === 'banned' ? 'user-check' : 'user-xmark'" [size]="14" [color]="c.account_status === 'banned' ? 'var(--ion-color-success)' : 'var(--ion-color-danger)'" style="margin-right: 8px;"></app-icon>
+        {{ c.account_status === 'banned' ? 'Reinstate Account' : 'Suspend Account' }}
+      </ion-button>
     </div>
   </div>
 </div>
+

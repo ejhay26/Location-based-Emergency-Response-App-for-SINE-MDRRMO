@@ -1,21 +1,21 @@
 <div style="width:100%;">
-  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
     <div>
-      <h2 style="margin: 0; font-weight: bold; font-size: 22px; color: var(--ion-text-color);">Dispatchers</h2>
-      <p style="margin: 2px 0 0 0; font-size: 13px; color: gray;">{{ filteredDispatchers.length }} of {{ dispatchers.length }} shown</p>
+      <h2 style="margin: 0; font-weight: 800; font-size: 22px; color: var(--ion-text-color);">Dispatchers</h2>
+      <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--ion-color-medium); font-weight: 600;">{{ filteredDispatchers.length }} of {{ dispatchers.length }} shown</p>
     </div>
-    <ion-button color="danger" (click)="openDispatcherModal(null)" style="font-weight: bold; height: 42px; border-radius: 10px;">
-      <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Add Dispatcher
+    <ion-button color="danger" (click)="openDispatcherModal(null)" style="font-weight: 800; height: 42px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(235,68,90,0.3);">
+      <app-icon name="user-plus" [size]="16" color="#ffffff" style="margin-right: 8px;"></app-icon> Add Dispatcher
     </ion-button>
   </div>
 
-  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
     <div style="position: relative;">
-      <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: gray; font-size: 13px; pointer-events: none;"></i>
-      <input id="dispatcherSearch" name="dispatcherSearch" [ngModel]="dispatcherSearch" (ngModelChange)="onSearchChange($event)" placeholder="Search name, email…" style="padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); min-width: 200px;" />
+      <app-icon name="search" [size]="14" color="var(--ion-color-medium)" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"></app-icon>
+      <input id="dispatcherSearch" name="dispatcherSearch" [ngModel]="dispatcherSearch" (ngModelChange)="onSearchChange($event)" placeholder="Search name, email…" style="padding: 9px 14px 9px 34px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); min-width: 220px; font-weight: 500;" />
     </div>
     <select id="dispatcherBarangayFilter" name="dispatcherBarangayFilter" [ngModel]="dispatcherBarangayFilter" (ngModelChange)="onBarangayFilterChange($event === 'all' ? 'all' : +$event)"
-      style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color);">
+      style="padding: 9px 12px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); font-weight: 600;">
       <option value="all">All Barangays</option>
       <option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</option>
     </select>
@@ -24,37 +24,43 @@
 
   <app-filter-summary-bar [chips]="activeFilterChips" (clearAll)="clearAllFilters()"></app-filter-summary-bar>
 
-  <div *ngIf="dispatchers.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 16px; border: 2px dashed var(--ion-color-step-150, #ddd);">
-    <i class="fa-solid fa-users-gear" style="font-size: 48px; color: var(--ion-color-step-400, #aaa); margin-bottom: 14px;"></i>
-    <h4 style="font-weight: bold; margin: 0 0 6px 0; color: var(--ion-text-color);">No Dispatchers Yet</h4>
-    <p style="margin: 0; color: gray; font-size: 14px;">Click "Add Dispatcher" to create the first account.</p>
+  <div *ngIf="dispatchers.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 18px; border: 2px dashed var(--ion-color-step-200, #ddd); box-shadow: var(--card-shadow);">
+    <div style="width: 72px; height: 72px; border-radius: 20px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+      <app-icon name="user-gear" [size]="36" color="var(--ion-color-medium)"></app-icon>
+    </div>
+    <h4 style="font-weight: 800; margin: 0 0 6px 0; color: var(--ion-text-color); font-size: 18px;">No Dispatchers Yet</h4>
+    <p style="margin: 0; color: var(--ion-color-medium); font-size: 13.5px;">Click "Add Dispatcher" to create the first account.</p>
   </div>
 
-  <div *ngIf="dispatchers.length > 0 && filteredDispatchers.length === 0" class="ion-text-center ion-padding ion-color-medium">
+  <div *ngIf="dispatchers.length > 0 && filteredDispatchers.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
     <p>No dispatchers match the current filters.</p>
   </div>
 
   <div #dispatchersGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-    <div *ngFor="let d of filteredDispatchers; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="d.user_id" [appAnnouncementEnter]="i" style="background: var(--ion-card-background, #fff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)); padding: 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+    <div *ngFor="let d of filteredDispatchers; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="d.user_id" [appAnnouncementEnter]="i" style="background: var(--ion-card-background, #fff); border-radius: 16px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07))); padding: 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
       <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;">
-        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; font-weight: bold; color: white; overflow: hidden; position: relative;">
+        <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; font-weight: 800; color: white; overflow: hidden; position: relative;">
           <img *ngIf="ui.getProxyUrl(d.profile_picture)" [proxySrc]="d.profile_picture" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
           <span style="position:relative;z-index:1;">{{ (d.first_name?.[0]||'')+(d.last_name?.[0]||'') }}</span>
         </div>
         <div style="flex: 1; min-width: 0;">
-          <p style="margin: 0; font-weight: bold; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.first_name }} {{ d.last_name }}</p>
-          <p style="margin: 1px 0 0 0; font-size: 12px; color: gray;">&#64;{{ d.username }}</p>
+          <p style="margin: 0; font-weight: 800; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.first_name }} {{ d.last_name }}</p>
+          <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--ion-color-medium); font-weight: 500;">&#64;{{ d.username }}</p>
         </div>
-        <span style="background: #2dd36f1a; color: #2dd36f; border: 1px solid #2dd36f50; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: bold; white-space: nowrap; flex-shrink: 0;">Active</span>
+        <span style="background: rgba(45,211,111,0.12); color: #2dd36f; border: 1px solid rgba(45,211,111,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 800; white-space: nowrap; flex-shrink: 0;">Active</span>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 7px; padding: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 10px; margin-bottom: 14px;">
-        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><i class="fa-solid fa-phone" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i><span>{{ phoneDisplay(d.phone) }}</span></div>
-        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; overflow: hidden;"><i class="fa-solid fa-envelope" style="color: var(--ion-color-danger); width: 14px; text-align: center; flex-shrink: 0;"></i><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.email }}</span></div>
-        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><i class="fa-solid fa-location-dot" style="color: var(--ion-color-danger); width: 14px; text-align: center;"></i><span>{{ ui.getBarangayName(d.barangay_id) }}</span></div>
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.04));">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><app-icon name="phone" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ phoneDisplay(d.phone) }}</span></div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; overflow: hidden;"><app-icon name="mail" [size]="13" color="var(--ion-color-danger)"></app-icon><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.email }}</span></div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ ui.getBarangayName(d.barangay_id) }}</span></div>
       </div>
       <div style="display: flex; gap: 8px;">
-        <ion-button fill="outline" color="danger" size="small" (click)="openDispatcherModal(d)" style="flex: 1; font-weight: bold; height: 36px; margin: 0;"><i class="fa-solid fa-pen-to-square" style="margin-right: 6px;"></i> Edit</ion-button>
-        <ion-button fill="outline" color="medium" size="small" (click)="confirmDeactivateDispatcher(d)" style="flex: 1; font-weight: bold; height: 36px; margin: 0;"><i class="fa-solid fa-user-slash" style="margin-right: 6px;"></i> Remove</ion-button>
+        <ion-button fill="outline" color="danger" size="small" (click)="openDispatcherModal(d)" style="flex: 1; font-weight: 700; height: 36px; margin: 0; --border-radius: 10px;">
+          <app-icon name="pen" [size]="13" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon> Edit
+        </ion-button>
+        <ion-button fill="outline" color="medium" size="small" (click)="confirmDeactivateDispatcher(d)" style="flex: 1; font-weight: 700; height: 36px; margin: 0; --border-radius: 10px;">
+          <app-icon name="user-xmark" [size]="13" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Remove
+        </ion-button>
       </div>
     </div>
   </div>
@@ -65,43 +71,47 @@
   <ng-template>
     <ion-header class="ion-no-border">
       <ion-toolbar color="danger">
-        <ion-title style="color: white; font-weight: bold; font-size: 17px;">{{ editingDispatcher ? 'Edit Dispatcher' : 'Add Dispatcher' }}</ion-title>
-        <ion-buttons slot="end"><ion-button (click)="isDispatcherModalOpen = false" style="color: white; font-weight: bold;">Cancel</ion-button></ion-buttons>
+        <ion-title style="color: white; font-weight: 800; font-size: 17px;">{{ editingDispatcher ? 'Edit Dispatcher' : 'Add Dispatcher' }}</ion-title>
+        <ion-buttons slot="end"><ion-button (click)="isDispatcherModalOpen = false" style="color: white; font-weight: 700;">Cancel</ion-button></ion-buttons>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
       <div style="display: flex; justify-content: center; margin-bottom: 24px;">
-        <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; color: white; overflow: hidden; position: relative;">
+        <div style="width: 76px; height: 76px; border-radius: 20px; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: white; overflow: hidden; position: relative; box-shadow: 0 6px 18px rgba(235,68,90,0.35);">
           <img *ngIf="editingDispatcher && ui.getProxyUrl(editingDispatcher.profile_picture)" [proxySrc]="editingDispatcher.profile_picture" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
           <span style="position:relative;z-index:1;">{{ ((dispatcherForm.first_name||'?')[0])+((dispatcherForm.last_name||'')[0]||'') }}</span>
         </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 14px;">
         <div style="display: flex; gap: 10px;">
-          <ion-item fill="outline" style="flex: 1;"><ion-input label="First Name" labelPlacement="floating" [(ngModel)]="dispatcherForm.first_name"></ion-input></ion-item>
-          <ion-item fill="outline" style="flex: 1;"><ion-input label="Last Name" labelPlacement="floating" [(ngModel)]="dispatcherForm.last_name"></ion-input></ion-item>
+          <ion-item fill="outline" style="flex: 1; --border-radius: 12px; --background: var(--ion-card-background, #fff);"><ion-input label="First Name" labelPlacement="floating" [(ngModel)]="dispatcherForm.first_name"></ion-input></ion-item>
+          <ion-item fill="outline" style="flex: 1; --border-radius: 12px; --background: var(--ion-card-background, #fff);"><ion-input label="Last Name" labelPlacement="floating" [(ngModel)]="dispatcherForm.last_name"></ion-input></ion-item>
         </div>
-        <ion-item fill="outline">
+        <ion-item fill="outline" style="--border-radius: 12px; --background: var(--ion-card-background, #fff);">
           <ion-input label="Phone Number" labelPlacement="floating" type="tel" inputmode="numeric" maxlength="10" placeholder="9XXXXXXXXX"
                      [ngModel]="dispatcherPhoneLocal" (ionInput)="onDispatcherPhoneInput($event.detail.value)">
-            <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:600;">+63</div>
+            <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:700;">+63</div>
           </ion-input>
         </ion-item>
-        <ion-item fill="outline"><ion-input label="Username" labelPlacement="floating" type="text" [(ngModel)]="dispatcherForm.username" [readonly]="!!editingDispatcher"></ion-input></ion-item>
-        <ion-item fill="outline">
+        <ion-item fill="outline" style="--border-radius: 12px; --background: var(--ion-card-background, #fff);"><ion-input label="Username" labelPlacement="floating" type="text" [(ngModel)]="dispatcherForm.username" [readonly]="!!editingDispatcher"></ion-input></ion-item>
+        <ion-item fill="outline" style="--border-radius: 12px; --background: var(--ion-card-background, #fff);">
           <ion-select label="Assigned Barangay" labelPlacement="floating" [(ngModel)]="dispatcherForm.barangay_id">
             <ion-select-option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</ion-select-option>
           </ion-select>
         </ion-item>
-        <ion-item fill="outline"><ion-input label="Email Address" labelPlacement="floating" type="email" [(ngModel)]="dispatcherForm.email"></ion-input></ion-item>
-        <ion-item fill="outline"><ion-input [label]="editingDispatcher ? 'New Password (leave blank to keep)' : 'Password'" labelPlacement="floating" type="password" [(ngModel)]="dispatcherForm.password"></ion-input></ion-item>
+        <ion-item fill="outline" style="--border-radius: 12px; --background: var(--ion-card-background, #fff);"><ion-input label="Email Address" labelPlacement="floating" type="email" [(ngModel)]="dispatcherForm.email"></ion-input></ion-item>
+        <ion-item fill="outline" style="--border-radius: 12px; --background: var(--ion-card-background, #fff);"><ion-input [label]="editingDispatcher ? 'New Password (leave blank to keep)' : 'Password'" labelPlacement="floating" type="password" [(ngModel)]="dispatcherForm.password"></ion-input></ion-item>
       </div>
       <ion-button expand="block" color="danger" (click)="saveDispatcherForm()"
         [class.btn-loading]="isSavingDispatcher"
-        style="font-weight: bold; height: 50px; border-radius: 12px; margin-top: 24px; font-size: 16px;">
-        <ng-container *ngIf="!isSavingDispatcher"><i [class]="editingDispatcher ? 'fa-solid fa-floppy-disk' : 'fa-solid fa-user-plus'" style="margin-right: 10px;"></i>{{ editingDispatcher ? 'Save Changes' : 'Create Account' }}</ng-container>
+        style="font-weight: 800; height: 50px; --border-radius: 14px; margin-top: 24px; font-size: 16px; --box-shadow: 0 4px 14px rgba(235,68,90,0.3);">
+        <ng-container *ngIf="!isSavingDispatcher">
+          <app-icon [name]="editingDispatcher ? 'save' : 'user-plus'" [size]="16" color="#ffffff" style="margin-right: 8px;"></app-icon>
+          {{ editingDispatcher ? 'Save Changes' : 'Create Account' }}
+        </ng-container>
         <span *ngIf="isSavingDispatcher" class="dot-loader"><span></span><span></span><span></span></span>
       </ion-button>
     </ion-content>
   </ng-template>
 </ion-modal>
+
