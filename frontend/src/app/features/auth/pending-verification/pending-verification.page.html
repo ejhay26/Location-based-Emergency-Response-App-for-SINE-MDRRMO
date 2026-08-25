@@ -8,72 +8,80 @@
 
   <div class="ion-margin-vertical">
     <img src="assets/icon/logo.jpg" alt="MDRRMO Logo"
-         style="max-width: 100px; border-radius: 50%; box-shadow: var(--app-shadow);">
+         style="max-width: 90px; border-radius: 50%; box-shadow: var(--card-shadow, 0 8px 24px rgba(0,0,0,0.15));">
   </div>
 
   <!-- ── Still waiting ── -->
-  <div *ngIf="status === 'checking' || status === 'unverified' || status === 'error'">
-    <i class="fa-solid fa-hourglass-half" style="font-size: 48px; color: var(--ion-color-medium); margin-bottom: 16px;"></i>
-    <h2 style="font-weight: bold; margin-bottom: 8px; color: var(--ion-text-color);">Your account is pending verification</h2>
-    <p style="color: var(--ion-color-medium); font-weight: 500; max-width: 320px; margin: 0 auto;">
-      MDRRMO staff still need to review your submitted ID before you can log in.
-      This page checks automatically — no need to keep refreshing.
+  <div *ngIf="status === 'checking' || status === 'unverified' || status === 'error'" style="max-width: 360px; margin: 0 auto;">
+    <div style="width: 76px; height: 76px; border-radius: 50%; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+      <app-icon name="hourglass" [size]="36" color="var(--ion-color-medium)"></app-icon>
+    </div>
+    <h2 style="font-weight: 800; margin-bottom: 8px; font-size: 20px; color: var(--ion-text-color);">Account Pending Verification</h2>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin: 0 auto 20px auto;">
+      MDRRMO staff are reviewing your submitted valid ID before granting portal access.
+      This page updates automatically in real-time.
     </p>
-    <p *ngIf="status === 'error'" style="color: var(--ion-color-danger); font-size: 13px; margin-top: 12px;">
-      <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
-      Couldn't reach the server on the last check — still retrying.
+    <p *ngIf="status === 'error'" style="color: var(--ion-color-danger); font-size: 13px; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="16" color="var(--ion-color-danger)"></app-icon>
+      <span>Couldn't reach the server on the last check — retrying...</span>
     </p>
 
     <ion-button expand="block" fill="outline" color="danger" class="ion-margin-top"
-                style="font-weight: bold; height: 45px; max-width: 320px; margin-left: auto; margin-right: auto;"
+                style="font-weight: 700; height: 50px; --border-radius: 14px;"
                 (click)="goToLogin()">
-      <i class="fa-solid fa-right-from-bracket" style="margin-right: 8px;"></i>
+      <app-icon name="log-in" [size]="16" color="var(--ion-color-danger)" style="margin-right: 8px;"></app-icon>
       Logout
     </ion-button>
   </div>
 
   <!-- ── Approved ── -->
-  <div *ngIf="status === 'active'">
-    <i class="fa-solid fa-circle-check" style="font-size: 48px; color: var(--ion-color-success); margin-bottom: 16px;"></i>
-    <h2 style="font-weight: bold; margin-bottom: 8px; color: var(--ion-text-color);">You're verified!</h2>
-    <p style="color: var(--ion-color-medium); font-weight: 500; max-width: 320px; margin: 0 auto;">
-      Your account has been approved. You can log in now.
+  <div *ngIf="status === 'active'" style="max-width: 360px; margin: 0 auto;">
+    <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(45,211,111,0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+      <app-icon name="check" [size]="38" color="#2dd36f"></app-icon>
+    </div>
+    <h2 style="font-weight: 800; margin-bottom: 8px; font-size: 22px; color: var(--ion-text-color);">You're Verified!</h2>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin: 0 auto 20px auto;">
+      Your account has been approved by MDRRMO San Isidro. You can log in now.
     </p>
     <ion-button expand="block" color="success" class="ion-margin-top"
-                style="font-weight: bold; height: 45px; max-width: 320px; margin-left: auto; margin-right: auto;"
+                style="font-weight: 800; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(45,211,111,0.3);"
                 (click)="goToLogin()">
       Continue to Login
     </ion-button>
   </div>
 
   <!-- ── Suspended/banned ── -->
-  <div *ngIf="status === 'banned'">
-    <i class="fa-solid fa-ban" style="font-size: 48px; color: var(--ion-color-danger); margin-bottom: 16px;"></i>
-    <h2 style="font-weight: bold; margin-bottom: 8px; color: var(--ion-text-color);">Account suspended</h2>
-    <p style="color: var(--ion-color-medium); font-weight: 500; max-width: 320px; margin: 0 auto;">
+  <div *ngIf="status === 'banned'" style="max-width: 360px; margin: 0 auto;">
+    <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(235,68,90,0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+      <app-icon name="ban" [size]="36" color="var(--ion-color-danger)"></app-icon>
+    </div>
+    <h2 style="font-weight: 800; margin-bottom: 8px; font-size: 20px; color: var(--ion-text-color);">Account Suspended</h2>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin: 0 auto 20px auto;">
       This account has been suspended. Contact MDRRMO San Isidro for more information.
     </p>
     <ion-button expand="block" fill="outline" color="danger" class="ion-margin-top"
-                style="font-weight: bold; height: 45px; max-width: 320px; margin-left: auto; margin-right: auto;"
+                style="font-weight: 700; height: 50px; --border-radius: 14px;"
                 (click)="goToLogin()">
       Back to Login
     </ion-button>
   </div>
 
   <!-- ── Rejected (account no longer exists) ── -->
-  <div *ngIf="status === 'not_found'">
-    <i class="fa-solid fa-circle-xmark" style="font-size: 48px; color: var(--ion-color-danger); margin-bottom: 16px;"></i>
-    <h2 style="font-weight: bold; margin-bottom: 8px; color: var(--ion-text-color);">Registration wasn't approved</h2>
-    <p style="color: var(--ion-color-medium); font-weight: 500; max-width: 320px; margin: 0 auto;">
-      This registration wasn't approved. Contact MDRRMO San Isidro, or you're welcome to register again.
+  <div *ngIf="status === 'not_found'" style="max-width: 360px; margin: 0 auto;">
+    <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(235,68,90,0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+      <app-icon name="circle-alert" [size]="36" color="var(--ion-color-danger)"></app-icon>
+    </div>
+    <h2 style="font-weight: 800; margin-bottom: 8px; font-size: 20px; color: var(--ion-text-color);">Registration Not Approved</h2>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin: 0 auto 20px auto;">
+      This registration wasn't approved. You may contact MDRRMO San Isidro, or register again with valid credentials.
     </p>
     <ion-button expand="block" color="danger" class="ion-margin-top"
-                style="font-weight: bold; height: 45px; max-width: 320px; margin-left: auto; margin-right: auto;"
+                style="font-weight: 800; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(211,47,47,0.3);"
                 (click)="goToRegister()">
       Register Again
     </ion-button>
-    <ion-button expand="block" fill="clear" color="medium"
-                style="font-weight: bold; max-width: 320px; margin-left: auto; margin-right: auto;"
+    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
+                style="font-weight: 700; --border-radius: 12px;"
                 (click)="goToLogin()">
       Back to Login
     </ion-button>

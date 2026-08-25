@@ -17,101 +17,102 @@
 
   <div class="ion-margin-vertical">
     <img src="assets/icon/logo.jpg" alt="MDRRMO Logo"
-         style="max-width: 120px; border-radius: 50%; box-shadow: var(--app-shadow);">
-    <h2 style="font-weight: bold; margin-bottom: 5px; color: var(--ion-text-color);">Emergency Portal</h2>
-    <p style="margin-top: 0; font-weight: 500; color: var(--ion-color-medium);">San Isidro, Nueva Ecija</p>
+         style="max-width: 110px; border-radius: 50%; box-shadow: var(--card-shadow, 0 8px 24px rgba(0,0,0,0.15));">
+    <h2 style="font-weight: 800; margin-top: 12px; margin-bottom: 4px; color: var(--ion-text-color);">Emergency Portal</h2>
+    <p style="margin-top: 0; font-weight: 500; font-size: 13px; color: var(--ion-color-medium);">San Isidro, Nueva Ecija</p>
   </div>
 
   <!-- ── Login ── -->
-  <div *ngIf="viewMode === 'login'">
+  <div *ngIf="viewMode === 'login'" style="max-width: 380px; margin: 0 auto;">
     <form (ngSubmit)="login()">
-      <ion-list style="background: transparent;">
-        <ion-item>
-          <i class="fa-solid fa-user" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+      <div class="inset-card" style="margin-bottom: 12px; text-align: left;">
+        <ion-item lines="full">
+          <app-icon name="user" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
           <ion-input label="Email or Username" labelPlacement="stacked" type="text"
-                     name="username" autocomplete="username" placeholder="Tap to enter your email or username"
+                     name="username" autocomplete="username" placeholder="Enter your email or username"
                      [(ngModel)]="credentials.login" required></ion-input>
         </ion-item>
-        <ion-item>
-          <i class="fa-solid fa-lock" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+        <ion-item lines="none">
+          <app-icon name="lock" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
           <ion-input label="Password" labelPlacement="stacked" [type]="showPassword ? 'text' : 'password'"
-                     name="password" autocomplete="current-password" placeholder="Tap to enter your password"
+                     name="password" autocomplete="current-password" placeholder="Enter your password"
                      [(ngModel)]="credentials.password" required></ion-input>
           <ion-button slot="end" fill="clear" type="button" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
                       (click)="showPassword = !showPassword" style="--color: var(--ion-color-medium); margin: 0;">
-            <i class="fa-solid" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+            <app-icon [name]="showPassword ? 'eye-off' : 'eye'" [size]="18" color="var(--ion-color-medium)"></app-icon>
           </ion-button>
         </ion-item>
-      </ion-list>
+      </div>
 
-      <div class="ion-text-right">
+      <div class="ion-text-right" style="margin-bottom: 12px;">
         <ion-button fill="clear" color="medium" size="small" type="button"
-                    style="text-transform: none; font-weight: bold;" (click)="viewMode = 'forgot-choose'">
+                    style="text-transform: none; font-weight: 700; font-size: 13px;" (click)="viewMode = 'forgot-choose'">
           Forgot Password?
         </ion-button>
       </div>
 
       <ion-button expand="block" color="danger" type="submit"
                   [disabled]="isLoggingIn || lockoutSecsRemaining > 0"
-                  style="font-weight: bold; height: 45px; margin-top: 15px;">
+                  style="font-weight: 800; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(211,47,47,0.3); font-size: 15px;">
         <ng-container *ngIf="!isLoggingIn && lockoutSecsRemaining === 0">Login</ng-container>
         <span *ngIf="isLoggingIn" style="display:flex;align-items:center;gap:8px;">
-          <i class="fa-solid fa-spinner fa-spin"></i> Signing in…
+          <app-icon name="loader-2" [size]="18" color="#ffffff"></app-icon> Signing in…
         </span>
         <span *ngIf="!isLoggingIn && lockoutSecsRemaining > 0" style="display:flex;align-items:center;gap:8px;">
-          <i class="fa-solid fa-lock"></i> Try again in {{ lockoutSecsRemaining }}s
+          <app-icon name="lock" [size]="16" color="#ffffff"></app-icon> Try again in {{ lockoutSecsRemaining }}s
         </span>
       </ion-button>
     </form>
 
     <div class="ion-margin-top">
-      <ion-button fill="clear" color="medium" routerLink="/register" style="text-transform: none; font-weight: 500;">
+      <ion-button fill="clear" color="medium" routerLink="/register" style="text-transform: none; font-weight: 500; font-size: 14px;">
         Don't have an account?
-        <span style="color: var(--ion-color-danger); margin-left: 4px; font-weight: bold;">Register here</span>
+        <span style="color: var(--ion-color-danger); margin-left: 4px; font-weight: 800;">Register here</span>
       </ion-button>
     </div>
 
-    <div class="ion-margin-top" style="border-top: 1px solid var(--ion-color-light); padding-top: 12px;">
+    <div class="ion-margin-top" style="border-top: var(--inset-divider, 1px solid rgba(0,0,0,0.06)); padding-top: 14px;">
       <ion-button fill="clear" color="medium" size="small"
-                  style="text-transform: none;" (click)="startLoginOtp()">
-        <i class="fa-solid fa-envelope" style="margin-right: 6px;"></i>
+                  style="text-transform: none; font-weight: 700;" (click)="startLoginOtp()">
+        <app-icon name="mail" [size]="16" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon>
         Login with OTP instead
       </ion-button>
     </div>
   </div>
 
   <!-- ── OTP Login: choose channel ── -->
-  <div *ngIf="viewMode === 'login-otp-choose'">
-    <h3 style="font-weight: bold; color: var(--ion-text-color);">Login with OTP</h3>
-    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
+  <div *ngIf="viewMode === 'login-otp-choose'" style="max-width: 380px; margin: 0 auto;">
+    <h3 style="font-weight: 800; color: var(--ion-text-color); margin-bottom: 6px;">Login with OTP</h3>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin-bottom: 24px;">
       How would you like to receive your one-time login code?
     </p>
     <ion-button expand="block" color="danger" class="ion-margin-bottom" (click)="chooseLoginOtpChannel('email')"
-                style="font-weight: bold; height: 48px;">
-      <i class="fa-solid fa-envelope" style="margin-right: 8px;"></i> Use Registered Email
+                style="font-weight: 700; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(211,47,47,0.25);">
+      <app-icon name="mail" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> Use Registered Email
     </ion-button>
     <ion-button expand="block" fill="outline" color="danger" (click)="chooseLoginOtpChannel('phone')"
-                style="font-weight: bold; height: 48px;">
-      <i class="fa-solid fa-mobile-screen" style="margin-right: 8px;"></i> Use Registered Phone Number
+                style="font-weight: 700; height: 50px; --border-radius: 14px;">
+      <app-icon name="smartphone" [size]="18" color="var(--ion-color-danger)" style="margin-right: 8px;"></app-icon> Use Registered Phone Number
     </ion-button>
     <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
-                (click)="viewMode = 'login'" style="font-weight: bold;">
+                (click)="viewMode = 'login'" style="font-weight: 700; --border-radius: 12px;">
+      <app-icon name="arrow-left" [size]="16" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon>
       Back to Login
     </ion-button>
   </div>
 
   <!-- ── OTP Login: enter identifier + code ── -->
-  <div *ngIf="viewMode === 'email-otp'">
-    <h3 style="font-weight: bold; color: var(--ion-text-color);">Login with {{ loginOtpChannel === 'phone' ? 'Phone' : 'Email' }}</h3>
-    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
+  <div *ngIf="viewMode === 'email-otp'" style="max-width: 380px; margin: 0 auto;">
+    <h3 style="font-weight: 800; color: var(--ion-text-color); margin-bottom: 6px;">Login with {{ loginOtpChannel === 'phone' ? 'Phone' : 'Email' }}</h3>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin-bottom: 20px;">
       Enter your registered {{ loginOtpChannel === 'phone' ? 'phone number' : 'email' }} to receive a one-time login code.
     </p>
 
-    <ion-list style="background: transparent;">
-      <ion-item *ngIf="loginOtpChannel !== 'phone'">
-        <i class="fa-solid fa-envelope" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+    <div class="inset-card" style="margin-bottom: 8px; text-align: left;">
+      <ion-item lines="none" *ngIf="loginOtpChannel !== 'phone'">
+        <app-icon name="mail" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
         <ion-input label="Registered Email" labelPlacement="stacked"
-                   type="email" inputmode="email" autocomplete="email" placeholder="Tap to enter your registered email"
+                   type="email" inputmode="email" autocomplete="email" placeholder="Enter your registered email"
                    [(ngModel)]="emailOtpData.email"
                    (ionInput)="emailOtpData.otp = ''; otpSent = false;"
                    [disabled]="isSendingOtp"></ion-input>
@@ -119,54 +120,54 @@
                     [class.btn-muted]="otpResendSecs > 0"
                     [class.btn-loading]="isSendingOtp"
                     (click)="sendLoginOtp()"
-                    style="font-weight: bold; margin: 0; --border-radius: 8px; min-width: 76px;">
+                    style="font-weight: 700; margin: 0; --border-radius: 10px; min-width: 76px;">
           <ng-container *ngIf="!isSendingOtp">
             <ng-container *ngIf="!otpSent">Send</ng-container>
             <ng-container *ngIf="otpSent && otpResendSecs > 0">{{ otpResendSecs }}s</ng-container>
             <ng-container *ngIf="otpSent && otpResendSecs === 0">Resend</ng-container>
           </ng-container>
-          <i *ngIf="isSendingOtp" class="fa-solid fa-spinner fa-spin"></i>
+          <app-icon *ngIf="isSendingOtp" name="loader-2" [size]="16" color="#ffffff"></app-icon>
         </ion-button>
       </ion-item>
-      <ion-item *ngIf="loginOtpChannel === 'phone'">
-        <i class="fa-solid fa-mobile-screen" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+      <ion-item lines="none" *ngIf="loginOtpChannel === 'phone'">
+        <app-icon name="smartphone" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
         <ion-input label="Registered Phone Number" labelPlacement="stacked"
                    type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="9XXXXXXXXX"
                    [ngModel]="otpPhoneLocal"
                    (ionInput)="onOtpPhoneInput($event.detail.value); emailOtpData.otp = ''; otpSent = false;"
                    [disabled]="isSendingOtp">
-          <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:600;">+63</div>
+          <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:700;">+63</div>
         </ion-input>
         <ion-button slot="end" fill="solid" color="danger" size="small" type="button"
                     [class.btn-muted]="otpResendSecs > 0"
                     [class.btn-loading]="isSendingOtp"
                     (click)="sendLoginOtp()"
-                    style="font-weight: bold; margin: 0; --border-radius: 8px; min-width: 76px;">
+                    style="font-weight: 700; margin: 0; --border-radius: 10px; min-width: 76px;">
           <ng-container *ngIf="!isSendingOtp">
             <ng-container *ngIf="!otpSent">Send</ng-container>
             <ng-container *ngIf="otpSent && otpResendSecs > 0">{{ otpResendSecs }}s</ng-container>
             <ng-container *ngIf="otpSent && otpResendSecs === 0">Resend</ng-container>
           </ng-container>
-          <i *ngIf="isSendingOtp" class="fa-solid fa-spinner fa-spin"></i>
+          <app-icon *ngIf="isSendingOtp" name="loader-2" [size]="16" color="#ffffff"></app-icon>
         </ion-button>
       </ion-item>
-    </ion-list>
+    </div>
 
     <div *ngIf="loginOtpChannel !== 'phone' && emailOtpData.email.length > 0 && !emailValid"
-         style="text-align: left; padding: 6px 16px; font-size: 12px; color: var(--ion-color-danger);">
-      <i class="fa-solid fa-circle-exclamation" style="margin-right: 5px;"></i>
-      Enter a valid email address.
+         style="text-align: left; padding: 4px 8px; font-size: 12px; color: var(--ion-color-danger); display: flex; align-items: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="14" color="var(--ion-color-danger)"></app-icon>
+      <span>Enter a valid email address.</span>
     </div>
     <div *ngIf="loginOtpChannel === 'phone' && emailOtpData.phone.length > 0 && !loginPhoneValid"
-         style="text-align: left; padding: 6px 16px; font-size: 12px; color: var(--ion-color-danger);">
-      <i class="fa-solid fa-circle-exclamation" style="margin-right: 5px;"></i>
-      Enter a valid phone number (e.g. 09XXXXXXXXX).
+         style="text-align: left; padding: 4px 8px; font-size: 12px; color: var(--ion-color-danger); display: flex; align-items: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="14" color="var(--ion-color-danger)"></app-icon>
+      <span>Enter a valid phone number (e.g. 09XXXXXXXXX).</span>
     </div>
 
-    <div *ngIf="otpSent" style="margin-top: 20px;">
+    <div *ngIf="otpSent" style="margin-top: 24px;">
       <app-otp-box-input [code]="emailOtpData.otp" (codeChange)="emailOtpData.otp = $event" (completed)="verifyLoginOtp()"></app-otp-box-input>
 
-      <div *ngIf="loginOtpChannel === 'email'" style="margin-top: 14px; text-align: center;">
+      <div *ngIf="loginOtpChannel === 'email'" style="margin-top: 16px; text-align: center;">
         <p style="font-size: 13px; color: var(--ion-color-medium); margin: 0 0 4px 0;">
           Didn't receive the email? Check your spam folder or
         </p>
@@ -174,7 +175,9 @@
                     [disabled]="otpResendSecs > 0 || isSendingOtp"
                     style="font-weight: 700; font-size: 13px; height: 32px;">
           <ng-container *ngIf="otpResendSecs > 0">Resend email in {{ otpResendSecs }}s</ng-container>
-          <ng-container *ngIf="otpResendSecs === 0"><i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Resend the email</ng-container>
+          <ng-container *ngIf="otpResendSecs === 0">
+            <app-icon name="rotate-cw" [size]="14" color="var(--ion-color-danger)" style="margin-right: 5px;"></app-icon> Resend the email
+          </ng-container>
         </ion-button>
       </div>
 
@@ -182,62 +185,59 @@
                   [class.btn-muted]="emailOtpData.otp.length < 6"
                   [class.btn-loading]="isVerifyingOtp"
                   (click)="verifyLoginOtp()"
-                  style="font-weight: bold; height: 45px;">
+                  style="font-weight: 800; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(211,47,47,0.3);">
         <ng-container *ngIf="!isVerifyingOtp">
-          <i class="fa-solid fa-right-to-bracket" style="margin-right: 8px;"></i>
-          Verify & Login
+          <app-icon name="log-in" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> Verify &amp; Login
         </ng-container>
         <span *ngIf="isVerifyingOtp" class="dot-loader"><span></span><span></span><span></span></span>
       </ion-button>
     </div>
 
     <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
-                (click)="viewMode = 'login-otp-choose'" style="font-weight: bold;">
-      <i class="fa-solid fa-arrow-left" style="margin-right: 6px;"></i>
-      Back
+                (click)="viewMode = 'login-otp-choose'" style="font-weight: 700; --border-radius: 12px;">
+      <app-icon name="arrow-left" [size]="16" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Back
     </ion-button>
   </div>
 
   <!-- ── Forgot: choose channel ── -->
-  <div *ngIf="viewMode === 'forgot-choose'">
-    <h3 style="font-weight: bold; color: var(--ion-text-color);">Reset Password</h3>
-    <p style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
-      How would you like to receive your OTP?
+  <div *ngIf="viewMode === 'forgot-choose'" style="max-width: 380px; margin: 0 auto;">
+    <h3 style="font-weight: 800; color: var(--ion-text-color); margin-bottom: 6px;">Reset Password</h3>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin-bottom: 24px;">
+      How would you like to receive your recovery OTP?
     </p>
     <ion-button expand="block" color="danger" class="ion-margin-bottom" (click)="chooseOtpChannel('email')"
-                style="font-weight: bold; height: 48px;">
-      <i class="fa-solid fa-envelope" style="margin-right: 8px;"></i> Use Registered Email
+                style="font-weight: 700; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(211,47,47,0.25);">
+      <app-icon name="mail" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> Use Registered Email
     </ion-button>
     <ion-button expand="block" fill="outline" color="danger" (click)="chooseOtpChannel('phone')"
-                style="font-weight: bold; height: 48px;">
-      <i class="fa-solid fa-mobile-screen" style="margin-right: 8px;"></i> Use Registered Phone Number
+                style="font-weight: 700; height: 50px; --border-radius: 14px;">
+      <app-icon name="smartphone" [size]="18" color="var(--ion-color-danger)" style="margin-right: 8px;"></app-icon> Use Registered Phone Number
     </ion-button>
     <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
-                (click)="viewMode = 'login'" style="font-weight: bold;">
-      Back to Login
+                (click)="viewMode = 'login'" style="font-weight: 700; --border-radius: 12px;">
+      <app-icon name="arrow-left" [size]="16" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Back to Login
     </ion-button>
   </div>
 
   <!-- ── Forgot: enter identifier, send/resend, then code + new password ── -->
-  <div *ngIf="viewMode === 'forgot-input'">
-    <h3 style="font-weight: bold; color: var(--ion-text-color);">Reset Password</h3>
-    <p *ngIf="!resetOtpVerified" style="color: var(--ion-color-medium); font-weight: 500;" class="ion-margin-bottom">
+  <div *ngIf="viewMode === 'forgot-input'" style="max-width: 380px; margin: 0 auto;">
+    <h3 style="font-weight: 800; color: var(--ion-text-color); margin-bottom: 6px;">Reset Password</h3>
+    <p *ngIf="!resetOtpVerified" style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin-bottom: 20px;">
       Enter your registered {{ otpChannel === 'email' ? 'email' : 'phone number' }} to receive a recovery OTP.
     </p>
 
     <div *ngIf="resetOtpVerified" class="ion-margin-bottom"
-         style="display: flex; align-items: center; gap: 10px; background: var(--ion-color-light); border-radius: 12px; padding: 12px 16px; opacity: 0.75;">
-      <i class="fa-solid" [class.fa-envelope]="otpChannel !== 'phone'" [class.fa-mobile-screen]="otpChannel === 'phone'"
-         style="color: var(--ion-color-medium); font-size: 16px;"></i>
-      <span style="font-weight: 600; color: var(--ion-color-medium); flex: 1; text-align: left;">{{ maskedResetIdentifier }}</span>
-      <i class="fa-solid fa-circle-check" style="color: #2dd36f; font-size: 16px;"></i>
+         style="display: flex; align-items: center; gap: 10px; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); border-radius: 14px; padding: 12px 16px; border: var(--card-border, 1px solid rgba(0,0,0,0.08));">
+      <app-icon [name]="otpChannel === 'phone' ? 'smartphone' : 'mail'" [size]="18" color="var(--ion-color-medium)"></app-icon>
+      <span style="font-weight: 700; color: var(--ion-text-color); flex: 1; text-align: left; font-size: 13.5px;">{{ maskedResetIdentifier }}</span>
+      <app-icon name="check" [size]="18" color="#2dd36f"></app-icon>
     </div>
 
-    <ion-list style="background: transparent;" *ngIf="!resetOtpVerified">
-      <ion-item *ngIf="otpChannel === 'email'">
-        <i class="fa-solid fa-envelope" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+    <div class="inset-card" style="margin-bottom: 8px; text-align: left;" *ngIf="!resetOtpVerified">
+      <ion-item lines="none" *ngIf="otpChannel === 'email'">
+        <app-icon name="mail" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
         <ion-input label="Registered Email Address" labelPlacement="stacked"
-                   type="email" inputmode="email" autocomplete="email" placeholder="Tap to enter your registered email"
+                   type="email" inputmode="email" autocomplete="email" placeholder="Enter your registered email"
                    [(ngModel)]="resetData.email"
                    (ionInput)="resetData.otp = ''; resetOtpSent = false;"
                    [disabled]="isSendingOtp"></ion-input>
@@ -245,53 +245,53 @@
                     [class.btn-muted]="otpResendSecs > 0"
                     [class.btn-loading]="isSendingOtp"
                     (click)="requestReset()"
-                    style="font-weight: bold; margin: 0; --border-radius: 8px; min-width: 76px;">
+                    style="font-weight: 700; margin: 0; --border-radius: 10px; min-width: 76px;">
           <ng-container *ngIf="!isSendingOtp">
             <ng-container *ngIf="!resetOtpSent">Send</ng-container>
             <ng-container *ngIf="resetOtpSent && otpResendSecs > 0">{{ otpResendSecs }}s</ng-container>
             <ng-container *ngIf="resetOtpSent && otpResendSecs === 0">Resend</ng-container>
           </ng-container>
-          <i *ngIf="isSendingOtp" class="fa-solid fa-spinner fa-spin"></i>
+          <app-icon *ngIf="isSendingOtp" name="loader-2" [size]="16" color="#ffffff"></app-icon>
         </ion-button>
       </ion-item>
-      <ion-item *ngIf="otpChannel === 'phone'">
-        <i class="fa-solid fa-mobile-screen" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+      <ion-item lines="none" *ngIf="otpChannel === 'phone'">
+        <app-icon name="smartphone" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
         <ion-input label="Registered Phone Number" labelPlacement="stacked"
                    type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="9XXXXXXXXX"
                    [ngModel]="resetPhoneLocal"
                    (ionInput)="onResetPhoneInput($event.detail.value); resetData.otp = ''; resetOtpSent = false;"
                    [disabled]="isSendingOtp">
-          <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:600;">+63</div>
+          <div slot="start" style="padding-right:6px;color:var(--ion-color-medium);font-weight:700;">+63</div>
         </ion-input>
         <ion-button slot="end" fill="solid" color="danger" size="small" type="button"
                     [class.btn-muted]="otpResendSecs > 0"
                     [class.btn-loading]="isSendingOtp"
                     (click)="requestReset()"
-                    style="font-weight: bold; margin: 0; --border-radius: 8px; min-width: 76px;">
+                    style="font-weight: 700; margin: 0; --border-radius: 10px; min-width: 76px;">
           <ng-container *ngIf="!isSendingOtp">
             <ng-container *ngIf="!resetOtpSent">Send</ng-container>
             <ng-container *ngIf="resetOtpSent && otpResendSecs > 0">{{ otpResendSecs }}s</ng-container>
             <ng-container *ngIf="resetOtpSent && otpResendSecs === 0">Resend</ng-container>
           </ng-container>
-          <i *ngIf="isSendingOtp" class="fa-solid fa-spinner fa-spin"></i>
+          <app-icon *ngIf="isSendingOtp" name="loader-2" [size]="16" color="#ffffff"></app-icon>
         </ion-button>
       </ion-item>
-    </ion-list>
-
-    <div *ngIf="otpChannel === 'phone' && resetPhoneLocal.length > 0 && !resetIdentifierValid"
-         style="text-align: left; padding: 6px 16px; font-size: 12px; color: var(--ion-color-danger);">
-      <i class="fa-solid fa-circle-exclamation" style="margin-right: 5px;"></i>
-      Enter a valid phone number (e.g. 09XXXXXXXXX).
     </div>
 
-    <div *ngIf="resetOtpSent && !resetOtpVerified" style="margin-top: 20px;">
-      <h3 style="font-weight: bold; color: var(--ion-text-color); text-align: left; font-size: 16px;">Enter Code</h3>
-      <p style="color: var(--ion-color-medium); font-weight: 500; text-align: left;" class="ion-margin-bottom">
+    <div *ngIf="otpChannel === 'phone' && resetPhoneLocal.length > 0 && !resetIdentifierValid"
+         style="text-align: left; padding: 4px 8px; font-size: 12px; color: var(--ion-color-danger); display: flex; align-items: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="14" color="var(--ion-color-danger)"></app-icon>
+      <span>Enter a valid phone number (e.g. 09XXXXXXXXX).</span>
+    </div>
+
+    <div *ngIf="resetOtpSent && !resetOtpVerified" style="margin-top: 24px;">
+      <h3 style="font-weight: 800; color: var(--ion-text-color); text-align: left; font-size: 16px; margin-bottom: 4px;">Enter Recovery Code</h3>
+      <p style="color: var(--ion-color-medium); font-weight: 500; text-align: left; font-size: 13px;" class="ion-margin-bottom">
         Enter the 6-digit code sent to your {{ otpChannel === 'phone' ? 'phone number' : 'email' }}.
       </p>
       <app-otp-box-input [code]="resetData.otp" (codeChange)="resetData.otp = $event" (completed)="verifyResetOtp()"></app-otp-box-input>
 
-      <div *ngIf="otpChannel === 'email'" style="margin-top: 14px; text-align: center;">
+      <div *ngIf="otpChannel === 'email'" style="margin-top: 16px; text-align: center;">
         <p style="font-size: 13px; color: var(--ion-color-medium); margin: 0 0 4px 0;">
           Didn't receive the email? Check your spam folder or
         </p>
@@ -299,7 +299,9 @@
                     [disabled]="otpResendSecs > 0 || isSendingOtp"
                     style="font-weight: 700; font-size: 13px; height: 32px;">
           <ng-container *ngIf="otpResendSecs > 0">Resend email in {{ otpResendSecs }}s</ng-container>
-          <ng-container *ngIf="otpResendSecs === 0"><i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Resend the email</ng-container>
+          <ng-container *ngIf="otpResendSecs === 0">
+            <app-icon name="rotate-cw" [size]="14" color="var(--ion-color-danger)" style="margin-right: 5px;"></app-icon> Resend the email
+          </ng-container>
         </ion-button>
       </div>
 
@@ -307,79 +309,77 @@
                   [class.btn-muted]="resetData.otp.length < 6"
                   [class.btn-loading]="isVerifyingResetOtp"
                   (click)="verifyResetOtp()"
-                  style="font-weight: bold; height: 45px;">
+                  style="font-weight: 800; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(211,47,47,0.3);">
         <ng-container *ngIf="!isVerifyingResetOtp">
-          <i class="fa-solid fa-check" style="margin-right: 8px;"></i>
-          Verify Code
+          <app-icon name="check" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> Verify Code
         </ng-container>
         <span *ngIf="isVerifyingResetOtp" class="dot-loader"><span></span><span></span><span></span></span>
       </ion-button>
     </div>
 
-    <ion-list *ngIf="resetOtpVerified" style="background: transparent;" class="ion-margin-top">
-      <ion-item>
-        <i class="fa-solid fa-lock-open" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
-        <ion-input label="New Password" labelPlacement="stacked" placeholder="Tap to enter a new password"
+    <div *ngIf="resetOtpVerified" class="inset-card" style="margin-top: 16px; text-align: left;">
+      <ion-item lines="full">
+        <app-icon name="lock-open" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
+        <ion-input label="New Password" labelPlacement="stacked" placeholder="Enter a new password"
                    type="password" [(ngModel)]="resetData.new_password"
                    (ionInput)="onResetPasswordInput()">
           <ion-input-password-toggle slot="end"></ion-input-password-toggle>
         </ion-input>
       </ion-item>
-      <ion-item>
-        <i class="fa-solid fa-lock-open" slot="start" style="color: var(--ion-color-medium); width: 24px; font-size: 18px;"></i>
+      <ion-item lines="none">
+        <app-icon name="lock-open" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
         <ion-input label="Confirm New Password" labelPlacement="stacked" placeholder="Re-enter your new password"
                    type="password" [(ngModel)]="resetData.confirm_password">
           <ion-input-password-toggle slot="end"></ion-input-password-toggle>
         </ion-input>
       </ion-item>
-    </ion-list>
+    </div>
 
     <div *ngIf="resetOtpVerified && resetData.confirm_password.length > 0 && resetData.new_password !== resetData.confirm_password"
-         style="text-align: left; padding: 6px 16px; font-size: 12px; color: var(--ion-color-danger);">
-      <i class="fa-solid fa-circle-exclamation" style="margin-right: 5px;"></i>
-      Passwords do not match.
+         style="text-align: left; padding: 6px 8px; font-size: 12px; color: var(--ion-color-danger); display: flex; align-items: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="14" color="var(--ion-color-danger)"></app-icon>
+      <span>Passwords do not match.</span>
     </div>
 
     <div *ngIf="resetOtpVerified && resetData.new_password.length > 0"
-         style="background: var(--ion-color-light); padding: 12px; border-radius: var(--app-radius); margin-top: 10px; border-left: 4px solid var(--app-red); text-align: left;">
-      <p style="margin: 5px 0; font-size: 12px; display: flex; align-items: center;"
-         [style.color]="resetPwdLength ? '#2dd36f' : '#8a8a8a'">
-        <i [class]="resetPwdLength ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px; width: 14px;"></i>
+         style="background: var(--ion-card-background, white); padding: 14px 16px; border-radius: 16px; margin-top: 12px; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); border-left: 4px solid var(--ion-color-danger); text-align: left; box-shadow: var(--card-shadow);">
+      <p style="margin: 4px 0; font-size: 12px; display: flex; align-items: center; gap: 8px;"
+         [style.color]="resetPwdLength ? '#2dd36f' : 'var(--ion-color-medium)'">
+        <app-icon [name]="resetPwdLength ? 'check' : 'circle'" [size]="14" [color]="resetPwdLength ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
         Minimum 8 characters
       </p>
-      <p style="margin: 5px 0; font-size: 12px; display: flex; align-items: center;"
-         [style.color]="resetPwdUpper ? '#2dd36f' : '#8a8a8a'">
-        <i [class]="resetPwdUpper ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px; width: 14px;"></i>
+      <p style="margin: 4px 0; font-size: 12px; display: flex; align-items: center; gap: 8px;"
+         [style.color]="resetPwdUpper ? '#2dd36f' : 'var(--ion-color-medium)'">
+        <app-icon [name]="resetPwdUpper ? 'check' : 'circle'" [size]="14" [color]="resetPwdUpper ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
         Uppercase letter (A–Z)
       </p>
-      <p style="margin: 5px 0; font-size: 12px; display: flex; align-items: center;"
-         [style.color]="resetPwdLower ? '#2dd36f' : '#8a8a8a'">
-        <i [class]="resetPwdLower ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px; width: 14px;"></i>
+      <p style="margin: 4px 0; font-size: 12px; display: flex; align-items: center; gap: 8px;"
+         [style.color]="resetPwdLower ? '#2dd36f' : 'var(--ion-color-medium)'">
+        <app-icon [name]="resetPwdLower ? 'check' : 'circle'" [size]="14" [color]="resetPwdLower ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
         Lowercase letter (a–z)
       </p>
-      <p style="margin: 5px 0; font-size: 12px; display: flex; align-items: center;"
-         [style.color]="resetPwdNum ? '#2dd36f' : '#8a8a8a'">
-        <i [class]="resetPwdNum ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px; width: 14px;"></i>
+      <p style="margin: 4px 0; font-size: 12px; display: flex; align-items: center; gap: 8px;"
+         [style.color]="resetPwdNum ? '#2dd36f' : 'var(--ion-color-medium)'">
+        <app-icon [name]="resetPwdNum ? 'check' : 'circle'" [size]="14" [color]="resetPwdNum ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
         Digit (0–9)
       </p>
-      <p style="margin: 5px 0; font-size: 12px; display: flex; align-items: center;"
-         [style.color]="resetPwdSym ? '#2dd36f' : '#8a8a8a'">
-        <i [class]="resetPwdSym ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'" style="margin-right: 8px; width: 14px;"></i>
-        Special symbol (@$!%*#?&amp;)
+      <p style="margin: 4px 0; font-size: 12px; display: flex; align-items: center; gap: 8px;"
+         [style.color]="resetPwdSym ? '#2dd36f' : 'var(--ion-color-medium)'">
+        <app-icon [name]="resetPwdSym ? 'check' : 'circle'" [size]="14" [color]="resetPwdSym ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
+        Special symbol (&#64;$!%*#?&amp;)
       </p>
     </div>
 
     <ion-button *ngIf="resetOtpVerified" expand="block" color="danger" class="ion-margin-top" (click)="confirmReset()"
-                [disabled]="isResettingPwd || !resetPwdMatch" style="font-weight: bold; height: 45px;">
+                [disabled]="isResettingPwd || !resetPwdMatch" style="font-weight: 800; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(211,47,47,0.3);">
       <ng-container *ngIf="!isResettingPwd">Confirm New Password</ng-container>
       <span *ngIf="isResettingPwd" style="display:flex;align-items:center;gap:8px;">
-        <i class="fa-solid fa-spinner fa-spin"></i> Updating…
+        <app-icon name="loader-2" [size]="18" color="#ffffff"></app-icon> Updating…
       </span>
     </ion-button>
     <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
-                (click)="viewMode = 'forgot-choose'" style="font-weight: bold;">
-      <i class="fa-solid fa-arrow-left" style="margin-right: 6px;"></i>
-      Back
+                (click)="viewMode = 'forgot-choose'" style="font-weight: 700; --border-radius: 12px;">
+      <app-icon name="arrow-left" [size]="16" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Back
     </ion-button>
   </div>
 

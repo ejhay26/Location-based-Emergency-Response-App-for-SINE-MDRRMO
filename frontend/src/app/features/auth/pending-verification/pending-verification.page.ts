@@ -5,6 +5,7 @@ import { Subscription, interval } from 'rxjs';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
 import { EchoService } from '../../../core/services/echo.service';
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
 type VerificationStatus = 'checking' | 'unverified' | 'active' | 'banned' | 'not_found' | 'error';
 
@@ -14,27 +15,12 @@ type VerificationStatus = 'checking' | 'unverified' | 'active' | 'banned' | 'not
  * login attempt 403s with reason `unverified`. Deliberately not behind
  * AuthGuard — there's no token at this point, only an identifier (email or
  * username) passed in the `login` query param.
- *
- * Real-time strategy (hybrid):
- *   Primary  — Echo `users` channel listens for UserVerified events.
- *              When the admin approves THIS user, the event fires and we
- *              call checkStatus() immediately — the citizen sees their screen
- *              update in under a second rather than waiting for the next poll.
- *   Fallback — 30s interval runs continuously as a safety net for when
- *              the WebSocket is disconnected (network blip, mobile background,
- *              app cold-started without Reverb running yet, etc.).
- *
- * The Echo subscription is intentionally broad (any UserVerified event, not
- * just this user's user_id) because the identifier on this page is an email/
- * username string, not a user_id — we can't filter server-side without an
- * authenticated private channel, which this pre-auth page can't use. The
- * extra HTTP call on an irrelevant approval is negligible.
  */
 @Component({
   selector: 'app-pending-verification',
   templateUrl: './pending-verification.page.html',
   standalone: true,
-  imports: [CommonModule, RouterModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton],
+  imports: [CommonModule, RouterModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, AppIconComponent],
 })
 export class PendingVerificationPage implements OnInit, OnDestroy {
 

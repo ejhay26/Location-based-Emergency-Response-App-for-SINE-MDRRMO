@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuController } from '@ionic/angular/standalone';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem,
+  IonHeader, IonToolbar, IonTitle, IonContent, IonItem,
   IonInput, IonButton, IonInputPasswordToggle, IonToast
 } from '@ionic/angular/standalone';
 import { Router, RouterModule } from '@angular/router';
@@ -18,6 +18,7 @@ import { DeepLinkService } from '../../../core/services/deep-link';
 import { formatPhoneLocalPart, isValidPhonePH } from '../../../shared/utils/phone.util';
 import { OtpAutofillService } from '../../../core/services/otp-autofill';
 import { OtpBoxInputComponent } from '../../../shared/components/otp-box-input/otp-box-input.component';
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
 @Component({
   selector: 'app-login',
@@ -25,9 +26,9 @@ import { OtpBoxInputComponent } from '../../../shared/components/otp-box-input/o
   standalone: true,
   imports: [
     CommonModule, FormsModule, RouterModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonItem,
     IonInput, IonButton, IonInputPasswordToggle, IonToast,
-    OtpBoxInputComponent
+    OtpBoxInputComponent, AppIconComponent
   ],
 })
 export class LoginPage {
@@ -423,7 +424,7 @@ export class LoginPage {
     const confirmed = await this.dialog.confirm({
       title: 'Reset Password',
       message: 'You are about to set a new password for this account. You will need to log in again with it afterward.',
-      icon: 'fa-solid fa-lock-open', iconColor: 'var(--ion-color-danger)',
+      icon: 'lock-open', iconColor: 'var(--ion-color-danger)',
       confirmLabel: 'Reset Password', confirmColor: 'var(--ion-color-danger)',
     });
     if (!confirmed) return;
