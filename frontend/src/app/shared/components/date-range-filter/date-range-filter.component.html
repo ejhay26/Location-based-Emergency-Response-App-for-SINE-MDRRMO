@@ -1,40 +1,40 @@
 <ion-button [id]="triggerId" [fill]="hasValue ? 'solid' : 'outline'" [color]="hasValue ? 'danger' : 'medium'" size="small"
-  style="font-weight:700;--border-radius:20px;height:32px;margin:0;white-space:nowrap;font-size:12px;--padding-start:12px;--padding-end:12px;">
-  <i class="fa-solid fa-calendar-days" style="margin-right:5px;font-size:11px;"></i>{{ displayLabel }}
+  style="font-weight:700;--border-radius:20px;height:32px;margin:0;white-space:nowrap;font-size:12px;--padding-start:12px;--padding-end:12px;display:inline-flex;align-items:center;gap:5px;">
+  <app-icon name="calendar" [size]="12" [color]="hasValue ? '#ffffff' : 'currentColor'"></app-icon>{{ displayLabel }}
 </ion-button>
 
 <ion-popover [trigger]="triggerId" [dismissOnSelect]="false" side="bottom" alignment="center" (didPresent)="onOpen()"
-  style="--width:min(340px, 92vw);">
+  style="--width:min(340px, 92vw);--background:var(--ion-card-background, #1c1c1e);--border-radius:20px;--box-shadow:0 16px 40px rgba(0,0,0,0.65);">
   <ng-template>
-    <div style="padding:12px;width:100%;box-sizing:border-box;">
-      <ion-segment [value]="pendingMode" (ionChange)="onModeChange($event)" style="margin-bottom:10px;">
-        <ion-segment-button value="single"><ion-label style="font-size:10.5px;white-space:normal;text-transform:none;line-height:1.15;">One Day</ion-label></ion-segment-button>
-        <ion-segment-button value="multiple"><ion-label style="font-size:10.5px;white-space:normal;text-transform:none;line-height:1.15;">Several Days</ion-label></ion-segment-button>
-        <ion-segment-button value="range"><ion-label style="font-size:10.5px;white-space:normal;text-transform:none;line-height:1.15;">Date Range</ion-label></ion-segment-button>
+    <div style="padding:14px;width:100%;box-sizing:border-box;background:var(--ion-card-background, #ffffff);border:var(--card-border, 1px solid rgba(255,255,255,0.15));border-radius:20px;">
+      <ion-segment mode="ios" [value]="pendingMode" (ionChange)="onModeChange($event)" style="margin-bottom:12px;">
+        <ion-segment-button value="single"><ion-label style="font-size:11px;font-weight:700;">One Day</ion-label></ion-segment-button>
+        <ion-segment-button value="multiple"><ion-label style="font-size:11px;font-weight:700;">Several Days</ion-label></ion-segment-button>
+        <ion-segment-button value="range"><ion-label style="font-size:11px;font-weight:700;">Date Range</ion-label></ion-segment-button>
       </ion-segment>
 
-      <p *ngIf="pendingMode === 'multiple'" style="font-size:11px;color:var(--ion-color-medium);margin:0 2px 6px;">Tap as many days as you need.</p>
-      <p *ngIf="pendingMode === 'range'" style="font-size:11px;color:var(--ion-color-medium);margin:0 2px 6px;">
+      <p *ngIf="pendingMode === 'multiple'" style="font-size:11.5px;color:var(--ion-color-medium);margin:0 2px 8px;font-weight:500;">Tap as many days as you need.</p>
+      <p *ngIf="pendingMode === 'range'" style="font-size:11.5px;color:var(--ion-color-medium);margin:0 2px 8px;font-weight:500;">
         <ng-container *ngIf="!pendingRangeStart">Tap a Start day, then an End day.</ng-container>
-        <ng-container *ngIf="pendingRangeStart && !pendingRangeEnd">Start: {{ pendingRangeStart }} - now tap an End day.</ng-container>
+        <ng-container *ngIf="pendingRangeStart && !pendingRangeEnd">Start: {{ pendingRangeStart }} — now tap an End day.</ng-container>
         <ng-container *ngIf="pendingRangeStart && pendingRangeEnd">{{ pendingRangeStart }} to {{ pendingRangeEnd }}</ng-container>
       </p>
 
-      <!-- One persistent calendar for all three modes - see component doc for how
-           mode-switches, reopening, and clearing all reset it via reset() rather
-           than unmounting it (which previously caused a visible flash). -->
-      <ion-datetime
-        presentation="date"
-        size="cover"
-        [multiple]="isMultipleCalendar"
-        [value]="calendarValue"
-        [highlightedDates]="pendingMode === 'range' ? rangeHighlight : undefined"
-        (ionChange)="onCalendarChange($event)">
-      </ion-datetime>
+      <!-- One persistent calendar for all three modes -->
+      <div style="border-radius:14px;overflow:hidden;background:var(--ion-color-step-50, rgba(0,0,0,0.03));border:1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
+        <ion-datetime
+          presentation="date"
+          size="cover"
+          [multiple]="isMultipleCalendar"
+          [value]="calendarValue"
+          [highlightedDates]="pendingMode === 'range' ? rangeHighlight : undefined"
+          (ionChange)="onCalendarChange($event)">
+        </ion-datetime>
+      </div>
 
-      <div style="display:flex;gap:8px;margin-top:14px;">
-        <ion-button fill="clear" color="medium" size="small" style="flex:1;margin:0;font-weight:bold;" (click)="onClear()">Clear</ion-button>
-        <ion-button color="danger" size="small" style="flex:1;margin:0;font-weight:bold;" [disabled]="!canApply" (click)="onApply()">Apply</ion-button>
+      <div style="display:flex;gap:10px;margin-top:14px;">
+        <ion-button fill="outline" color="medium" size="small" style="flex:1;margin:0;font-weight:700;height:38px;--border-radius:12px;" (click)="onClear()">Clear</ion-button>
+        <ion-button color="danger" size="small" style="flex:1;margin:0;font-weight:700;height:38px;--border-radius:12px;--box-shadow:0 4px 12px rgba(211,47,47,0.3);" [disabled]="!canApply" (click)="onApply()">Apply</ion-button>
       </div>
     </div>
   </ng-template>

@@ -13,10 +13,12 @@ import { IonButton } from '@ionic/angular/standalone';
  * component only renders whatever chip labels it's given and reports back
  * when the user asks to clear everything.
  */
+import { AppIconComponent } from '../app-icon/app-icon.component';
+
 @Component({
   selector: 'app-filter-summary-bar',
   standalone: true,
-  imports: [CommonModule, IonButton],
+  imports: [CommonModule, IonButton, AppIconComponent],
   templateUrl: './filter-summary-bar.component.html',
 })
 export class FilterSummaryBarComponent {

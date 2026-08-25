@@ -54,10 +54,12 @@ function normalizePicks(raw: unknown): string[] {
  *    view always follows the user's most recent tap regardless of how the
  *    dates get reordered for storage.
  */
+import { AppIconComponent } from '../app-icon/app-icon.component';
+
 @Component({
   selector: 'app-date-range-filter',
   standalone: true,
-  imports: [CommonModule, IonButton, IonPopover, IonDatetime, IonSegment, IonSegmentButton, IonLabel],
+  imports: [CommonModule, IonButton, IonPopover, IonDatetime, IonSegment, IonSegmentButton, IonLabel, AppIconComponent],
   templateUrl: './date-range-filter.component.html',
 })
 export class DateRangeFilterComponent {
