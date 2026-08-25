@@ -12,6 +12,8 @@ import { PushNotificationsService } from '../../../core/services/push-notificati
 import { DesktopNotificationsService } from '../../../core/services/desktop-notifications';
 import { AdminUiService } from './admin-ui.service';
 
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
+
 import { IncidentMapPanel } from './panels/incident-map/incident-map.panel';
 import { AnalyticsPanel } from './panels/analytics/analytics.panel';
 import { LogArchivePanel } from './panels/log-archive/log-archive.panel';
@@ -26,15 +28,6 @@ type ViewMode =
   | 'active' | 'hazards' | 'archive' | 'analytics' | 'broadcast'
   | 'verifications' | 'dispatchers' | 'citizens' | 'feedback' | 'settings';
 
-/**
- * AdminDashboardPage — thin shell. Owns the sidebar nav, dark mode toggle,
- * and logout. The confirm dialog and media lightbox are now rendered once
- * at the true app root (<app-dialogs>, fed by the shared DialogService) —
- * this page just triggers them via AdminUiService the same way every panel
- * does. Everything else is a panel that loads and manages its own state;
- * switching viewMode mounts/unmounts the relevant panel component via
- * *ngIf, matching how each panel's own OnInit/OnDestroy was already written.
- */
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
@@ -45,7 +38,7 @@ type ViewMode =
     IonContent,
     IncidentMapPanel, AnalyticsPanel, LogArchivePanel, BroadcastPanel,
     VerificationsPanel, DispatchersPanel, CitizensPanel, FeedbackPanel,
-    SettingsPanel,
+    SettingsPanel, AppIconComponent,
   ],
 })
 export class AdminDashboardPage implements OnInit, OnDestroy {
@@ -54,6 +47,16 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   viewMode: ViewMode = 'active';
   isSidebarCollapsed = false;
   isElectron = false;
+
+  /** Draggable sidebar width state */
+  sidebarWidth = 270;
+  readonly MIN_SIDEBAR_WIDTH = 210;
+  readonly MAX_SIDEBAR_WIDTH = 440;
+  isResizing = false;
+  private startX = 0;
+  private startWidth = 270;
+  private boundMouseMove = this.onMouseMoveResize.bind(this);
+  private boundMouseUp = this.onMouseUpResize.bind(this);
 
   // Only present in the DOM while viewMode is 'active'/'hazards'; undefined otherwise.
   @ViewChild(IncidentMapPanel) private incidentMapPanel?: IncidentMapPanel;
@@ -74,6 +77,16 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.isElectron = (window as unknown as { process?: { versions?: { electron?: string } } }).process?.versions?.electron != null || /electron/i.test(navigator.userAgent);
+    
+    // Restore saved sidebar width if present
+    const savedWidth = localStorage.getItem('admin_sidebar_width');
+    if (savedWidth) {
+      const parsed = parseInt(savedWidth, 10);
+      if (!isNaN(parsed) && parsed >= this.MIN_SIDEBAR_WIDTH && parsed <= this.MAX_SIDEBAR_WIDTH) {
+        this.sidebarWidth = parsed;
+      }
+    }
+
     // Apply dark mode from the settings service (same source as mobile pages).
     this.userSettings.applyToDom();
     // Stage 5 — desktop alert on new SOS/hazard reports. Dashboard-wide (not
@@ -84,6 +97,47 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.desktopNotifications.stop();
+    this.stopResizeListeners();
+  }
+
+  onMouseDownResize(event: MouseEvent) {
+    if (this.isSidebarCollapsed) return;
+    event.preventDefault();
+    this.isResizing = true;
+    this.startX = event.clientX;
+    this.startWidth = this.sidebarWidth;
+
+    document.addEventListener('mousemove', this.boundMouseMove);
+    document.addEventListener('mouseup', this.boundMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }
+
+  private onMouseMoveResize(event: MouseEvent) {
+    if (!this.isResizing) return;
+    const delta = event.clientX - this.startX;
+    let newWidth = this.startWidth + delta;
+    if (newWidth < this.MIN_SIDEBAR_WIDTH) newWidth = this.MIN_SIDEBAR_WIDTH;
+    if (newWidth > this.MAX_SIDEBAR_WIDTH) newWidth = this.MAX_SIDEBAR_WIDTH;
+    this.sidebarWidth = newWidth;
+    this.incidentMapPanel?.invalidateMapSize();
+  }
+
+  private onMouseUpResize() {
+    if (!this.isResizing) return;
+    this.isResizing = false;
+    this.stopResizeListeners();
+    localStorage.setItem('admin_sidebar_width', String(this.sidebarWidth));
+    setTimeout(() => {
+      this.incidentMapPanel?.invalidateMapSize();
+    }, 50);
+  }
+
+  private stopResizeListeners() {
+    document.removeEventListener('mousemove', this.boundMouseMove);
+    document.removeEventListener('mouseup', this.boundMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
   }
 
   ionViewWillEnter() {
@@ -130,7 +184,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   logout() {
     this.ui.confirm({
       title: 'Logout', message: 'Are you sure you want to logout?',
-      icon: 'fa-solid fa-right-from-bracket', iconColor: 'var(--ion-color-danger)',
+      icon: 'logout', iconColor: 'var(--ion-color-danger)',
       confirmLabel: 'Logout', confirmColor: 'var(--ion-color-danger)',
       // The dialog itself now owns the loading state (its Confirm button
       // shows the spinner and blocks Cancel while this runs) — see

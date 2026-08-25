@@ -21,25 +21,132 @@
 }
 
 .admin-sidebar {
-  background: var(--ion-card-background, #fff);
-  border-right: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.1));
+  position: relative;
+  background: var(--ion-card-background, #ffffff);
+  border-right: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 15px 10px;
+  padding: 14px 10px;
   z-index: 10;
-  transition: width 0.25s ease;
+  transition: width 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.sidebar-toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
+  }
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sidebar-section-header {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px 2px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--ion-color-medium, #8e8e93);
+  user-select: none;
+}
+
+.sidebar-section-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ion-color-step-300, #a0a0a0);
+  opacity: 0.5;
+  margin: 4px auto;
+}
+
+.sidebar-section-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Sidebar navigation menu capsule links */
+.menu-capsule-link {
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 10px 14px;
+  font-weight: 700;
+  font-size: 13.5px;
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-radius: 11px;
+  color: var(--ion-text-color, #1c1c1e);
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  white-space: nowrap;
+
+  &:hover:not(.active) {
+    background: var(--ion-color-step-50, rgba(0, 0, 0, 0.04));
+  }
+
+  &.active {
+    background: var(--ion-color-danger, #eb445a) !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(235, 68, 90, 0.3);
+  }
+}
+
+/* Draggable sidebar resizer */
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+
+  .resize-line {
+    width: 2px;
+    height: 100%;
+    background: transparent;
+    transition: background 0.2s ease;
+  }
+
+  &:hover .resize-line,
+  &:active .resize-line {
+    background: var(--ion-color-danger, #eb445a);
+  }
 }
 
 .admin-main-viewport {
   flex: 1;
   min-width: 0;
   background: var(--ion-background-color, #f4f5f8);
-  padding: 18px 24px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -47,7 +154,7 @@
 }
 
 :host-context(ion-app.electron-app) .admin-main-viewport {
-  padding: 38px 24px 18px 24px !important;
+  padding: 36px 20px 16px 20px !important;
 }
 
 :host-context(ion-app.electron-app) .admin-sidebar {
@@ -56,8 +163,8 @@
 
 .admin-sidebar::-webkit-scrollbar,
 .admin-scroll-panel::-webkit-scrollbar {
-  width: 6px !important;
-  height: 6px !important;
+  width: 5px !important;
+  height: 5px !important;
   background: transparent !important;
 }
 
@@ -92,24 +199,8 @@
 
 /* Slim scroll container with bottom fade-out mask */
 .admin-scroll-panel {
-  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
-          mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
-  padding-bottom: 28px;
-}
-
-/* Sidebar navigation menu capsule links */
-.menu-capsule-link {
-  background: transparent;
-  border: none;
-  text-align: left;
-  padding: 14px 16px;
-  font-weight: bold;
-  font-size: 15px;
-  width: 100%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  border-radius: 12px;
-  transition: all 0.2s ease;
+  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
+          mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
+  padding-bottom: 24px;
 }
 
