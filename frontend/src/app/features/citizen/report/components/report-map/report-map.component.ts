@@ -328,15 +328,13 @@ export class ReportMapComponent implements OnDestroy {
         this.map.invalidateSize();
         setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 60);
         setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 200);
+        setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 400);
       }
     }
 
-    // Fire-and-forget: unlike collapseMap, expandMap doesn't need to react
-    // to the curtain settling (no teardown work happens on expand). Still
-    // attach a no-op .catch() so an interrupted tween's rejection (e.g. a
-    // rapid collapse-tap calling .stop() mid-curtain) never surfaces as an
-    // unhandled promise rejection.
-    this.playCurtainReveal(node, srcRect, 'in').catch(() => {});
+    this.playCurtainReveal(node, srcRect, 'in')
+      .then(() => { if (this.map) this.map.invalidateSize(); })
+      .catch(() => { if (this.map) this.map.invalidateSize(); });
   }
 
   private collapseMap(): void {
@@ -358,20 +356,19 @@ export class ReportMapComponent implements OnDestroy {
 
   /**
    * Plays the curtain clip-path tween for one direction and returns a
-   * Promise the caller can await/settle on — resolves immediately
-   * (already-settled Promise) if `reduce_animations` is on or `rect`
-   * couldn't be measured, so callers don't need to special-case either
-   * path.
-   *
-   * Only the vertical insets (top/bottom) animate — left/right stay at 0
-   * the whole time, since the small map already spans the full width of
-   * its container and only its height differs from the fullscreen target.
+   * Promise the caller can await/settle on. Guaranteed never to leave
+   * the overlay in a clipped or stuck state.
    */
   private playCurtainReveal(node: HTMLElement, rect: DOMRect | null, direction: 'in' | 'out'): Promise<void> {
     this.overlayAnimControls?.stop();
 
-    if (!rect || window.innerHeight <= 0) {
-      node.style.clipPath = '';
+    if (!rect || window.innerHeight <= 0 || !this.userSettings.shouldAnimate()) {
+      if (direction === 'in') {
+        node.style.clipPath = '';
+        if (this.map) this.map.invalidateSize();
+      } else {
+        node.style.clipPath = rect ? `inset(${Math.max(0, (rect.top / window.innerHeight) * 100)}% 0% ${Math.max(0, ((window.innerHeight - rect.bottom) / window.innerHeight) * 100)}% 0%)` : '';
+      }
       return Promise.resolve();
     }
 
@@ -381,29 +378,49 @@ export class ReportMapComponent implements OnDestroy {
     const openClip   = 'inset(0% 0% 0% 0%)';
     const durationSec = direction === 'in' ? 0.32 : 0.26;
 
-    if (!this.userSettings.shouldAnimate()) {
-      node.style.clipPath = direction === 'in' ? '' : closedClip;
-      return Promise.resolve();
-    }
-
     if (direction === 'in') {
-      // Force the starting frame before tweening — the node just mounted via
-      // *ngIf with no inline style yet, so without this it would start from
-      // its default CSS (unclipped, full-viewport) and there'd be nothing
-      // to visibly animate FROM.
       node.style.clipPath = closedClip;
     }
 
-    return new Promise<void>((resolve, reject) => {
-      // Defer to next frame so the browser paints the starting frame first
-      // (same pattern as RevealAnimateDirective.playOpen()), rather than
-      // jumping straight to the tween with no visible starting state.
+    // Safety timeout: if WAAPI engine hangs or frame drops on cold start,
+    // forcefully release the clip-path so the overlay never stays stuck.
+    const safetyTimer = setTimeout(() => {
+      if (direction === 'in') {
+        node.style.clipPath = '';
+        if (this.map) this.map.invalidateSize();
+      }
+    }, (durationSec * 1000) + 80);
+
+    return new Promise<void>((resolve) => {
       requestAnimationFrame(() => {
         const target = direction === 'in' ? { clipPath: openClip } : { clipPath: closedClip };
-        this.overlayAnimControls = animate(node, target, { duration: durationSec, ease: [0.4, 0, 0.2, 1] });
-        this.overlayAnimControls.finished
-          .then(() => { if (direction === 'in') { node.style.clipPath = ''; } resolve(); })
-          .catch(() => reject(new Error('overlay-tween-interrupted')));
+        try {
+          this.overlayAnimControls = animate(node, target, { duration: durationSec, ease: [0.4, 0, 0.2, 1] });
+          this.overlayAnimControls.finished
+            .then(() => {
+              clearTimeout(safetyTimer);
+              if (direction === 'in') {
+                node.style.clipPath = '';
+                if (this.map) this.map.invalidateSize();
+              }
+              resolve();
+            })
+            .catch(() => {
+              clearTimeout(safetyTimer);
+              if (direction === 'in') {
+                node.style.clipPath = '';
+                if (this.map) this.map.invalidateSize();
+              }
+              resolve();
+            });
+        } catch {
+          clearTimeout(safetyTimer);
+          if (direction === 'in') {
+            node.style.clipPath = '';
+            if (this.map) this.map.invalidateSize();
+          }
+          resolve();
+        }
       });
     });
   }
