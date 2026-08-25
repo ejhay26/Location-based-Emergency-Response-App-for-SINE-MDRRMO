@@ -46,8 +46,8 @@
     "build:mac": "ionic build --prod && electron-builder --mac",
     "build:win": "ionic build --prod && electron-builder --win",
     "build:mobile": "ionic build --prod && npx cap sync",
-    "build:android" : "ionic build --prod && npx cap sync android",
-    "build:ios" : "ionic build --prod && npx cap sync ios"
+    "build:android": "ionic build --prod && npx cap sync android",
+    "build:ios": "ionic build --prod && npx cap sync ios"
   },
   "private": true,
   "dependencies": {
@@ -71,10 +71,12 @@
     "@capacitor/status-bar": "8.0.2",
     "@capawesome/capacitor-android-sms-retriever": "^0.1.1",
     "@ionic/angular": "^8.0.0",
+    "@lucide/angular": "^1.34.0",
     "chart.js": "^4.5.1",
     "ionicons": "^7.0.0",
     "laravel-echo": "^2.4.0",
     "leaflet": "^1.9.4",
+    "lucide-angular": "^1.0.0",
     "motion": "^13.0.0",
     "ngx-image-cropper": "^9.1.6",
     "pusher-js": "^8.6.0",

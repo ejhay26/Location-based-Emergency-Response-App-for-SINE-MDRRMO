@@ -14,7 +14,7 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     // Pass your config object directly inside provideIonicAngular!
     provideIonicAngular({
-      mode: 'md',
+      mode: 'ios',
       navAnimation: bouncyPageTransition,
     }),
     provideRouter(routes, withPreloading(PreloadAllModules)),
