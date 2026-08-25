@@ -50,8 +50,9 @@ class FeedbackController extends Controller
         return response()->json(['message' => 'All feedback cleared.']);
     }
 
-    public function export()
+    public function export(Request $request)
     {
+        $format = $request->query('format', 'csv');
         $rows = DB::table('feedback')
             ->join('users', 'feedback.user_id', '=', 'users.user_id')
             ->select(
@@ -60,15 +61,46 @@ class FeedbackController extends Controller
                 'feedback.category',
                 'feedback.created_at',
                 DB::raw("CONCAT(users.first_name, ' ', users.last_name) as full_name"),
-                'users.username'
+                'users.username',
+                'users.email'
             )
             ->orderByDesc('feedback.created_at')
             ->get();
 
-        $filename = 'feedback_export_' . date('Y-m-d_His') . '.json';
+        if ($format === 'json') {
+            $filename = 'feedback_export_' . date('Y-m-d_His') . '.json';
+            return response()->json($rows, 200, [
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Type' => 'application/json'
+            ], JSON_PRETTY_PRINT);
+        }
 
-        return response()->json($rows)
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
-            ->header('Content-Type', 'application/json');
+        // CSV export
+        $filename = 'feedback_export_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($rows) {
+            $file = fopen('php://output', 'w');
+            // Add UTF-8 BOM for Excel compatibility
+            fputs($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['ID', 'Date & Time', 'Citizen Name', 'Username', 'Email', 'Category', 'Message']);
+            foreach ($rows as $row) {
+                fputcsv($file, [
+                    $row->id,
+                    $row->created_at,
+                    $row->full_name,
+                    $row->username,
+                    $row->email,
+                    ucfirst($row->category ?? 'General'),
+                    $row->message
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }
