@@ -1,49 +1,64 @@
-// Fixed above the tab bar — stays in place while the page scrolls.
-// Tab bar is 56px + safe-area; z-index 40 keeps it below tour overlay (98000+)
-// and Ionic modals (>10000) but above all normal page content.
 .sos-pill-stack {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 0 16px 8px;
-  // Prevent the fixed layer from intercepting touches on empty space
-  // between pills — only the pill elements themselves are tappable.
   pointer-events: none;
 }
 
-// Large white pill — solid, not transparent. Depth via layered box-shadow.
+// iOS Live Activity Style Floating Card
 .sos-pill {
-  pointer-events: all; // re-enable for the pill itself
+  pointer-events: all;
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 64px;
-  padding: 14px 16px;
-  border-radius: 100px;
+  min-height: 58px;
+  padding: 12px 16px;
+  border-radius: 20px;
   cursor: pointer;
   user-select: none;
 
   background: var(--ion-card-background, #ffffff);
-  border-left: 5px solid var(--ion-color-warning, #f9a825);
-  // Layered shadow: tight contact shadow + wider diffuse lift
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.14),
-    0 6px 24px rgba(0, 0, 0, 0.18);
+  border: var(--card-border, 1px solid rgba(0, 0, 0, 0.09));
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
 
-  animation: sosPillIn 0.22s ease;
+  animation: sosPillIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sos-pill::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--ion-color-warning, #ffc409);
+  border-radius: 4px 0 0 4px;
+}
+
+.sos-pill--dispatched::before {
+  background: #2dd36f; // Success / Dispatched Green
+}
+
+.sos-pill--offline::before {
+  background: var(--ion-color-medium, #8e8e93);
 }
 
 .sos-pill__cancel-action-btn {
   pointer-events: all;
   background: rgba(235, 68, 90, 0.12);
-  color: var(--ion-color-danger, #eb445a);
-  border: 1px solid rgba(235, 68, 90, 0.35);
-  border-radius: 9999px;
+  color: var(--ion-color-danger, #d32f2f);
+  border: 1px solid rgba(235, 68, 90, 0.25);
+  border-radius: 12px;
   padding: 6px 12px;
   font-size: 11px;
   font-weight: 800;
@@ -55,14 +70,14 @@
   transition: all 0.15s ease;
 
   &:hover, &:active {
-    background: var(--ion-color-danger, #eb445a);
+    background: var(--ion-color-danger, #d32f2f);
     color: #ffffff;
     transform: scale(0.96);
   }
 }
 
 @keyframes sosPillIn {
-  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -70,32 +85,23 @@ html.reduce-animations .sos-pill {
   animation: none !important;
 }
 
-.sos-pill--dispatched {
-  border-left-color: var(--ion-color-primary, #3880ff);
-}
-
-.sos-pill--offline {
-  border-left-color: var(--ion-color-step-400, #999);
-}
-
 // Icon circle — tinted to match the accent colour
 .sos-pill__icon-wrap {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  // Default: warning tint (pending)
-  background: rgba(249, 168, 37, 0.12);
-  i { color: var(--ion-color-warning-shade, #e09900); font-size: 17px; }
+  background: rgba(249, 168, 37, 0.14);
+  i { color: #d97706; font-size: 16px; }
 }
 
 .sos-pill--dispatched .sos-pill__icon-wrap {
-  background: rgba(56, 128, 255, 0.12);
-  i { color: var(--ion-color-primary, #3880ff); }
+  background: rgba(45, 211, 111, 0.14);
+  i { color: #2dd36f; }
 }
 
 .sos-pill--offline .sos-pill__icon-wrap {

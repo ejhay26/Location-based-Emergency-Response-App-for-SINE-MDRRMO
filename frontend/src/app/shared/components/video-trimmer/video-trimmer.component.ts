@@ -2,13 +2,14 @@ import { Component, Input, AfterViewInit, OnDestroy, ViewChild, ElementRef, inje
 import { CommonModule } from '@angular/common';
 import { IonButton, IonButtons, IonHeader, IonToolbar, IonTitle, IonContent, ModalController } from '@ionic/angular/standalone';
 import { UserSettingsService } from '../../../core/services/user-settings';
+import { AppIconComponent } from '../app-icon/app-icon.component';
 
 type DragHandle = 'start' | 'end' | 'playhead' | null;
 
 @Component({
   selector: 'app-video-trimmer',
   standalone: true,
-  imports: [CommonModule, IonButton, IonButtons, IonHeader, IonToolbar, IonTitle, IonContent],
+  imports: [CommonModule, IonButton, IonButtons, IonHeader, IonToolbar, IonTitle, IonContent, AppIconComponent],
   template: `
 <ion-header class="ion-no-border">
   <ion-toolbar color="danger">
@@ -22,12 +23,12 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
 <ion-content class="ion-padding">
 
   <!-- Info banner -->
-  <div style="background:#eb445a15;border:1px solid #eb445a50;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+  <div style="background:var(--ion-color-step-50, rgba(0,0,0,0.03));border:1px solid var(--ion-color-step-100, rgba(0,0,0,0.06));border-radius:14px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
     <div style="display:flex;align-items:flex-start;gap:10px;">
-      <i class="fa-solid fa-circle-info" style="color:#eb445a;font-size:16px;margin-top:2px;flex-shrink:0;"></i>
+      <app-icon name="circle-alert" [size]="16" color="var(--ion-color-danger)" style="margin-top:2px;flex-shrink:0;"></app-icon>
       <div style="font-size:13px;color:var(--ion-text-color);line-height:1.5;">
         <strong>Clips are capped at {{ MAX_DURATION }} seconds.</strong><br>
-        Drag the <span style="color:#eb445a;font-weight:bold;">red handles</span> to select your clip window.
+        Drag the <span style="color:var(--ion-color-danger);font-weight:bold;">red handles</span> to select your clip window.
       </div>
     </div>
     <button type="button" (click)="disableVideoTrimmerNow()" style="background:transparent;border:none;color:var(--ion-color-danger);font-weight:bold;font-size:12px;cursor:pointer;text-decoration:underline;white-space:nowrap;padding:0;margin-top:2px;">
@@ -35,8 +36,8 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
     </button>
   </div>
 
-  <!-- Video preview — hidden until metadata is ready; no poster/play-icon flash -->
-  <div style="position:relative;border-radius:12px;overflow:hidden;background:#000;min-height:180px;margin-bottom:0;">
+  <!-- Video preview -->
+  <div style="position:relative;border-radius:16px;overflow:hidden;background:#000;min-height:180px;margin-bottom:0;box-shadow:0 4px 16px rgba(0,0,0,0.2);">
     <video #previewVideo [src]="videoUrl" playsinline [muted]="isMuted"
            [style.opacity]="metaReady ? 1 : 0"
            style="width:100%;max-height:38vh;display:block;transition:opacity 0.15s;"
@@ -46,18 +47,18 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
     </video>
     <div *ngIf="!metaReady"
          style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-      <span class="dot-loader"><span></span><span></span><span></span></span>
+      <span class="dot-loader dot-loader-white"><span></span><span></span><span></span></span>
     </div>
   </div>
 
-  <!-- Play/Pause button — below the video, centered, with current-time readout -->
+  <!-- Play/Pause button -->
   <div *ngIf="metaReady"
-       style="display:flex;align-items:center;justify-content:center;gap:14px;margin:10px 0;">
+       style="display:flex;align-items:center;justify-content:center;gap:14px;margin:12px 0;">
     <button type="button" (click)="togglePlay()"
-            style="width:44px;height:44px;border-radius:50%;border:2px solid #eb445a;background:transparent;color:#eb445a;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-      <i class="fa-solid" [class.fa-play]="!isPlaying" [class.fa-pause]="isPlaying"></i>
+            style="width:44px;height:44px;border-radius:50%;border:none;background:var(--app-red-light, rgba(211,47,47,0.12));color:var(--ion-color-danger);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease;">
+      <app-icon [name]="isPlaying ? 'pause' : 'play'" [size]="18" color="var(--ion-color-danger)"></app-icon>
     </button>
-    <span style="font-size:13px;font-weight:bold;color:var(--ion-color-medium);font-variant-numeric:tabular-nums;">
+    <span style="font-size:13px;font-weight:700;color:var(--ion-color-medium);font-variant-numeric:tabular-nums;">
       {{ currentTime.toFixed(1) }}s / {{ videoDuration.toFixed(1) }}s
     </span>
   </div>
@@ -71,16 +72,8 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
     <span>End: <strong>{{ endTime.toFixed(1) }}s</strong></span>
   </div>
 
-  <!-- ── Timeline: film strip + dim regions + selection border + playhead + handles ── -->
-  <!--
-    Tapping the bare timeline (not on a handle) always seeks the playhead.
-    Handles have their own pointerdown that captures subsequent events via
-    setPointerCapture, so the parent tap-seek never fires when dragging a handle.
-    KEY RULE: handle drags move startTime/endTime but NEVER currentTime —
-    the playhead only moves from onTimeUpdate() during playback, or when the
-    user explicitly drags the playhead, or taps the timeline.
-  -->
-  <div #timeline
+  <!-- Timeline strip -->
+  <div #timeline class="trim-timeline"
        (pointerdown)="timelineTap($event)"
        style="position:relative;height:60px;border-radius:10px;overflow:hidden;background:#1c1c1e;touch-action:none;user-select:none;margin-bottom:8px;">
 
@@ -104,7 +97,7 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
          [style.left.%]="(startTime/videoDuration)*100"
          [style.width.%]="(trimDuration/videoDuration)*100"></div>
 
-    <!-- Playhead — draggable, but ONLY moves currentTime, never startTime/endTime -->
+    <!-- Playhead — draggable -->
     <div (pointerdown)="startDrag('playhead', $event)"
          (pointermove)="onDragMove($event)"
          (pointerup)="endDrag($event)"
@@ -114,7 +107,7 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
       <div style="width:2px;height:100%;background:white;box-shadow:0 0 5px rgba(255,255,255,0.7);"></div>
     </div>
 
-    <!-- Start handle — only moves startTime, NEVER currentTime -->
+    <!-- Start handle -->
     <div (pointerdown)="startDrag('start', $event)"
          (pointermove)="onDragMove($event)"
          (pointerup)="endDrag($event)"
@@ -124,7 +117,7 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
       <div style="width:7px;height:40px;border-radius:4px;background:#eb445a;box-shadow:0 0 0 2px white;"></div>
     </div>
 
-    <!-- End handle — only moves endTime, NEVER currentTime -->
+    <!-- End handle -->
     <div (pointerdown)="startDrag('end', $event)"
          (pointermove)="onDragMove($event)"
          (pointerup)="endDrag($event)"
@@ -139,18 +132,18 @@ type DragHandle = 'start' | 'end' | 'playhead' | null;
   <!-- Limit warning -->
   <div *ngIf="trimDuration > MAX_DURATION"
        style="background:#eb445a20;border:1px solid #eb445a;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#eb445a;font-weight:bold;display:flex;align-items:center;gap:8px;">
-    <i class="fa-solid fa-triangle-exclamation"></i>
+    <app-icon name="alert" [size]="16" color="#eb445a"></app-icon>
     Selection is {{ trimDuration.toFixed(1) }}s — drag a handle inward to reduce to {{ MAX_DURATION }}s or less.
   </div>
 
-  <ion-button expand="block" color="danger" style="font-weight:bold;height:48px;margin-top:14px;"
+  <ion-button expand="block" color="danger" style="font-weight:bold;height:48px;margin-top:14px;--border-radius:14px;box-shadow:0 4px 16px rgba(211,47,47,0.3);"
               [disabled]="trimDuration > MAX_DURATION || isExporting || !metaReady"
               (click)="exportTrim()">
-    <span *ngIf="!isExporting">
-      <i class="fa-solid fa-check" style="margin-right:8px;"></i>Use This Clip ({{ trimDuration.toFixed(1) }}s)
+    <span *ngIf="!isExporting" style="display:flex;align-items:center;gap:8px;">
+      <app-icon name="check" [size]="18" color="#ffffff"></app-icon>Use This Clip ({{ trimDuration.toFixed(1) }}s)
     </span>
     <span *ngIf="isExporting" style="display:flex;align-items:center;gap:8px;">
-      <i class="fa-solid fa-spinner fa-spin"></i>Exporting…
+      <span class="dot-loader dot-loader-white"><span></span><span></span><span></span></span> Exporting…
     </span>
   </ion-button>
 

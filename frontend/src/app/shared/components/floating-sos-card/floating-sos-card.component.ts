@@ -28,10 +28,12 @@ interface SosPill {
   cancellable: boolean;
 }
 
+import { AppIconComponent } from '../app-icon/app-icon.component';
+
 @Component({
   selector: 'app-floating-sos-card',
   standalone: true,
-  imports: [CommonModule, PressFeedbackDirective],
+  imports: [CommonModule, PressFeedbackDirective, AppIconComponent],
   templateUrl: './floating-sos-card.component.html',
   styleUrl: './floating-sos-card.component.scss',
 })
@@ -52,7 +54,7 @@ export class FloatingSosCardComponent {
         state: 'offline',
         label: 'SOS Queued — Offline',
         sublabel: "Will send automatically once you're back online.",
-        icon: 'fa-solid fa-cloud-arrow-up',
+        icon: 'cloud-arrow-up',
         timeAgo: '',
         requestId: null,
         queueId: item.id,
@@ -69,7 +71,7 @@ export class FloatingSosCardComponent {
         sublabel: state === 'dispatched'
           ? 'A responder has been dispatched to your location.'
           : 'MDRRMO has received your request and is reviewing it.',
-        icon: state === 'dispatched' ? 'fa-solid fa-truck-medical' : 'fa-solid fa-hourglass-half',
+        icon: state === 'dispatched' ? 'truck-medical' : 'clock',
         timeAgo: this.calcTimeAgo(r.request_time),
         requestId: r.request_id,
         queueId: null,

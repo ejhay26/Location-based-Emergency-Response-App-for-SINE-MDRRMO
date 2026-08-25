@@ -10,7 +10,7 @@
          tabindex="0">
 
       <div class="sos-pill__icon-wrap">
-        <i [class]="pill.icon"></i>
+        <app-icon [name]="pill.icon" [size]="18" [color]="pill.state === 'dispatched' ? '#3880ff' : (pill.state === 'offline' ? '#e0ac00' : 'var(--ion-color-danger)')"></app-icon>
       </div>
 
       <div class="sos-pill__body">
@@ -29,12 +29,12 @@
                 (mousedown)="$event.stopPropagation()"
                 (click)="onCancel($event, pill)"
                 aria-label="Cancel this SOS report">
-          <i class="fa-solid fa-xmark"></i>
+          <app-icon name="close" [size]="12"></app-icon>
           <span>Cancel</span>
         </button>
 
         <!-- Chevron only on non-cancellable pills (Dispatched) — tap goes to History -->
-        <i *ngIf="!pill.cancellable" class="fa-solid fa-chevron-right sos-pill__chevron"></i>
+        <app-icon *ngIf="!pill.cancellable" name="chevron-right" [size]="14" class="sos-pill__chevron"></app-icon>
       </div>
     </div>
   </div>
