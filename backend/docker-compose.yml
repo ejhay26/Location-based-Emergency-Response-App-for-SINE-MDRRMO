@@ -25,6 +25,7 @@ services:
       - "host.docker.internal:host-gateway"
       - "host.containers.internal:host-gateway"
     volumes:
+      - /etc/resolv.conf:/etc/resolv.conf:ro
       - ./app:/var/www/html/app:Z
       - ./routes:/var/www/html/routes:Z
       - ./config:/var/www/html/config:Z
@@ -56,6 +57,7 @@ services:
       - "host.docker.internal:host-gateway"
       - "host.containers.internal:host-gateway"
     volumes:
+      - /etc/resolv.conf:/etc/resolv.conf:ro
       - ./app:/var/www/html/app:Z
       - ./routes:/var/www/html/routes:Z
       - ./config:/var/www/html/config:Z
