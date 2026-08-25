@@ -214,13 +214,16 @@ export class RegisterPage implements OnDestroy {
     this.api.register(this.userData).subscribe({
       next: () => {
         this.isRegistering = false;
-        const channelLabel = this.userData.otp_channel === 'sms'
-          ? `your phone number ${this.userData.phone}`
-          : `your email ${this.userData.email}`;
-        this.showToast(`Verification code sent to ${channelLabel}.`, 'success');
+        const isSms = this.userData.otp_channel === 'sms';
+        const msg = isSms
+          ? `Verification code sent to your phone (${this.userData.phone}).`
+          : `Verification code sent to ${this.userData.email}! Please check your inbox and spam/junk folder.`;
+        this.showToast(msg, 'success');
         this.currentStep = 4;
         this.startOtpCountdown();
-        this.otpAutofill.listen(code => { this.otpCode = code; this.verifyOtp(); });
+        if (isSms) {
+          this.otpAutofill.listen(code => { this.otpCode = code; this.verifyOtp(); });
+        }
       },
       error: (err: any) => {
         this.isRegistering = false;
@@ -256,7 +259,11 @@ export class RegisterPage implements OnDestroy {
     }).subscribe({
       next: () => {
         this.isResendingOtp = false;
-        this.showToast('A new code was sent.', 'success');
+        const isSms = this.userData.otp_channel === 'sms';
+        const msg = isSms
+          ? 'A new code was sent to your phone.'
+          : 'A new code was sent! Please check your inbox and spam/junk folder.';
+        this.showToast(msg, 'success');
         this.startOtpCountdown();
       },
       error: (err: any) => {

@@ -115,11 +115,13 @@ export class LoginPage {
         this.isSendingOtp = false;
         this.otpSent = true;
         this.startResendCountdown();
-        this.showToast(`OTP sent — check your ${channelLabel}.`, 'success');
-        // Only meaningful on native Android — listen() silently no-ops
-        // everywhere else (iOS, web, desktop), so it's harmless to always
-        // call this rather than branch on loginOtpChannel.
-        this.otpAutofill.listen(code => { this.emailOtpData.otp = code; this.verifyLoginOtp(); });
+        const successMsg = this.loginOtpChannel === 'email'
+          ? 'OTP sent! Please check your inbox and spam/junk folder.'
+          : 'OTP sent — check your SMS messages.';
+        this.showToast(successMsg, 'success');
+        if (this.loginOtpChannel === 'phone') {
+          this.otpAutofill.listen(code => { this.emailOtpData.otp = code; this.verifyLoginOtp(); });
+        }
       },
       error: (err: any) => {
         this.isSendingOtp = false;
@@ -137,7 +139,10 @@ export class LoginPage {
         } else {
           this.otpSent = true;
           this.startResendCountdown();
-          this.showToast(`OTP sent — check your ${channelLabel}.`, 'success');
+          const msg = this.loginOtpChannel === 'email'
+            ? 'OTP sent! Please check your inbox and spam/junk folder.'
+            : 'OTP sent — check your SMS messages.';
+          this.showToast(msg, 'success');
         }
       }
     });

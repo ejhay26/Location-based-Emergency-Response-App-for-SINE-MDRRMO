@@ -58,6 +58,7 @@ export class WelcomePage implements OnInit {
       return;
     }
     this.isFirstTime = true;
+    this.checkInitialPermissions();
   }
 
   get isLastSlide(): boolean { return this.currentSlide === this.TOTAL_SLIDES - 1; }
@@ -67,6 +68,23 @@ export class WelcomePage implements OnInit {
   goToSlide(index: number) {
     if (index < 0 || index >= this.TOTAL_SLIDES) return;
     this.currentSlide = index;
+  }
+
+  async checkInitialPermissions() {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const loc = await Geolocation.checkPermissions();
+      this.locationGranted = loc.location === 'granted' || loc.coarseLocation === 'granted';
+    } catch {}
+    try {
+      const cam = await Camera.checkPermissions();
+      this.cameraGranted = cam.camera === 'granted';
+      this.photosGranted = cam.photos === 'granted' || cam.photos === 'limited';
+    } catch {}
+    try {
+      const notif = await PushNotifications.checkPermissions();
+      this.notifGranted = notif.receive === 'granted';
+    } catch {}
   }
 
   // Permission requests all live on the same "All Permissions" slide now,
@@ -96,22 +114,13 @@ export class WelcomePage implements OnInit {
     this.photosLoading = true;
     try {
       if (Capacitor.isNativePlatform()) {
-        const check = await Camera.checkPermissions();
-        if (check.photos === 'granted') {
-          this.photosGranted = true;
-        } else {
-          try {
-            const result = await this.withMinDelay(Camera.requestPermissions({ permissions: ['photos'] }));
-            this.photosGranted = result.photos === 'granted' || result.photos === 'limited';
-          } catch {
-            this.photosGranted = true;
-          }
-        }
+        const result = await this.withMinDelay(Camera.requestPermissions({ permissions: ['photos'] }));
+        this.photosGranted = result.photos === 'granted' || result.photos === 'limited';
       } else {
         this.photosGranted = true;
       }
     } catch {
-      this.photosGranted = true;
+      this.photosGranted = false;
     }
     this.photosRequested = true;
     this.photosLoading = false;

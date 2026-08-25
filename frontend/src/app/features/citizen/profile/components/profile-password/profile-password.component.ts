@@ -103,8 +103,13 @@ export class ProfilePasswordComponent implements OnDestroy {
       next: () => {
         this.pwdSending = false; this.pwdStep = 'enter-otp'; this.pwdOtp = '';
         this.startResendCountdown();
-        this.toast.emit({ msg: 'Verification code sent.', color: 'success' });
-        this.otpAutofill.listen(code => { this.pwdOtp = code; this.verifyPwdChangeOtp(); });
+        const msg = channel === 'email'
+          ? 'Verification code sent! Please check your inbox and spam/junk folder.'
+          : 'Verification code sent to your mobile phone.';
+        this.toast.emit({ msg, color: 'success' });
+        if (channel === 'phone') {
+          this.otpAutofill.listen(code => { this.pwdOtp = code; this.verifyPwdChangeOtp(); });
+        }
       },
       error: (err: any) => {
         this.pwdSending = false;
