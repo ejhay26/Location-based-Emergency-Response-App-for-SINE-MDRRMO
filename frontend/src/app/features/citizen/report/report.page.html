@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar [color]="reportType === 'hazard' ? 'warning' : 'danger'">
-    <ion-buttons slot="start"><ion-button (click)="close()" style="color: white;"><i class="fa-solid fa-chevron-left"></i></ion-button></ion-buttons>
+    <ion-buttons slot="start"><ion-button (click)="close()" style="color: white; font-weight: 600; font-size: 15px;"><i class="fa-solid fa-chevron-left" style="margin-right: 6px; font-size: 14px;"></i>Back</ion-button></ion-buttons>
     <ion-title style="color: white; font-weight: bold;">{{ reportType === 'hazard' ? 'Report Hazard' : 'Send Emergency SOS' }}</ion-title>
   </ion-toolbar>
 </ion-header>
