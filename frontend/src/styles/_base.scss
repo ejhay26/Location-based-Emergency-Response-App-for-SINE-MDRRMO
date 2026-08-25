@@ -42,16 +42,87 @@ button, ion-button, ion-item, ion-tab-button, a, [role="button"] {
   outline: none !important;
 }
 
-/* 1. STRICT GLOBAL UI ROUNDING */
-ion-card, ion-item, ion-list, ion-button, ion-input, ion-select, ion-avatar {
-  --border-radius: 16px !important;
-  border-radius: 16px !important;
+/* 1. STRICT GLOBAL UI ROUNDING & CONTAINER VISIBILITY */
+ion-card {
+  --border-radius: 18px !important;
+  border-radius: 18px !important;
+  border: var(--card-border, 1px solid rgba(0, 0, 0, 0.09)) !important;
+  box-shadow: var(--card-shadow, 0 2px 10px rgba(0, 0, 0, 0.05)) !important;
+  background: var(--ion-card-background, #ffffff);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Inset Grouped Container Classes (Authentic iOS TableView/List Grouped Style) */
+.inset-card,
+.inset-group {
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 18px;
+  border: var(--card-border, 1px solid rgba(0, 0, 0, 0.09));
+  box-shadow: var(--card-shadow, 0 2px 10px rgba(0, 0, 0, 0.05));
+  overflow: hidden;
+  margin-bottom: 14px;
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+
+  ion-item {
+    --background: transparent !important;
+    --border-radius: 0px !important;
+    border-radius: 0px !important;
+    --inner-padding-start: 16px !important;
+    --inner-padding-end: 16px !important;
+    --min-height: 50px !important;
+    --border-color: var(--inset-divider, rgba(0, 0, 0, 0.07)) !important;
+    --highlight-height: 0px !important;
+    margin: 0 !important;
+  }
+}
+
+/* Standalone outline inputs */
+ion-input[fill="outline"], ion-select[fill="outline"] {
+  --border-radius: 14px;
 }
 
 /* Force rounding on physical HTML elements like Maps and Charts */
 .leaflet-container, canvas, #dispatch-map, #sos-map, #citizen-map, #hazard-map {
-  border-radius: 16px !important;
+  border-radius: 18px !important;
   overflow: hidden !important;
+}
+
+/* iOS Segment / Pill Style (Authentic Apple UISegmentedControl with High-Contrast Depth) */
+ion-segment.sc-ion-segment-ios-h,
+ion-segment {
+  background: var(--segment-track-bg, rgba(118, 118, 128, 0.14)) !important;
+  border: var(--segment-track-border, 1px solid rgba(0, 0, 0, 0.06)) !important;
+  border-radius: 12px !important;
+  padding: 3px !important;
+
+  ion-segment-button.sc-ion-segment-button-ios,
+  ion-segment-button {
+    --indicator-color: var(--segment-indicator-bg, #ffffff) !important;
+    --indicator-box-shadow: var(--segment-indicator-shadow, 0 3px 8px rgba(0, 0, 0, 0.2)) !important;
+    --color: var(--segment-inactive-color, #8e8e93) !important;
+    --color-checked: var(--segment-active-color, #ffffff) !important;
+    border-radius: 9px !important;
+    font-weight: 700 !important;
+    font-size: 12.5px !important;
+    min-height: 32px !important;
+    transition: color 0.15s ease, transform 0.15s ease !important;
+
+    &.segment-button-checked {
+      font-weight: 800 !important;
+    }
+  }
+}
+
+/* iOS Popover Card Bezel & Depth */
+ion-popover {
+  --background: var(--ion-card-background, #ffffff);
+  --box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+
+  &::part(content) {
+    border-radius: 20px !important;
+    border: var(--card-border, 1px solid rgba(255, 255, 255, 0.15)) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5) !important;
+  }
 }
 
 /* 2. INPUT POLISH — only show red on explicitly invalid touched fields */

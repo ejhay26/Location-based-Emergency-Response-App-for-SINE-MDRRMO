@@ -132,24 +132,26 @@
 }
 
 .lightbox-close-btn {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: rgba(235, 68, 90, 0.85);
-  border: none;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: #fff;
-  font-size: 18px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 4px 12px rgba(235, 68, 90, 0.35);
 }
 
 .lightbox-close-btn:hover {
-  background: #eb445a;
-  transform: scale(1.08);
+  background: var(--ion-color-danger, #d32f2f);
+  border-color: var(--ion-color-danger, #d32f2f);
+  transform: scale(1.05);
 }
 
 .lightbox-stage {

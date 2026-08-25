@@ -49,22 +49,25 @@
 }
 
 /* =========================================
-   ION-ALERT THEMED OVERRIDES
+   ION-ALERT & ACTION SHEET (iOS THEMED OVERRIDES)
    ========================================= */
 ion-alert {
-  --background: var(--ion-card-background, #1e1e1e);
-  --backdrop-opacity: 0.65;
+  --background: var(--ion-card-background, #ffffff);
+  --backdrop-opacity: 0.6;
 
   .alert-wrapper {
-    border-radius: 20px !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6) !important;
+    border-radius: 22px !important;
+    border: var(--card-border, 1px solid rgba(0, 0, 0, 0.1)) !important;
+    box-shadow: var(--app-shadow-md, 0 16px 48px rgba(0, 0, 0, 0.4)) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    overflow: hidden;
   }
 
   .alert-title {
     font-weight: 800 !important;
     font-size: 17px !important;
-    color: var(--ion-text-color, #ffffff) !important;
+    color: var(--ion-text-color, #1c1c1e) !important;
   }
 
   .alert-sub-title {
@@ -77,19 +80,51 @@ ion-alert {
   .alert-message {
     font-size: 13px !important;
     line-height: 1.5 !important;
-    color: var(--ion-color-step-600, rgba(255, 255, 255, 0.75)) !important;
+    color: var(--ion-color-medium, #8e8e93) !important;
   }
 
-  .alert-button-group {
-    padding: 8px 14px 14px 14px;
-    gap: 8px;
-  }
-
+  /* All iOS Action / Confirm Buttons — Red instead of default Blue */
+  .alert-button.sc-ion-alert-ios,
   .alert-button {
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.3px;
+    color: var(--ion-color-danger, #d32f2f) !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+  }
+
+  .alert-button.sc-ion-alert-ios .alert-button-inner {
+    color: var(--ion-color-danger, #d32f2f) !important;
+    font-weight: 700 !important;
+  }
+
+  .alert-button-role-cancel {
+    color: var(--ion-color-danger, #d32f2f) !important;
+    font-weight: 800 !important;
+  }
+}
+
+ion-action-sheet {
+  --background: var(--ion-card-background, #ffffff);
+  --backdrop-opacity: 0.6;
+
+  .action-sheet-group {
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    border: var(--card-border, 1px solid rgba(0, 0, 0, 0.1)) !important;
+  }
+
+  .action-sheet-button.sc-ion-action-sheet-ios {
+    color: var(--ion-color-danger, #d32f2f) !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+  }
+
+  .action-sheet-button.sc-ion-action-sheet-ios .action-sheet-button-inner {
+    color: var(--ion-color-danger, #d32f2f) !important;
+  }
+
+  .action-sheet-cancel.sc-ion-action-sheet-ios {
+    color: var(--ion-color-danger, #d32f2f) !important;
+    font-weight: 800 !important;
   }
 }
 

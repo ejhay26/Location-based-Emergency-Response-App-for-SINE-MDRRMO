@@ -3,6 +3,18 @@
    =========================================================================== */
 
 /* =========================================
+   BUTTON BASE & HOST RESETS
+   ========================================= */
+ion-button {
+  --border-radius: 14px;
+  background: transparent !important;
+}
+
+ion-button::part(native) {
+  border-radius: var(--border-radius, 14px) !important;
+}
+
+/* =========================================
    BUTTON STATE UTILITIES
    ========================================= */
 ion-button.btn-muted::part(native) {

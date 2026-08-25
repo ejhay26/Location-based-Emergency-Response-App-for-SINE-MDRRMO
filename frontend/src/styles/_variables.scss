@@ -1,27 +1,89 @@
 /* ===========================================================================
-   SINE MDRRMO DESIGN TOKEN SYSTEM & PALETTES
+   SINE MDRRMO DESIGN TOKEN SYSTEM & PALETTES (iOS MODE COMPATIBLE)
    =========================================================================== */
 
 :root {
   --app-red:       #D32F2F;
-  --app-red-light: rgba(211, 47, 47, 0.15);
-  --app-red-glow:  rgba(211, 47, 47, 0.4);
+  --app-red-light: rgba(211, 47, 47, 0.12);
+  --app-red-glow:  rgba(211, 47, 47, 0.35);
   --app-yellow:    #F9A825;
-  --app-radius:    16px;
-  --app-radius-sm: 8px;
-  --app-shadow:    0 2px 8px rgba(211, 47, 47, 0.18);
-  --app-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.30);
+  --app-radius:    18px;
+  --app-radius-sm: 12px;
+  --app-shadow:    0 2px 10px rgba(211, 47, 47, 0.18);
+  --app-shadow-md: 0 6px 24px rgba(0, 0, 0, 0.25);
+
+  /* Primary Color Override: Replaces default iOS system blue (#3880ff) with Brand Emergency Red */
+  --ion-color-primary: #D32F2F;
+  --ion-color-primary-rgb: 211, 47, 47;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #ba2929;
+  --ion-color-primary-tint: #d74444;
+
+  --ion-color-danger: #D32F2F;
+  --ion-color-danger-rgb: 211, 47, 47;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-shade: #ba2929;
+  --ion-color-danger-tint: #d74444;
+
+  --ion-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+  font-family: var(--ion-family);
 }
 
+/* ── LIGHT THEME (Apple HIG Grouped Background with High-Contrast Inset Cards) ── */
 :root:not(.ion-palette-dark) {
-  --ion-background-color: #f4f5f8;
-  --ion-text-color: #222428;
+  --ion-background-color: #f2f2f7;
+  --ion-background-color-rgb: 242, 242, 247;
+  --ion-card-background: #ffffff;
+  --ion-item-background: #ffffff;
+  --ion-text-color: #1c1c1e;
+  --ion-color-step-50: #f8f8fa;
+  --ion-color-step-100: #e5e5ea;
+  --ion-color-step-150: #d1d1d6;
+  --ion-color-step-200: #c7c7cc;
+  --ion-color-step-300: #aeaeb2;
+  --ion-color-medium: #8e8e93;
+
+  /* Crisp Container Borders and Depth */
+  --card-border: 1px solid rgba(0, 0, 0, 0.09);
+  --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --inset-divider: 1px solid rgba(0, 0, 0, 0.07);
+
+  /* iOS Segment Tokens */
+  --segment-track-bg: rgba(118, 118, 128, 0.12);
+  --segment-track-border: 1px solid rgba(0, 0, 0, 0.06);
+  --segment-indicator-bg: #ffffff;
+  --segment-indicator-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --segment-active-color: #d32f2f;
+  --segment-inactive-color: #8e8e93;
 }
 
-/* SOFT LIGHT THEME: Reduces eye strain and fixes invisible input text */
-:root {
-  --ion-family: 'Roboto', sans-serif !important;
-  font-family: 'Roboto', sans-serif !important;
+/* ── DARK THEME (OLED Pure Black with Apple Inset Grouped Contrast) ── */
+.ion-palette-dark {
+  --ion-background-color: #000000;
+  --ion-background-color-rgb: 0, 0, 0;
+  --ion-card-background: #1c1c1e;
+  --ion-item-background: transparent;
+  --ion-text-color: #ffffff;
+  --ion-color-step-50: #121214;
+  --ion-color-step-100: #1c1c1e;
+  --ion-color-step-150: #2c2c2e;
+  --ion-color-step-200: #3a3a3c;
+  --ion-color-step-300: #48484a;
+  --ion-color-medium: #8e8e93;
+
+  /* Dark Mode Inset Group Elevation & Crisp High-Contrast Borders */
+  --card-border: 1px solid rgba(255, 255, 255, 0.12);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  --inset-divider: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* Dark Mode iOS Segment Depth & High-Contrast Elevation */
+  --segment-track-bg: rgba(0, 0, 0, 0.45);
+  --segment-track-border: 1px solid rgba(255, 255, 255, 0.12);
+  --segment-indicator-bg: #3a3a3c;
+  --segment-indicator-shadow: 0 3px 10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  --segment-active-color: #ffffff;
+  --segment-inactive-color: rgba(235, 235, 245, 0.6);
 }
 
 @font-face {
