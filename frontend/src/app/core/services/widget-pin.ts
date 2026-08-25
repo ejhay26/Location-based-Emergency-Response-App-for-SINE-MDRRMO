@@ -3,7 +3,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 
 interface WidgetPinnerPlugin {
   isSupported(): Promise<{ supported: boolean }>;
-  requestPin(): Promise<{ requested: boolean }>;
+  requestPin(options?: { type?: string }): Promise<{ requested: boolean }>;
 }
 
 const WidgetPinnerNative = registerPlugin<WidgetPinnerPlugin>('WidgetPinner');
@@ -44,9 +44,9 @@ export class WidgetPinService {
   }
 
   /** Resolves true only if the system pin prompt was successfully shown — see WidgetPinnerPlugin.requestPin(). */
-  async requestPin(): Promise<boolean> {
+  async requestPin(type: 'emergency' | 'hazard' = 'emergency'): Promise<boolean> {
     try {
-      const { requested } = await WidgetPinnerNative.requestPin();
+      const { requested } = await WidgetPinnerNative.requestPin({ type });
       return requested;
     } catch {
       return false;

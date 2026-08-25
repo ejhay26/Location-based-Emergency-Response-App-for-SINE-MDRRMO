@@ -49,9 +49,13 @@
   </ion-list>
 
   <ion-list *ngIf="widgetAvailable" lines="none" style="padding:8px 16px 0;">
-    <ion-list-header style="padding-left:0;margin-bottom:4px;"><ion-label color="danger" style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.8px;"><i class="fa-solid fa-table-cells-large" style="margin-right:7px;"></i>Home Screen Widget</ion-label></ion-list-header>
-    <ion-item button (click)="addWidget()" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
-      <ion-label style="padding:14px 0 10px;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">Add Report Widget</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">Get to Report Emergency in one tap, straight from your home screen — no need to unlock and dig through the app first. Every second counts in an emergency.</p></ion-label>
+    <ion-list-header style="padding-left:0;margin-bottom:4px;"><ion-label color="danger" style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.8px;"><i class="fa-solid fa-table-cells-large" style="margin-right:7px;"></i>Home Screen Widgets</ion-label></ion-list-header>
+    <ion-item button (click)="addWidget('emergency')" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
+      <ion-label style="padding:14px 0 10px;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;"><i class="fa-solid fa-triangle-exclamation" style="color:var(--ion-color-danger);margin-right:6px;"></i>Add Emergency SOS Widget</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">1-tap instant access to Report Emergency from your home screen — no need to unlock and dig through the app first.</p></ion-label>
+      <i class="fa-solid fa-chevron-right" slot="end" style="color:var(--ion-color-medium);font-size:13px;"></i>
+    </ion-item>
+    <ion-item button (click)="addWidget('hazard')" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
+      <ion-label style="padding:14px 0 10px;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;"><i class="fa-solid fa-road-barrier" style="color:var(--ion-color-warning);margin-right:6px;"></i>Add Report Hazard Widget</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">1-tap shortcut to report road hazards, fallen trees, floods, or public safety issues straight from your home screen.</p></ion-label>
       <i class="fa-solid fa-chevron-right" slot="end" style="color:var(--ion-color-medium);font-size:13px;"></i>
     </ion-item>
   </ion-list>

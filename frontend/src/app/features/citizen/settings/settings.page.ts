@@ -104,18 +104,21 @@ export class SettingsPage implements OnInit {
    * prompt — the widget only saves time if the user understands what it's
    * for, so we don't just say "Add to Home Screen" with no context.
    */
-  async addWidget() {
+  async addWidget(type: 'emergency' | 'hazard' = 'emergency') {
+    const isEmergency = type === 'emergency';
     const confirmed = await this.dialog.confirm({
-      title: 'Add Report Widget to Home Screen',
-      message: 'In an emergency, every second counts. This puts a "Report Emergency" button right on your home screen, so you can start a report the moment something happens — no unlocking through the app, no digging for the right screen. Tap Add, then confirm the placement prompt Android shows you. You can remove it anytime like any other widget.',
-      icon: 'fa-solid fa-table-cells-large',
-      iconColor: 'danger',
+      title: isEmergency ? 'Add Emergency SOS Widget' : 'Add Report Hazard Widget',
+      message: isEmergency
+        ? 'In an emergency, every second counts. This puts a "Report Emergency" button right on your home screen, so you can start a report the moment something happens — no unlocking through the app, no digging for the right screen. Tap Add, then confirm the placement prompt Android shows you.'
+        : 'Report road blockages, fallen electrical posts, flooding, or public safety hazards directly from your home screen. Tap Add, then confirm the placement prompt Android shows you.',
+      icon: isEmergency ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-road-barrier',
+      iconColor: isEmergency ? 'danger' : 'warning',
       confirmLabel: 'Add Widget',
-      confirmColor: 'danger',
+      confirmColor: isEmergency ? 'danger' : 'warning',
     });
     if (!confirmed) return;
 
-    const requested = await this.widgetPin.requestPin();
+    const requested = await this.widgetPin.requestPin(type);
     this.widgetToastMessage = requested
       ? 'Confirm in the prompt that just appeared to finish adding the widget.'
       : "Couldn't open the widget prompt on this device.";

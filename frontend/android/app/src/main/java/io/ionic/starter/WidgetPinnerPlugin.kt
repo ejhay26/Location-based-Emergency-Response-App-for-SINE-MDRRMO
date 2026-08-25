@@ -51,8 +51,14 @@ class WidgetPinnerPlugin : Plugin() {
             return
         }
         try {
+            val widgetType = call.getString("type", "emergency")
+            val targetClass = if (widgetType == "hazard") {
+                ReportHazardWidgetProvider::class.java
+            } else {
+                ReportWidgetProvider::class.java
+            }
             val appWidgetManager = AppWidgetManager.getInstance(context)
-            val provider = ComponentName(context, ReportWidgetProvider::class.java)
+            val provider = ComponentName(context, targetClass)
             val submitted = appWidgetManager.requestPinAppWidget(provider, null, null)
             val result = JSObject()
             result.put("requested", submitted)
