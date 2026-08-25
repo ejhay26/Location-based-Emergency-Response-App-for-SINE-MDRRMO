@@ -1,20 +1,21 @@
 import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonSegment, IonSegmentButton, IonLabel, ModalController } from '@ionic/angular/standalone';
+import { AppIconComponent } from '../app-icon/app-icon.component';
 
 @Component({
   selector: 'app-terms-modal',
   standalone: true,
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonSegment, IonSegmentButton, IonLabel],
+  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonSegment, IonSegmentButton, IonLabel, AppIconComponent],
   template: `
 <ion-header class="ion-no-border">
   <ion-toolbar color="danger">
-    <ion-title style="color: white; font-weight: bold; font-size: 16px;">
-      <i class="fa-solid fa-scale-balanced" style="margin-right: 8px;"></i>Terms &amp; Policies
+    <ion-title style="color: white; font-weight: 800; font-size: 16px;">
+      <app-icon name="shield-check" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon>Terms &amp; Policies
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss(false)" style="color: white; font-weight: bold;">
-        <i class="fa-solid fa-xmark" style="font-size: 18px;"></i>
+      <ion-button (click)="dismiss(false)" style="color: white; font-weight: 700;">
+        <app-icon name="close" [size]="18" color="#ffffff"></app-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -32,13 +33,13 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, Ion
 </ion-header>
 
 <ion-content class="ion-padding" style="--background: var(--ion-background-color, #f4f5f8); font-size: 13px; line-height: 1.6; color: var(--ion-text-color);">
-  <div style="max-width: 600px; margin: 0 auto; background: var(--ion-card-background, white); border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
+  <div style="max-width: 600px; margin: 0 auto; background: var(--ion-card-background, white); border-radius: 18px; padding: 20px; box-shadow: var(--card-shadow); border: var(--card-border, 1px solid rgba(0,0,0,0.08));">
 
     <!-- ══ TERMS OF SERVICE ══ -->
     <div *ngIf="activeTab === 'terms'">
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid rgba(235,68,90,0.15);">
-        <div style="width: 36px; height: 36px; border-radius: 10px; background: #eb445a15; color: #eb445a; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-          <i class="fa-solid fa-file-contract"></i>
+        <div style="width: 38px; height: 38px; border-radius: 12px; background: rgba(235,68,90,0.12); color: var(--ion-color-danger); display: flex; align-items: center; justify-content: center;">
+          <app-icon name="id-card" [size]="20" color="var(--ion-color-danger)"></app-icon>
         </div>
         <div>
           <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--ion-color-danger);">Terms of Service</h3>
@@ -52,7 +53,7 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, Ion
       </p>
 
       <h4 style="color: var(--ion-color-danger); font-size: 13px; font-weight: 800; margin: 16px 0 6px 0;">2. No Fake Reports or Pranks</h4>
-      <div style="background: rgba(235,68,90,0.08); border-left: 4px solid var(--ion-color-danger); padding: 10px 12px; border-radius: 8px; margin: 8px 0;">
+      <div style="background: rgba(235,68,90,0.08); border-left: 4px solid var(--ion-color-danger); padding: 10px 12px; border-radius: 10px; margin: 8px 0;">
         <strong style="color: var(--ion-color-danger); font-size: 12px;">IMPORTANT NOTICE:</strong>
         <p style="margin: 4px 0 0 0; font-size: 12px;">
           Please never send fake or prank reports. First responders risk their lives responding to emergencies. If you send a false alarm, you will receive a strike. Getting 3 strikes will permanently ban your account and may be reported to the police for legal action under local and national laws.
@@ -72,9 +73,9 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, Ion
 
     <!-- ══ PRIVACY POLICY ══ -->
     <div *ngIf="activeTab === 'privacy'">
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid rgba(235,68,90,0.15);">
-        <div style="width: 36px; height: 36px; border-radius: 10px; background: #2dd36f15; color: #2dd36f; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-          <i class="fa-solid fa-shield-halved"></i>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid rgba(45,211,111,0.2);">
+        <div style="width: 38px; height: 38px; border-radius: 12px; background: rgba(45,211,111,0.12); color: #2dd36f; display: flex; align-items: center; justify-content: center;">
+          <app-icon name="shield-check" [size]="20" color="#2dd36f"></app-icon>
         </div>
         <div>
           <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #2dd36f;">Privacy Policy</h3>
@@ -104,9 +105,9 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, Ion
     </div>
 
     <!-- Acceptance button -->
-    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
-      <ion-button expand="block" color="danger" (click)="dismiss(true)" style="font-weight: bold; height: 48px;">
-        <i class="fa-solid fa-check" style="margin-right: 8px;"></i> I Understand &amp; Agree
+    <div style="margin-top: 24px; padding-top: 16px; border-top: var(--inset-divider, 1px solid rgba(0,0,0,0.08));">
+      <ion-button expand="block" color="danger" (click)="dismiss(true)" style="font-weight: 800; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(211,47,47,0.3);">
+        <app-icon name="check" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> I Understand &amp; Agree
       </ion-button>
     </div>
 

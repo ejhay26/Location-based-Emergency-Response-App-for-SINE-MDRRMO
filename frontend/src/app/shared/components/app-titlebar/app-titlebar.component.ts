@@ -28,7 +28,7 @@ interface ElectronIpcRenderer {
           aria-label="Minimize window"
           title="Minimize"
         >
-          <i class="fa-solid fa-minus"></i>
+          <svg width="10" height="10" viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5" stroke="currentColor" stroke-width="1.2"/></svg>
         </button>
         <button
           type="button"
@@ -38,7 +38,8 @@ interface ElectronIpcRenderer {
           [attr.aria-label]="isMaximized ? 'Restore window' : 'Maximize window'"
           [title]="isMaximized ? 'Restore' : 'Maximize'"
         >
-          <i class="fa-regular" [class.fa-clone]="isMaximized" [class.fa-square]="!isMaximized"></i>
+          <svg *ngIf="!isMaximized" width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+          <svg *ngIf="isMaximized" width="10" height="10" viewBox="0 0 10 10"><path d="M3 1h6v6" fill="none" stroke="currentColor" stroke-width="1.1"/><rect x="1" y="3" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>
         </button>
         <button
           type="button"
@@ -48,7 +49,7 @@ interface ElectronIpcRenderer {
           aria-label="Close window"
           title="Close"
         >
-          <i class="fa-solid fa-xmark"></i>
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1l-8 8" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
         </button>
       </div>
     </div>

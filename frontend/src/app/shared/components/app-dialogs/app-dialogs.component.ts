@@ -3,33 +3,35 @@ import { CommonModule } from '@angular/common';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ProxyImageDirective } from '../../directives/proxy-image.directive';
 
+import { AppIconComponent } from '../app-icon/app-icon.component';
+
 @Component({
   selector: 'app-dialogs',
   standalone: true,
-  imports: [CommonModule, ProxyImageDirective],
+  imports: [CommonModule, ProxyImageDirective, AppIconComponent],
   template: `
     <!-- Confirm Dialog -->
     <div *ngIf="dialog.confirmDialog().open" class="c-overlay" style="z-index: 99999;">
       <div class="c-overlay-bg" (click)="dialog.closeConfirm()"></div>
-      <div class="c-panel" style="width: min(400px, 90vw); border-radius: 22px; overflow: hidden;">
-        <div style="padding: 32px 28px; text-align: center;">
-          <div style="width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;" [style.background]="dialog.confirmDialog().iconColor + '18'">
-            <i [class]="dialog.confirmDialog().icon" style="font-size: 26px;" [style.color]="dialog.confirmDialog().iconColor"></i>
+      <div class="c-panel" style="width: min(380px, 92vw); border-radius: 24px; overflow: hidden; border: var(--card-border, 1px solid rgba(0,0,0,0.1)); box-shadow: 0 24px 64px rgba(0,0,0,0.35);">
+        <div style="padding: 28px 24px 22px; text-align: center;">
+          <div style="width: 58px; height: 58px; border-radius: 18px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;" [style.background]="dialog.confirmDialog().iconColor + '18'">
+            <app-icon [name]="dialog.confirmDialog().icon" [size]="28" [color]="dialog.confirmDialog().iconColor"></app-icon>
           </div>
-          <h3 style="margin: 0 0 10px 0; font-weight: bold; font-size: 19px; color: var(--ion-text-color);">{{ dialog.confirmDialog().title }}</h3>
-          <p [style.margin]="dialog.confirmDialog().details?.length ? '0 0 16px 0' : '0 0 28px 0'" style="font-size: 14px; color: gray; line-height: 1.5;">{{ dialog.confirmDialog().message }}</p>
-          <div *ngIf="dialog.confirmDialog().details?.length" style="text-align: left; background: var(--ion-color-light, #f4f5f8); border-radius: 12px; padding: 4px 14px; margin-bottom: 20px;">
-            <div *ngFor="let d of dialog.confirmDialog().details; let isLast = last" style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--ion-color-step-100, #e6e6e6);" [style.border-bottom]="isLast ? 'none' : ''">
-              <i *ngIf="d.icon" [class]="d.icon" style="font-size: 13px; color: var(--ion-color-medium); width: 16px; flex-shrink: 0;"></i>
+          <h3 style="margin: 0 0 8px 0; font-weight: 800; font-size: 18px; color: var(--ion-text-color); letter-spacing: -0.2px;">{{ dialog.confirmDialog().title }}</h3>
+          <p [style.margin]="dialog.confirmDialog().details?.length ? '0 0 14px 0' : '0 0 24px 0'" style="font-size: 13.5px; color: var(--ion-color-medium, #8e8e93); line-height: 1.5;">{{ dialog.confirmDialog().message }}</p>
+          <div *ngIf="dialog.confirmDialog().details?.length" style="text-align: left; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06)); border-radius: 16px; padding: 4px 14px; margin-bottom: 20px;">
+            <div *ngFor="let d of dialog.confirmDialog().details; let isLast = last" style="display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: var(--inset-divider, 1px solid rgba(0,0,0,0.06));" [style.border-bottom]="isLast ? 'none' : ''">
+              <app-icon *ngIf="d.icon" [name]="d.icon" [size]="14" color="var(--ion-color-danger)" style="width: 16px; flex-shrink: 0;"></app-icon>
               <span style="font-size: 12px; font-weight: 700; color: var(--ion-color-medium); flex-shrink: 0;">{{ d.label }}</span>
               <span style="font-size: 13px; font-weight: 600; color: var(--ion-text-color); text-align: right; flex: 1; overflow-wrap: anywhere;">{{ d.value }}</span>
             </div>
           </div>
           <div style="display: flex; gap: 10px;">
-            <button (click)="dialog.closeConfirm()" [disabled]="dialog.confirmLoading()" [style.opacity]="dialog.confirmLoading() ? 0.5 : 1" [style.cursor]="dialog.confirmLoading() ? 'not-allowed' : 'pointer'" style="flex: 1; padding: 14px; background: var(--ion-color-light); border: none; border-radius: 12px; font-size: 15px; font-weight: bold; color: var(--ion-text-color);">{{ dialog.confirmDialog().cancelLabel }}</button>
-            <button (click)="dialog.runConfirm()" [disabled]="dialog.confirmLoading()" style="flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center;" [style.background]="dialog.confirmDialog().confirmColor" [style.cursor]="dialog.confirmLoading() ? 'not-allowed' : 'pointer'">
+            <button (click)="dialog.closeConfirm()" [disabled]="dialog.confirmLoading()" [style.opacity]="dialog.confirmLoading() ? 0.5 : 1" [style.cursor]="dialog.confirmLoading() ? 'not-allowed' : 'pointer'" style="flex: 1; padding: 13px; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); border: none; border-radius: 14px; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color); transition: background 0.15s;">{{ dialog.confirmDialog().cancelLabel }}</button>
+            <button (click)="dialog.runConfirm()" [disabled]="dialog.confirmLoading()" style="flex: 1; padding: 13px; border: none; border-radius: 14px; font-size: 14.5px; font-weight: 800; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(211,47,47,0.3);" [style.background]="dialog.confirmDialog().confirmColor" [style.cursor]="dialog.confirmLoading() ? 'not-allowed' : 'pointer'">
               <ng-container *ngIf="!dialog.confirmLoading()">{{ dialog.confirmDialog().confirmLabel }}</ng-container>
-              <span *ngIf="dialog.confirmLoading()" class="dot-loader"><span></span><span></span><span></span></span>
+              <span *ngIf="dialog.confirmLoading()" class="dot-loader dot-loader-white"><span></span><span></span><span></span></span>
             </button>
           </div>
         </div>
@@ -46,7 +48,7 @@ import { ProxyImageDirective } from '../../directives/proxy-image.directive';
       <div class="lightbox-toolbar" (click)="$event.stopPropagation()">
         <!-- Counter Badge (for multiple images) -->
         <div class="lightbox-counter" *ngIf="dialog.totalMediaCount > 1">
-          <i class="fa-solid fa-images" style="margin-right: 6px; font-size: 11px;"></i>
+          <app-icon name="camera" [size]="12" color="#ffffff" style="margin-right: 6px;"></app-icon>
           <span>{{ dialog.lightboxIndex() + 1 }} / {{ dialog.totalMediaCount }}</span>
         </div>
         <div *ngIf="dialog.totalMediaCount <= 1"></div>
@@ -55,18 +57,18 @@ import { ProxyImageDirective } from '../../directives/proxy-image.directive';
         <div class="lightbox-tools">
           <ng-container *ngIf="!dialog.lightboxIsVideo()">
             <button type="button" class="lightbox-tool-btn" (click)="zoomOut()" [disabled]="scale <= 1" title="Zoom Out">
-              <i class="fa-solid fa-magnifying-glass-minus"></i>
+              <app-icon name="compress" [size]="16" color="#ffffff"></app-icon>
             </button>
             <button type="button" class="lightbox-tool-btn" (click)="zoomIn()" [disabled]="scale >= 4" title="Zoom In">
-              <i class="fa-solid fa-magnifying-glass-plus"></i>
+              <app-icon name="expand" [size]="16" color="#ffffff"></app-icon>
             </button>
             <button type="button" class="lightbox-tool-btn" *ngIf="scale > 1" (click)="resetZoom()" title="Reset Zoom">
-              <i class="fa-solid fa-rotate-left"></i>
+              <app-icon name="history" [size]="16" color="#ffffff"></app-icon>
             </button>
           </ng-container>
 
           <button type="button" class="lightbox-close-btn" (click)="closeLightbox()" title="Close Viewer">
-            <i class="fa-solid fa-xmark"></i>
+            <app-icon name="close" [size]="18" color="#ffffff"></app-icon>
           </button>
         </div>
       </div>
@@ -109,7 +111,7 @@ import { ProxyImageDirective } from '../../directives/proxy-image.directive';
               class="lightbox-nav-btn lightbox-nav-prev"
               (click)="prevMedia($event)"
               title="Previous Photo">
-        <i class="fa-solid fa-chevron-left"></i>
+        <app-icon name="chevron-left" [size]="20" color="#ffffff"></app-icon>
       </button>
 
       <button *ngIf="dialog.hasNextMedia"
@@ -117,7 +119,7 @@ import { ProxyImageDirective } from '../../directives/proxy-image.directive';
               class="lightbox-nav-btn lightbox-nav-next"
               (click)="nextMedia($event)"
               title="Next Photo">
-        <i class="fa-solid fa-chevron-right"></i>
+        <app-icon name="chevron-right" [size]="20" color="#ffffff"></app-icon>
       </button>
 
       <!-- Bottom Gallery Dots Indicator & Gesture Hints -->
@@ -131,8 +133,8 @@ import { ProxyImageDirective } from '../../directives/proxy-image.directive';
           </span>
         </div>
         <p class="lightbox-hint">
-          <span *ngIf="!dialog.lightboxIsVideo()"><i class="fa-solid fa-hand-pointer" style="margin-right: 4px;"></i>Double-tap or pinch to zoom</span>
-          <span *ngIf="dialog.totalMediaCount > 1" style="margin-left: 8px;">• <i class="fa-solid fa-arrows-left-right" style="margin: 0 4px;"></i>Swipe to navigate</span>
+          <span *ngIf="!dialog.lightboxIsVideo()"><app-icon name="expand" [size]="12" color="#ffffff" style="margin-right: 4px;"></app-icon>Double-tap or pinch to zoom</span>
+          <span *ngIf="dialog.totalMediaCount > 1" style="margin-left: 8px;">• <app-icon name="chevron-right" [size]="12" color="#ffffff" style="margin: 0 4px;"></app-icon>Swipe to navigate</span>
         </p>
       </div>
 
