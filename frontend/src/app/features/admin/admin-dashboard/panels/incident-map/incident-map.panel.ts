@@ -5,7 +5,8 @@ import { HttpClient } from '@angular/common/http';
 import { Subscription, interval, firstValueFrom } from 'rxjs';
 import {
   IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
+  IonSegment, IonSegmentButton, IonLabel
 } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
 import { ApiService } from '../../../../../core/services/api';
@@ -18,6 +19,7 @@ import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
 import { DateFilterValue, matchesDateFilter } from '../../../../../shared/utils/date-filter.util';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 /**
  * Fallback polling interval for the incident map — active continuously as
@@ -29,45 +31,17 @@ import { DateFilterValue, matchesDateFilter } from '../../../../../shared/utils/
  */
 const FALLBACK_POLL_MS = 30_000;
 
-// @ts-ignore — tile layer with local cache-first fetch (unchanged from the original monolith)
-const CachedTileLayer = L.TileLayer.extend({
-  createTile: function (coords: any, done: any) {
-    const tile = document.createElement('img');
-    const url  = this.getTileUrl(coords);
-    tile.crossOrigin = 'Anonymous';
-    const fetchOptions: RequestInit = {
-      mode: 'cors', referrerPolicy: 'no-referrer',
-      headers: {
-        'User-Agent': 'SINEMDRRMOApp/1.0 (sine-mdrrmo-capstone; contact: ejperez623@gmail.com)',
-        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-      }
-    };
-    const loadTile = (blob: Blob) => { tile.src = URL.createObjectURL(blob); done(null, tile); };
-    const fetchFresh = () =>
-      fetch(url, fetchOptions)
-        .then((net: Response) => {
-          if (!net.ok) throw new Error(`OSM tile ${net.status}`);
-          const clone = net.clone();
-          if ('caches' in window) { caches.open('mdrrmo-tile-cache-v1').then((cache: Cache) => cache.put(url, clone)); }
-          return net.blob();
-        })
-        .then(loadTile)
-        .catch((err: any) => done(err, tile));
-    if ('caches' in window) {
-      caches.open('mdrrmo-tile-cache-v1').then((cache: Cache) => {
-        cache.match(url).then((cached: Response | undefined) => {
-          if (cached) { cached.blob().then(loadTile); } else { fetchFresh(); }
-        });
-      });
-    } else { fetchFresh(); }
-    return tile;
-  }
-});
-
 @Component({
   selector: 'app-incident-map-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, ProxyImageDirective, VideoThumbnailDirective, ListEnterDirective, UtcDatePipe, DateRangeFilterComponent],
+  imports: [
+    CommonModule, FormsModule,
+    IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
+    IonSegment, IonSegmentButton, IonLabel,
+    ProxyImageDirective, VideoThumbnailDirective, ListEnterDirective,
+    UtcDatePipe, DateRangeFilterComponent, AppIconComponent
+  ],
   templateUrl: './incident-map.panel.html',
   styleUrl: './incident-map.panel.scss',
 })
@@ -115,19 +89,19 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   private highlightBgyLayer: any = null;
 
   emergencyTypeOptions = [
-    { id: 'Fire',    label: 'Fire',      icon: 'fa-solid fa-fire', color: '#eb445a' },
-    { id: 'Flood',   label: 'Flood',     icon: 'fa-solid fa-cloud-showers-heavy', color: '#3880ff' },
-    { id: 'Medical', label: 'Medical',   icon: 'fa-solid fa-heart-pulse', color: '#2dd36f' },
-    { id: 'Crime',   label: 'Crime',     icon: 'fa-solid fa-handcuffs', color: '#bc6fff' },
-    { id: 'Others',  label: 'Others',    icon: 'fa-solid fa-circle-exclamation', color: '#ffc409' }
+    { id: 'Fire',    label: 'Fire',      icon: 'flame',        color: '#eb445a' },
+    { id: 'Flood',   label: 'Flood',     icon: 'droplet',      color: '#3880ff' },
+    { id: 'Medical', label: 'Medical',   icon: 'medical',      color: '#2dd36f' },
+    { id: 'Crime',   label: 'Crime',     icon: 'shield-alert', color: '#bc6fff' },
+    { id: 'Others',  label: 'Others',    icon: 'circle-alert', color: '#ffc409' }
   ];
 
   hazardTypeOptions = [
-    { id: 'Flooded Street',    label: 'Flood',       icon: 'fa-solid fa-water', color: '#3880ff' },
-    { id: 'Road Obstruction',  label: 'Road',        icon: 'fa-solid fa-road-barrier', color: '#e0ac00' },
-    { id: 'Fallen Tree',       label: 'Tree',        icon: 'fa-solid fa-tree', color: '#2dd36f' },
-    { id: 'Downed Wire',       label: 'Wire',        icon: 'fa-solid fa-bolt', color: '#ffc409' },
-    { id: 'Others',            label: 'Others',      icon: 'fa-solid fa-circle-exclamation', color: '#eb445a' }
+    { id: 'Flooded Street',    label: 'Flood',       icon: 'droplet',      color: '#3880ff' },
+    { id: 'Road Obstruction',  label: 'Road',        icon: 'hazard',       color: '#e0ac00' },
+    { id: 'Fallen Tree',       label: 'Tree',        icon: 'trees',        color: '#2dd36f' },
+    { id: 'Downed Wire',       label: 'Wire',        icon: 'zap',          color: '#ffc409' },
+    { id: 'Others',            label: 'Others',      icon: 'circle-alert', color: '#eb445a' }
   ];
 
   dateFilterOptions = [
@@ -137,12 +111,59 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     { id: '30d',   label: '30 Days' }
   ];
 
+  queueWidth = 390;
+  isResizingQueue = false;
+  private startX = 0;
+  private startWidth = 0;
+
   constructor(
     private http: HttpClient,
     public api: ApiService,
     public ui: AdminUiService,
     private echo: EchoService,
-  ) {}
+  ) {
+    const savedWidth = localStorage.getItem('admin_map_queue_width');
+    if (savedWidth) {
+      const parsed = parseInt(savedWidth, 10);
+      if (!isNaN(parsed) && parsed >= 300 && parsed <= 650) {
+        this.queueWidth = parsed;
+      }
+    }
+  }
+
+  onSplitterMouseDown(event: MouseEvent) {
+    event.preventDefault();
+    this.isResizingQueue = true;
+    this.startX = event.clientX;
+    this.startWidth = this.queueWidth;
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    window.addEventListener('mousemove', this.onSplitterMouseMove);
+    window.addEventListener('mouseup', this.onSplitterMouseUp);
+  }
+
+  private onSplitterMouseMove = (event: MouseEvent) => {
+    if (!this.isResizingQueue) return;
+    const delta = this.startX - event.clientX;
+    const newWidth = Math.max(300, Math.min(650, this.startWidth + delta));
+    this.queueWidth = newWidth;
+    if (this.map) {
+      this.map.invalidateSize();
+    }
+  };
+
+  private onSplitterMouseUp = () => {
+    if (!this.isResizingQueue) return;
+    this.isResizingQueue = false;
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+    window.removeEventListener('mousemove', this.onSplitterMouseMove);
+    window.removeEventListener('mouseup', this.onSplitterMouseUp);
+    localStorage.setItem('admin_map_queue_width', String(this.queueWidth));
+    if (this.map) {
+      this.map.invalidateSize();
+    }
+  };
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['mode']) {
@@ -176,6 +197,16 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.fallbackPollSub?.unsubscribe();
     this.echoEmergencySub?.unsubscribe();
     this.echoHazardSub?.unsubscribe();
+    window.removeEventListener('mousemove', this.onSplitterMouseMove);
+    window.removeEventListener('mouseup', this.onSplitterMouseUp);
+    if (this.map) {
+      try {
+        this.map.remove();
+      } catch (e) {
+        console.warn('Map teardown warning:', e);
+      }
+      this.map = null;
+    }
   }
 
   loadData() {
@@ -358,8 +389,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   initMap() {
     if (this.map) return;
     this.map = L.map('dispatch-map', { minZoom: 12, zoomControl: true }).setView([15.3014, 120.9274], 13);
-    // @ts-ignore
-    this.streetLayer    = new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+    this.streetLayer    = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors', crossOrigin: true });
     this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri' });
 
     if (this.mapStyle === 'street') {
@@ -562,7 +592,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.ui.confirm({
       title: 'Resolve Emergency',
       message: 'Mark this emergency as resolved? It will be moved to the archive.',
-      icon: 'fa-solid fa-circle-check',
+      icon: 'check',
       iconColor: '#2dd36f',
       confirmLabel: 'Resolve',
       confirmColor: '#2dd36f',
@@ -578,7 +608,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.ui.confirm({
       title: 'Mark as False Alarm',
       message: `Mark this report by ${citizenName} as a false alarm? This will add a strike to their account. At 3 strikes, their account is automatically suspended.`,
-      icon: 'fa-solid fa-triangle-exclamation',
+      icon: 'alert',
       iconColor: '#eb445a',
       confirmLabel: 'Mark False Alarm',
       confirmColor: '#eb445a',
@@ -598,7 +628,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.ui.confirm({
       title: 'Acknowledge Hazard',
       message: 'Remove this hazard from the map? This confirms it has been addressed.',
-      icon: 'fa-solid fa-road-barrier',
+      icon: 'hazard',
       iconColor: '#ffc409',
       confirmLabel: 'Acknowledge',
       confirmColor: '#ffc409',
