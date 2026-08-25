@@ -9,11 +9,12 @@ import { TourService } from '../../../core/services/tour';
 import { ImageCacheService } from '../../../core/services/image-cache';
 import { UserSettingsService } from '../../../core/services/user-settings';
 import { tabPushTransition } from '../../../core/animations/tab-push-transition';
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
 @Component({
   selector: 'app-tabs',
   standalone: true,
-  imports: [CommonModule, RouterModule, IonRouterOutlet],
+  imports: [CommonModule, RouterModule, IonRouterOutlet, AppIconComponent],
   template: `
 <div class="route-container">
   <ion-router-outlet [animated]="settings.shouldAnimate()" [animation]="tabAnimation"></ion-router-outlet>
@@ -29,7 +30,7 @@ import { tabPushTransition } from '../../../core/animations/tab-push-transition'
           [class.active]="activeIndex === i"
           [style.background-image]="'url(' + profileAvatar + ')'"></span>
     <span *ngIf="!tab.hasAvatar || !profileAvatar" class="ctab-icon-ring">
-      <i [class]="tab.icon"></i>
+      <app-icon [name]="tab.icon" [size]="20" [color]="activeIndex === i ? 'var(--ion-color-danger, #d32f2f)' : 'var(--ion-color-medium, #8a8a8e)'"></app-icon>
     </span>
     <span class="ctab-label">{{ tab.label }}</span>
   </button>
@@ -80,7 +81,6 @@ import { tabPushTransition } from '../../../core/animations/tab-push-transition'
       transition: color 0.2s ease; -webkit-tap-highlight-color: transparent;
     }
     .ctab-btn.active { color: var(--ion-color-danger, #d32f2f); }
-    .ctab-btn i { font-size: 15px; line-height: 1; transition: color 0.2s ease; }
     .ctab-label {
       font-size: 10px; font-weight: 600; letter-spacing: 0.3px; line-height: 1;
       transition: font-weight 0.15s ease;
@@ -105,11 +105,11 @@ import { tabPushTransition } from '../../../core/animations/tab-push-transition'
 })
 export class TabsPage implements OnInit, OnDestroy {
   tabs = [
-    { id: 'home',     route: '/tabs/home',     icon: 'fa-solid fa-house',             label: 'Home',     hasAvatar: false },
-    { id: 'history',  route: '/tabs/history',  icon: 'fa-solid fa-clock-rotate-left', label: 'History',  hasAvatar: false },
-    { id: 'profile',  route: '/tabs/profile',  icon: 'fa-solid fa-user',              label: 'Profile',  hasAvatar: true  },
-    { id: 'settings', route: '/tabs/settings', icon: 'fa-solid fa-sliders',           label: 'Settings', hasAvatar: false },
-    { id: 'help',     route: '/tabs/help',     icon: 'fa-solid fa-circle-question',   label: 'Help',     hasAvatar: false },
+    { id: 'home',     route: '/tabs/home',     icon: 'home',             label: 'Home',     hasAvatar: false },
+    { id: 'history',  route: '/tabs/history',  icon: 'history',          label: 'History',  hasAvatar: false },
+    { id: 'profile',  route: '/tabs/profile',  icon: 'user',             label: 'Profile',  hasAvatar: true  },
+    { id: 'settings', route: '/tabs/settings', icon: 'settings',         label: 'Settings', hasAvatar: false },
+    { id: 'help',     route: '/tabs/help',     icon: 'circle-question',  label: 'Help',     hasAvatar: false },
   ];
 
   activeIndex = 0;

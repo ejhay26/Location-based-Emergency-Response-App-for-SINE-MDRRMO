@@ -39,6 +39,8 @@ const FALLBACK_POLL_MS = 30_000;
  */
 const WIDGET_PROMPT_DISMISSED_KEY = 'widget_prompt_dismissed';
 
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -47,7 +49,7 @@ const WIDGET_PROMPT_DISMISSED_KEY = 'widget_prompt_dismissed';
   imports: [
     CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonToast,
     PressFeedbackDirective, ImpactFeedbackDirective, ListEnterDirective,
-    ProxyImageDirective, FloatingSosCardComponent, UtcDatePipe,
+    ProxyImageDirective, FloatingSosCardComponent, UtcDatePipe, AppIconComponent
   ],
 })
 export class HomePage implements OnInit, OnDestroy {
@@ -251,7 +253,7 @@ export class HomePage implements OnInit, OnDestroy {
       const confirmed = await this.dialog.confirm({
         title: 'Remove Queued Report',
         message: "This report hasn't reached MDRRMO yet. Remove it from the queue?",
-        icon: 'fa-solid fa-circle-xmark',
+        icon: 'close',
         iconColor: '#eb445a',
         confirmLabel: 'Remove',
         confirmColor: 'danger',
@@ -268,7 +270,7 @@ export class HomePage implements OnInit, OnDestroy {
     await this.dialog.confirm({
       title: 'Cancel SOS Report',
       message: 'Are you sure you want to cancel this emergency report? Only do this if the situation has been resolved or was reported by mistake.',
-      icon: 'fa-solid fa-triangle-exclamation',
+      icon: 'alert',
       iconColor: '#eb445a',
       confirmLabel: 'Yes, Cancel Report',
       confirmColor: 'danger',
@@ -334,7 +336,7 @@ export class HomePage implements OnInit, OnDestroy {
     const confirmed = await this.dialog.confirm({
       title: 'Add Report Widget to Home Screen',
       message: 'In an emergency, every second counts. This puts a "Report Emergency" button right on your home screen, so you can start a report the moment something happens — no unlocking through the app, no digging for the right screen. Tap Add, then confirm the placement prompt Android shows you.',
-      icon: 'fa-solid fa-table-cells-large',
+      icon: 'sliders',
       iconColor: 'danger',
       confirmLabel: 'Add Widget',
       confirmColor: 'danger',
