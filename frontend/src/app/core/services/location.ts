@@ -1,5 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Geolocation } from '@capacitor/geolocation';
+import { BehaviorSubject } from 'rxjs';
 import { UserSettingsService } from './user-settings';
 
 export interface CachedPosition { lat: number; lng: number; accuracy: number; timestamp: number; }
@@ -9,6 +10,8 @@ export class LocationService implements OnDestroy {
 
   private watchId: string | null = null;
   cachedPosition: CachedPosition | null = null;
+  private positionSubject = new BehaviorSubject<CachedPosition | null>(null);
+  position$ = this.positionSubject.asObservable();
 
   constructor(private userSettings: UserSettingsService) {}
 
@@ -34,6 +37,7 @@ export class LocationService implements OnDestroy {
           accuracy:  initial.coords.accuracy,
           timestamp: initial.timestamp,
         };
+        this.positionSubject.next(this.cachedPosition);
       } catch {
         // GPS cold start failed — watch will populate cache when it can.
       }
@@ -49,6 +53,7 @@ export class LocationService implements OnDestroy {
             accuracy:  pos.coords.accuracy,
             timestamp: pos.timestamp,
           };
+          this.positionSubject.next(this.cachedPosition);
         }
       );
     } catch { /* GPS unavailable */ }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ToastController } from '@ionic/angular/standalone';
 import { Geolocation } from '@capacitor/geolocation';
+import { Subscription } from 'rxjs';
 import { animate, type AnimationPlaybackControls } from 'motion';
 import * as L from 'leaflet';
 import { UserSettingsService } from '../../../../../core/services/user-settings';
@@ -138,6 +139,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   private satelliteLayer: any;
 
   private resizeObserver?: ResizeObserver;
+  private locationSub?: Subscription;
 
   get crosshairColor(): string { return this.reportType === 'hazard' ? '#ffc409' : '#eb445a'; }
 
@@ -169,6 +171,8 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
 
   /** Called by the parent page's ionViewWillLeave / ngOnDestroy. */
   cleanup() {
+    this.locationSub?.unsubscribe();
+    this.locationSub = undefined;
     this.resizeObserver?.disconnect();
     this.resizeObserver = undefined;
     // Stop any in-flight expand/collapse tween before tearing anything down —
@@ -539,9 +543,24 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       const bounds = boundaryLayer.getBounds();
       this.map.fitBounds(bounds); this.map.setMaxBounds(bounds.pad(0.1)); this.map.options.maxBoundsViscosity = 1.0;
       this.updateCoords();
-      const cached = this.locationSvc.cachedPosition;
-      if (cached && this.map) { this.map.flyTo([cached.lat, cached.lng], 17); }
+
+      if (this.userSettings.getBool('location_auto_fetch')) {
+        const cached = this.locationSvc.cachedPosition;
+        if (cached && this.map) {
+          this.map.flyTo([cached.lat, cached.lng], 17);
+        } else {
+          this.getCurrentLocation(true);
+        }
+      }
     });
+
+    this.locationSub?.unsubscribe();
+    this.locationSub = this.locationSvc.position$.subscribe(pos => {
+      if (pos && this.map && this.userSettings.getBool('location_auto_fetch')) {
+        this.map.flyTo([pos.lat, pos.lng], 17);
+      }
+    });
+
     this.map.on('moveend', () => this.updateCoords());
     this.showMapHint = true;
     this.hintTimer = setTimeout(() => { this.showMapHint = false; }, 3000);
@@ -559,24 +578,39 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     this.coordsChanged.emit({ latitude: center.lat.toFixed(6), longitude: center.lng.toFixed(6), barangayName: this.resolvedBarangayName });
   }
 
-  async getCurrentLocation() {
+  async getCurrentLocation(silent = false) {
     let permDenied = false;
     try {
       const perm = await Geolocation.requestPermissions();
       if (perm.location === 'denied') { permDenied = true; }
     } catch { /* already granted */ }
-    if (permDenied) { this.showToast('Location permission denied. Enable it in app settings.', 'danger'); return; }
+    if (permDenied) {
+      if (!silent) this.showToast('Location permission denied. Enable it in app settings.', 'danger');
+      return;
+    }
     let pos: any = null;
-    try { pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 }); }
-    catch (highErr: any) {
+    try {
+      pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+    } catch (highErr: any) {
       const isTimeout = highErr?.message?.toLowerCase().includes('timeout') || highErr?.code === 3;
       if (isTimeout) {
-        try { pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 8000 }); }
-        catch { this.showToast('Could not get location. Check that GPS is enabled.', 'warning'); return; }
-      } else { this.showToast('Could not get location. Check that GPS is enabled.', 'warning'); return; }
+        try {
+          pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 8000 });
+        } catch {
+          if (!silent) this.showToast('Could not get location. Check that GPS is enabled.', 'warning');
+          return;
+        }
+      } else {
+        if (!silent) this.showToast('Could not get location. Check that GPS is enabled.', 'warning');
+        return;
+      }
     }
-    if (this.map) { this.map.flyTo([pos.coords.latitude, pos.coords.longitude], 17); }
-    this.locationSvc.cachedPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, timestamp: pos.timestamp };
+    if (this.map && pos?.coords) {
+      this.map.flyTo([pos.coords.latitude, pos.coords.longitude], 17);
+    }
+    if (pos?.coords) {
+      this.locationSvc.cachedPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, timestamp: pos.timestamp };
+    }
   }
 
   isInsideSanIsidro(lat: number, lng: number): boolean {
