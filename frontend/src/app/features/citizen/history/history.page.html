@@ -10,11 +10,12 @@
   <div id="tour-history-page" [class.tour-highlight]="tour.targetId() === 'tour-history-page'" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;">
     <app-date-range-filter [value]="dateFilter" (valueChange)="onDateFilterChange($event)"></app-date-range-filter>
     <button *ngFor="let s of statusFilters" (click)="setStatusFilter(s.value)"
-      [style.background]="statusFilter===s.value?'var(--ion-color-danger)':'var(--ion-color-light)'"
+      [style.background]="statusFilter===s.value?'var(--ion-color-danger)':'var(--ion-card-background, white)'"
       [style.color]="statusFilter===s.value?'white':'var(--ion-text-color)'"
-      [style.border]="statusFilter===s.value?'none':'1px solid var(--ion-color-step-200,#ddd)'"
-      style="display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;">
-      <i [class]="s.icon" style="margin-right:4px;font-size:11px;"></i>{{ s.label }}
+      [style.border]="statusFilter===s.value?'none':'var(--card-border, 1px solid rgba(0,0,0,0.08))'"
+      [style.box-shadow]="statusFilter===s.value?'0 2px 8px rgba(211,47,47,0.3)':'var(--card-shadow, 0 1px 4px rgba(0,0,0,0.04))'"
+      style="display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;gap:4px;">
+      <app-icon [name]="s.icon" [size]="12" [color]="statusFilter===s.value?'#ffffff':'currentColor'"></app-icon>{{ s.label }}
     </button>
   </div>
 
@@ -22,15 +23,11 @@
 
   <p *ngIf="!isLoading && emergencies.length > 0" style="font-size:12px;color:var(--ion-color-medium);margin:0 0 10px 2px;">{{ filteredEmergencies.length }} of {{ emergencies.length }} report{{ emergencies.length !== 1 ? 's' : '' }}</p>
 
-  <!-- Stage 5 — queued-offline SOS reports: not yet on the server at all,
-       so they can never appear in the list below. Shown above it,
-       regardless of the active status/date filters. Cancellable — removes
-       the local queue entry, no API call needed since it never reached
-       the server. -->
-  <ion-card *ngFor="let item of queuedSosItems" style="margin:10px 0;border:1.5px dashed var(--ion-color-warning);">
+  <!-- Stage 5 — queued-offline SOS reports -->
+  <ion-card *ngFor="let item of queuedSosItems" style="margin:10px 0;border:1.5px dashed var(--ion-color-warning);border-radius:18px;">
     <ion-item lines="none">
       <div slot="start" style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#ffc40920;">
-        <i class="fa-solid fa-cloud-arrow-up" style="color:#e0ac00;font-size:18px;"></i>
+        <app-icon name="cloud-arrow-up" [size]="18" color="#e0ac00"></app-icon>
       </div>
       <ion-label>
         <h2 style="font-weight:bold;color:var(--ion-text-color);">Emergency SOS</h2>
@@ -40,52 +37,57 @@
       <ion-badge slot="end" color="warning" style="font-weight:bold;padding:6px 12px;border-radius:8px;margin-right:8px;">Queued · Offline</ion-badge>
     </ion-item>
     <ion-button fill="clear" color="medium" expand="block" (click)="cancelQueuedItem(item.id)" style="font-weight:bold;border-top:1px solid var(--ion-color-step-100,#eee);margin-top:4px;">
-      <i class="fa-solid fa-circle-ban" style="margin-right:6px;"></i>Remove From Queue
+      <app-icon name="close" [size]="14" color="var(--ion-color-medium)" style="margin-right:6px;"></app-icon>Remove From Queue
     </ion-button>
   </ion-card>
 
   <div>
-    <ng-container *ngIf="isLoading"><ion-card *ngFor="let i of [1,2,3]" style="margin:10px 0;"><ion-item lines="none"><ion-label><h2><ion-skeleton-text [animated]="true" style="width:60%;"></ion-skeleton-text></h2><p><ion-skeleton-text [animated]="true" style="width:40%;"></ion-skeleton-text></p></ion-label></ion-item></ion-card></ng-container>
+    <ng-container *ngIf="isLoading"><ion-card *ngFor="let i of [1,2,3]" style="margin:10px 0;border-radius:18px;"><ion-item lines="none"><ion-label><h2><ion-skeleton-text [animated]="true" style="width:60%;"></ion-skeleton-text></h2><p><ion-skeleton-text [animated]="true" style="width:40%;"></ion-skeleton-text></p></ion-label></ion-item></ion-card></ng-container>
 
     <div *ngIf="!isLoading && filteredEmergencies.length === 0 && !filterSettling" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;text-align:center;">
-      <i class="fa-solid fa-clipboard-list" style="font-size:52px;color:var(--ion-color-step-400,#bbb);margin-bottom:14px;"></i>
+      <app-icon name="history" [size]="52" color="var(--ion-color-step-400,#bbb)" style="margin-bottom:14px;"></app-icon>
       <p style="color:var(--ion-color-medium);font-size:14px;margin-bottom:20px;">{{ emptyLabel }}</p>
-      <ion-button color="danger" (click)="goToSos()" style="font-weight:bold;margin-bottom:8px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:8px;"></i>Send Emergency SOS</ion-button>
-      <ion-button fill="outline" color="danger" (click)="goToHazard()" style="font-weight:bold;"><i class="fa-solid fa-road-barrier" style="margin-right:8px;"></i>Report a Hazard</ion-button>
+      <ion-button color="danger" (click)="goToSos()" style="font-weight:bold;margin-bottom:8px;--border-radius:14px;">
+        <app-icon name="alert" [size]="16" color="#ffffff" style="margin-right:8px;"></app-icon>Send Emergency SOS
+      </ion-button>
+      <ion-button fill="outline" color="danger" (click)="goToHazard()" style="font-weight:bold;--border-radius:14px;">
+        <app-icon name="hazard" [size]="16" color="var(--ion-color-danger)" style="margin-right:8px;"></app-icon>Report a Hazard
+      </ion-button>
     </div>
 
     <ion-list *ngIf="!isLoading && emergencies.length > 0" style="background:transparent;">
       <ion-card *ngFor="let req of emergencies; trackBy: trackByRequestId"
                 [appRevealAnimate]="matchesFilter(req)"
-                style="margin:10px 0;">
-        <!-- Tap the card body (not the ion-item chrome) to expand/retract — accordion, no persistent outline. -->
+                style="margin:10px 0;border-radius:18px;">
         <div (click)="toggleExpand(req.request_id)" style="cursor:pointer;">
           <ion-item lines="none">
             <div slot="start" style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;" [style.background]="req.status==='Resolved'?'#2dd36f20':req.status==='Pending'?'#ffc40920':'#92949c20'">
-              <i [class]="iconClass(req)" [style.color]="req.status==='Resolved'?'#2dd36f':req.status==='Pending'?'#e0ac00':'#92949c'" style="font-size:18px;"></i>
+              <app-icon [name]="iconName(req)" [size]="18" [color]="req.status==='Resolved'?'#2dd36f':req.status==='Pending'?'#e0ac00':'#92949c'"></app-icon>
             </div>
             <ion-label>
-              <h2 style="font-weight:bold;color:var(--ion-text-color);">{{ req.incident_name ? req.incident_name + ' Emergency' : (req.hazard_type || 'Hazard Report') }}</h2>
-              <p style="color:var(--ion-color-medium);font-size:12px;">{{ req.request_time | date:'MMM d, y · h:mm a' }}</p>
+              <h2 style="font-weight:bold;color:var(--ion-text-color);margin:0 0 2px;">{{ req.incident_name ? req.incident_name + ' Emergency' : (req.hazard_type || 'Hazard Report') }}</h2>
+              <p style="color:var(--ion-color-medium);font-size:12px;margin:0;">{{ req.request_time | date:'MMM d, y · h:mm a' }}</p>
               <p *ngIf="req.description && expandedId !== req.request_id && !closingIds.has(req.request_id)" style="font-size:12px;color:var(--ion-color-medium);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ req.description }}</p>
             </ion-label>
-            <ion-badge slot="end" [color]="statusColor(req.status)" style="font-weight:bold;padding:6px 12px;border-radius:8px;">{{ req.status }}</ion-badge>
-            <i slot="end" class="fa-solid" [class.fa-chevron-down]="expandedId !== req.request_id" [class.fa-chevron-up]="expandedId === req.request_id" style="font-size:12px;color:var(--ion-color-medium);margin-left:8px;"></i>
+            <div slot="end" style="display:flex;align-items:center;gap:8px;margin:0;">
+              <ion-badge [color]="statusColor(req.status)" style="font-weight:700;padding:6px 12px;border-radius:10px;font-size:11px;">{{ req.status }}</ion-badge>
+              <app-icon [name]="expandedId === req.request_id ? 'chevron-down' : 'chevron-right'" [size]="14" color="var(--ion-color-medium)"></app-icon>
+            </div>
           </ion-item>
 
-          <!-- Expanded state: full description + tappable proof-file media. -->
+          <!-- Expanded state -->
           <div *ngIf="expandedId === req.request_id || closingIds.has(req.request_id)"
                [appRevealAnimate]="openAnimateId === req.request_id"
                (closed)="onCardCollapsed(req.request_id)"
-               style="padding:0 16px 14px;">
-            <p *ngIf="req.description" style="font-size:13px;color:var(--ion-text-color);line-height:1.5;margin:0 0 4px;">{{ req.description }}</p>
-            <p *ngIf="!req.description" style="font-size:12px;color:var(--ion-color-medium);font-style:italic;margin:0 0 4px;">No additional details provided.</p>
+               style="padding:12px 16px 14px;border-top:var(--inset-divider, 1px solid rgba(0,0,0,0.06));text-align:left;">
+            <p *ngIf="req.description" style="font-size:13px;color:var(--ion-text-color);line-height:1.5;margin:0 0 8px;text-align:left;">{{ req.description }}</p>
+            <p *ngIf="!req.description" style="font-size:12px;color:var(--ion-color-medium);font-style:italic;margin:0 0 8px;text-align:left;">No additional details provided.</p>
 
             <div *ngIf="req.proof_files?.length" class="media-thumb-grid">
               <div *ngFor="let filePath of req.proof_files" class="media-thumb" (click)="$event.stopPropagation(); openMedia(filePath)">
                 <ng-container *ngIf="isVideoFile(filePath); else historyImgThumb">
                   <img [videoThumbSrc]="filePath" style="width:100%;height:100%;object-fit:cover;background:#222;" />
-                  <div class="video-badge"><i class="fa-solid fa-play"></i></div>
+                  <div class="video-badge"><app-icon name="play" [size]="10" color="#ffffff"></app-icon></div>
                 </ng-container>
                 <ng-template #historyImgThumb>
                   <img [proxySrc]="filePath" style="width:100%;height:100%;object-fit:cover;" />
@@ -96,7 +98,7 @@
         </div>
 
         <ion-button *ngIf="req.status === 'Pending'" fill="clear" color="medium" expand="block" (click)="$event.stopPropagation(); cancelRequest(req.request_id)" style="font-weight:bold;border-top:1px solid var(--ion-color-step-100,#eee);margin-top:4px;">
-          <i class="fa-solid fa-circle-ban" style="margin-right:6px;"></i>Cancel Request
+          <app-icon name="close" [size]="14" color="var(--ion-color-medium)" style="margin-right:6px;"></app-icon>Cancel Request
         </ion-button>
       </ion-card>
     </ion-list>

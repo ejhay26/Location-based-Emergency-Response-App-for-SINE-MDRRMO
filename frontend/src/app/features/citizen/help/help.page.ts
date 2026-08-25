@@ -9,6 +9,8 @@ import { ApiService } from '../../../core/services/api';
 import { TourService, TourChapter } from '../../../core/services/tour';
 import { RevealAnimateDirective } from '../../../shared/directives/reveal-animate.directive';
 
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
+
 interface FaqItem { q: string; a: string; open: boolean; }
 interface TourChapterCard { chapter: TourChapter; icon: string; color: string; title: string; description: string; }
 
@@ -16,27 +18,27 @@ interface TourChapterCard { chapter: TourChapter; icon: string; color: string; t
   selector: 'app-help',
   templateUrl: './help.page.html',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, RevealAnimateDirective],
+  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, RevealAnimateDirective, AppIconComponent],
 })
 export class HelpPage implements OnInit {
   feedback = { message: '', category: 'general' };
   isSubmitting = false;
 
   chapters: TourChapterCard[] = [
-    { chapter: 'home',      icon: 'fa-solid fa-house',              color: '#eb445a', title: 'Home Screen',    description: 'Learn about the SOS button, hazard reporting, and broadcast alerts.' },
-    { chapter: 'emergency', icon: 'fa-solid fa-triangle-exclamation', color: '#eb445a', title: 'Emergency SOS',  description: 'Walk through submitting an emergency report step by step.' },
-    { chapter: 'hazard',    icon: 'fa-solid fa-road-barrier',        color: '#ffc409', title: 'Hazard Report',  description: 'Learn how to report flooded roads, downed wires, and other hazards.' },
-    { chapter: 'history',   icon: 'fa-solid fa-clock-rotate-left',   color: '#3880ff', title: 'History',        description: 'Understand how to track the status of your submitted reports.' },
-    { chapter: 'profile',   icon: 'fa-solid fa-circle-user',         color: '#2dd36f', title: 'My Profile',     description: 'Set your profile photo and fill in medical information for responders.' },
-    { chapter: 'settings',  icon: 'fa-solid fa-sliders',             color: '#92949c', title: 'Settings',       description: 'Customize dark mode, animations, location, and notifications.' },
+    { chapter: 'home',      icon: 'home',          color: '#ff3b30', title: 'Home Screen',    description: 'Learn about the SOS button, hazard reporting, and broadcast alerts.' },
+    { chapter: 'emergency', icon: 'alert',         color: '#ff453a', title: 'Emergency SOS',  description: 'Walk through submitting an emergency report step by step.' },
+    { chapter: 'hazard',    icon: 'hazard',        color: '#ff9500', title: 'Hazard Report',  description: 'Learn how to report flooded roads, downed wires, and other hazards.' },
+    { chapter: 'history',   icon: 'history',       color: '#007aff', title: 'History',        description: 'Understand how to track the status of your submitted reports.' },
+    { chapter: 'profile',   icon: 'user',          color: '#34c759', title: 'My Profile',     description: 'Set your profile photo and fill in medical information for responders.' },
+    { chapter: 'settings',  icon: 'settings',      color: '#8e8e93', title: 'Settings',       description: 'Customize dark mode, animations, location, and notifications.' },
   ];
 
   faqs: FaqItem[] = [
     { q: 'What happens after I press the SOS button?',         a: 'Your report — including your pinned location, emergency type, and any attached photos or videos — is sent directly to the MDRRMO dispatch team. They will assess the situation and dispatch the appropriate response team as quickly as possible.', open: false },
-    { q: 'Will my exact location be shared?',                  a: 'Only the location you pin on the map is shared — not a continuous GPS feed. You can also manually drag the map crosshair to any location if you are reporting on behalf of someone else or if your GPS is inaccurate.', open: false },
+    { q: 'Will my exact location be shared?',                  a: 'Only the location you pin on the map is shared — not a continuous GPS feed. You can also manually drag the map to place the location pin if you are reporting on behalf of someone else or if your GPS is inaccurate.', open: false },
     { q: 'Can I cancel a report after submitting it?',         a: 'Yes. Go to the History tab, find your report, and tap "Cancel Request" — but only while it still shows as Pending. Once MDRRMO has dispatched a team, the report can no longer be cancelled through the app.', open: false },
     { q: 'Why do I need to attach a photo or video?',          a: 'Visual proof helps the dispatch team verify the situation before sending resources and helps them prepare the right equipment. It also protects you — it confirms your report is genuine and helps MDRRMO respond more precisely.', open: false },
-    { q: 'What if my location is wrong on the map?',           a: 'Tap "Use My Location" to jump the map to your current GPS position, or drag the map manually until the crosshair is over the correct spot. The latitude and longitude fields update in real time as you move the map.', open: false },
+    { q: 'What if my location is wrong on the map?',           a: 'Tap "Use My Location" to jump the map to your current GPS position, or drag the map manually until the location pin is over the correct spot. The latitude and longitude fields update in real time as you move the map.', open: false },
     { q: 'Why is the app asking for my medical information?',  a: 'Your blood type, allergies, and medical conditions are shared with responders when they are dispatched to you. This lets paramedics and first responders prepare the correct equipment and medications before they arrive.', open: false },
     { q: 'What is a Hazard Report vs an Emergency SOS?',       a: 'An Emergency SOS is for active, immediate threats requiring urgent response — fire, flood, medical emergency, crime in progress. A Hazard Report is for ongoing dangers that need attention but are not immediate emergencies.', open: false },
     { q: 'Will I get a notification when MDRRMO responds?',    a: 'Yes, if you have Emergency Dispatch Alerts enabled in Settings. You will receive a push notification when the dispatch team acknowledges and responds to your report.', open: false },

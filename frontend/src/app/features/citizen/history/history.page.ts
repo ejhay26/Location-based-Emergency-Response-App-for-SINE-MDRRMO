@@ -20,6 +20,7 @@ import { ProxyImageDirective } from '../../../shared/directives/proxy-image.dire
 import { VideoThumbnailDirective } from '../../../shared/directives/video-thumbnail.directive';
 import { RevealAnimateDirective } from '../../../shared/directives/reveal-animate.directive';
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../shared/utils/date-filter.util';
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
 /** The 4 real backend status values (confirmed from SosController::getMyEmergencies) plus 'All'. */
 type StatusFilter = 'All' | 'Pending' | 'Dispatched' | 'Resolved' | 'Cancelled';
@@ -27,11 +28,11 @@ type StatusFilter = 'All' | 'Pending' | 'Dispatched' | 'Resolved' | 'Cancelled';
 interface StatusFilterOption { value: StatusFilter; label: string; icon: string; }
 
 const STATUS_FILTERS: StatusFilterOption[] = [
-  { value: 'Pending',    label: 'Pending',    icon: 'fa-solid fa-hourglass-half' },
-  { value: 'Dispatched', label: 'Dispatched', icon: 'fa-solid fa-truck-medical' },
-  { value: 'Resolved',   label: 'Resolved',   icon: 'fa-solid fa-circle-check' },
-  { value: 'Cancelled',  label: 'Cancelled',  icon: 'fa-solid fa-ban' },
-  { value: 'All',        label: 'All',        icon: 'fa-solid fa-list' },
+  { value: 'Pending',    label: 'Pending',    icon: 'clock' },
+  { value: 'Dispatched', label: 'Dispatched', icon: 'truck-medical' },
+  { value: 'Resolved',   label: 'Resolved',   icon: 'check' },
+  { value: 'Cancelled',  label: 'Cancelled',  icon: 'close' },
+  { value: 'All',        label: 'All',        icon: 'history' },
 ];
 
 @Component({
@@ -44,6 +45,7 @@ const STATUS_FILTERS: StatusFilterOption[] = [
     IonLabel, IonBadge, IonRefresher, IonRefresherContent, IonSkeletonText, IonList,
     DateRangeFilterComponent, FilterSummaryBarComponent,
     ProxyImageDirective, VideoThumbnailDirective, RevealAnimateDirective,
+    AppIconComponent
   ],
 })
 export class HistoryPage implements OnInit, OnDestroy {
@@ -309,12 +311,12 @@ export class HistoryPage implements OnInit, OnDestroy {
     }
   }
 
-  iconClass(req: any): string {
-    if (req.incident_name === 'Fire')    return 'fa-solid fa-fire';
-    if (req.incident_name === 'Flood')   return 'fa-solid fa-cloud-showers-heavy';
-    if (req.incident_name === 'Medical') return 'fa-solid fa-heart-pulse';
-    if (req.incident_name === 'Crime')   return 'fa-solid fa-handcuffs';
-    if (req.hazard_type)                 return 'fa-solid fa-road-barrier';
-    return 'fa-solid fa-circle-question';
+  iconName(req: any): string {
+    if (req.incident_name === 'Fire') return 'flame';
+    if (req.incident_name === 'Flood') return 'droplet';
+    if (req.incident_name === 'Medical') return 'medical';
+    if (req.incident_name === 'Crime') return 'shield-alert';
+    if (req.hazard_type) return 'hazard';
+    return 'circle-alert';
   }
 }

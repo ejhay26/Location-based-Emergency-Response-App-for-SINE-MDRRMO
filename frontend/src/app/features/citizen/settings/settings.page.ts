@@ -1,15 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
-  IonList, IonItem, IonLabel, IonToggle, IonListHeader, IonToast
+  IonItem, IonLabel, IonToggle, IonToast, IonSegment, IonSegmentButton
 } from '@ionic/angular/standalone';
 import { UserSettingsService, SettingKey } from '../../../core/services/user-settings';
 import { LocationService } from '../../../core/services/location';
 import { TourService } from '../../../core/services/tour';
 import { WidgetPinService } from '../../../core/services/widget-pin';
 import { DialogService } from '../../../core/services/dialog.service';
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
 interface SettingToggle { key: SettingKey; label: string; hint: (val: boolean) => string; value: boolean; }
 interface SettingSelect { key: SettingKey; label: string; hint: string; value: string; options: { value: string; label: string }[]; }
@@ -22,10 +23,18 @@ interface SettingSelect { key: SettingKey; label: string; hint: string; value: s
   imports: [
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonList, IonItem, IonLabel, IonToggle, IonListHeader, IonToast
+    IonItem, IonLabel, IonToggle, IonToast, IonSegment, IonSegmentButton,
+    AppIconComponent
   ]
 })
 export class SettingsPage implements OnInit {
+  onSegmentChange(s: SettingSelect, event: any) {
+    const val = event.detail.value;
+    if (val) {
+      s.value = String(val);
+      this.onSelect(s);
+    }
+  }
   appearance: SettingToggle[] = [
     { key: 'dark_mode',          label: 'Dark Mode',           hint: v => v ? 'Dark theme is on.' : 'Light theme is on.',                                    value: false },
     { key: 'reduce_animations',  label: 'Reduce Animations',   hint: v => v ? 'Animations are reduced.' : 'Full animations are enabled.',                    value: false }
@@ -111,7 +120,7 @@ export class SettingsPage implements OnInit {
       message: isEmergency
         ? 'In an emergency, every second counts. This puts a "Report Emergency" button right on your home screen, so you can start a report the moment something happens — no unlocking through the app, no digging for the right screen. Tap Add, then confirm the placement prompt Android shows you.'
         : 'Report road blockages, fallen electrical posts, flooding, or public safety hazards directly from your home screen. Tap Add, then confirm the placement prompt Android shows you.',
-      icon: isEmergency ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-road-barrier',
+      icon: isEmergency ? 'alert' : 'hazard',
       iconColor: isEmergency ? 'danger' : 'warning',
       confirmLabel: 'Add Widget',
       confirmColor: isEmergency ? 'danger' : 'warning',

@@ -5,60 +5,106 @@
 </ion-header>
 
 <ion-content class="tab-page-content">
-  <div>
-  <ion-list lines="none" style="padding:16px 16px 0;">
-    <ion-list-header style="padding-left:0;margin-bottom:4px;"><ion-label color="danger" style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.8px;"><i class="fa-solid fa-palette" style="margin-right:7px;"></i>Appearance</ion-label></ion-list-header>
-    <ion-item *ngFor="let s of appearance" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
-      <ion-label style="padding:14px 0 10px;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p></ion-label>
-      <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:6px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-      <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
-    </ion-item>
-  </ion-list>
+  <div style="padding: 16px 16px 0;">
+    <!-- Appearance Section -->
+    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:0 4px 8px;display:flex;align-items:center;gap:6px;">
+      <app-icon name="moon" [size]="14" color="var(--ion-color-danger)"></app-icon>Appearance
+    </p>
+    <div class="inset-card">
+      <ion-item *ngFor="let s of appearance; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
+        <ion-label style="padding:12px 0 10px;">
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
+          <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
+        </ion-label>
+        <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:8px;">{{ s.value ? 'ON' : 'OFF' }}</span>
+        <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+      </ion-item>
+    </div>
 
-  <ion-list lines="none" style="padding:8px 16px 0;">
-    <ion-list-header style="padding-left:0;margin-bottom:4px;"><ion-label color="danger" style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.8px;"><i class="fa-solid fa-map-location-dot" style="margin-right:7px;"></i>Map &amp; Location</ion-label></ion-list-header>
-    <ion-item *ngFor="let s of location" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
-      <ion-label style="padding:14px 0 10px;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p></ion-label>
-      <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:6px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-      <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
-    </ion-item>
-    <div *ngFor="let s of mapSettings" style="background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-      <div style="flex:1;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint }}</p></div>
-      <div style="display:flex;border-radius:10px;overflow:hidden;border:1.5px solid var(--ion-color-step-200,#ccc);flex-shrink:0;">
-        <button *ngFor="let opt of s.options" (click)="s.value = opt.value; onSelect(s)" [style.background]="s.value === opt.value ? 'var(--ion-color-danger)' : 'transparent'" [style.color]="s.value === opt.value ? 'white' : 'var(--ion-text-color)'" style="border:none;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;transition:background 0.2s,color 0.2s;">{{ opt.label }}</button>
+    <!-- Map & Location Section -->
+    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
+      <app-icon name="map-pin" [size]="14" color="var(--ion-color-danger)"></app-icon>Map &amp; Location
+    </p>
+    <div class="inset-card">
+      <ion-item *ngFor="let s of location" lines="full" style="--background:transparent;--inner-padding-end:16px;">
+        <ion-label style="padding:12px 0 10px;">
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
+          <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
+        </ion-label>
+        <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:8px;">{{ s.value ? 'ON' : 'OFF' }}</span>
+        <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+      </ion-item>
+      <div *ngFor="let s of mapSettings" style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:var(--inset-divider, 1px solid rgba(0,0,0,0.06));">
+        <div style="flex:1;">
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
+          <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint }}</p>
+        </div>
+        <div style="min-width:170px;flex-shrink:0;">
+          <ion-segment mode="ios" [value]="s.value" (ionChange)="onSegmentChange(s, $event)">
+            <ion-segment-button *ngFor="let opt of s.options" [value]="opt.value">
+              <ion-label style="font-size:12px;font-weight:700;">{{ opt.label }}</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
       </div>
     </div>
-  </ion-list>
 
-  <ion-list lines="none" style="padding:8px 16px 0;">
-    <ion-list-header style="padding-left:0;margin-bottom:4px;"><ion-label color="danger" style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.8px;"><i class="fa-solid fa-bell" style="margin-right:7px;"></i>Notifications</ion-label></ion-list-header>
-    <ion-item *ngFor="let s of notifications" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
-      <ion-label style="padding:14px 0 10px;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p></ion-label>
-      <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:6px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-      <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
-    </ion-item>
-  </ion-list>
+    <!-- Notifications Section -->
+    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
+      <app-icon name="bell" [size]="14" color="var(--ion-color-danger)"></app-icon>Notifications
+    </p>
+    <div class="inset-card">
+      <ion-item *ngFor="let s of notifications; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
+        <ion-label style="padding:12px 0 10px;">
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
+          <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
+        </ion-label>
+        <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:8px;">{{ s.value ? 'ON' : 'OFF' }}</span>
+        <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+      </ion-item>
+    </div>
 
-  <ion-list lines="none" style="padding:8px 16px 0;">
-    <ion-list-header style="padding-left:0;margin-bottom:4px;"><ion-label color="danger" style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.8px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:7px;"></i>Reporting</ion-label></ion-list-header>
-    <ion-item *ngFor="let s of reporting" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
-      <ion-label style="padding:14px 0 10px;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p></ion-label>
-      <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:6px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-      <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
-    </ion-item>
-  </ion-list>
+    <!-- Reporting Section -->
+    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
+      <app-icon name="camera" [size]="14" color="var(--ion-color-danger)"></app-icon>Reporting
+    </p>
+    <div class="inset-card">
+      <ion-item *ngFor="let s of reporting; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
+        <ion-label style="padding:12px 0 10px;">
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
+          <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
+        </ion-label>
+        <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:8px;">{{ s.value ? 'ON' : 'OFF' }}</span>
+        <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+      </ion-item>
+    </div>
 
-  <ion-list *ngIf="widgetAvailable" lines="none" style="padding:8px 16px 0;">
-    <ion-list-header style="padding-left:0;margin-bottom:4px;"><ion-label color="danger" style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.8px;"><i class="fa-solid fa-table-cells-large" style="margin-right:7px;"></i>Home Screen Widgets</ion-label></ion-list-header>
-    <ion-item button (click)="addWidget('emergency')" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
-      <ion-label style="padding:14px 0 10px;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;"><i class="fa-solid fa-triangle-exclamation" style="color:var(--ion-color-danger);margin-right:6px;"></i>Add Emergency SOS Widget</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">1-tap instant access to Report Emergency from your home screen — no need to unlock and dig through the app first.</p></ion-label>
-      <i class="fa-solid fa-chevron-right" slot="end" style="color:var(--ion-color-medium);font-size:13px;"></i>
-    </ion-item>
-    <ion-item button (click)="addWidget('hazard')" style="--background:var(--ion-card-background,var(--ion-color-light));border-radius:14px;margin-bottom:10px;--inner-padding-end:16px;">
-      <ion-label style="padding:14px 0 10px;"><p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;"><i class="fa-solid fa-road-barrier" style="color:var(--ion-color-warning);margin-right:6px;"></i>Add Report Hazard Widget</p><p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">1-tap shortcut to report road hazards, fallen trees, floods, or public safety issues straight from your home screen.</p></ion-label>
-      <i class="fa-solid fa-chevron-right" slot="end" style="color:var(--ion-color-medium);font-size:13px;"></i>
-    </ion-item>
-  </ion-list>
+    <!-- Home Screen Widgets Section -->
+    <div *ngIf="widgetAvailable">
+      <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
+        <app-icon name="mobile" [size]="14" color="var(--ion-color-danger)"></app-icon>Home Screen Widgets
+      </p>
+      <div class="inset-card">
+        <ion-item button (click)="addWidget('emergency')" lines="full" style="--background:transparent;--inner-padding-end:16px;">
+          <ion-label style="padding:12px 0 10px;">
+            <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;display:flex;align-items:center;gap:6px;">
+              <app-icon name="alert" [size]="16" color="var(--ion-color-danger)"></app-icon>Add Emergency SOS Widget
+            </p>
+            <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">1-tap instant access to Report Emergency from your home screen — no need to unlock and dig through the app first.</p>
+          </ion-label>
+          <app-icon name="chevron-right" slot="end" [size]="14" color="var(--ion-color-medium)"></app-icon>
+        </ion-item>
+        <ion-item button (click)="addWidget('hazard')" lines="none" style="--background:transparent;--inner-padding-end:16px;">
+          <ion-label style="padding:12px 0 10px;">
+            <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;display:flex;align-items:center;gap:6px;">
+              <app-icon name="hazard" [size]="16" color="var(--ion-color-warning)"></app-icon>Add Report Hazard Widget
+            </p>
+            <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">1-tap shortcut to report road hazards, fallen trees, floods, or public safety issues straight from your home screen.</p>
+          </ion-label>
+          <app-icon name="chevron-right" slot="end" [size]="14" color="var(--ion-color-medium)"></app-icon>
+        </ion-item>
+      </div>
+    </div>
   </div>
 
   <div style="padding:16px;text-align:center;margin-top:8px;">
