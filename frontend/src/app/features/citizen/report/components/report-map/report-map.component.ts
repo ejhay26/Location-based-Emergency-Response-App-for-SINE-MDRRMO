@@ -279,15 +279,13 @@ export class ReportMapComponent implements OnDestroy {
           this.map.invalidateSize();
           setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 60);
           setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 200);
+          setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 400);
         }
       }
 
-      // Fire-and-forget: unlike collapseMap, expandMap doesn't need to react
-      // to the curtain settling (no teardown work happens on expand). Still
-      // attach a no-op .catch() so an interrupted tween's rejection (e.g. a
-      // rapid collapse-tap calling .stop() mid-curtain) never surfaces as an
-      // unhandled promise rejection.
-      this.playCurtainReveal(node, srcRect, 'in').catch(() => {});
+      this.playCurtainReveal(node, srcRect, 'in')
+        .then(() => { if (this.map) this.map.invalidateSize(); })
+        .catch(() => { if (this.map) this.map.invalidateSize(); });
     });
   }
 

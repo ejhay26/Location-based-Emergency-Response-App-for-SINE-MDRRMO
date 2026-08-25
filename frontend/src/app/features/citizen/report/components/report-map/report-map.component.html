@@ -44,7 +44,7 @@
          Leaflet instance is created here — the single #report-map node is
          moved in and out of this slot, so the map never re-inits, never
          refetches tiles, and never visibly resizes/flinches on curtain reveal. -->
-    <div id="report-map-fullscreen-slot" style="width:100%;height:100%;"></div>
+    <div id="report-map-fullscreen-slot" style="position:absolute;inset:0;width:100%;height:100%;z-index:1;"></div>
 
     <!-- Compress (fullscreen-off) button — same floating position/style as the small view's expand button, just moved over the map instead of a separate header bar. -->
     <button type="button" (click)="toggleMapExpand()" style="position:absolute;top:max(8px,env(safe-area-inset-top,8px));right:8px;z-index:1002;width:34px;height:34px;border-radius:8px;border:none;background:rgba(0,0,0,0.55);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-compress"></i></button>
