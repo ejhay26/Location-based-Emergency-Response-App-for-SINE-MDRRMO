@@ -3,6 +3,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TourService } from '../../../core/services/tour';
+import { AppIconComponent } from '../app-icon/app-icon.component';
 
 interface Hole {
   top: number; left: number; width: number; height: number;
@@ -12,7 +13,7 @@ interface Hole {
 @Component({
   selector: 'app-tour-overlay',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AppIconComponent],
   styleUrl: './tour-overlay.component.scss',
   template: `
 <ng-container *ngIf="tour.isActive() && !tour.modalOpen() && holeReady">
@@ -50,8 +51,8 @@ interface Hole {
   <!-- Exit tutorial — always present, always on top, independent of the
        catcher or whichever step is active. Guaranteed way out no matter
        what else is happening. -->
-  <button class="tour-exit-btn" (click)="onExitClick($event)" aria-label="Exit tutorial">
-    <i class="fa-solid fa-xmark"></i> Exit
+  <button class="tour-exit-btn" (click)="onExitClick($event)" aria-label="Exit tutorial" style="display:inline-flex;align-items:center;gap:6px;">
+    <app-icon name="close" [size]="14" color="#ffffff"></app-icon> <span>Exit</span>
   </button>
 
   <!-- Text-only callout — no card, no background box. Bold and large so
@@ -63,9 +64,9 @@ interface Hole {
     <div class="tour-step-counter">Step {{ tour.stepIndex() + 1 }} of {{ tour.totalSteps }}</div>
     <p class="tour-callout-main">{{ tour.currentStep.callout }}</p>
     <p class="tour-callout-sub" *ngIf="tour.currentStep.subtext">{{ tour.currentStep.subtext }}</p>
-    <p class="tour-tap-hint">
-      <i class="fa-solid" [class.fa-hand-pointer]="tour.currentStep.waitForInteraction" [class.fa-hand]="!tour.currentStep.waitForInteraction"></i>
-      {{ tour.currentStep.waitForInteraction ? (tour.currentStep.interactionHint || 'Tap the highlighted item') : 'Tap anywhere to continue' }}
+    <p class="tour-tap-hint" style="display:flex;align-items:center;gap:6px;">
+      <app-icon [name]="tour.currentStep.waitForInteraction ? 'crosshairs' : 'chevron-right'" [size]="14" color="#ffffff"></app-icon>
+      <span>{{ tour.currentStep.waitForInteraction ? (tour.currentStep.interactionHint || 'Tap the highlighted item') : 'Tap anywhere to continue' }}</span>
     </p>
   </div>
 

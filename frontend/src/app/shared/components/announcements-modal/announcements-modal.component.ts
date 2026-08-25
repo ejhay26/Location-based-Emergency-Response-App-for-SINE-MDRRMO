@@ -7,10 +7,12 @@ import { ApiService } from '../../../core/services/api';
 import { UtcDatePipe, parseServerDate } from '../../pipes/utc-date.pipe';
 import { ProxyImageDirective } from '../../directives/proxy-image.directive';
 
+import { AppIconComponent } from '../app-icon/app-icon.component';
+
 @Component({
   selector: 'app-announcements-modal',
   standalone: true,
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, UtcDatePipe, ProxyImageDirective],
+  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, UtcDatePipe, ProxyImageDirective, AppIconComponent],
   templateUrl: './announcements-modal.component.html',
 })
 export class AnnouncementsModalComponent {

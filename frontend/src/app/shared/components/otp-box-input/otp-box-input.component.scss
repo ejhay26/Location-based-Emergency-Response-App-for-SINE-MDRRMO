@@ -7,25 +7,28 @@
 }
 
 .otp-box {
-  width: 44px;
-  height: 52px;
+  width: 46px;
+  height: 54px;
   text-align: center;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
-  border-radius: 10px;
-  border: 2px solid var(--ion-color-step-200, #ccc);
-  background: var(--ion-card-background, #fff);
+  border-radius: 14px;
+  border: 1.5px solid var(--ion-color-step-250, rgba(0, 0, 0, 0.18));
+  background: var(--ion-card-background, #ffffff);
   color: var(--ion-text-color);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
   &:focus {
     outline: none;
     border-color: var(--ion-color-danger);
-    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+    background: var(--ion-card-background, #ffffff);
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2), 0 4px 14px rgba(211, 47, 47, 0.15);
+    transform: translateY(-2px);
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.45;
   }
 }
 

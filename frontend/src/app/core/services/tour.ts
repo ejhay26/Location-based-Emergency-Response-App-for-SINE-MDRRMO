@@ -49,7 +49,7 @@ const STEPS: TourStep[] = [
   {
     id: 'tour-map-area', page: '/report?type=emergency&tour=1', chapter: 'emergency',
     callout: 'Drag the map to pin your exact location.',
-    subtext: 'The crosshair marks where your report will be pinned. You can also tap "Use My Location" to jump to your GPS position.',
+    subtext: 'The location pin marks where your report will be submitted. You can also tap "Use My Location" to jump to your GPS position.',
     waitForInteraction: false
   },
   {
