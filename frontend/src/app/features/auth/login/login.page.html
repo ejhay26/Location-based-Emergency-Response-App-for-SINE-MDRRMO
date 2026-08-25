@@ -166,6 +166,18 @@
     <div *ngIf="otpSent" style="margin-top: 20px;">
       <app-otp-box-input [code]="emailOtpData.otp" (codeChange)="emailOtpData.otp = $event" (completed)="verifyLoginOtp()"></app-otp-box-input>
 
+      <div *ngIf="loginOtpChannel === 'email'" style="margin-top: 14px; text-align: center;">
+        <p style="font-size: 13px; color: var(--ion-color-medium); margin: 0 0 4px 0;">
+          Didn't receive the email? Check your spam folder or
+        </p>
+        <ion-button fill="clear" color="danger" size="small" (click)="sendLoginOtp()"
+                    [disabled]="otpResendSecs > 0 || isSendingOtp"
+                    style="font-weight: 700; font-size: 13px; height: 32px;">
+          <ng-container *ngIf="otpResendSecs > 0">Resend email in {{ otpResendSecs }}s</ng-container>
+          <ng-container *ngIf="otpResendSecs === 0"><i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Resend the email</ng-container>
+        </ion-button>
+      </div>
+
       <ion-button expand="block" color="danger" class="ion-margin-top"
                   [class.btn-muted]="emailOtpData.otp.length < 6"
                   [class.btn-loading]="isVerifyingOtp"
@@ -278,6 +290,18 @@
         Enter the 6-digit code sent to your {{ otpChannel === 'phone' ? 'phone number' : 'email' }}.
       </p>
       <app-otp-box-input [code]="resetData.otp" (codeChange)="resetData.otp = $event" (completed)="verifyResetOtp()"></app-otp-box-input>
+
+      <div *ngIf="otpChannel === 'email'" style="margin-top: 14px; text-align: center;">
+        <p style="font-size: 13px; color: var(--ion-color-medium); margin: 0 0 4px 0;">
+          Didn't receive the email? Check your spam folder or
+        </p>
+        <ion-button fill="clear" color="danger" size="small" (click)="requestReset()"
+                    [disabled]="otpResendSecs > 0 || isSendingOtp"
+                    style="font-weight: 700; font-size: 13px; height: 32px;">
+          <ng-container *ngIf="otpResendSecs > 0">Resend email in {{ otpResendSecs }}s</ng-container>
+          <ng-container *ngIf="otpResendSecs === 0"><i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Resend the email</ng-container>
+        </ion-button>
+      </div>
 
       <ion-button expand="block" color="danger" class="ion-margin-top"
                   [class.btn-muted]="resetData.otp.length < 6"

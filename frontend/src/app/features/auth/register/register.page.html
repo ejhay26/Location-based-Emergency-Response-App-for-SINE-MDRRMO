@@ -229,17 +229,17 @@
 
     <!-- Resend Code Area -->
     <div style="margin-top: 20px;">
-      <p style="font-size: 13px; color: var(--ion-color-medium); margin-bottom: 6px;">
-        Didn't receive your code?
+      <p style="font-size: 13px; color: var(--ion-color-medium); margin-bottom: 6px; line-height: 1.4;">
+        Didn't receive the email? Check your spam folder or
       </p>
       <ion-button fill="clear" color="danger" (click)="resendOtp()"
                   [disabled]="otpResendSecs > 0 || isResendingOtp"
                   style="font-weight: 700; font-size: 13px;">
         <ng-container *ngIf="otpResendSecs > 0">
-          Resend code in {{ otpResendSecs }}s
+          Resend email in {{ otpResendSecs }}s
         </ng-container>
         <ng-container *ngIf="otpResendSecs === 0">
-          <i class="fa-solid fa-rotate-right" style="margin-right: 6px;"></i> Resend Verification Code
+          <i class="fa-solid fa-rotate-right" style="margin-right: 6px;"></i> Resend the email
         </ng-container>
       </ion-button>
     </div>

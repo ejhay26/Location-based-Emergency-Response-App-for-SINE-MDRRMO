@@ -334,10 +334,10 @@ export class HomePage implements OnInit, OnDestroy {
     const confirmed = await this.dialog.confirm({
       title: 'Add Report Widget to Home Screen',
       message: 'In an emergency, every second counts. This puts a "Report Emergency" button right on your home screen, so you can start a report the moment something happens — no unlocking through the app, no digging for the right screen. Tap Add, then confirm the placement prompt Android shows you.',
-      icon: 'apps-outline',
-      iconColor: 'primary',
+      icon: 'fa-solid fa-table-cells-large',
+      iconColor: 'danger',
       confirmLabel: 'Add Widget',
-      confirmColor: 'primary',
+      confirmColor: 'danger',
     });
     // Cancelling the confirm dialog is just backing out, not a decision to
     // skip — leave the banner up so they can revisit it this session.

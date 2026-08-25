@@ -5,8 +5,8 @@
        finishCollapse in the .ts) — one single Leaflet instance is reused,
        never recreated, so there's no second map init/tile refetch pass and
        no visible resize flinch when opening/closing fullscreen. -->
-  <div id="report-map-slot" style="height:280px;background:#e5e5e5;position:relative;overflow:hidden;">
-    <div id="report-map" style="width:100%;height:100%;position:relative;"></div>
+  <div id="report-map-slot" #mapSlot style="height:280px;background:#e5e5e5;position:relative;overflow:hidden;">
+    <div id="report-map" #mapCanvas style="width:100%;height:100%;position:relative;"></div>
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;pointer-events:none;"><i class="fa-solid fa-crosshairs" [style.color]="crosshairColor" style="font-size:32px;text-shadow:0 2px 5px rgba(0,0,0,0.4);"></i></div>
     <!-- Live-resolved barangay for the crosshair's current position (see resolveBarangayName() in the .ts) — preview only, the backend recomputes independently before persisting. Hidden while unresolved rather than showing a wrong guess. -->
     <div *ngIf="resolvedBarangayName" style="position:absolute;top:8px;left:8px;z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.62);color:white;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-location-dot" style="font-size:12px;"></i>{{ resolvedBarangayName }}</div>
@@ -16,7 +16,7 @@
 </div>
 
 <!-- report-map-toggle-slot: the small view's real, on-screen Street|Satellite bar. Its rect is read (alongside #report-map-slot's) by smallMapRect() in the .ts to seed the fullscreen curtain's clip-path band — so the fullscreen toggle bar below rides the same physical clip growth as the map from frame one, instead of only appearing once the tween happens to grow past it. -->
-<div id="report-map-toggle-slot" style="display:flex;border-radius:10px;overflow:hidden;margin-bottom:14px;border:2px solid var(--ion-color-step-150,#ddd);">
+<div id="report-map-toggle-slot" #toggleSlot style="display:flex;border-radius:10px;overflow:hidden;margin-bottom:14px;border:2px solid var(--ion-color-step-150,#ddd);">
   <button type="button" (click)="toggleMapStyle('street')" [style.background]="mapStyle==='street'?'var(--ion-color-danger)':'var(--ion-color-light)'" [style.color]="mapStyle==='street'?'white':'var(--ion-text-color)'" style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;"><i class="fa-solid fa-map"></i> Street</button>
   <button type="button" (click)="toggleMapStyle('satellite')" [style.background]="mapStyle==='satellite'?'var(--ion-color-danger)':'var(--ion-color-light)'" [style.color]="mapStyle==='satellite'?'white':'var(--ion-text-color)'" style="flex:1;border:none;padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;border-left:2px solid var(--ion-color-step-150,#ddd);"><i class="fa-solid fa-satellite"></i> Satellite</button>
 </div>
@@ -44,7 +44,7 @@
          Leaflet instance is created here — the single #report-map node is
          moved in and out of this slot, so the map never re-inits, never
          refetches tiles, and never visibly resizes/flinches on curtain reveal. -->
-    <div id="report-map-fullscreen-slot" style="width:100%;height:100%;"></div>
+    <div id="report-map-fullscreen-slot" #fullscreenSlot style="width:100%;height:100%;"></div>
 
     <!-- Compress (fullscreen-off) button — same floating position/style as the small view's expand button, just moved over the map instead of a separate header bar. -->
     <button type="button" (click)="toggleMapExpand()" style="position:absolute;top:max(8px,env(safe-area-inset-top,8px));right:8px;z-index:1002;width:34px;height:34px;border-radius:8px;border:none;background:rgba(0,0,0,0.55);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-compress"></i></button>

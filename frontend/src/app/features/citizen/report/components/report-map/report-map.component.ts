@@ -90,6 +90,29 @@ export class ReportMapComponent implements OnDestroy {
   @Output() submitRequested = new EventEmitter<void>();
 
   @ViewChild('fullscreenOverlay') fullscreenOverlayRef?: ElementRef<HTMLElement>;
+  /**
+   * Scoped, per-instance element refs — deliberately NOT looked up via
+   * document.getElementById() anywhere in this class. That global lookup is
+   * only safe if exactly one ReportMapComponent instance ever exists in the
+   * DOM at a time, which holds when this component is opened via
+   * ModalController (the normal in-app flow) but does NOT hold when it's
+   * reached via the '/report' route (e.g. the Home Screen Widget deep link
+   * — see DeepLinkService/app.routes.ts): a route-level instance can be left
+   * detached-but-not-destroyed by Angular's IonicRouteStrategy (configured
+   * app-wide in main.ts) or briefly duplicated during a cold-start
+   * navigation race, producing a second element with the same id. When that
+   * happens, document.getElementById('report-map') can silently return the
+   * OTHER instance's node instead of this one's — expandMap() then
+   * reparents nothing (or the wrong thing) into this instance's fullscreen
+   * slot, which is exactly the "blank fullscreen, buttons only" bug seen
+   * when launching via the widget. @ViewChild queries are resolved against
+   * this component's own template only, so they can never collide with
+   * another instance no matter how many exist in the document.
+   */
+  @ViewChild('mapCanvas')     private mapCanvasRef?: ElementRef<HTMLElement>;
+  @ViewChild('mapSlot')       private mapSlotRef?: ElementRef<HTMLElement>;
+  @ViewChild('toggleSlot')    private toggleSlotRef?: ElementRef<HTMLElement>;
+  @ViewChild('fullscreenSlot') private fullscreenSlotRef?: ElementRef<HTMLElement>;
   private renderer = inject(Renderer2);
   /** Where the overlay node originally lived in the DOM, so close can put it back before Angular removes it via *ngIf. */
   private overlayOriginalParent: Node | null = null;
@@ -127,7 +150,7 @@ export class ReportMapComponent implements OnDestroy {
 
   /** Called by the parent page's ionViewDidEnter (after its 250ms settle delay). */
   tryInit() {
-    if (document.getElementById('report-map') && !this.map) {
+    if (this.mapCanvasRef?.nativeElement && !this.map) {
       this.mapStyle = this.userSettings.get('map_default_style') as 'street' | 'satellite';
       this.initMap();
     }
@@ -142,11 +165,11 @@ export class ReportMapComponent implements OnDestroy {
     this.overlayAnimControls?.stop();
     // If the Leaflet container is currently reparented into the fullscreen
     // slot, move it back to its permanent #report-map-slot home BEFORE
-    // touching this.map — tryInit() on a future re-entry looks up #report-map
-    // via getElementById() there, so it must still exist under its original,
+    // touching this.map — tryInit() on a future re-entry checks
+    // mapCanvasRef there, so it must still exist under its original,
     // persistent parent (not inside the overlay, which is about to be torn
     // down by *ngIf below).
-    const mapEl = document.getElementById('report-map');
+    const mapEl = this.mapCanvasRef?.nativeElement;
     if (mapEl && this.mapCanvasOriginalParent) {
       this.renderer.insertBefore(this.mapCanvasOriginalParent, mapEl, this.mapCanvasOriginalNextSibling);
       this.mapCanvasOriginalParent = null;
@@ -227,10 +250,10 @@ export class ReportMapComponent implements OnDestroy {
    * opacity/transform tween of its own needed.
    */
   private smallMapRect(): DOMRect | null {
-    const mapEl = document.getElementById('report-map-slot');
+    const mapEl = this.mapSlotRef?.nativeElement;
     if (!mapEl) return null;
     const mapRect = mapEl.getBoundingClientRect();
-    const toggleEl = document.getElementById('report-map-toggle-slot');
+    const toggleEl = this.toggleSlotRef?.nativeElement;
     if (!toggleEl) return mapRect; // defensive fallback — toggle bar should always be present alongside the map
     const toggleRect = toggleEl.getBoundingClientRect();
     const top = Math.min(mapRect.top, toggleRect.top);
@@ -250,45 +273,70 @@ export class ReportMapComponent implements OnDestroy {
     this.mapExpanded = true;
     this.mapCollapsing = false;
 
-    // Wait a frame so Angular has actually mounted the *ngIf'd overlay node
-    // before we try to reference/reparent/animate it.
-    requestAnimationFrame(() => {
-      const node = this.fullscreenOverlayRef?.nativeElement;
-      if (!node) return;
+    // Wait for the *ngIf'd overlay to actually be mounted AND queryable
+    // before reparenting/animating it. A single requestAnimationFrame is
+    // enough on a warm in-app open (Modal, JS already parsed/JIT'd), but not
+    // reliably enough right after a COLD START via the Home Screen Widget
+    // deep link — Angular can still be finishing lazy-chunk parsing/change
+    // detection at that point, so the very first rAF can fire before the
+    // view has actually committed. Retrying for a few frames (instead of
+    // giving up after one) costs nothing once things are warm — it resolves
+    // immediately — but fixes the cold-start race where fullscreenSlotRef
+    // came back undefined on the only attempt that was ever made, silently
+    // skipping the map reparent while the rest of the overlay went on to
+    // render fine a frame or two later.
+    this.mountFullscreenOverlay(srcRect, 0);
+  }
 
-      // Reparenting to ion-app (or body as fallback) escapes ion-content's
-      // CSS `contain` box while keeping the overlay firmly inside the active
-      // Ionic view hierarchy and above all route pages and modals.
-      if (!this.overlayOriginalParent) {
-        this.overlayOriginalParent = node.parentNode;
-        this.overlayOriginalNextSibling = node.nextSibling;
-        const targetParent = document.querySelector('ion-app') || document.body;
-        this.renderer.appendChild(targetParent, node);
+  private mountFullscreenOverlay(srcRect: DOMRect | null, attempt: number): void {
+    const node = this.fullscreenOverlayRef?.nativeElement;
+    const slotEl = this.fullscreenSlotRef?.nativeElement;
+    if ((!node || !slotEl) && attempt < 15) {
+      requestAnimationFrame(() => this.mountFullscreenOverlay(srcRect, attempt + 1));
+      return;
+    }
+    if (!node) return;
+
+    // Reparenting all the way out to document.body is what actually escapes
+    // ion-content's CSS `contain` (which makes it the containing block for
+    // any position:fixed descendant, trapping our overlay inside its box).
+    // This deliberately does NOT reparent to ion-app instead — that was
+    // tried as a fix for the Home Screen Widget deep-link case, but ion-app
+    // is an Ionic-owned element that can carry its own safe-area padding /
+    // containing-block behavior, which produced a NEW bug: the overlay
+    // landing inset from ion-app's own padded box instead of the true
+    // screen edges (visible as slivers of the underlying page and header
+    // around a smaller-than-fullscreen black box). document.body has no
+    // Ionic styling applied to it at all, so it's a genuine, unambiguous
+    // escape regardless of whether this component is reached via a Modal
+    // (the normal in-app flow) or a plain route (the widget deep link).
+    if (!this.overlayOriginalParent) {
+      this.overlayOriginalParent = node.parentNode;
+      this.overlayOriginalNextSibling = node.nextSibling;
+      this.renderer.appendChild(document.body, node);
+    }
+
+    // Reparent the SAME, already-initialized #report-map Leaflet container
+    // into the fullscreen slot — no second Leaflet instance is created, so
+    // there's no re-init/tile-refetch pass to visibly flinch mid-animation.
+    const mapEl = this.mapCanvasRef?.nativeElement;
+    if (mapEl && slotEl && !this.mapCanvasOriginalParent) {
+      this.mapCanvasOriginalParent = mapEl.parentNode;
+      this.mapCanvasOriginalNextSibling = mapEl.nextSibling;
+      this.renderer.appendChild(slotEl, mapEl);
+      if (this.map) {
+        this.map.invalidateSize();
+        setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 60);
+        setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 200);
       }
+    }
 
-      // Reparent the SAME, already-initialized #report-map Leaflet container
-      // into the fullscreen slot — no second Leaflet instance is created, so
-      // there's no re-init/tile-refetch pass to visibly flinch mid-animation.
-      const mapEl = document.getElementById('report-map');
-      const slotEl = document.getElementById('report-map-fullscreen-slot');
-      if (mapEl && slotEl && !this.mapCanvasOriginalParent) {
-        this.mapCanvasOriginalParent = mapEl.parentNode;
-        this.mapCanvasOriginalNextSibling = mapEl.nextSibling;
-        this.renderer.appendChild(slotEl, mapEl);
-        if (this.map) {
-          this.map.invalidateSize();
-          setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 60);
-          setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 200);
-        }
-      }
-
-      // Fire-and-forget: unlike collapseMap, expandMap doesn't need to react
-      // to the curtain settling (no teardown work happens on expand). Still
-      // attach a no-op .catch() so an interrupted tween's rejection (e.g. a
-      // rapid collapse-tap calling .stop() mid-curtain) never surfaces as an
-      // unhandled promise rejection.
-      this.playCurtainReveal(node, srcRect, 'in').catch(() => {});
-    });
+    // Fire-and-forget: unlike collapseMap, expandMap doesn't need to react
+    // to the curtain settling (no teardown work happens on expand). Still
+    // attach a no-op .catch() so an interrupted tween's rejection (e.g. a
+    // rapid collapse-tap calling .stop() mid-curtain) never surfaces as an
+    // unhandled promise rejection.
+    this.playCurtainReveal(node, srcRect, 'in').catch(() => {});
   }
 
   private collapseMap(): void {
@@ -370,7 +418,7 @@ export class ReportMapComponent implements OnDestroy {
    * instance, so there is nothing to re-render or flinch.
    */
   private finishCollapse(): void {
-    const mapEl = document.getElementById('report-map');
+    const mapEl = this.mapCanvasRef?.nativeElement;
     if (mapEl && this.mapCanvasOriginalParent) {
       this.renderer.insertBefore(this.mapCanvasOriginalParent, mapEl, this.mapCanvasOriginalNextSibling);
       this.mapCanvasOriginalParent = null;
@@ -416,7 +464,11 @@ export class ReportMapComponent implements OnDestroy {
   private bgyLabelsLayer: any;
 
   initMap() {
-    this.map = L.map('report-map', { minZoom: 13, zoomControl: false }).setView([15.3014, 120.9274], 14);
+    // Passed the actual element (not the 'report-map' id string) so Leaflet's
+    // own internal element lookup can't hit the same duplicate-id collision
+    // this class's other lookups were fixed for — see mapCanvasRef's doc
+    // comment above. tryInit() already guards this truthy before calling here.
+    this.map = L.map(this.mapCanvasRef!.nativeElement, { minZoom: 13, zoomControl: false }).setView([15.3014, 120.9274], 14);
     // @ts-ignore
     this.streetLayer = new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
     this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri' });
