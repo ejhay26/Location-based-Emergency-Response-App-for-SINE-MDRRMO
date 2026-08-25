@@ -81,16 +81,9 @@ export class ReportPage implements OnDestroy {
   constructor() {}
 
   ionViewDidEnter() {
-    setTimeout(() => this.reportMapCmp?.tryInit(), 250);
-    // The per-page fade+rise this used to do here is now redundant with (and
-    // was visually competing against) the app-wide bouncyPageTransition
-    // slide-up-and-cover registered in main.ts: that already animates the
-    // WHOLE page container in. Since ionViewDidEnter fires only after that
-    // page transition has fully settled, this form-only animation was
-    // starting from a still, fully-visible page and briefly re-fading/
-    // re-offsetting the form on top of it — reading as an unwanted flicker,
-    // like the page had reloaded. Removed rather than tuned down further,
-    // since the page-level transition already covers the "entrance" job.
+    this.reportMapCmp?.tryInit();
+    setTimeout(() => this.reportMapCmp?.tryInit(), 150);
+    setTimeout(() => this.reportMapCmp?.tryInit(), 400);
   }
 
   ionViewWillLeave() {

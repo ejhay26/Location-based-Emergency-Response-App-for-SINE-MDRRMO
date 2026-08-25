@@ -137,22 +137,40 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   private streetLayer: any;
   private satelliteLayer: any;
 
+  private resizeObserver?: ResizeObserver;
+
   get crosshairColor(): string { return this.reportType === 'hazard' ? '#ffc409' : '#eb445a'; }
 
   ngAfterViewInit() {
     this.tryInit();
+    if (this.mapCanvasRef?.nativeElement && typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => {
+        if (this.map) {
+          this.map.invalidateSize();
+        }
+      });
+      this.resizeObserver.observe(this.mapCanvasRef.nativeElement);
+    }
   }
 
-  /** Called by the parent page's ionViewDidEnter (after its 250ms settle delay) or on demand. */
+  /** Called by the parent page's ionViewDidEnter or whenever the map container becomes visible. */
   tryInit() {
-    if (this.mapCanvasRef?.nativeElement && !this.map) {
+    if (!this.mapCanvasRef?.nativeElement) return;
+    if (!this.map) {
       this.mapStyle = this.userSettings.get('map_default_style') as 'street' | 'satellite';
       this.initMap();
+    } else {
+      this.map.invalidateSize();
     }
+    setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 60);
+    setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 200);
+    setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 500);
   }
 
   /** Called by the parent page's ionViewWillLeave / ngOnDestroy. */
   cleanup() {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = undefined;
     // Stop any in-flight expand/collapse tween before tearing anything down —
     // an animation still running against a node whose parent map/DOM state
     // is about to be ripped out is exactly the kind of dangling-reference
