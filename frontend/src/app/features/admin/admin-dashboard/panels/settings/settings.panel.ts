@@ -6,7 +6,7 @@ import { of } from 'rxjs';
 import { timeout, catchError } from 'rxjs/operators';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonToggle
+  IonList, IonItem, IonLabel, IonToggle, IonSegment, IonSegmentButton
 } from '@ionic/angular/standalone';
 import { UserSettingsService, SettingKey } from '../../../../../core/services/user-settings';
 import { AdminUiService } from '../../admin-ui.service';
@@ -28,7 +28,7 @@ interface SettingToggle {
   imports: [
     CommonModule, FormsModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonToggle,
+    IonList, IonItem, IonLabel, IonToggle, IonSegment, IonSegmentButton,
     AppIconComponent
   ],
   templateUrl: './settings.panel.html',
