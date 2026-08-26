@@ -1,22 +1,28 @@
 <div style="width:100%; max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
 
   <!-- Master Console Card for Superadmin OR Officer Profile Card for Dispatcher -->
-  <div style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 4px 16px rgba(0,0,0,0.04)); padding: 22px; transition: all 0.2s ease;">
+  <div
+    style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 4px 16px rgba(0,0,0,0.04)); padding: 22px; transition: all 0.2s ease;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-      
+
       <!-- Superadmin View: System Authority Badge -->
       <div *ngIf="rawRole === 'admin'" style="display: flex; align-items: center; gap: 16px;">
-        <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #d32f2f, #b71c1c); color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(211,47,47,0.32); flex-shrink: 0;">
+        <div
+          style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #d32f2f, #b71c1c); color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(211,47,47,0.32); flex-shrink: 0;">
           <app-icon name="shield-check" [size]="28" color="#ffffff"></app-icon>
         </div>
         <div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <h2 style="margin: 0; font-size: 19px; font-weight: 900; color: var(--ion-text-color); letter-spacing: -0.2px;">MDRRMO Superadmin Console</h2>
-            <span style="font-size: 10px; font-weight: 800; background: rgba(235,68,90,0.12); color: var(--ion-color-danger); border: 1px solid rgba(235,68,90,0.25); padding: 3px 8px; border-radius: 6px; letter-spacing: 0.6px;">
+            <h2
+              style="margin: 0; font-size: 19px; font-weight: 900; color: var(--ion-text-color); letter-spacing: -0.2px;">
+              MDRRMO Superadmin Console</h2>
+            <span
+              style="font-size: 10px; font-weight: 800; background: rgba(235,68,90,0.12); color: var(--ion-color-danger); border: 1px solid rgba(235,68,90,0.25); padding: 3px 8px; border-radius: 6px; letter-spacing: 0.6px;">
               MASTER AUTHORITY
             </span>
           </div>
-          <p style="margin: 5px 0 0; font-size: 12.5px; color: var(--ion-color-medium); display: flex; align-items: center; gap: 6px; font-weight: 500;">
+          <p
+            style="margin: 5px 0 0; font-size: 12.5px; color: var(--ion-color-medium); display: flex; align-items: center; gap: 6px; font-weight: 500;">
             <app-icon name="check" [size]="14" color="#2dd36f"></app-icon>
             <span>Full Database, Dispatcher &amp; Citizen Account Clearance</span>
           </p>
@@ -25,27 +31,32 @@
 
       <!-- Dispatcher View: Officer Details -->
       <div *ngIf="rawRole !== 'admin'" style="display: flex; align-items: center; gap: 16px;">
-        <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #3880ff, #1e88e5); color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(56,128,255,0.32); flex-shrink: 0;">
+        <div
+          style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #3880ff, #1e88e5); color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(56,128,255,0.32); flex-shrink: 0;">
           <app-icon name="user" [size]="28" color="#ffffff"></app-icon>
         </div>
         <div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <h2 style="margin: 0; font-size: 19px; font-weight: 900; color: var(--ion-text-color); letter-spacing: -0.2px;">{{ userName }}</h2>
-            <span style="font-size: 10px; font-weight: 800; background: rgba(56,128,255,0.12); color: var(--ion-color-primary); border: 1px solid rgba(56,128,255,0.25); padding: 3px 8px; border-radius: 6px; letter-spacing: 0.6px;">
+            <h2
+              style="margin: 0; font-size: 19px; font-weight: 900; color: var(--ion-text-color); letter-spacing: -0.2px;">
+              {{ userName }}</h2>
+            <span
+              style="font-size: 10px; font-weight: 800; background: rgba(56,128,255,0.12); color: var(--ion-color-primary); border: 1px solid rgba(56,128,255,0.25); padding: 3px 8px; border-radius: 6px; letter-spacing: 0.6px;">
               DISPATCHER
             </span>
           </div>
-          <p style="margin: 5px 0 0; font-size: 12.5px; color: var(--ion-color-medium); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <p
+            style="margin: 5px 0 0; font-size: 12.5px; color: var(--ion-color-medium); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
             <span *ngIf="username" style="font-weight: 600;">@{{ username }}</span>
-            <span *ngIf="userEmail" style="display: flex; align-items: center; gap: 4px;"><app-icon name="mail" [size]="13" color="var(--ion-color-medium)"></app-icon>{{ userEmail }}</span>
-            <span *ngIf="phone" style="display: flex; align-items: center; gap: 4px;"><app-icon name="phone" [size]="13" color="var(--ion-color-medium)"></app-icon>{{ phone }}</span>
+            <span *ngIf="userEmail" style="display: flex; align-items: center; gap: 4px;"><app-icon name="mail"
+                [size]="13" color="var(--ion-color-medium)"></app-icon>{{ userEmail }}</span>
+            <span *ngIf="phone" style="display: flex; align-items: center; gap: 4px;"><app-icon name="phone" [size]="13"
+                color="var(--ion-color-medium)"></app-icon>{{ phone }}</span>
           </p>
         </div>
       </div>
 
-      <button
-        type="button"
-        (click)="logout()"
+      <button type="button" (click)="logout()"
         style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 12px; border: 1.5px solid rgba(235,68,90,0.4); background: rgba(235,68,90,0.06); color: var(--ion-color-danger); font-weight: 800; font-size: 13.5px; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
         <app-icon name="logout" [size]="15" color="var(--ion-color-danger)"></app-icon>
         <span>Log Out</span>
@@ -55,19 +66,28 @@
 
   <!-- Appearance Settings -->
   <div>
-    <p style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
+    <p
+      style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
       <app-icon name="moon" [size]="14" color="var(--ion-color-danger)"></app-icon> Appearance &amp; Display
     </p>
-    <div style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); overflow: hidden;">
-      <div *ngFor="let s of appearance; let last = last" style="padding: 14px 18px; display: flex; align-items: center; gap: 14px;" [style.border-bottom]="last ? 'none' : '1px solid var(--ion-color-step-100, rgba(0,0,0,0.05))'">
-        <div style="width: 38px; height: 38px; border-radius: 11px; background: rgba(235,68,90,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+    <div
+      style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); overflow: hidden;">
+      <div *ngFor="let s of appearance; let last = last"
+        style="padding: 14px 18px; display: flex; align-items: center; gap: 14px;"
+        [style.border-bottom]="last ? 'none' : '1px solid var(--ion-color-step-100, rgba(0,0,0,0.05))'">
+        <div
+          style="width: 38px; height: 38px; border-radius: 11px; background: rgba(235,68,90,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
           <app-icon [name]="s.icon" [size]="18" color="var(--ion-color-danger)"></app-icon>
         </div>
         <div style="flex: 1; min-width: 0;">
-          <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">{{ s.label }}</p>
-          <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+          <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">{{ s.label }}
+          </p>
+          <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">{{ s.hint(s.value) }}
+          </p>
         </div>
-        <span [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size: 11.5px; font-weight: 800; min-width: 28px; text-align: right; margin-right: 4px;">{{ s.value ? 'ON' : 'OFF' }}</span>
+        <span [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'"
+          style="font-size: 11.5px; font-weight: 800; min-width: 28px; text-align: right; margin-right: 4px;">{{ s.value
+          ? 'ON' : 'OFF' }}</span>
         <ion-toggle mode="ios" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
       </div>
     </div>
@@ -75,57 +95,69 @@
 
   <!-- Map Defaults -->
   <div>
-    <p style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
+    <p
+      style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
       <app-icon name="map" [size]="14" color="var(--ion-color-danger)"></app-icon> Map Defaults
     </p>
-    <div style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); padding: 18px;">
+    <div
+      style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); padding: 18px;">
       <div style="margin-bottom: 14px;">
-        <p style="margin: 0 0 3px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">Default Map Layer</p>
-        <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">Choose whether incident and hazard maps initialize with Street cartography or High-Resolution Satellite imagery.</p>
+        <p style="margin: 0 0 3px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">Default Map
+          Layer</p>
+        <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">Choose whether incident
+          and hazard maps initialize with Street cartography or High-Resolution Satellite imagery.</p>
       </div>
 
       <!-- Segment Toggle Style with Dual Interactive Tiles -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-        
+
         <!-- Street Tile -->
-        <div
-          (click)="onMapStyleChange('street')"
+        <div (click)="onMapStyleChange('street')"
           [style.border-color]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, rgba(0,0,0,0.08))'"
           [style.background]="mapDefaultStyle === 'street' ? 'rgba(235,68,90,0.05)' : 'var(--ion-color-step-50, rgba(0,0,0,0.02))'"
           style="border: 2px solid; border-radius: 16px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-          <div [style.background]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'rgba(0,0,0,0.06)'" style="width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease;">
-            <app-icon name="map" [size]="20" [color]="mapDefaultStyle === 'street' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+          <div [style.background]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'rgba(0,0,0,0.06)'"
+            style="width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease;">
+            <app-icon name="map" [size]="20"
+              [color]="mapDefaultStyle === 'street' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
           </div>
           <div style="flex: 1; min-width: 0;">
-            <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 800; color: var(--ion-text-color);">Street Map</p>
-            <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.35;">Standard vector roads &amp; barangays</p>
+            <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 800; color: var(--ion-text-color);">Street Map
+            </p>
+            <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.35;">Standard vector
+              roads &amp; barangays</p>
           </div>
           <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid;"
-               [style.border-color]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-300, #aaa)'"
-               [style.background]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'transparent'"
-               style="display: flex; align-items: center; justify-content: center;">
-            <div *ngIf="mapDefaultStyle === 'street'" style="width: 6px; height: 6px; border-radius: 50%; background: white;"></div>
+            [style.border-color]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-300, #aaa)'"
+            [style.background]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'transparent'"
+            style="display: flex; align-items: center; justify-content: center;">
+            <div *ngIf="mapDefaultStyle === 'street'"
+              style="width: 6px; height: 6px; border-radius: 50%; background: white;"></div>
           </div>
         </div>
 
         <!-- Satellite Tile -->
-        <div
-          (click)="onMapStyleChange('satellite')"
+        <div (click)="onMapStyleChange('satellite')"
           [style.border-color]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, rgba(0,0,0,0.08))'"
           [style.background]="mapDefaultStyle === 'satellite' ? 'rgba(235,68,90,0.05)' : 'var(--ion-color-step-50, rgba(0,0,0,0.02))'"
           style="border: 2px solid; border-radius: 16px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-          <div [style.background]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'rgba(0,0,0,0.06)'" style="width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease;">
-            <app-icon name="satellite" [size]="20" [color]="mapDefaultStyle === 'satellite' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+          <div [style.background]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'rgba(0,0,0,0.06)'"
+            style="width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease;">
+            <app-icon name="satellite" [size]="20"
+              [color]="mapDefaultStyle === 'satellite' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
           </div>
           <div style="flex: 1; min-width: 0;">
-            <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 800; color: var(--ion-text-color);">Satellite Map</p>
-            <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.35;">High-res aerial terrain photography</p>
+            <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 800; color: var(--ion-text-color);">Satellite Map
+            </p>
+            <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.35;">High-res aerial
+              terrain photography</p>
           </div>
           <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid;"
-               [style.border-color]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-300, #aaa)'"
-               [style.background]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'transparent'"
-               style="display: flex; align-items: center; justify-content: center;">
-            <div *ngIf="mapDefaultStyle === 'satellite'" style="width: 6px; height: 6px; border-radius: 50%; background: white;"></div>
+            [style.border-color]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-300, #aaa)'"
+            [style.background]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'transparent'"
+            style="display: flex; align-items: center; justify-content: center;">
+            <div *ngIf="mapDefaultStyle === 'satellite'"
+              style="width: 6px; height: 6px; border-radius: 50%; background: white;"></div>
           </div>
         </div>
 
@@ -135,19 +167,29 @@
 
   <!-- Notification Preferences -->
   <div>
-    <p style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
-      <app-icon name="bell" [size]="14" color="var(--ion-color-danger)"></app-icon> Emergency Notifications &amp; Audio Alerts
+    <p
+      style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
+      <app-icon name="bell" [size]="14" color="var(--ion-color-danger)"></app-icon> Emergency Notifications &amp; Audio
+      Alerts
     </p>
-    <div style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); overflow: hidden;">
-      <div *ngFor="let s of notifications; let last = last" style="padding: 14px 18px; display: flex; align-items: center; gap: 14px;" [style.border-bottom]="last ? 'none' : '1px solid var(--ion-color-step-100, rgba(0,0,0,0.05))'">
-        <div style="width: 38px; height: 38px; border-radius: 11px; background: rgba(235,68,90,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+    <div
+      style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); overflow: hidden;">
+      <div *ngFor="let s of notifications; let last = last"
+        style="padding: 14px 18px; display: flex; align-items: center; gap: 14px;"
+        [style.border-bottom]="last ? 'none' : '1px solid var(--ion-color-step-100, rgba(0,0,0,0.05))'">
+        <div
+          style="width: 38px; height: 38px; border-radius: 11px; background: rgba(235,68,90,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
           <app-icon [name]="s.icon" [size]="18" color="var(--ion-color-danger)"></app-icon>
         </div>
         <div style="flex: 1; min-width: 0;">
-          <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">{{ s.label }}</p>
-          <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">{{ s.hint(s.value) }}</p>
+          <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">{{ s.label }}
+          </p>
+          <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">{{ s.hint(s.value) }}
+          </p>
         </div>
-        <span [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size: 11.5px; font-weight: 800; min-width: 28px; text-align: right; margin-right: 4px;">{{ s.value ? 'ON' : 'OFF' }}</span>
+        <span [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'"
+          style="font-size: 11.5px; font-weight: 800; min-width: 28px; text-align: right; margin-right: 4px;">{{ s.value
+          ? 'ON' : 'OFF' }}</span>
         <ion-toggle mode="ios" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
       </div>
     </div>
@@ -155,17 +197,19 @@
 
   <!-- Session & Account -->
   <div>
-    <p style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
+    <p
+      style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
       <app-icon name="shield-check" [size]="14" color="var(--ion-color-danger)"></app-icon> Session &amp; Authentication
     </p>
-    <div style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); padding: 20px;">
+    <div
+      style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); padding: 20px;">
       <div style="margin-bottom: 14px;">
-        <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">Active Console Session</p>
-        <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">Ending your session will require your username and password or biometrics to log back in.</p>
+        <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">Active Console
+          Session</p>
+        <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">Ending your session
+          will require your username and password to log back in.</p>
       </div>
-      <button
-        type="button"
-        (click)="logout()"
+      <button type="button" (click)="logout()"
         style="width: 100%; padding: 13px 18px; border-radius: 14px; border: 1.5px solid rgba(235,68,90,0.5); background: rgba(235,68,90,0.06); color: var(--ion-color-danger); font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease;">
         <app-icon name="logout" [size]="17" color="var(--ion-color-danger)"></app-icon>
         <span>Log Out of Dashboard</span>

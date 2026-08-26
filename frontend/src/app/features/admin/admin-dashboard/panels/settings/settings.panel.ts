@@ -4,10 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { timeout, catchError } from 'rxjs/operators';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonToggle, IonSegment, IonSegmentButton
-} from '@ionic/angular/standalone';
+import { IonToggle } from '@ionic/angular/standalone';
 import { UserSettingsService, SettingKey } from '../../../../../core/services/user-settings';
 import { AdminUiService } from '../../admin-ui.service';
 import { ApiService } from '../../../../../core/services/api';
@@ -27,8 +24,7 @@ interface SettingToggle {
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonToggle, IonSegment, IonSegmentButton,
+    IonToggle,
     AppIconComponent
   ],
   templateUrl: './settings.panel.html',
