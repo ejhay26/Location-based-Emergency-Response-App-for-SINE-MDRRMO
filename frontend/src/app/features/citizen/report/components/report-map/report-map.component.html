@@ -14,8 +14,9 @@
       <span>Drag the map to position pin</span>
     </div>
     <!-- Expand fullscreen button -->
-    <button type="button" (click)="toggleMapExpand()" style="position:absolute;top:10px;right:10px;z-index:1002;width:36px;height:36px;border-radius:12px;border:none;background:rgba(0,0,0,0.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.25);transition:transform 0.15s;">
-      <app-icon name="expand" [size]="16" color="#ffffff"></app-icon>
+    <button type="button" (click)="onFullscreenBtnClick($event)" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+      style="position:absolute;top:10px;right:10px;z-index:1002;width:44px;height:44px;border-radius:14px;border:none;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,0.3);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto !important;transition:transform 0.15s ease;">
+      <app-icon name="expand" [size]="18" color="#ffffff"></app-icon>
     </button>
   </div>
 </div>
@@ -58,8 +59,9 @@
     <div id="report-map-fullscreen-slot" #fullscreenSlot style="position:absolute;inset:0;width:100%;height:100%;"></div>
 
     <!-- Compress (Exit Fullscreen) Button -->
-    <button type="button" (click)="toggleMapExpand()" style="position:absolute;top:max(12px,calc(env(safe-area-inset-top,12px) + 4px));right:14px;z-index:1002;width:38px;height:38px;border-radius:12px;border:none;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);">
-      <app-icon name="compress" [size]="16" color="#ffffff"></app-icon>
+    <button type="button" (click)="onFullscreenBtnClick($event)" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+      style="position:absolute;top:max(12px,calc(env(safe-area-inset-top,12px) + 6px));right:14px;z-index:1002;width:44px;height:44px;border-radius:14px;border:none;background:rgba(0,0,0,0.65);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.3);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto !important;transition:transform 0.15s ease;">
+      <app-icon name="compress" [size]="18" color="#ffffff"></app-icon>
     </button>
 
     <!-- Use My Location Floating Pill -->

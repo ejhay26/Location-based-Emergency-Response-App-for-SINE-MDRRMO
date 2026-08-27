@@ -244,9 +244,19 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
    *  - No cloneNode/button-flight machinery at all — the Street/Satellite
    *    toggle and submit button now sit inside the fullscreen overlay using
    *    the same markup/position pattern as the small view, so there's
-   *    nothing separate to animate into place.
-   */
+   *    nothing     */
+  onFullscreenBtnClick(ev?: Event): void {
+    if (ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+    }
+    this.toggleMapExpand();
+  }
+
   toggleMapExpand() {
+    if (this.mapCollapsing) {
+      return;
+    }
     if (this.mapExpanded) {
       this.collapseMap();
     } else {
@@ -343,6 +353,13 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       }
     }
 
+    // Shield all floating buttons inside the fullscreen overlay from Leaflet click/touch capture
+    const overlayButtons = node.querySelectorAll('button');
+    overlayButtons.forEach(btn => {
+      L.DomEvent.disableClickPropagation(btn as HTMLElement);
+      L.DomEvent.disableScrollPropagation(btn as HTMLElement);
+    });
+
     this.playCurtainReveal(node, srcRect, 'in')
       .then(() => { if (this.map) this.map.invalidateSize(); })
       .catch(() => { if (this.map) this.map.invalidateSize(); });
@@ -387,7 +404,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     const bottomPct = Math.max(0, Math.min(100, ((window.innerHeight - rect.bottom) / window.innerHeight) * 100));
     const closedClip = `inset(${topPct}% 0% ${bottomPct}% 0%)`;
     const openClip   = 'inset(0% 0% 0% 0%)';
-    const durationSec = direction === 'in' ? 0.32 : 0.26;
+    const durationSec = direction === 'in' ? 0.34 : 0.28;
+
+    node.style.willChange = 'clip-path';
+    node.style.transform = 'translateZ(0)';
 
     if (direction === 'in') {
       node.style.clipPath = closedClip;
@@ -396,20 +416,24 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     // Safety timeout: if WAAPI engine hangs or frame drops on cold start,
     // forcefully release the clip-path so the overlay never stays stuck.
     const safetyTimer = setTimeout(() => {
+      node.style.willChange = '';
+      node.style.transform = '';
       if (direction === 'in') {
         node.style.clipPath = '';
         if (this.map) this.map.invalidateSize();
       }
-    }, (durationSec * 1000) + 80);
+    }, (durationSec * 1000) + 100);
 
     return new Promise<void>((resolve) => {
       requestAnimationFrame(() => {
         const target = direction === 'in' ? { clipPath: openClip } : { clipPath: closedClip };
         try {
-          this.overlayAnimControls = animate(node, target, { duration: durationSec, ease: [0.4, 0, 0.2, 1] });
+          this.overlayAnimControls = animate(node, target, { duration: durationSec, ease: [0.16, 1, 0.3, 1] });
           this.overlayAnimControls.finished
             .then(() => {
               clearTimeout(safetyTimer);
+              node.style.willChange = '';
+              node.style.transform = '';
               if (direction === 'in') {
                 node.style.clipPath = '';
                 if (this.map) this.map.invalidateSize();
@@ -418,6 +442,8 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
             })
             .catch(() => {
               clearTimeout(safetyTimer);
+              node.style.willChange = '';
+              node.style.transform = '';
               if (direction === 'in') {
                 node.style.clipPath = '';
                 if (this.map) this.map.invalidateSize();
@@ -426,6 +452,8 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
             });
         } catch {
           clearTimeout(safetyTimer);
+          node.style.willChange = '';
+          node.style.transform = '';
           if (direction === 'in') {
             node.style.clipPath = '';
             if (this.map) this.map.invalidateSize();
@@ -464,6 +492,8 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       // toggled by mapExpanded||mapCollapsing, not recreated — means
       // whatever was left on it survives across cycles).
       node.style.clipPath = '';
+      node.style.willChange = '';
+      node.style.transform = '';
       this.renderer.insertBefore(this.overlayOriginalParent, node, this.overlayOriginalNextSibling);
       this.overlayOriginalParent = null;
       this.overlayOriginalNextSibling = null;
