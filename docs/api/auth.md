@@ -30,7 +30,10 @@ Creates a new citizen registration and triggers an initial OTP verification code
   | `email` | string | Yes | Unique email address |
   | `password` | string | Yes | Strong password (8+ chars, uppercase, lowercase, digit, symbol) |
   | `barangay_id` | integer | Yes | ID of resident barangay (1–9) |
-  | `valid_id_type` | string | Yes | e.g. "Philippine National ID", "Driver's License", "UMID" |
+  | `valid_id_type` | string | Yes | Verified Philippine ID: PhilSys, Driver's License, Passport, UMID, Postal ID, PRC License |
+  | `valid_id_number` | string | Yes | Formatted government ID number |
+  | `valid_id_expiry` | string (YYYY-MM-DD) | Optional | ID Expiration Date (required for Driver's License, Passport, Postal, PRC) |
+  | `valid_id_details` | object / JSON | Optional | Extra metadata (e.g. `{ "profession": "..." }`) |
   | `valid_id_image` | string (base64) | Yes | Front of Valid Government ID |
   | `valid_id_image_back`| string (base64) | Yes | Back of Valid Government ID |
   | `selfie_with_id_image`| string (base64) | Yes | Live selfie holding the ID card |

@@ -14,6 +14,8 @@ erDiagram
     BARANGAYS ||--o{ HAZARDS : "located in"
     BARANGAYS ||--o{ BROADCAST_BARANGAYS : "targeted by"
     BROADCASTS ||--o{ BROADCAST_BARANGAYS : "scoped to"
+    USERS ||--o{ USER_VERIFICATIONS : "submits"
+    USERS ||--o| USER_MEDICAL_PROFILES : "has"
     USERS ||--o{ EMERGENCY_REQUESTS : "files"
     USERS ||--o{ HAZARDS : "reports"
     USERS ||--o{ FEEDBACK : "submits"
@@ -43,17 +45,32 @@ erDiagram
         enum account_status
         boolean setup_completed
         int barangay_id FK
+        tinyint false_alarm_strikes
+        string ban_reason
+        timestamp banned_at
+    }
+    USER_VERIFICATIONS {
+        int verification_id PK
+        int user_id FK
+        varchar valid_id_type
+        varchar valid_id_number
+        date valid_id_expiry
+        json valid_id_details
         varchar valid_id_proof
         varchar valid_id_proof_back
-        varchar valid_id_type
         varchar selfie_with_id_proof
+        enum verification_status
+        varchar rejection_reason
+        int reviewed_by FK
+        timestamp reviewed_at
+    }
+    USER_MEDICAL_PROFILES {
+        int profile_id PK
+        int user_id FK
         varchar blood_type
         text allergies
         text medical_conditions
         varchar pwd_status
-        tinyint false_alarm_strikes
-        string ban_reason
-        timestamp banned_at
     }
     INCIDENT_TYPES {
         int incident_type_id PK
@@ -147,7 +164,7 @@ erDiagram
 ## 2. Detailed Table Specifications
 
 ### 2.1 `users`
-Primary user table storing credentials, roles, ID verification artifacts, and "Golden Minute" medical data.
+Primary user table storing core credentials, roles, and account lifecycle status. Normalized to 3NF — identity verification artifacts live in `user_verifications` and health information lives in `user_medical_profiles`.
 
 | Column | Type | Nullable | Description & Constraints |
 |---|---|---|---|
@@ -164,19 +181,50 @@ Primary user table storing credentials, roles, ID verification artifacts, and "G
 | `account_status` | `enum('unverified','active','banned')` | No | Account lifecycle status |
 | `setup_completed` | `boolean` | No | Indicates completion of post-approval onboarding wizard |
 | `barangay_id` | `int` | Yes | Foreign Key → `barangays.barangay_id` |
-| `valid_id_proof` | `varchar(255)` | Yes | Front of government-issued ID image URL |
-| `valid_id_proof_back`| `varchar(255)` | Yes | Back of government-issued ID image URL |
-| `valid_id_type` | `varchar(50)` | Yes | Document type (PhilID, Driver's License, UMID, etc.) |
-| `selfie_with_id_proof`| `varchar(255)` | Yes | Live selfie holding ID card |
-| `blood_type` | `varchar(10)` | Yes | Medical profile: A+, B+, O+, AB+, etc. |
-| `allergies` | `text` | Yes | Medical profile: Drug & environmental allergies |
-| `medical_conditions` | `text` | Yes | Medical profile: Hypertension, Asthma, Diabetes, etc. |
-| `pwd_status` | `varchar(100)` | Yes | Medical profile: PWD ID or assistance requirements |
 | `false_alarm_strikes`| `tinyint unsigned` | No | Accumulated confirmed false alarm strikes (3 = Auto-Ban) |
 | `ban_reason` | `varchar(500)` | Yes | Reason recorded upon suspension |
 | `banned_at` | `timestamp` | Yes | Suspension timestamp |
 | `created_at` / `updated_at` | `timestamp` | Yes | Audit timestamps |
 | `deleted_at` | `timestamp` | Yes | Soft-delete timestamp |
+
+---
+
+### `user_verifications`
+
+Stores identity verification documents and review states submitted by citizens during registration. Allows re-submissions upon rejection without wiping previous audit trails, and keeps staff accounts free of null columns.
+
+| Column | Type | Nullable | Description & Constraints |
+|---|---|---|---|
+| `verification_id` | `int` | No | Primary Key, Auto Increment |
+| `user_id` | `int` | No | Foreign Key → `users.user_id` (CASCADE DELETE) |
+| `valid_id_type` | `varchar(50)` | Yes | Document type (PhilSys, Driver's License, Passport, UMID, Postal ID, PRC) |
+| `valid_id_number` | `varchar(100)` | Yes | Formatted government ID number |
+| `valid_id_expiry` | `date` | Yes | Expiration date (where applicable) |
+| `valid_id_details` | `json` | Yes | Structured metadata (e.g. `{ profession: "..." }`) |
+| `valid_id_proof` | `varchar(255)` | Yes | Front of government-issued ID image URL |
+| `valid_id_proof_back`| `varchar(255)` | Yes | Back of government-issued ID image URL |
+| `selfie_with_id_proof`| `varchar(255)` | Yes | Live selfie holding ID card |
+| `verification_status` | `enum('pending','approved','rejected')` | No | Default `'pending'` |
+| `rejection_reason` | `varchar(500)` | Yes | Reason recorded by reviewing officer |
+| `reviewed_by` | `int` | Yes | Foreign Key → `users.user_id` (Admin/Dispatcher) |
+| `reviewed_at` | `timestamp` | Yes | Verification timestamp |
+| `created_at` / `updated_at` | `timestamp` | Yes | Submission audit timestamps |
+
+---
+
+### `user_medical_profiles`
+
+Stores critical "Golden Minute" emergency medical and disability information. Segregated from core credentials for enhanced medical data privacy and emergency paramedic fast-retrieval.
+
+| Column | Type | Nullable | Description & Constraints |
+|---|---|---|---|
+| `profile_id` | `int` | No | Primary Key, Auto Increment |
+| `user_id` | `int` | No | Foreign Key → `users.user_id` (CASCADE DELETE, UNIQUE) |
+| `blood_type` | `varchar(10)` | Yes | Medical profile: A+, B+, O+, AB+, etc. |
+| `allergies` | `text` | Yes | Medical profile: Drug & environmental allergies |
+| `medical_conditions` | `text` | Yes | Medical profile: Hypertension, Asthma, Diabetes, etc. |
+| `pwd_status` | `varchar(100)` | Yes | Medical profile: PWD ID or assistance requirements |
+| `created_at` / `updated_at` | `timestamp` | Yes | Profile update timestamps |
 
 ---
 

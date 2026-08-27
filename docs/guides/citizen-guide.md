@@ -6,30 +6,39 @@ Step-by-step instructions on registering, logging in, and using the SINE MDRRMO 
 
 ## 1. Registering an Account
 
-Registration consists of three easy, guided steps:
+Registration consists of four guided, streamlined steps:
 
-### Step 1: Personal Details & Account Credentials
-- **Personal Information:** First name, last name, mobile phone number (`639...`), and birthdate.
+### Step 1: Personal Details & Residence
+- **Personal Information:** First name, last name, normalized Philippine mobile number (`639...`), and dynamic 3-part birthdate (Month, Day, Year).
 - **Resident Barangay:** Select your home barangay in San Isidro (Alua, Calaba, Malapit, Mangga, Poblacion, Pulo, San Roque, Santo Cristo, Tabon).
-- **Username & Email:** Live availability check ensures your handle is unique.
-- **Password:** Strong password checklist (minimum 8 characters, uppercase, lowercase, number, special symbol).
 
 ---
 
-### Step 2: Dual-Sided ID Verification & Photo Guidelines
-- **Quick Tips Card:** Tips for bright lighting, fitting all 4 corners of the ID card in frame, and holding the ID clearly in your selfie without covering details.
-- **Valid Government ID Type:** Choose from Philippine National ID (PhilID), Driver's License, Voter's ID, UMID, Postal ID, PWD ID, Senior Citizen ID, Student ID, or Barangay ID.
-- **Front of ID Photo:** Live camera capture of the **Front** of your valid ID.
-- **Back of ID Photo:** Live camera capture of the **Back** of your valid ID.
+### Step 2: Account Credentials & Security
+- **Smart Username Suggestions:** Live availability check with intelligent name-based suggestion chips generated from your name and barangay.
+- **Email Address:** Real-time email uniqueness verification.
+- **Password Security:** 5-point security checklist (minimum 8 characters, uppercase, lowercase, number, special symbol) with live match indicator (turns green upon confirmation).
+
+---
+
+### Step 3: Philippine Government ID Verification & Legal Agreement
+- **6 Verified Philippine Government ID Types:**
+  1. **Philippine National ID (PhilSys / ePhilID):** 16-digit PCN format (`XXXX-XXXX-XXXX-XXXX`).
+  2. **Driver's License (LTO):** LTO License number (`X00-00-000000`) and expiration date.
+  3. **Philippine Passport (DFA):** DFA Passport number and expiration date.
+  4. **UMID / SSS ID:** Common Reference Number (`0000-0000000-0`).
+  5. **Postal ID (PhilPost):** PRN number and card expiration date.
+  6. **PRC ID / Professional License:** Regulated profession, 7-digit registration number, and expiry date.
+- **Front & Back Photo Capture:** Live camera photo of both the Front and Back of your valid ID card.
 - **Live Selfie with ID:** Live selfie holding your ID next to your chest or face.
+- **Preferred Verification Channel:** Choose whether to receive your 6-digit code via **Email OTP** or **SMS OTP (PhilSMS)**.
+- **Terms & Privacy Modal:** Review and accept the Terms of Service (emergency scope, 3-strike false alarm policy) and Privacy Policy (Data Privacy Act RA 10173).
 
 ---
 
-### Step 3: Terms Agreement & Verification Code
-- **Terms & Privacy Modal:** Review the simplified Terms of Service (emergency scope, 3-strike false alarm rules) and Privacy Policy (Data Privacy Act RA 10173).
-- **Verification Channel:** Choose whether to receive your 6-digit code via **Email OTP** or **SMS OTP (PhilSMS)**.
-- **Enter Verification Code:** Enter the 6-digit code sent to your email or mobile number.
-- On Android phones, the app automatically detects the incoming SMS and presents a one-tap consent dialog to auto-fill the code.
+### Step 4: Verification Code (OTP)
+- **Enter Verification Code:** Enter the 6-digit code sent to your chosen channel.
+- On Android devices, the app automatically listens for the incoming PhilSMS code and presents a 1-tap autofill dialog.
 
 ---
 

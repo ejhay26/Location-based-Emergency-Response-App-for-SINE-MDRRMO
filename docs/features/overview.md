@@ -28,11 +28,14 @@ To maintain functionality during cell tower congestion or signal outages:
 
 ---
 
-## 4. Dual-Sided ID Verification & Citizen Onboarding
+## 4. Verified Philippine ID Capture & 3NF Normalized Identity Pipeline
 
-1. **Front & Back Government ID Capture:** During registration, citizens must photograph both the **Front** and **Back** of an approved government ID (PhilID, Driver's License, UMID, Postal ID, etc.) plus a live selfie holding the ID.
-2. **Pending Verification Safeguard:** New accounts are held in an `unverified` state. Admins review both sides of the ID card and selfie from the ID Verifications dashboard.
-3. **Automated Welcome Pipeline:** Approval triggers real-time socket events, an automated Welcome email, and an FCM push notification.
+1. **6 Verifiable Philippine Government IDs:** Enforces structured capture of PhilSys / ePhilID (16-digit PCN), LTO Driver's License, DFA Passport, UMID / SSS, Postal ID, and PRC Professional License with auto-hyphenation and expiration tracking.
+2. **Dual-Sided Proof & Live Selfie:** Mandatory camera capture of both the **Front** and **Back** of the ID card plus a live selfie holding the ID next to the applicant.
+3. **3NF Normalized Verification Entity (`user_verifications`):** Submissions are decoupled from the core `users` table into a dedicated verification ledger, preserving full audit history upon rejection and keeping administrative/dispatcher accounts free of null fields.
+4. **Isolated Emergency Medical Records (`user_medical_profiles`):** "Golden Minute" health data (blood type, allergies, conditions, PWD status) is stored in an isolated table for rapid paramedic lookup and enhanced medical data privacy.
+5. **Admin Review & 1-Tap Portal Verification:** Officers inspect dual-sided photos, use 1-tap ID number copying, and verify authenticity directly through official government portals (PhilSys eVerify, LTO LTMS, DFA, PRC LERIS).
+6. **Automated Welcome Pipeline:** Approval triggers real-time socket events, an automated Welcome email, and an FCM push notification.
 
 ---
 
