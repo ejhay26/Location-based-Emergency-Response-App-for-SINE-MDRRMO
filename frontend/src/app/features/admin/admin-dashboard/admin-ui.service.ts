@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { ToastController } from '@ionic/angular';
+import { ToastService, ToastAction, ToastOptions } from '../../../core/services/toast.service';
 import { ApiService } from '../../../core/services/api';
 import { DialogService, ConfirmDialogConfig } from '../../../core/services/dialog.service';
 import { BARANGAYS } from '../../../shared/constants/barangays';
 
-export type { ConfirmDialogConfig };
+export type { ConfirmDialogConfig, ToastAction, ToastOptions };
 
 /**
  * AdminUiService — cross-cutting UI concerns shared by every admin-dashboard
@@ -20,7 +20,7 @@ export type { ConfirmDialogConfig };
 @Injectable({ providedIn: 'root' })
 export class AdminUiService {
 
-  constructor(private toastController: ToastController, private api: ApiService, private dialog: DialogService) {}
+  constructor(private toastService: ToastService, private api: ApiService, private dialog: DialogService) {}
 
   // ── Media lightbox (delegates to DialogService) ──────────────────────────
   get lightboxOpen()    { return this.dialog.lightboxOpen; }
@@ -53,9 +53,12 @@ export class AdminUiService {
   closeConfirm() { this.dialog.closeConfirm(); }
 
   // ── Toast ────────────────────────────────────────────────────────────────
-  async showToast(msg: string, color = 'danger') {
-    const toast = await this.toastController.create({ message: msg, duration: 3000, position: 'bottom', color });
-    await toast.present();
+  async showToast(msg: string, color: any = 'danger', action?: ToastAction) {
+    return this.toastService.show({
+      message: msg,
+      color,
+      action,
+    });
   }
 
   // ── Barangay names ───────────────────────────────────────────────────────

@@ -19,6 +19,7 @@ import { FilterSummaryBarComponent } from '../../../shared/components/filter-sum
 import { ProxyImageDirective } from '../../../shared/directives/proxy-image.directive';
 import { VideoThumbnailDirective } from '../../../shared/directives/video-thumbnail.directive';
 import { RevealAnimateDirective } from '../../../shared/directives/reveal-animate.directive';
+import { ToastService } from '../../../core/services/toast.service';
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../shared/utils/date-filter.util';
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
@@ -100,6 +101,7 @@ export class HistoryPage implements OnInit, OnDestroy {
     private modalCtrl: ModalController,
     public tour: TourService,
     public offlineQueue: OfflineQueueService,
+    private toastService: ToastService,
   ) {}
 
   /**
@@ -161,9 +163,27 @@ export class HistoryPage implements OnInit, OnDestroy {
   onDateFilterChange(v: DateFilterValue | null) { this.dateFilter = v; this.markFilterSettling(); }
 
   clearAllFilters() {
+    const prevStatus = this.statusFilter;
+    const prevDate = this.dateFilter;
+
+    if (prevStatus === 'All' && !prevDate) return;
+
     this.statusFilter = 'All';
     this.dateFilter = null;
     this.markFilterSettling();
+
+    this.toastService.show({
+      message: 'Filters cleared.',
+      color: 'medium',
+      action: {
+        text: 'Undo',
+        handler: () => {
+          this.statusFilter = prevStatus;
+          this.dateFilter = prevDate;
+          this.markFilterSettling();
+        }
+      }
+    });
   }
 
   get filterChips(): string[] {

@@ -76,6 +76,16 @@ export class RegisterPage implements OnDestroy {
 
   birthYears = Array.from({ length: 100 }, (_, i) => String(new Date().getFullYear() - i));
   birthdateError = '';
+  todayStr = new Date().toISOString().split('T')[0];
+
+  triggerDatePicker(input: HTMLInputElement): void {
+    try {
+      input.focus();
+      if (typeof (input as any).showPicker === 'function') {
+        (input as any).showPicker();
+      }
+    } catch (e) {}
+  }
 
   get daysInSelectedMonth(): number[] {
     const month = parseInt(this.birthMonth, 10) || 1;

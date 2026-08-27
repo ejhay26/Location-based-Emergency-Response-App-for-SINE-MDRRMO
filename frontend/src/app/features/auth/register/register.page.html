@@ -175,8 +175,9 @@
           <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
             Expiration Date
           </label>
-          <div class="boxed-input-wrap">
-            <ion-input type="date" [(ngModel)]="userData.valid_id_expiry"></ion-input>
+          <div class="boxed-date-picker" (click)="triggerDatePicker(dlExpiry)">
+            <input #dlExpiry type="date" class="native-date-field" [min]="todayStr" [(ngModel)]="userData.valid_id_expiry" />
+            <app-icon name="calendar" [size]="16" color="var(--ion-color-danger)"></app-icon>
           </div>
         </div>
 
@@ -194,8 +195,9 @@
           <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
             Passport Expiry Date
           </label>
-          <div class="boxed-input-wrap">
-            <ion-input type="date" [(ngModel)]="userData.valid_id_expiry"></ion-input>
+          <div class="boxed-date-picker" (click)="triggerDatePicker(passExpiry)">
+            <input #passExpiry type="date" class="native-date-field" [min]="todayStr" [(ngModel)]="userData.valid_id_expiry" />
+            <app-icon name="calendar" [size]="16" color="var(--ion-color-danger)"></app-icon>
           </div>
         </div>
 
@@ -226,8 +228,9 @@
           <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
             Card Expiration Date
           </label>
-          <div class="boxed-input-wrap">
-            <ion-input type="date" [(ngModel)]="userData.valid_id_expiry"></ion-input>
+          <div class="boxed-date-picker" (click)="triggerDatePicker(postalExpiry)">
+            <input #postalExpiry type="date" class="native-date-field" [min]="todayStr" [(ngModel)]="userData.valid_id_expiry" />
+            <app-icon name="calendar" [size]="16" color="var(--ion-color-danger)"></app-icon>
           </div>
         </div>
 
@@ -253,8 +256,9 @@
           <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
             License Valid Until (Expiry Date)
           </label>
-          <div class="boxed-input-wrap">
-            <ion-input type="date" [(ngModel)]="userData.valid_id_expiry"></ion-input>
+          <div class="boxed-date-picker" (click)="triggerDatePicker(prcExpiry)">
+            <input #prcExpiry type="date" class="native-date-field" [min]="todayStr" [(ngModel)]="userData.valid_id_expiry" />
+            <app-icon name="calendar" [size]="16" color="var(--ion-color-danger)"></app-icon>
           </div>
         </div>
       </div>

@@ -54,3 +54,43 @@
     }
   }
 }
+
+.boxed-date-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 12px;
+  border: 1.5px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+  background: var(--ion-item-background, #ffffff);
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    border-color: var(--ion-color-danger);
+    box-shadow: 0 0 0 2px rgba(235, 68, 90, 0.15);
+  }
+
+  .native-date-field {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ion-text-color, #111111);
+    font-family: inherit;
+    cursor: pointer;
+    min-height: 24px;
+
+    &::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+

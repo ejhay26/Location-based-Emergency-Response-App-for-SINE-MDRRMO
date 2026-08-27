@@ -126,7 +126,25 @@ export class CitizensPanel implements OnInit, OnDestroy {
           : this.api.suspendCitizen({ user_id: citizen.user_id });
         call.subscribe({
           next: () => {
-            this.ui.showToast(isSuspended ? 'Account reinstated.' : 'Account suspended.', isSuspended ? 'success' : 'warning');
+            this.ui.showToast(
+              isSuspended ? 'Account reinstated.' : 'Account suspended.',
+              isSuspended ? 'success' : 'warning',
+              {
+                text: 'Undo',
+                handler: () => {
+                  const undoCall = isSuspended
+                    ? this.api.suspendCitizen({ user_id: citizen.user_id })
+                    : this.api.reactivateCitizen({ user_id: citizen.user_id });
+                  undoCall.subscribe({
+                    next: () => {
+                      this.ui.showToast('Action undone.', 'medium');
+                      this.loadCitizens();
+                    },
+                    error: () => this.ui.showToast('Could not undo action.', 'danger')
+                  });
+                }
+              }
+            );
             this.loadCitizens();
           },
           error: () => this.ui.showToast('Action failed. Try again.', 'danger')

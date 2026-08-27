@@ -135,3 +135,44 @@ ion-action-sheet {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%      { opacity: 0.4; transform: scale(0.7); }
 }
+
+/* =========================================
+   SMART TOASTS (Jakob's Usability Heuristics)
+   - Longer reading window (4.5s - 6s)
+   - Explicit [✕] dismiss button (Heuristic #3: User Control & Freedom)
+   - Action / Undo button styling
+   ========================================= */
+ion-toast.app-smart-toast {
+  --border-radius: 16px;
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font-weight: 600;
+
+  &::part(container) {
+    border-radius: 16px;
+    padding: 4px 10px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  &::part(message) {
+    font-size: 13.5px;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  &::part(button) {
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  &::part(button-cancel) {
+    font-size: 15px;
+    font-weight: 700;
+    opacity: 0.85;
+    padding: 0 6px;
+  }
+}
+

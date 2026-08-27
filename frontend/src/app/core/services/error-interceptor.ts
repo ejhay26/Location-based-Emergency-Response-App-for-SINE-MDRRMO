@@ -5,14 +5,14 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ToastController } from '@ionic/angular';
+import { ToastService } from './toast.service';
 import { Router } from '@angular/router';
 import { ApiService } from './api';
 
 @Injectable({ providedIn: 'root' })
 export class ErrorInterceptorService implements HttpInterceptor {
 
-  constructor(private toastCtrl: ToastController, private router: Router) {}
+  constructor(private toastService: ToastService, private router: Router) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
@@ -45,14 +45,12 @@ export class ErrorInterceptorService implements HttpInterceptor {
         }
 
         if (message) {
-          // No icon — avoids the ion-icon registration error when
-          // Ionicons isn't loaded in the current context.
-          this.toastCtrl.create({
+          this.toastService.show({
             message,
-            duration: 4000,
+            duration: 4500,
             position: 'top',
             color: 'warning',
-          }).then(t => t.present());
+          });
         }
 
         return throwError(() => error);
