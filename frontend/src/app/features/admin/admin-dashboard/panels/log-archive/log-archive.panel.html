@@ -1,6 +1,6 @@
 <div style="width:100%;" #archiveListContainer>
   <!-- Filter & Sort toolbar -->
-  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center;">
+  <div id="archive-filters" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center;">
     <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;align-items:center;">
       <button *ngFor="let f of [{v:'all',l:'All'},{v:'resolved',l:'Resolved'},{v:'false_alarm',l:'False Alarms'},{v:'cancelled',l:'Cancelled'}]"
         (click)="archiveFilter = $any(f.v)"

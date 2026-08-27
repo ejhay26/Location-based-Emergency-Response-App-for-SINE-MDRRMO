@@ -7,11 +7,12 @@ export type TourChapter = 'all' | 'home' | 'emergency' | 'hazard' | 'history' | 
 
 export interface TourStep {
   id: string;
-  page: string;
-  chapter: TourChapter;
+  page?: string;
+  panel?: string;
+  chapter?: TourChapter;
   callout: string;
   subtext?: string;
-  waitForInteraction: boolean;
+  waitForInteraction?: boolean;
   interactionHint?: string;
 }
 
@@ -176,13 +177,18 @@ export class TourService {
   isTourMode = computed(() => this.isActive());
 
   // True while a modal (photo cropper, video trimmer) is open.
+  // True while a modal (photo cropper, video trimmer) is open.
   // The overlay hides itself when this is true so it doesn't cover modals.
   modalOpen  = signal(false);
+
+  // Emits panel names ('active', 'broadcast', etc.) when an admin step specifies a dashboard panel
+  adminPanelSwitch = signal<string | null>(null);
 
   private currentChapter: TourChapter = 'all';
   private filteredSteps: TourStep[] = STEPS;
   private navigating = false;
   private returnUrl = '/tabs/home';
+  private onFinishCustom?: () => void;
 
   constructor(
     private router: Router,
@@ -192,9 +198,10 @@ export class TourService {
     this.router.events.pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: any) => {
         if (!this.isActive()) return;
+        if (this.onFinishCustom) return; // Don't auto-cancel custom admin dashboard tours
         if (this.navigating) { this.navigating = false; return; }
         const actual = (e.urlAfterRedirects as string).split('?')[0];
-        const validPages = new Set(this.steps.map(s => s.page.split('?')[0]));
+        const validPages = new Set(this.steps.filter(s => !!s.page).map(s => s.page!.split('?')[0]));
         if (!validPages.has(actual)) this.cancelSilent();
       });
   }
@@ -224,6 +231,7 @@ export class TourService {
   }
 
   start(chapter: TourChapter = 'all', returnUrl?: string) {
+    this.onFinishCustom = undefined;
     this.currentChapter = chapter;
     this.returnUrl = returnUrl || (chapter === 'all' ? '/tabs/home' : '/tabs/help');
     if (chapter === 'all') {
@@ -237,15 +245,28 @@ export class TourService {
     this.applyStep();
   }
 
+  startCustomSteps(steps: TourStep[], onFinish?: () => void) {
+    this.onFinishCustom = onFinish;
+    this.filteredSteps = steps;
+    this.stepIndex.set(0);
+    this.isActive.set(true);
+    this.applyStep();
+  }
+
   private applyStep() {
     const step = this.currentStep;
     if (!step) { this.finish(); return; }
     this.targetId.set(step.id);
-    const target  = step.page.split('?')[0];
-    const current = this.router.url.split('?')[0];
-    if (current !== target) {
-      this.navigating = true;
-      this.router.navigateByUrl(step.page);
+    if (step.panel) {
+      this.adminPanelSwitch.set(step.panel);
+    }
+    if (step.page) {
+      const target  = step.page.split('?')[0];
+      const current = this.router.url.split('?')[0];
+      if (current !== target) {
+        this.navigating = true;
+        this.router.navigateByUrl(step.page);
+      }
     }
   }
 
@@ -257,19 +278,26 @@ export class TourService {
 
   // User explicitly exited mid-tour — treat this the same as finishing: don't nag them again.
   cancel() {
+    const customCb = this.onFinishCustom;
+    this.onFinishCustom = undefined;
     this.isActive.set(false);
     this.targetId.set('');
     this.stepIndex.set(0);
     this.filteredSteps = STEPS;
-    this.markSeen();
     this.dismissAnyModal();
-    this.navigating = true;
-    this.router.navigate([this.returnUrl]);
+    if (customCb) {
+      customCb();
+    } else {
+      this.markSeen();
+      this.navigating = true;
+      this.router.navigate([this.returnUrl]);
+    }
   }
 
   // Tour was interrupted by unrelated navigation (not a deliberate exit) — don't mark as seen,
   // so it can still be resumed/prompted normally later.
   cancelSilent() {
+    this.onFinishCustom = undefined;
     this.isActive.set(false);
     this.targetId.set('');
     this.stepIndex.set(0);
@@ -278,14 +306,20 @@ export class TourService {
   }
 
   finish() {
+    const customCb = this.onFinishCustom;
+    this.onFinishCustom = undefined;
     this.isActive.set(false);
     this.targetId.set('');
     this.stepIndex.set(0);
     this.filteredSteps = STEPS;
-    this.markSeen();
     this.dismissAnyModal();
-    this.navigating = true;
-    this.router.navigate([this.returnUrl]);
+    if (customCb) {
+      customCb();
+    } else {
+      this.markSeen();
+      this.navigating = true;
+      this.router.navigate([this.returnUrl]);
+    }
   }
 
   markSeen()    { localStorage.setItem('tourSeen', 'true'); }

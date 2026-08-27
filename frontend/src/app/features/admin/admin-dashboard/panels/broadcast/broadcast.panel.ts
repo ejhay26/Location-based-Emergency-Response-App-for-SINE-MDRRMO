@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonInput, IonButton
+  IonItem, IonInput, IonButton,
+  IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -43,6 +44,7 @@ export interface BroadcastMediaItem {
   imports: [
     CommonModule, FormsModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonInput, IonButton,
+    IonSelect, IonSelectOption,
     UtcDatePipe, ListEnterDirective, ProxyImageDirective, AppIconComponent
   ],
   templateUrl: './broadcast.panel.html',
@@ -66,6 +68,25 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   // Post Scheduling
   isScheduled = false;
   scheduledDateTime = '';
+
+  months = [
+    { value: '01', label: 'Jan' }, { value: '02', label: 'Feb' },
+    { value: '03', label: 'Mar' }, { value: '04', label: 'Apr' },
+    { value: '05', label: 'May' }, { value: '06', label: 'Jun' },
+    { value: '07', label: 'Jul' }, { value: '08', label: 'Aug' },
+    { value: '09', label: 'Sep' }, { value: '10', label: 'Oct' },
+    { value: '11', label: 'Nov' }, { value: '12', label: 'Dec' },
+  ];
+
+  schedMonth = '';
+  schedDay = '';
+  schedYear = '';
+  schedHour = '09';
+  schedMinute = '00';
+  schedPeriod = 'AM';
+
+  hours = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+  minutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
 
   private echoBroadcastSub?: Subscription;
 
@@ -105,9 +126,67 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     return this.selectedBarangayIds.includes(id);
   }
 
-  get minScheduledDateTime(): string {
-    const d = new Date(Date.now() + 5 * 60000); // at least 5 mins in future
-    return d.toISOString().slice(0, 16);
+  get selectedBarangayNames(): string {
+    return this.selectedBarangayIds
+      .map(id => this.barangays.find(b => b.id === id)?.name)
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  get scheduledYears(): string[] {
+    const y = new Date().getFullYear();
+    return [String(y), String(y + 1)];
+  }
+
+  get daysInSchedMonth(): number[] {
+    const month = parseInt(this.schedMonth, 10) || 1;
+    const year = parseInt(this.schedYear, 10) || new Date().getFullYear();
+    const daysCount = new Date(year, month, 0).getDate();
+    return Array.from({ length: daysCount }, (_, i) => i + 1);
+  }
+
+  setScheduledMode(enable: boolean): void {
+    this.isScheduled = enable;
+    if (enable && !this.schedYear) {
+      const target = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+      this.schedYear = String(target.getFullYear());
+      this.schedMonth = String(target.getMonth() + 1).padStart(2, '0');
+      this.schedDay = String(target.getDate());
+      let h = target.getHours();
+      this.schedPeriod = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      this.schedHour = String(h).padStart(2, '0');
+      this.schedMinute = '00';
+      this.updateScheduledDateTime();
+    }
+  }
+
+  updateScheduledDateTime(): void {
+    if (!this.schedYear || !this.schedMonth || !this.schedDay) {
+      this.scheduledDateTime = '';
+      return;
+    }
+    let hour24 = parseInt(this.schedHour, 10);
+    if (this.schedPeriod === 'PM' && hour24 < 12) hour24 += 12;
+    if (this.schedPeriod === 'AM' && hour24 === 12) hour24 = 0;
+    const hourStr = String(hour24).padStart(2, '0');
+    const dayStr = String(this.schedDay).padStart(2, '0');
+    this.scheduledDateTime = `${this.schedYear}-${this.schedMonth}-${dayStr}T${hourStr}:${this.schedMinute}`;
+  }
+
+  get formattedSchedulePreview(): string {
+    if (!this.schedYear || !this.schedMonth || !this.schedDay) return '';
+    let hour24 = parseInt(this.schedHour, 10);
+    if (this.schedPeriod === 'PM' && hour24 < 12) hour24 += 12;
+    if (this.schedPeriod === 'AM' && hour24 === 12) hour24 = 0;
+    const hourStr = String(hour24).padStart(2, '0');
+    const dayStr = String(this.schedDay).padStart(2, '0');
+    const dateObj = new Date(`${this.schedYear}-${this.schedMonth}-${dayStr}T${hourStr}:${this.schedMinute}:00`);
+    if (isNaN(dateObj.getTime())) return '';
+    return dateObj.toLocaleString([], {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
   }
 
   timeAgo(dateStr: string): string {
@@ -198,6 +277,7 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     if (!this.broadcastForm.message.trim()) return;
 
     if (this.isScheduled) {
+      this.updateScheduledDateTime();
       if (!this.scheduledDateTime) {
         this.ui.showToast('Please select a release date and time for the scheduled announcement.', 'warning');
         return;
@@ -264,6 +344,9 @@ export class BroadcastPanel implements OnInit, OnDestroy {
             this.selectedBarangayIds   = [];
             this.isScheduled           = false;
             this.scheduledDateTime     = '';
+            this.schedYear             = '';
+            this.schedMonth            = '';
+            this.schedDay              = '';
             this.fetchBroadcasts();
             resolve();
           },

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenuController } from '@ionic/angular';
 import { IonContent } from '@ionic/angular/standalone';
@@ -23,10 +23,11 @@ import { DispatchersPanel } from './panels/dispatchers/dispatchers.panel';
 import { CitizensPanel } from './panels/citizens/citizens.panel';
 import { FeedbackPanel } from './panels/feedback/feedback.panel';
 import { SettingsPanel } from './panels/settings/settings.panel';
+import { HelpPanel } from './panels/help/help.panel';
 
 type ViewMode =
   | 'active' | 'hazards' | 'archive' | 'analytics' | 'broadcast'
-  | 'verifications' | 'dispatchers' | 'citizens' | 'feedback' | 'settings';
+  | 'verifications' | 'dispatchers' | 'citizens' | 'feedback' | 'settings' | 'help';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -38,7 +39,7 @@ type ViewMode =
     IonContent,
     IncidentMapPanel, AnalyticsPanel, LogArchivePanel, BroadcastPanel,
     VerificationsPanel, DispatchersPanel, CitizensPanel, FeedbackPanel,
-    SettingsPanel, AppIconComponent,
+    SettingsPanel, HelpPanel, AppIconComponent,
   ],
 })
 export class AdminDashboardPage implements OnInit, OnDestroy {
@@ -73,7 +74,14 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     private pushNotifications: PushNotificationsService,
     private desktopNotifications: DesktopNotificationsService,
     public  ui: AdminUiService,
-  ) {}
+  ) {
+    effect(() => {
+      const panel = this.tour.adminPanelSwitch();
+      if (panel) {
+        this.viewMode = panel as ViewMode;
+      }
+    });
+  }
 
   ngOnInit() {
     this.isElectron = (window as unknown as { process?: { versions?: { electron?: string } } }).process?.versions?.electron != null || /electron/i.test(navigator.userAgent);

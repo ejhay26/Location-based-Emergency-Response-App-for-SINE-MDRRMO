@@ -33,7 +33,7 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
+    IonHeader, IonToolbar, IonTitle, IonButtons,
     IonContent, IonText, IonProgressBar, IonItem, IonInput,
     IonSelect, IonSelectOption, IonCheckbox, IonLabel,
     IonButton,

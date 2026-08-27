@@ -1,0 +1,170 @@
+<div style="padding: 24px 32px 48px; max-width: 1200px; margin: 0 auto;">
+
+  <!-- Header Banner -->
+  <div style="margin-bottom: 28px;">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+      <div style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(235,68,90,0.15), rgba(235,68,90,0.05)); border: 1px solid rgba(235,68,90,0.25); display: flex; align-items: center; justify-content: center; color: var(--ion-color-danger);">
+        <app-icon name="graduation-cap" [size]="22" color="var(--ion-color-danger)"></app-icon>
+      </div>
+      <div>
+        <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--ion-text-color); letter-spacing: -0.3px;">
+          Operations Manual & SOP Guides
+        </h2>
+        <p style="margin: 2px 0 0; font-size: 13px; color: var(--ion-color-medium);">
+          Standard Operating Procedures, interactive system walkthroughs, and triage reference for MDRRMO dispatchers.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: PROCEDURAL INTERACTIVE WALKTHROUGHS -->
+  <div style="margin-bottom: 32px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <app-icon name="play" [size]="16" color="var(--ion-color-danger)"></app-icon>
+        <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); text-transform: uppercase; letter-spacing: 0.5px;">
+          Interactive System Walkthroughs
+        </h3>
+      </div>
+      <span style="font-size: 12px; font-weight: 600; color: var(--ion-color-medium);">
+        Click any guide to launch a guided spotlight tour
+      </span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+      <div *ngFor="let proc of procedures"
+           style="background: var(--ion-card-background, #ffffff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 16px rgba(0,0,0,0.04); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+        <div>
+          <!-- Card Top Bar -->
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;"
+                 [style.background]="proc.badgeColor + '18'">
+              <app-icon [name]="proc.icon" [size]="18" [color]="proc.badgeColor"></app-icon>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;"
+                    [style.background]="proc.badgeColor + '18'" [style.color]="proc.badgeColor">
+                {{ proc.category }}
+              </span>
+              <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); background: var(--ion-color-step-50, rgba(0,0,0,0.04)); padding: 3px 8px; border-radius: 6px;">
+                ⏱ {{ proc.duration }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Title & Description -->
+          <h4 style="margin: 0 0 6px; font-size: 15px; font-weight: 800; color: var(--ion-text-color);">
+            {{ proc.title }}
+          </h4>
+          <p style="margin: 0 0 16px; font-size: 12.5px; color: var(--ion-color-medium); line-height: 1.5;">
+            {{ proc.description }}
+          </p>
+        </div>
+
+        <!-- Launch Button -->
+        <button type="button" (click)="startWalkthrough(proc)"
+                style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--ion-color-danger); background: linear-gradient(135deg, rgba(235,68,90,0.08), rgba(235,68,90,0.02)); color: var(--ion-color-danger); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+          <app-icon name="play" [size]="13" color="var(--ion-color-danger)"></app-icon>
+          <span>Start Walkthrough ({{ proc.steps.length }} Steps)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: EMERGENCY TRIAGE & DISASTER PROTOCOL REFERENCE -->
+  <div style="margin-bottom: 32px;">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+      <app-icon name="shield-alert" [size]="16" color="var(--ion-color-danger)"></app-icon>
+      <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); text-transform: uppercase; letter-spacing: 0.5px;">
+        Emergency Triage & Disaster Protocol
+      </h3>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;">
+      <!-- Code Red -->
+      <div style="padding: 16px; border-radius: 14px; background: var(--ion-card-background, #ffffff); border-left: 4px solid #eb445a; border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); border-right: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <span style="font-size: 11px; font-weight: 800; color: #eb445a; text-transform: uppercase; letter-spacing: 0.5px;">Priority 1 • Immediate</span>
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #eb445a;"></span>
+        </div>
+        <h5 style="margin: 0 0 4px; font-size: 14px; font-weight: 800; color: var(--ion-text-color);">RED: Critical / Life-Threatening</h5>
+        <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.45;">
+          Unconscious individuals, severe hemorrhage, cardiac arrest, structural collapse, active structure fire with trapped citizens. Dispatch highest-tier team immediately with audible siren.
+        </p>
+      </div>
+
+      <!-- Code Yellow -->
+      <div style="padding: 16px; border-radius: 14px; background: var(--ion-card-background, #ffffff); border-left: 4px solid #ffc409; border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); border-right: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <span style="font-size: 11px; font-weight: 800; color: #ffc409; text-transform: uppercase; letter-spacing: 0.5px;">Priority 2 • Urgent</span>
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #ffc409;"></span>
+        </div>
+        <h5 style="margin: 0 0 4px; font-size: 14px; font-weight: 800; color: var(--ion-text-color);">YELLOW: Serious / Delayed Risk</h5>
+        <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.45;">
+          Stable bone fractures, moderate lacerations, rising flood water approaching homes without immediate submersion, vehicle collision with ambulatory victims. Dispatch within 10–15 mins.
+        </p>
+      </div>
+
+      <!-- Code Green -->
+      <div style="padding: 16px; border-radius: 14px; background: var(--ion-card-background, #ffffff); border-left: 4px solid #2dd36f; border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); border-right: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <span style="font-size: 11px; font-weight: 800; color: #2dd36f; text-transform: uppercase; letter-spacing: 0.5px;">Priority 3 • Minor / Non-Urgent</span>
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #2dd36f;"></span>
+        </div>
+        <h5 style="margin: 0 0 4px; font-size: 14px; font-weight: 800; color: var(--ion-text-color);">GREEN: Minor Injury / Hazard Clearing</h5>
+        <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.45;">
+          Minor cuts, sprains, fallen tree branches blocking secondary alleys, non-critical localized debris. Route to Barangay DRRM volunteers or scheduled municipal clearing teams.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: SYSTEM TELEMETRY & CONNECTION HEALTH -->
+  <div>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+      <app-icon name="cpu" [size]="16" color="var(--ion-color-danger)"></app-icon>
+      <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); text-transform: uppercase; letter-spacing: 0.5px;">
+        System Telemetry & Live Services
+      </h3>
+    </div>
+
+    <div style="background: var(--ion-card-background, #ffffff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding: 18px 22px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px;">
+      <!-- Telemetry 1 -->
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e; animation: pulse-dot 1.5s ease-in-out infinite;"></div>
+        <div>
+          <p style="margin: 0; font-size: 13px; font-weight: 700; color: var(--ion-text-color);">WebSocket Engine (Reverb)</p>
+          <p style="margin: 1px 0 0; font-size: 11px; color: #22c55e; font-weight: 600;">Active • Low-latency live events</p>
+        </div>
+      </div>
+
+      <!-- Telemetry 2 -->
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e;"></div>
+        <div>
+          <p style="margin: 0; font-size: 13px; font-weight: 700; color: var(--ion-text-color);">Push Notification Service</p>
+          <p style="margin: 1px 0 0; font-size: 11px; color: #22c55e; font-weight: 600;">Active • High-priority push enabled</p>
+        </div>
+      </div>
+
+      <!-- Telemetry 3 -->
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e;"></div>
+        <div>
+          <p style="margin: 0; font-size: 13px; font-weight: 700; color: var(--ion-text-color);">GIS & Geolocation Engine</p>
+          <p style="margin: 1px 0 0; font-size: 11px; color: #22c55e; font-weight: 600;">Active • WGS84 GPS / Leaflet tiles</p>
+        </div>
+      </div>
+
+      <!-- Telemetry 4 -->
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e;"></div>
+        <div>
+          <p style="margin: 0; font-size: 13px; font-weight: 700; color: var(--ion-text-color);">Municipal Database</p>
+          <p style="margin: 1px 0 0; font-size: 11px; color: #22c55e; font-weight: 600;">Active • MySQL InnoDB replication</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

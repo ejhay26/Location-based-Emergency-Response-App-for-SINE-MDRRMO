@@ -171,6 +171,38 @@ export class IconRegistryService {
       }
     ],
     [
+      'chevron-up',
+      {
+        name: 'chevron-up',
+        faClass: 'fa-solid fa-chevron-up',
+        lucideSvg: '<path d="m18 15-6-6-6 6"/>'
+      }
+    ],
+    [
+      'send',
+      {
+        name: 'send',
+        faClass: 'fa-solid fa-paper-plane',
+        lucideSvg: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>'
+      }
+    ],
+    [
+      'trash',
+      {
+        name: 'trash',
+        faClass: 'fa-solid fa-trash-can',
+        lucideSvg: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>'
+      }
+    ],
+    [
+      'info',
+      {
+        name: 'info',
+        faClass: 'fa-solid fa-circle-info',
+        lucideSvg: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>'
+      }
+    ],
+    [
       'close',
       {
         name: 'close',
@@ -724,8 +756,8 @@ export class IconRegistryService {
       'table-cells-large': 'sliders',
       'wand-magic-sparkles': 'sparkles',
       'circle-exclamation': 'circle-alert',
-      'circle-info': 'circle-alert',
-      'info-circle': 'circle-alert',
+      'circle-info': 'info',
+      'info-circle': 'info',
       'paperclip': 'paperclip',
       'lock-open': 'lock-open',
       'lock-unlocked': 'lock-open',
@@ -774,7 +806,8 @@ export class IconRegistryService {
       'comment-dots': 'message-square',
       'announcement': 'broadcast',
       'tower-broadcast': 'broadcast',
-      'bullhorn': 'megaphone'
+      'bullhorn': 'megaphone',
+      'paper-plane': 'send'
     };
 
     const alias = aliases[normalized];

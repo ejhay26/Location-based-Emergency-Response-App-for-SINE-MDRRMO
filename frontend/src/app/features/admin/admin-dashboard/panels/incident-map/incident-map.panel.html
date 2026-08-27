@@ -101,7 +101,7 @@
 <div class="map-workspace-split">
   
   <!-- Left: Map Container -->
-  <div class="map-container-col">
+  <div id="cad-map-container" class="map-container-col">
     <ion-card class="map-card-wrapper">
       <ion-card-content class="ion-no-padding" style="height:100%;flex:1;display:flex;">
         <div id="dispatch-map" style="height:100%;width:100%;min-height:480px;background-color:#e5e5e5;flex:1;"></div>
@@ -118,7 +118,7 @@
   </div>
 
   <!-- Right: Incident / Hazard Cards Queue -->
-  <div class="map-queue-col" [style.width]="queueWidth + 'px'">
+  <div id="cad-queue-container" class="map-queue-col" [style.width]="queueWidth + 'px'">
     
     <!-- Active Emergencies Queue -->
     <ng-container *ngIf="mode === 'active'">

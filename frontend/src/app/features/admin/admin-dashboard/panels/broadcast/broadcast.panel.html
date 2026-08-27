@@ -1,5 +1,5 @@
 <div style="width:100%;">
-  <ion-card color="light" style="margin: 0; box-shadow: var(--card-shadow); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); border-radius: 16px;">
+  <ion-card id="broadcast-composer" color="light" style="margin: 0; box-shadow: var(--card-shadow); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); border-radius: 16px;">
     <ion-card-header><ion-card-title style="font-weight: 800; font-size: 16.5px; color: var(--ion-text-color);">Create Announcement / Alert</ion-card-title></ion-card-header>
     <ion-card-content>
       <!-- Title Input -->
@@ -55,7 +55,7 @@
       </div>
 
       <p style="font-size: 11px; font-weight: 800; color: var(--ion-color-medium); margin: 14px 0 8px; text-transform: uppercase; letter-spacing: 0.8px;">TARGET AUDIENCE</p>
-      <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+      <div id="broadcast-barangay-selector" style="display: flex; flex-wrap: wrap; gap: 6px;">
         <button (click)="selectTownWide()"
           title="Push announcement town-wide across all 9 barangays"
           [style.background]="isTownWide ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
@@ -74,32 +74,103 @@
           {{ b.name }}
         </button>
       </div>
-      <p style="font-size: 12px; color: var(--ion-color-medium); margin: 10px 0 0; display: flex; align-items: center; gap: 6px;">
-        <app-icon name="info" [size]="14" color="var(--ion-color-medium)"></app-icon>
-        <span>{{ isTownWide ? 'This announcement will be pushed to every citizen in San Isidro.' : 'Tap "All Barangays" to clear specific selection.' }}</span>
-      </p>
-
-      <!-- Schedule for Later Toggle -->
-      <div style="margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); display: flex; flex-direction: column; gap: 8px;">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <app-icon name="calendar-clock" [size]="16" color="var(--ion-color-danger)"></app-icon>
-            <span style="font-size: 13px; font-weight: 700; color: var(--ion-text-color);">Schedule Announcement</span>
-          </div>
-          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--ion-color-medium);">
-            <span>{{ isScheduled ? 'Enabled' : 'Post Immediately' }}</span>
-            <input type="checkbox" [(ngModel)]="isScheduled" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--ion-color-danger);" />
-          </label>
+      <div style="margin-top: 10px; padding: 8px 12px; border-radius: 10px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border: 1px dashed var(--ion-color-step-150, rgba(0,0,0,0.1)); display: flex; align-items: flex-start; gap: 8px;">
+        <app-icon name="info" [size]="15" color="var(--ion-color-medium)" style="margin-top: 2px; flex-shrink: 0;"></app-icon>
+        <div style="font-size: 12px; line-height: 1.45; color: var(--ion-text-color);">
+          <span *ngIf="isTownWide">
+            <strong>Town-Wide:</strong> Broadcasts to all 9 barangays in San Isidro.
+            <em style="color: var(--ion-color-medium); display: block; margin-top: 2px;">Tip: Tap any barangay button above to target specific areas — you can select multiple barangays at once!</em>
+          </span>
+          <span *ngIf="!isTownWide">
+            <strong>Targeted:</strong> Broadcasting to <strong>{{ selectedBarangayNames }}</strong> ({{ selectedBarangayIds.length }} selected).
+            <em style="color: var(--ion-color-medium); display: block; margin-top: 2px;">Tip: Tap more barangays to add them, or tap "All Barangays" to switch back to town-wide.</em>
+          </span>
         </div>
-        <div *ngIf="isScheduled" style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
-          <label style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">Auto-Release Date & Time</label>
-          <input type="datetime-local" [(ngModel)]="scheduledDateTime" [min]="minScheduledDateTime"
-                 style="padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--ion-color-step-200, #ccc); font-family: inherit; font-size: 13px; font-weight: 600; background: var(--ion-card-background, #fff); color: var(--ion-text-color);" />
+      </div>
+
+      <!-- Delivery Mode (Segmented Control) -->
+      <div id="broadcast-delivery-mode" style="margin-top: 18px;">
+        <label style="font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.6px; display: block; margin-bottom: 6px;">
+          Delivery Mode
+        </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); padding: 4px; border-radius: 12px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
+          <button type="button" (click)="setScheduledMode(false)"
+                  [style.background]="!isScheduled ? 'var(--ion-color-danger)' : 'transparent'"
+                  [style.color]="!isScheduled ? '#ffffff' : 'var(--ion-text-color)'"
+                  [style.box-shadow]="!isScheduled ? '0 2px 8px rgba(235,68,90,0.3)' : 'none'"
+                  style="display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 9px; padding: 10px 14px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.18s ease;">
+            <app-icon name="send" [size]="14" [color]="!isScheduled ? '#ffffff' : 'var(--ion-color-medium)'"></app-icon>
+            <span>Post Immediately</span>
+          </button>
+          <button type="button" (click)="setScheduledMode(true)"
+                  [style.background]="isScheduled ? 'var(--ion-color-danger)' : 'transparent'"
+                  [style.color]="isScheduled ? '#ffffff' : 'var(--ion-text-color)'"
+                  [style.box-shadow]="isScheduled ? '0 2px 8px rgba(235,68,90,0.3)' : 'none'"
+                  style="display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 9px; padding: 10px 14px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.18s ease;">
+            <app-icon name="calendar-clock" [size]="14" [color]="isScheduled ? '#ffffff' : 'var(--ion-color-medium)'"></app-icon>
+            <span>Schedule for Later</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Aesthetic Popover Date & Time Selector -->
+      <div *ngIf="isScheduled" style="margin-top: 14px; padding: 14px; border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
+        <label style="font-size: 11px; font-weight: 800; color: var(--ion-color-danger); text-transform: uppercase; letter-spacing: 0.6px; display: block; margin-bottom: 8px;">
+          Auto-Release Date & Time
+        </label>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <!-- Date Column -->
+          <div>
+            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); display: block; margin-bottom: 4px;">Target Date</span>
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr 1.1fr; gap: 4px;">
+              <ion-select [(ngModel)]="schedMonth" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="Month"
+                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                <ion-select-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</ion-select-option>
+              </ion-select>
+              <ion-select [(ngModel)]="schedDay" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="Day"
+                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                <ion-select-option *ngFor="let d of daysInSchedMonth" [value]="d < 10 ? '0' + d : '' + d">{{ d }}</ion-select-option>
+              </ion-select>
+              <ion-select [(ngModel)]="schedYear" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="Year"
+                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                <ion-select-option *ngFor="let y of scheduledYears" [value]="y">{{ y }}</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+
+          <!-- Time Column -->
+          <div>
+            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); display: block; margin-bottom: 4px;">Target Time</span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
+              <ion-select [(ngModel)]="schedHour" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="HH"
+                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                <ion-select-option *ngFor="let h of hours" [value]="h">{{ h }}</ion-select-option>
+              </ion-select>
+              <ion-select [(ngModel)]="schedMinute" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="MM"
+                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                <ion-select-option *ngFor="let min of minutes" [value]="min">:{{ min }}</ion-select-option>
+              </ion-select>
+              <ion-select [(ngModel)]="schedPeriod" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="AM/PM"
+                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                <ion-select-option value="AM">AM</ion-select-option>
+                <ion-select-option value="PM">PM</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time formatted preview -->
+        <div *ngIf="formattedSchedulePreview" style="margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: rgba(56,128,255,0.08); border: 1px solid rgba(56,128,255,0.2); display: flex; align-items: center; gap: 8px;">
+          <app-icon name="calendar-clock" [size]="14" color="#3880ff"></app-icon>
+          <span style="font-size: 12px; font-weight: 700; color: #3880ff;">
+            Will automatically release on: <strong>{{ formattedSchedulePreview }}</strong>
+          </span>
         </div>
       </div>
 
       <!-- Submit / Schedule Alert Button -->
-      <ion-button expand="block" color="danger" (click)="confirmSubmitBroadcast()"
+      <ion-button id="broadcast-submit-btn" expand="block" color="danger" (click)="confirmSubmitBroadcast()"
         [disabled]="!broadcastForm.message.trim()"
         title="Send emergency broadcast alert to selected recipients"
         style="font-weight: 800; height: 48px; margin-top: 18px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(235,68,90,0.3);">
