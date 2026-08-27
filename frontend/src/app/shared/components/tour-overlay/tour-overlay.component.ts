@@ -82,52 +82,47 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
   vw = window.innerWidth;
   vh = window.innerHeight;
 
-  /**
-   * Gate the ENTIRE overlay on having successfully measured a real target
-   * at least once for the current step. Without this, a target that
-   * briefly can't be found (id typo, wrong page, mid-navigation) would
-   * render an overlay with no real hole — this way a measurement miss
-   * simply renders nothing at all, leaving the app fully usable instead
-   * of silently blocking it. This is the core "never gets stuck" guarantee.
-   */
   holeReady = false;
   private pollInterval?: any;
   private animFrameId: number | null = null;
   private isMorphing = false;
 
-  /** Only scroll the target into view ONCE per step (on first successful
-   * measurement), not on every 400ms poll — otherwise it would fight any
-   * scrolling the user does themselves mid-step. */
-  private scrolledForId = '';
-
+  private currentTargetId = '';
+  private scrollTimeoutId?: any;
   private missingSince: number | null = null;
   private readonly MISSING_TIMEOUT_MS = 6000;
 
   constructor(public tour: TourService, private cdr: ChangeDetectorRef) {
     effect(() => {
       const id = this.tour.targetId();
-      if (!this.tour.isActive()) {
-        this.holeReady = false;
+      if (!this.tour.isActive() || !id) {
         this.cancelSpring();
+        this.holeReady = false;
+        this.currentTargetId = '';
+        this.missingSince = null;
+        return;
       }
+
       this.missingSince = null;
-      this.scrolledForId = '';
-      if (id) {
-        setTimeout(() => this.measure(id), 100);
+      if (id !== this.currentTargetId) {
+        this.currentTargetId = id;
+        // Schedule next-tick transition so any page/DOM navigation settles
+        requestAnimationFrame(() => this.transitionToTarget(id));
       }
     });
   }
 
   ngOnInit() {
     this.pollInterval = setInterval(() => {
-      if (!this.tour.isActive() || !this.tour.targetId() || this.isMorphing) return;
-      this.measure(this.tour.targetId(), true); // quiet tracking
-    }, 400);
+      if (!this.tour.isActive() || !this.currentTargetId || this.isMorphing || !this.holeReady) return;
+      this.quietTrack(this.currentTargetId);
+    }, 300);
     window.addEventListener('resize', this.onResize);
   }
 
   ngOnDestroy() {
     clearInterval(this.pollInterval);
+    clearTimeout(this.scrollTimeoutId);
     this.cancelSpring();
     window.removeEventListener('resize', this.onResize);
   }
@@ -135,7 +130,9 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
   private onResize = () => {
     this.vw = window.innerWidth;
     this.vh = window.innerHeight;
-    if (this.tour.isActive()) this.measure(this.tour.targetId(), false);
+    if (this.tour.isActive() && this.currentTargetId) {
+      this.quietTrack(this.currentTargetId);
+    }
   };
 
   onExitClick(ev: MouseEvent) {
@@ -143,82 +140,111 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
     this.tour.cancel();
   }
 
-  measure(id: string, quiet = false) {
+  /**
+   * Orchestrates the transition to a new step target:
+   * 1. Finds element.
+   * 2. Scrolls container if needed and WAITS for the scroll to settle.
+   * 3. Seamlessly morphs the spotlight directly to the final resting target using live-frame tracking.
+   */
+  private transitionToTarget(id: string, retryCount = 0): void {
     const el = document.getElementById(id);
     if (!el) {
-      if (!quiet) this.handleMissing();
-      return;
-    }
-
-    if (this.scrolledForId !== id) {
-      this.scrolledForId = id;
-      this.scrollTargetIntoView(el);
-    }
-
-    const r = el.getBoundingClientRect();
-    if (r.width <= 0 || r.height <= 0) {
-      if (!quiet) this.handleMissing();
-      return;
-    }
-
-    this.missingSince = null;
-
-    const PAD = 12;
-    const cs = getComputedStyle(el);
-    const brPx = parseFloat(cs.borderTopLeftRadius) || 0;
-    const minDim = Math.min(r.width, r.height);
-    const inlineStyle = el.getAttribute('style') || '';
-    const isCircle = inlineStyle.includes('border-radius:50%') ||
-                     inlineStyle.includes('border-radius: 50%') ||
-                     brPx >= minDim * 0.4;
-
-    const targetHole: Hole = {
-      top:    r.top    - PAD,
-      left:   r.left   - PAD,
-      width:  r.width  + PAD * 2,
-      height: r.height + PAD * 2,
-      isCircle,
-      radius: isCircle ? 0 : brPx + PAD,
-    };
-
-    this.vw = window.innerWidth;
-    this.vh = window.innerHeight;
-
-    // If this is the initial target or animation is disabled, snap immediately
-    if (!this.holeReady || quiet) {
-      this.hole = { ...targetHole };
-      this.holePath = this.buildHoleShapePath();
-      const clip = `path(evenodd, "M0,0H${this.vw}V${this.vh}H0Z${this.holePath}")`;
-      this.dimClipStyle = `clip-path:${clip};-webkit-clip-path:${clip};`;
-      this.holeReady = true;
-      this.positionText();
-      this.cdr.detectChanges();
-
-      const textNode = document.querySelector('.tour-text') as HTMLElement | null;
-      if (textNode) {
-        this.positionText(textNode.offsetHeight);
-        this.cdr.detectChanges();
+      if (retryCount < 10) {
+        setTimeout(() => this.transitionToTarget(id, retryCount + 1), 60);
+      } else {
+        this.handleMissing();
       }
       return;
     }
 
-    // Spring Morphing: seamlessly animate the spotlight from current hole to targetHole
-    this.animateToHole(targetHole);
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) {
+      if (retryCount < 10) {
+        setTimeout(() => this.transitionToTarget(id, retryCount + 1), 60);
+      } else {
+        this.handleMissing();
+      }
+      return;
+    }
+
+    this.missingSince = null;
+    clearTimeout(this.scrollTimeoutId);
+
+    const scrollParent = this.findScrollParent(el);
+    let needsScroll = false;
+
+    if (scrollParent) {
+      const parentRect = scrollParent.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const desiredTop = parentRect.top + parentRect.height * 0.28;
+      const delta = elRect.top - desiredTop;
+
+      if (Math.abs(delta) > 28) {
+        needsScroll = true;
+        scrollParent.scrollBy({ top: delta, behavior: 'smooth' });
+
+        let settled = false;
+        const onSettled = () => {
+          if (settled) return;
+          settled = true;
+          scrollParent.removeEventListener('scrollend', onSettled);
+          clearTimeout(this.scrollTimeoutId);
+          this.executeMorph(el);
+        };
+
+        scrollParent.addEventListener('scrollend', onSettled, { once: true });
+        // 260ms timeout fallback for platforms without native scrollend event
+        this.scrollTimeoutId = setTimeout(onSettled, 260);
+        return;
+      }
+    }
+
+    // No scroll required — start morph immediately
+    this.executeMorph(el);
+  }
+
+  private executeMorph(el: HTMLElement): void {
+    const targetHole = this.computeHole(el);
+    this.vw = window.innerWidth;
+    this.vh = window.innerHeight;
+
+    if (!this.holeReady) {
+      // Step 1: Initial materialization of the tour
+      this.hole = { ...targetHole };
+      this.renderCurrentHole();
+      this.holeReady = true;
+      this.positionText();
+      this.cdr.detectChanges();
+
+      requestAnimationFrame(() => {
+        const textNode = document.querySelector('.tour-text') as HTMLElement | null;
+        if (textNode) {
+          this.positionText(textNode.offsetHeight);
+          this.cdr.detectChanges();
+        }
+      });
+      return;
+    }
+
+    // Subsequent steps: Always fluid spring animation
+    this.animateToElement(el);
   }
 
   /**
-   * Fluid Spring Animation with subtle tactile overshoot (Apple fluid spring physics).
-   * Damped oscillator: zeta = 0.74, omega_n = 14 rad/s (~480ms duration with ~3% bounce).
+   * Fluid Spring Animation with LIVE tracking.
+   * By querying getBoundingClientRect() on every tick, the spotlight dynamically
+   * interpolates towards the element's actual position even if small residual
+   * layout shifts or momentum scrolling are completing.
    */
-  private animateToHole(target: Hole): void {
+  private animateToElement(el: HTMLElement): void {
     this.cancelSpring();
     this.isMorphing = true;
 
     const from = { ...this.hole };
     const startTime = performance.now();
-    const durationMs = 480;
-    const zeta = 0.74; // slightly underdamped for subtle overshoot
-    const omega = 14;  // natural frequency
+    const durationMs = 450;
+    const zeta = 0.76;
+    const omega = 14.5;
     const omegaD = omega * Math.sqrt(1 - zeta * zeta);
 
     const tick = (now: number) => {
@@ -226,34 +252,31 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
       let progress = 1;
 
       if (elapsed * 1000 < durationMs) {
-        // Analytical closed-form damped spring with overshoot
         const decay = Math.exp(-zeta * omega * elapsed);
         const oscillation = Math.cos(omegaD * elapsed) + ((zeta * omega) / omegaD) * Math.sin(omegaD * elapsed);
         progress = 1 - decay * oscillation;
       }
 
-      // Interpolate all bounding properties
-      this.hole.top    = from.top    + (target.top    - from.top)    * progress;
-      this.hole.left   = from.left   + (target.left   - from.left)   * progress;
-      this.hole.width  = from.width  + (target.width  - from.width)  * progress;
-      this.hole.height = from.height + (target.height - from.height) * progress;
-      this.hole.radius = from.radius + (target.radius - from.radius) * progress;
-      this.hole.isCircle = progress > 0.5 ? target.isCircle : from.isCircle;
+      // Compute live target on every frame to eliminate any jumping or pre-scroll guessing
+      const currentTarget = this.computeHole(el);
 
-      this.holePath = this.buildHoleShapePath();
-      const clip = `path(evenodd, "M0,0H${this.vw}V${this.vh}H0Z${this.holePath}")`;
-      this.dimClipStyle = `clip-path:${clip};-webkit-clip-path:${clip};`;
+      this.hole.top    = from.top    + (currentTarget.top    - from.top)    * progress;
+      this.hole.left   = from.left   + (currentTarget.left   - from.left)   * progress;
+      this.hole.width  = from.width  + (currentTarget.width  - from.width)  * progress;
+      this.hole.height = from.height + (currentTarget.height - from.height) * progress;
+      this.hole.radius = from.radius + (currentTarget.radius - from.radius) * progress;
+      this.hole.isCircle = progress > 0.5 ? currentTarget.isCircle : from.isCircle;
+
+      this.renderCurrentHole();
       this.positionText();
       this.cdr.detectChanges();
 
       if (elapsed * 1000 < durationMs) {
         this.animFrameId = requestAnimationFrame(tick);
       } else {
-        // Snap to exact target on finish
-        this.hole = { ...target };
-        this.holePath = this.buildHoleShapePath();
-        const finalClip = `path(evenodd, "M0,0H${this.vw}V${this.vh}H0Z${this.holePath}")`;
-        this.dimClipStyle = `clip-path:${finalClip};-webkit-clip-path:${finalClip};`;
+        const finalTarget = this.computeHole(el);
+        this.hole = { ...finalTarget };
+        this.renderCurrentHole();
         this.isMorphing = false;
         this.animFrameId = null;
 
@@ -266,6 +289,59 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
     };
 
     this.animFrameId = requestAnimationFrame(tick);
+  }
+
+  /**
+   * Quiet position tracker: Gently follows element if user manually scrolls,
+   * without interrupting or re-snapping.
+   */
+  private quietTrack(id: string): void {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) return;
+
+    const fresh = this.computeHole(el);
+    const dTop = Math.abs(fresh.top - this.hole.top);
+    const dLeft = Math.abs(fresh.left - this.hole.left);
+
+    if (dTop > 1.5 || dLeft > 1.5) {
+      this.hole.top = fresh.top;
+      this.hole.left = fresh.left;
+      this.hole.width = fresh.width;
+      this.hole.height = fresh.height;
+      this.renderCurrentHole();
+      this.positionText();
+      this.cdr.detectChanges();
+    }
+  }
+
+  private computeHole(el: HTMLElement): Hole {
+    const r = el.getBoundingClientRect();
+    const PAD = 12;
+    const cs = getComputedStyle(el);
+    const brPx = parseFloat(cs.borderTopLeftRadius) || 0;
+    const minDim = Math.min(r.width, r.height);
+    const inlineStyle = el.getAttribute('style') || '';
+    const isCircle = inlineStyle.includes('border-radius:50%') ||
+                     inlineStyle.includes('border-radius: 50%') ||
+                     brPx >= minDim * 0.4;
+
+    return {
+      top:    r.top    - PAD,
+      left:   r.left   - PAD,
+      width:  r.width  + PAD * 2,
+      height: r.height + PAD * 2,
+      isCircle,
+      radius: isCircle ? 0 : brPx + PAD,
+    };
+  }
+
+  private renderCurrentHole(): void {
+    this.holePath = this.buildHoleShapePath();
+    const clip = `path(evenodd, "M0,0H${this.vw}V${this.vh}H0Z${this.holePath}")`;
+    this.dimClipStyle = `clip-path:${clip};-webkit-clip-path:${clip};`;
   }
 
   private cancelSpring(): void {
@@ -282,35 +358,11 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
       this.missingSince = Date.now();
     } else if (Date.now() - this.missingSince > this.MISSING_TIMEOUT_MS) {
       this.missingSince = null;
-      // eslint-disable-next-line no-console
       console.warn(`[Tour] Target "${this.tour.targetId()}" not found for ${this.MISSING_TIMEOUT_MS}ms — auto-skipping.`);
       this.tour.skipMissingStep();
       return;
     }
     this.cdr.detectChanges();
-  }
-
-  /**
-   * Scrolls the target's nearest real scroll container so the target sits
-   * in the UPPER third of the viewport rather than dead-center. Centering
-   * looks fine for the target itself, but several steps have important
-   * related controls sitting just BELOW the target (e.g. "Use My Location"
-   * right under the map, the Save button under the medical form) that a
-   * plain center-scroll can still leave cut off at the bottom edge. Biasing
-   * upward leaves more room below to reveal that following content.
-   */
-  private scrollTargetIntoView(el: HTMLElement) {
-    const scrollParent = this.findScrollParent(el);
-    if (!scrollParent) return;
-    const parentRect = scrollParent.getBoundingClientRect();
-    const elRect = el.getBoundingClientRect();
-    const desiredTop = parentRect.top + parentRect.height * 0.28;
-    const delta = elRect.top - desiredTop;
-    // Only bother scrolling if it's meaningfully out of place — avoids a
-    // pointless 1px smooth-scroll jitter on every step.
-    if (Math.abs(delta) > 24) {
-      scrollParent.scrollBy({ top: delta, behavior: 'smooth' });
-    }
   }
 
   private findScrollParent(el: HTMLElement): Element | null {
@@ -322,25 +374,16 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
       }
       node = node.parentElement;
     }
-    // Ionic's real scroll container lives inside <ion-content>'s shadow DOM
-    // (exposed as the "scroll" part), not as a plain overflow ancestor in
-    // the light DOM — fall back to it directly if nothing else qualified.
     const ionContent = el.closest('ion-content') as any;
     return ionContent?.shadowRoot?.querySelector('[part="scroll"]') ?? null;
   }
 
-  /**
-   * Builds ONE subpath for the hole's own shape (circle or rounded rect) —
-   * reused both as the ring's stroke path and, combined with a full-
-   * viewport outer rect via evenodd, as the dim layer's clip-path.
-   */
   private buildHoleShapePath(): string {
     const { top, left, width, height, isCircle, radius } = this.hole;
     if (isCircle) {
       const cx = left + width / 2;
       const cy = top + height / 2;
       const rad = Math.max(width, height) / 2;
-      // A full circle needs two arcs — a single 360° arc command doesn't render.
       return `M${cx - rad},${cy}a${rad},${rad} 0 1,0 ${rad * 2},0a${rad},${rad} 0 1,0 ${-rad * 2},0Z`;
     }
     const rad = Math.max(0, Math.min(radius, width / 2, height / 2));
@@ -351,7 +394,7 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
   }
 
   private positionText(actualHeight?: number) {
-    const TEXT_H = actualHeight ?? 180; // estimate for the first pass only
+    const TEXT_H = actualHeight ?? 180;
     const TEXT_W = 360;
     const VH = window.innerHeight;
     const VW = window.innerWidth;
