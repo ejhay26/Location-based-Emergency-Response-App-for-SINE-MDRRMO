@@ -11,16 +11,17 @@ The citizen application is built with **Ionic 8 / Angular 20** and compiled to n
 ### Supported Operating Systems
 | Platform | Minimum Version | Target / Recommended | Notes |
 |---|---|---|---|
-| **Android** | **Android 7.0 (API 24, Nougat)** | **Android 14–16 (API 34–36)** | Pinned by `minSdkVersion = 24` in `frontend/android/variables.gradle`. Built against compile/target SDK 36. |
+| **Android** | **Android 8.0 (API 26, Oreo)** | **Android 14–16 (API 34–36)** | Base compilation runtime maintains `minSdkVersion = 24` (Android 7.0), but **Android 8.0+ (API 26)** is strictly required for 1-Tap Home Screen SOS Widget Pinning (`AppWidgetManager.requestPinAppWidget`) and high-priority FCM notification channels. |
 | **iOS** | **iOS 15.0** | **iOS 17+ / 18+** | Compatible with iPhone 6s, iPhone SE (1st gen), and all newer models. |
 
 ### Minimum & Recommended Mobile Hardware Specs
 | Component | Minimum Specification | Recommended Specification | Reason / Notes |
 |---|---|---|---|
-| **RAM** | 2 GB | 3 GB or higher | Ensures smooth camera photo/video capture, Leaflet map rendering, and background tasks. |
+| **Processor (SoC)** | Quad-Core 1.5 GHz (ARMv8 64-bit) | Octa-Core 2.0 GHz+ (Snapdragon, MediaTek Dimensity, Apple A-series) | Ensures smooth 60fps UI rendering, fast camera frame capture, and responsive map pinch-to-zoom. |
+| **RAM** | 2 GB | 3 GB or higher | Ensures smooth camera photo/video capture, Leaflet vector map rendering, and background service tasks. |
 | **Storage** | 100 MB free space | 250 MB free space | App binary is ~30–45 MB; extra space is needed for caching offline reports and proof media in IndexedDB. |
 | **Camera** | 5 MP Rear Camera | 12 MP+ with Autofocus & Flash | Required for live anti-prank proof capture (SOS photo/10s video) and Front/Back valid ID scanning. |
-| **Location / GPS** | GPS / A-GPS hardware | GPS + GLONASS / Galileo | Required for high-accuracy coordinate capture during emergency reporting. |
+| **Location / GPS** | GPS / A-GPS hardware | GPS + GLONASS / Galileo / BeiDou | Required for high-accuracy coordinate capture during emergency reporting. |
 | **Network** | 3G / HSPA+ mobile data | 4G LTE / 5G or stable Wi-Fi | Needed for real-time SOS submission and receiving broadcast alerts. |
 | **Permissions** | Location, Camera, Notifications | Location, Camera, Notifications, SMS Retriever (Android) | Essential runtime permissions for app operations. |
 
@@ -77,6 +78,6 @@ The backend is containerized and runs **Laravel 13 on PHP 8.4-FPM**, **Nginx**, 
 
 | User / Role | Supported Environment | Minimum Specs at a Glance |
 |---|---|---|
-| **Citizen (Mobile)** | Android 7.0+ or iOS 15.0+ | Smartphone with 2 GB RAM, Camera, GPS, and Internet |
+| **Citizen (Mobile)** | Android 8.0+ or iOS 15.0+ | Smartphone with 2 GB RAM, Camera, GPS, and Internet |
 | **Dispatcher / Admin** | Windows 10/11, macOS 11+, or Linux | PC/Laptop with 4 GB RAM, 1280×800 Display, Broadband |
 | **Server Host** | Linux VPS (Ubuntu 22.04/24.04 LTS) | 1–2 vCPU, 1–2 GB RAM, Podman / Docker, PHP 8.4, MariaDB 10.6+ |
