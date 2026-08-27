@@ -75,11 +75,17 @@ class ProfileController extends Controller
         $request->validate(['user_id' => 'required']);
         $user = User::where('user_id', $request->user_id)->first();
         if (!$user) return response()->json(['message' => 'User not found'], 404);
-        $user->blood_type         = $request->blood_type         ?? null;
-        $user->allergies          = $request->allergies          ?? null;
-        $user->medical_conditions = $request->medical_conditions ?? null;
-        $user->pwd_status         = $request->pwd_status         ?? null;
-        $user->save();
+
+        $user->medicalProfile()->updateOrCreate(
+            ['user_id' => $user->user_id],
+            [
+                'blood_type'         => $request->blood_type         ?? null,
+                'allergies'          => $request->allergies          ?? null,
+                'medical_conditions' => $request->medical_conditions ?? null,
+                'pwd_status'         => $request->pwd_status         ?? null,
+            ]
+        );
+
         return response()->json(['message' => 'Medical profile updated successfully!', 'user' => $user->fresh()]);
     }
 

@@ -81,7 +81,10 @@ class CitizenController extends Controller
     public function getPendingVerifications()
     {
         return response()->json(
-            User::where('account_status', 'unverified')->orderBy('created_at', 'desc')->get()
+            User::where('account_status', 'unverified')
+                ->with('verification')
+                ->orderBy('created_at', 'desc')
+                ->get()
         );
     }
 
@@ -93,6 +96,14 @@ class CitizenController extends Controller
 
         $user->account_status = 'active';
         $user->save();
+
+        if ($user->verification) {
+            $user->verification->update([
+                'verification_status' => 'approved',
+                'reviewed_by'         => auth()->id() ?? null,
+                'reviewed_at'         => now(),
+            ]);
+        }
 
         broadcast(new UserVerified('approved', $user->user_id));
 

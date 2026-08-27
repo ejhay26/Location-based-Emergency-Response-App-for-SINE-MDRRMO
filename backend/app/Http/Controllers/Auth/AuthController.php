@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Traits\MediaHandling;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\UserVerification;
 use App\Services\PhilSmsService;
 use App\Services\OtpService;
 use App\Support\PhoneNumber;
@@ -329,13 +330,18 @@ class AuthController extends Controller
                 'barangay_id'    => $request->barangay_id,
                 'role'           => 'citizen',
                 'account_status' => 'unverified',
-                'valid_id_proof' => $idUrl,
-                'valid_id_proof_back' => $idBackUrl,
-                'valid_id_type'  => $request->valid_id_type,
-                'valid_id_number' => $request->valid_id_number,
-                'valid_id_expiry' => $request->valid_id_expiry,
-                'valid_id_details' => is_array($request->valid_id_details) ? $request->valid_id_details : (json_decode($request->valid_id_details ?? '', true) ?? null),
+            ]);
+
+            UserVerification::create([
+                'user_id'              => $user->user_id,
+                'valid_id_type'        => $request->valid_id_type,
+                'valid_id_number'      => $request->valid_id_number,
+                'valid_id_expiry'      => $request->valid_id_expiry,
+                'valid_id_details'     => is_array($request->valid_id_details) ? $request->valid_id_details : (json_decode($request->valid_id_details ?? '', true) ?? null),
+                'valid_id_proof'       => $idUrl,
+                'valid_id_proof_back'  => $idBackUrl,
                 'selfie_with_id_proof' => $selfieUrl,
+                'verification_status'  => 'pending',
             ]);
 
             DB::commit();

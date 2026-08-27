@@ -108,12 +108,13 @@ class SosController extends Controller
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
             ->leftJoin('barangays', 'emergency_requests.barangay_id', '=', 'barangays.barangay_id')
+            ->leftJoin('user_medical_profiles', 'users.user_id', '=', 'user_medical_profiles.user_id')
             ->whereIn('emergency_requests.status', ['Pending', 'Dispatched'])
             ->orderBy('emergency_requests.request_time', 'desc')
             ->select(
                 'emergency_requests.*',
                 'users.first_name', 'users.last_name', 'users.phone', 'users.profile_picture',
-                'users.blood_type', 'users.allergies', 'users.medical_conditions', 'users.pwd_status',
+                'user_medical_profiles.blood_type', 'user_medical_profiles.allergies', 'user_medical_profiles.medical_conditions', 'user_medical_profiles.pwd_status',
                 'users.false_alarm_strikes',
                 'incident_types.incident_name',
                 'barangays.barangay_name'
@@ -129,12 +130,13 @@ class SosController extends Controller
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
             ->leftJoin('barangays', 'emergency_requests.barangay_id', '=', 'barangays.barangay_id')
+            ->leftJoin('user_medical_profiles', 'users.user_id', '=', 'user_medical_profiles.user_id')
             ->whereIn('emergency_requests.status', ['Resolved', 'Cancelled'])
             ->orderBy('emergency_requests.request_time', 'desc')
             ->select(
                 'emergency_requests.*',
                 'users.first_name', 'users.last_name', 'users.phone', 'users.profile_picture',
-                'users.blood_type', 'users.allergies', 'users.medical_conditions', 'users.pwd_status',
+                'user_medical_profiles.blood_type', 'user_medical_profiles.allergies', 'user_medical_profiles.medical_conditions', 'user_medical_profiles.pwd_status',
                 'users.false_alarm_strikes',
                 'incident_types.incident_name',
                 'barangays.barangay_name'
