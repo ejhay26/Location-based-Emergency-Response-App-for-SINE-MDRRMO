@@ -64,8 +64,10 @@ class ProfileController extends Controller
             }
         }
 
-        $user->profile_picture = $newUrl;
-        $user->save();
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->user_id],
+            ['profile_picture' => $newUrl]
+        );
 
         return response()->json(['message' => 'Photo updated!', 'user' => $user->fresh()]);
     }
@@ -93,7 +95,7 @@ class ProfileController extends Controller
      * Marks the first-login account setup flow (profile photo / settings /
      * medical profile / tour offer segments) as done — whether the user
      * actually filled anything in or skipped every segment. Persisted on
-     * the user row (not device localStorage) so it correctly stays
+     * the user profile (not device localStorage) so it correctly stays
      * dismissed across reinstalls and other devices, and only ever fires
      * once per account. Idempotent: calling it again is a harmless no-op.
      */
@@ -102,8 +104,12 @@ class ProfileController extends Controller
         $request->validate(['user_id' => 'required']);
         $user = User::where('user_id', $request->user_id)->first();
         if (!$user) return response()->json(['message' => 'User not found'], 404);
-        $user->setup_completed = true;
-        $user->save();
+
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->user_id],
+            ['setup_completed' => true]
+        );
+
         return response()->json(['message' => 'Setup complete.', 'user' => $user->fresh()]);
     }
 

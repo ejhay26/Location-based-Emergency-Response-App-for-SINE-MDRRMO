@@ -29,13 +29,14 @@ class FeedbackController extends Controller
     {
         $rows = DB::table('feedback')
             ->join('users', 'feedback.user_id', '=', 'users.user_id')
+            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->select(
                 'feedback.id',
                 'feedback.message',
                 'feedback.category',
                 'feedback.created_at',
-                DB::raw("CONCAT(users.first_name, ' ', users.last_name) as full_name"),
-                'users.username',
+                DB::raw("CONCAT(COALESCE(user_profiles.first_name, ''), ' ', COALESCE(user_profiles.last_name, '')) as full_name"),
+                'user_profiles.username',
                 'users.email'
             )
             ->orderByDesc('feedback.created_at')
@@ -55,13 +56,14 @@ class FeedbackController extends Controller
         $format = $request->query('format', 'csv');
         $rows = DB::table('feedback')
             ->join('users', 'feedback.user_id', '=', 'users.user_id')
+            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->select(
                 'feedback.id',
                 'feedback.message',
                 'feedback.category',
                 'feedback.created_at',
-                DB::raw("CONCAT(users.first_name, ' ', users.last_name) as full_name"),
-                'users.username',
+                DB::raw("CONCAT(COALESCE(user_profiles.first_name, ''), ' ', COALESCE(user_profiles.last_name, '')) as full_name"),
+                'user_profiles.username',
                 'users.email'
             )
             ->orderByDesc('feedback.created_at')

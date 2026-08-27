@@ -69,9 +69,10 @@ class HazardController extends Controller
     {
         $hazards = DB::table('hazards')
             ->join('users', 'hazards.user_id', '=', 'users.user_id')
+            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->leftJoin('barangays', 'hazards.barangay_id', '=', 'barangays.barangay_id')
             ->where('hazards.status', 'Active')
-            ->select('hazards.*', 'users.first_name', 'users.last_name', 'users.profile_picture', 'barangays.barangay_name')
+            ->select('hazards.*', 'user_profiles.first_name', 'user_profiles.last_name', 'user_profiles.profile_picture', 'barangays.barangay_name')
             ->get()
             ->map(fn($r) => $this->decodeProofFiles($r));
         return response()->json($hazards);

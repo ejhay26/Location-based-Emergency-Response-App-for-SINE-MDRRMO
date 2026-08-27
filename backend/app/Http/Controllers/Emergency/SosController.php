@@ -106,6 +106,7 @@ class SosController extends Controller
     {
         $requests = DB::table('emergency_requests')
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
+            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
             ->leftJoin('barangays', 'emergency_requests.barangay_id', '=', 'barangays.barangay_id')
             ->leftJoin('user_medical_profiles', 'users.user_id', '=', 'user_medical_profiles.user_id')
@@ -113,7 +114,7 @@ class SosController extends Controller
             ->orderBy('emergency_requests.request_time', 'desc')
             ->select(
                 'emergency_requests.*',
-                'users.first_name', 'users.last_name', 'users.phone', 'users.profile_picture',
+                'user_profiles.first_name', 'user_profiles.last_name', 'user_profiles.phone', 'user_profiles.profile_picture',
                 'user_medical_profiles.blood_type', 'user_medical_profiles.allergies', 'user_medical_profiles.medical_conditions', 'user_medical_profiles.pwd_status',
                 'users.false_alarm_strikes',
                 'incident_types.incident_name',
@@ -128,6 +129,7 @@ class SosController extends Controller
     {
         $requests = DB::table('emergency_requests')
             ->join('users', 'emergency_requests.user_id', '=', 'users.user_id')
+            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
             ->leftJoin('barangays', 'emergency_requests.barangay_id', '=', 'barangays.barangay_id')
             ->leftJoin('user_medical_profiles', 'users.user_id', '=', 'user_medical_profiles.user_id')
@@ -135,7 +137,7 @@ class SosController extends Controller
             ->orderBy('emergency_requests.request_time', 'desc')
             ->select(
                 'emergency_requests.*',
-                'users.first_name', 'users.last_name', 'users.phone', 'users.profile_picture',
+                'user_profiles.first_name', 'user_profiles.last_name', 'user_profiles.phone', 'user_profiles.profile_picture',
                 'user_medical_profiles.blood_type', 'user_medical_profiles.allergies', 'user_medical_profiles.medical_conditions', 'user_medical_profiles.pwd_status',
                 'users.false_alarm_strikes',
                 'incident_types.incident_name',

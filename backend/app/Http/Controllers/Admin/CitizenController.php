@@ -29,21 +29,20 @@ class CitizenController extends Controller
         if ($request->filled('search')) {
             $term = $request->query('search');
             $query->where(function ($q) use ($term) {
-                $q->where('first_name', 'like', "%{$term}%")
-                  ->orWhere('last_name',  'like', "%{$term}%")
-                  ->orWhere('username',   'like', "%{$term}%")
-                  ->orWhere('email',      'like', "%{$term}%")
-                  ->orWhere('phone',      'like', "%{$term}%");
+                $q->where('email', 'like', "%{$term}%")
+                  ->orWhereHas('profile', function ($pq) use ($term) {
+                      $pq->where('first_name', 'like', "%{$term}%")
+                        ->orWhere('last_name',  'like', "%{$term}%")
+                        ->orWhere('username',   'like', "%{$term}%")
+                        ->orWhere('phone',      'like', "%{$term}%");
+                  });
             });
         }
         if ($request->filled('status')) {
             $query->where('account_status', $request->query('status'));
         }
         return response()->json(
-            $query->orderBy('created_at', 'desc')
-                  ->get(['user_id','first_name','last_name','username','email','phone',
-                         'barangay_id','account_status','ban_reason','banned_at',
-                         'created_at','profile_picture','false_alarm_strikes'])
+            $query->orderBy('created_at', 'desc')->get()
         );
     }
 

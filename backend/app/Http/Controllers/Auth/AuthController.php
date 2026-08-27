@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Traits\MediaHandling;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\UserProfile;
 use App\Models\UserVerification;
 use App\Services\PhilSmsService;
 use App\Services\OtpService;
@@ -63,7 +64,7 @@ class AuthController extends Controller
         }
 
         $user = $channel === 'phone'
-            ? User::where('phone', $normalizedPhone)->first()
+            ? User::whereHas('profile', fn($q) => $q->where('phone', $normalizedPhone))->first()
             : User::where('email', $request->email)->first();
 
         // Always return the same message to avoid account enumeration.
@@ -143,7 +144,7 @@ class AuthController extends Controller
         }
 
         $user = $channel === 'phone'
-            ? User::where('phone', $normalizedPhone)->first()
+            ? User::whereHas('profile', fn($q) => $q->where('phone', $normalizedPhone))->first()
             : User::where('email', $request->email)->first();
         if (!$user) return response()->json(['message' => 'Invalid or expired code.'], 400);
 
@@ -172,8 +173,10 @@ class AuthController extends Controller
             return response()->json(['message' => "Too many attempts. Please try again in {$seconds} seconds."], 429);
         }
 
-        $fieldType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        $user = User::where($fieldType, $request->login)->first();
+        $isEmail = filter_var($request->login, FILTER_VALIDATE_EMAIL);
+        $user = $isEmail
+            ? User::where('email', $request->login)->first()
+            : User::whereHas('profile', fn($q) => $q->where('username', $request->login))->first();
 
         if ($user && $user->account_status === 'unverified') {
             return response()->json(['message' => 'Your account registration is currently pending admin verification review.', 'reason' => 'unverified'], 403);
@@ -243,9 +246,11 @@ class AuthController extends Controller
 
         // Check if an existing ACTIVE or BANNED account already uses this username, email, or phone
         $existingActive = User::where(function ($q) use ($request, $normalizedPhone) {
-            $q->where('username', $request->username)
-              ->orWhere('email', $request->email)
-              ->orWhere('phone', $normalizedPhone);
+            $q->where('email', $request->email)
+              ->orWhereHas('profile', function ($pq) use ($request, $normalizedPhone) {
+                  $pq->where('username', $request->username)
+                     ->orWhere('phone', $normalizedPhone);
+              });
         })->where('account_status', '!=', 'unverified')->first();
 
         if ($existingActive) {
@@ -260,9 +265,11 @@ class AuthController extends Controller
 
         // Cleanly prune any stale unverified attempt from an aborted earlier session
         User::where(function ($q) use ($request, $normalizedPhone) {
-            $q->where('username', $request->username)
-              ->orWhere('email', $request->email)
-              ->orWhere('phone', $normalizedPhone);
+            $q->where('email', $request->email)
+              ->orWhereHas('profile', function ($pq) use ($request, $normalizedPhone) {
+                  $pq->where('username', $request->username)
+                     ->orWhere('phone', $normalizedPhone);
+              });
         })->where('account_status', 'unverified')->delete();
 
         $id_base64 = $this->decodeBase64($request->valid_id_image);
@@ -320,16 +327,21 @@ class AuthController extends Controller
             $selfieUrl      = $this->storePublic($selfiePath, $selfie_base64);
 
             $user = User::create([
-                'first_name'     => $request->first_name,
-                'last_name'      => $request->last_name,
-                'phone'          => $normalizedPhone,
-                'birthdate'      => $request->birthdate,
-                'username'       => $request->username,
                 'email'          => $request->email,
                 'password'       => Hash::make($request->password),
-                'barangay_id'    => $request->barangay_id,
                 'role'           => 'citizen',
                 'account_status' => 'unverified',
+            ]);
+
+            UserProfile::create([
+                'user_id'         => $user->user_id,
+                'first_name'      => $request->first_name,
+                'last_name'       => $request->last_name,
+                'phone'           => $normalizedPhone,
+                'birthdate'       => $request->birthdate,
+                'username'        => $request->username,
+                'barangay_id'     => $request->barangay_id,
+                'setup_completed' => false,
             ]);
 
             UserVerification::create([
@@ -451,7 +463,9 @@ class AuthController extends Controller
     {
         $requested = trim((string) $request->query('username', ''));
         // Only count ACTIVE or BANNED accounts as taken — ignore aborted unverified attempts
-        $exists = !empty($requested) && User::where('username', $requested)->where('account_status', '!=', 'unverified')->exists();
+        $exists = !empty($requested) && UserProfile::where('username', $requested)
+            ->whereHas('user', fn($q) => $q->where('account_status', '!=', 'unverified'))
+            ->exists();
         $suggestions = [];
 
         // Generate smart suggestions if the username is taken or suggestions are requested
@@ -499,7 +513,9 @@ class AuthController extends Controller
         ]));
 
         if (!empty($candidates)) {
-            $taken = User::whereIn('username', $candidates)->where('account_status', '!=', 'unverified')->pluck('username')->all();
+            $taken = UserProfile::whereIn('username', $candidates)
+                ->whereHas('user', fn($q) => $q->where('account_status', '!=', 'unverified'))
+                ->pluck('username')->all();
             $availableCandidates = array_values(array_diff($candidates, $taken));
             $suggestions = array_slice(array_unique($availableCandidates), 0, 4);
         }
@@ -509,7 +525,7 @@ class AuthController extends Controller
             $prefix = $firstWord ?: $requested ?: 'citizen';
             for ($i = 0; $i < 4; $i++) {
                 $candidate = $prefix . '_' . rand(10, 99);
-                if (!User::where('username', $candidate)->where('account_status', '!=', 'unverified')->exists() && !in_array($candidate, $suggestions)) {
+                if (!UserProfile::where('username', $candidate)->whereHas('user', fn($q) => $q->where('account_status', '!=', 'unverified'))->exists() && !in_array($candidate, $suggestions)) {
                     $suggestions[] = $candidate;
                 }
             }
@@ -552,8 +568,10 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email or username is required.'], 422);
         }
 
-        $fieldType = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        $user = User::where($fieldType, $identifier)->first();
+        $isEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL);
+        $user = $isEmail
+            ? User::where('email', $identifier)->first()
+            : User::whereHas('profile', fn($q) => $q->where('username', $identifier))->first();
 
         if (!$user) {
             return response()->json(['status' => 'not_found']);
@@ -594,7 +612,7 @@ class AuthController extends Controller
         }
         $user    = $channel === 'email'
             ? User::where('email', $request->email)->first()
-            : User::where('phone', $normalizedPhone)->first();
+            : User::whereHas('profile', fn($q) => $q->where('phone', $normalizedPhone))->first();
         if (!$user) return response()->json(['message' => 'If an account exists, an OTP was sent.'], 200);
         $cacheKey = 'reset_otp_' . $channel . '_' . ($channel === 'email' ? $request->email : $normalizedPhone);
         $result   = $this->otp->requestOtp($cacheKey);
@@ -699,7 +717,7 @@ class AuthController extends Controller
         }
         $user = $channel === 'email'
             ? User::where('email', $request->email)->first()
-            : User::where('phone', $normalizedPhone)->first();
+            : User::whereHas('profile', fn($q) => $q->where('phone', $normalizedPhone))->first();
         if (!$user) return response()->json(['message' => 'Invalid or expired OTP'], 400);
         $user->password = Hash::make($request->new_password);
         $user->save();
