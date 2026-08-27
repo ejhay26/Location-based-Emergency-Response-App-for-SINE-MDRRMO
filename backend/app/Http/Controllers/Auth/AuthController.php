@@ -229,6 +229,9 @@ class AuthController extends Controller
             'valid_id_image'      => 'required|string',
             'valid_id_image_back' => 'required|string',
             'valid_id_type'  => 'required|string',
+            'valid_id_number' => 'nullable|string|max:100',
+            'valid_id_expiry' => 'nullable|date',
+            'valid_id_details' => 'nullable',
             'selfie_with_id_image' => 'required|string',
         ]);
 
@@ -329,6 +332,9 @@ class AuthController extends Controller
                 'valid_id_proof' => $idUrl,
                 'valid_id_proof_back' => $idBackUrl,
                 'valid_id_type'  => $request->valid_id_type,
+                'valid_id_number' => $request->valid_id_number,
+                'valid_id_expiry' => $request->valid_id_expiry,
+                'valid_id_details' => is_array($request->valid_id_details) ? $request->valid_id_details : (json_decode($request->valid_id_details ?? '', true) ?? null),
                 'selfie_with_id_proof' => $selfieUrl,
             ]);
 

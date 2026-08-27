@@ -28,6 +28,9 @@ return new class extends Migration
             $table->string('valid_id_proof', 255)->nullable();
             $table->string('valid_id_proof_back', 255)->nullable();
             $table->string('valid_id_type', 50)->nullable();
+            $table->string('valid_id_number', 100)->nullable();
+            $table->date('valid_id_expiry')->nullable();
+            $table->json('valid_id_details')->nullable();
             $table->string('selfie_with_id_proof', 255)->nullable();
             $table->string('blood_type', 10)->nullable();
             $table->text('allergies')->nullable();
