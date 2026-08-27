@@ -92,55 +92,50 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
    */
   holeReady = false;
   private pollInterval?: any;
+  private animFrameId: number | null = null;
+  private isMorphing = false;
 
   /** Only scroll the target into view ONCE per step (on first successful
    * measurement), not on every 400ms poll — otherwise it would fight any
    * scrolling the user does themselves mid-step. */
   private scrolledForId = '';
 
-  /**
-   * If a target genuinely can't be found for several seconds straight (bad
-   * id, page not settled, a component that got renamed/removed later), the
-   * step would otherwise sit invisible forever with isActive() still true —
-   * the app stays usable, but the tour itself is effectively dead with no
-   * obvious way out. Auto-skipping after a timeout turns that failure mode
-   * into "the tour continues, minus one broken step" instead of "the tour
-   * silently disappears". See TourService.skipMissingStep().
-   */
   private missingSince: number | null = null;
   private readonly MISSING_TIMEOUT_MS = 6000;
 
   constructor(public tour: TourService, private cdr: ChangeDetectorRef) {
     effect(() => {
       const id = this.tour.targetId();
-      // Reset immediately so a stale hole from the PREVIOUS step (and its
-      // mount animations) never renders while we wait on the new target,
-      // and so the missing-target timer and scroll-once guard both start
-      // fresh for the new step.
-      this.holeReady = false;
+      if (!this.tour.isActive()) {
+        this.holeReady = false;
+        this.cancelSpring();
+      }
       this.missingSince = null;
       this.scrolledForId = '';
-      if (id) setTimeout(() => this.measure(id), 350);
+      if (id) {
+        setTimeout(() => this.measure(id), 100);
+      }
     });
   }
 
   ngOnInit() {
     this.pollInterval = setInterval(() => {
-      if (!this.tour.isActive() || !this.tour.targetId()) return;
-      this.measure(this.tour.targetId());
+      if (!this.tour.isActive() || !this.tour.targetId() || this.isMorphing) return;
+      this.measure(this.tour.targetId(), true); // quiet tracking
     }, 400);
     window.addEventListener('resize', this.onResize);
   }
 
   ngOnDestroy() {
     clearInterval(this.pollInterval);
+    this.cancelSpring();
     window.removeEventListener('resize', this.onResize);
   }
 
   private onResize = () => {
     this.vw = window.innerWidth;
     this.vh = window.innerHeight;
-    if (this.tour.isActive()) this.measure(this.tour.targetId());
+    if (this.tour.isActive()) this.measure(this.tour.targetId(), false);
   };
 
   onExitClick(ev: MouseEvent) {
@@ -148,9 +143,12 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
     this.tour.cancel();
   }
 
-  measure(id: string) {
+  measure(id: string, quiet = false) {
     const el = document.getElementById(id);
-    if (!el) { this.handleMissing(); return; }
+    if (!el) {
+      if (!quiet) this.handleMissing();
+      return;
+    }
 
     if (this.scrolledForId !== id) {
       this.scrolledForId = id;
@@ -158,11 +156,10 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
     }
 
     const r = el.getBoundingClientRect();
-    // A found-but-not-actually-laid-out element (e.g. inside a collapsed
-    // *ngIf branch, or a page still mid-transition with zero size) reports
-    // a zero-size rect too — guard against that the same way as a missing
-    // element, rather than briefly flashing a broken hole.
-    if (r.width <= 0 || r.height <= 0) { this.handleMissing(); return; }
+    if (r.width <= 0 || r.height <= 0) {
+      if (!quiet) this.handleMissing();
+      return;
+    }
 
     this.missingSince = null;
 
@@ -170,16 +167,12 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
     const cs = getComputedStyle(el);
     const brPx = parseFloat(cs.borderTopLeftRadius) || 0;
     const minDim = Math.min(r.width, r.height);
-    // Force-circle if the element's own inline style says border-radius:50%
-    // (WebView sometimes returns the raw percentage string from getComputedStyle
-    // rather than a resolved pixel value, causing brPx to parse as 0 and
-    // breaking the threshold check for perfectly circular buttons).
     const inlineStyle = el.getAttribute('style') || '';
     const isCircle = inlineStyle.includes('border-radius:50%') ||
                      inlineStyle.includes('border-radius: 50%') ||
                      brPx >= minDim * 0.4;
 
-    this.hole = {
+    const targetHole: Hole = {
       top:    r.top    - PAD,
       left:   r.left   - PAD,
       width:  r.width  + PAD * 2,
@@ -187,25 +180,100 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
       isCircle,
       radius: isCircle ? 0 : brPx + PAD,
     };
+
     this.vw = window.innerWidth;
     this.vh = window.innerHeight;
-    this.holePath = this.buildHoleShapePath();
-    const clip = `path(evenodd, "M0,0H${this.vw}V${this.vh}H0Z${this.holePath}")`;
-    this.dimClipStyle = `clip-path:${clip};-webkit-clip-path:${clip};`;
-    this.holeReady = true;
-    this.positionText(); // rough pass, using the fallback estimate below
-    this.cdr.detectChanges();
 
-    // Second pass: the text block has now actually rendered, so reposition
-    // using its REAL height instead of the fixed estimate. A step with a
-    // long callout/subtext can run taller than the estimate, which would
-    // otherwise push the (actually taller) text off the bottom of the
-    // screen — this is the "out of screen bound" case.
-    const textNode = document.querySelector('.tour-text') as HTMLElement | null;
-    if (textNode) {
-      this.positionText(textNode.offsetHeight);
+    // If this is the initial target or animation is disabled, snap immediately
+    if (!this.holeReady || quiet) {
+      this.hole = { ...targetHole };
+      this.holePath = this.buildHoleShapePath();
+      const clip = `path(evenodd, "M0,0H${this.vw}V${this.vh}H0Z${this.holePath}")`;
+      this.dimClipStyle = `clip-path:${clip};-webkit-clip-path:${clip};`;
+      this.holeReady = true;
+      this.positionText();
       this.cdr.detectChanges();
+
+      const textNode = document.querySelector('.tour-text') as HTMLElement | null;
+      if (textNode) {
+        this.positionText(textNode.offsetHeight);
+        this.cdr.detectChanges();
+      }
+      return;
     }
+
+    // Spring Morphing: seamlessly animate the spotlight from current hole to targetHole
+    this.animateToHole(targetHole);
+  }
+
+  /**
+   * Fluid Spring Animation with subtle tactile overshoot (Apple fluid spring physics).
+   * Damped oscillator: zeta = 0.74, omega_n = 14 rad/s (~480ms duration with ~3% bounce).
+   */
+  private animateToHole(target: Hole): void {
+    this.cancelSpring();
+    this.isMorphing = true;
+
+    const from = { ...this.hole };
+    const startTime = performance.now();
+    const durationMs = 480;
+    const zeta = 0.74; // slightly underdamped for subtle overshoot
+    const omega = 14;  // natural frequency
+    const omegaD = omega * Math.sqrt(1 - zeta * zeta);
+
+    const tick = (now: number) => {
+      const elapsed = Math.max(0, (now - startTime) / 1000);
+      let progress = 1;
+
+      if (elapsed * 1000 < durationMs) {
+        // Analytical closed-form damped spring with overshoot
+        const decay = Math.exp(-zeta * omega * elapsed);
+        const oscillation = Math.cos(omegaD * elapsed) + ((zeta * omega) / omegaD) * Math.sin(omegaD * elapsed);
+        progress = 1 - decay * oscillation;
+      }
+
+      // Interpolate all bounding properties
+      this.hole.top    = from.top    + (target.top    - from.top)    * progress;
+      this.hole.left   = from.left   + (target.left   - from.left)   * progress;
+      this.hole.width  = from.width  + (target.width  - from.width)  * progress;
+      this.hole.height = from.height + (target.height - from.height) * progress;
+      this.hole.radius = from.radius + (target.radius - from.radius) * progress;
+      this.hole.isCircle = progress > 0.5 ? target.isCircle : from.isCircle;
+
+      this.holePath = this.buildHoleShapePath();
+      const clip = `path(evenodd, "M0,0H${this.vw}V${this.vh}H0Z${this.holePath}")`;
+      this.dimClipStyle = `clip-path:${clip};-webkit-clip-path:${clip};`;
+      this.positionText();
+      this.cdr.detectChanges();
+
+      if (elapsed * 1000 < durationMs) {
+        this.animFrameId = requestAnimationFrame(tick);
+      } else {
+        // Snap to exact target on finish
+        this.hole = { ...target };
+        this.holePath = this.buildHoleShapePath();
+        const finalClip = `path(evenodd, "M0,0H${this.vw}V${this.vh}H0Z${this.holePath}")`;
+        this.dimClipStyle = `clip-path:${finalClip};-webkit-clip-path:${finalClip};`;
+        this.isMorphing = false;
+        this.animFrameId = null;
+
+        const textNode = document.querySelector('.tour-text') as HTMLElement | null;
+        if (textNode) {
+          this.positionText(textNode.offsetHeight);
+        }
+        this.cdr.detectChanges();
+      }
+    };
+
+    this.animFrameId = requestAnimationFrame(tick);
+  }
+
+  private cancelSpring(): void {
+    if (this.animFrameId !== null) {
+      cancelAnimationFrame(this.animFrameId);
+      this.animFrameId = null;
+    }
+    this.isMorphing = false;
   }
 
   private handleMissing() {
