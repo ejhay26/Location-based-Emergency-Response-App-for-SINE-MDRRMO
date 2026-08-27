@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 23, 2026 at 07:35 AM
+-- Generation Time: Aug 27, 2026 at 04:39 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -175,7 +175,8 @@ INSERT INTO `device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`)
 (32, 1, 'c8wwgwG2QZaM_hEp4RKlw9:APA91bFMnbsCQNTzECEAHRAMFjnai77aYLUGqlbMSr9mdgBR-6cnaBXp3JPAnvfg9BQr6p22TOFl94R9hJMRLMyZXJ94LY1U-Jb-ZujfupxQpgUUvsEeFvk', 'android', '2026-08-21 17:26:55'),
 (34, 1, 'e7WqWnXVSzCVlmF3qZnn0y:APA91bEl1VivJdeWIpWzOKqQ_nnULxELduGeyC0sSubsyVQYnxAm-8KchSEMdEXIWrlrxplBIPyBcLA2hT9JxXWYhGWIyq3RDeZwdmRWmHsESaH1BxnYIpE', 'android', '2026-08-21 19:44:12'),
 (35, 1, 'ctMNEcenTu-mCe3et0_Cme:APA91bHQ_Q2d-xLNEh8IYwFHzsGs2E437PlHk7zlHNHqeB24YGRFgroj2XBnrtOI4B0k2YDTqAOaay6grr8dH2oE2JcfgzRwlFws9XbpKkqCsYa3OSO-RSg', 'android', '2026-08-21 20:27:41'),
-(38, 1, 'fpga9R_nQYeYWdP8I1JzkU:APA91bER94Tb3NImejvXZcjvKa6gpc-USz_jqyFrNZJndf4xnlu6OOwlM8mUcB0m8dXiO840HVEjoW54HiRZA15Gxyy-fOACRR8qOGf8cocYhgjAFH1aRVk', 'android', '2026-08-22 01:15:00');
+(38, 1, 'fpga9R_nQYeYWdP8I1JzkU:APA91bER94Tb3NImejvXZcjvKa6gpc-USz_jqyFrNZJndf4xnlu6OOwlM8mUcB0m8dXiO840HVEjoW54HiRZA15Gxyy-fOACRR8qOGf8cocYhgjAFH1aRVk', 'android', '2026-08-22 01:15:00'),
+(39, 1, 'ebF2AInjQbWFY63P-9sTGC:APA91bHEqAgIRAkar0QfssS-SUCCSEmP6eWi3h7DJ1Q_1lX_mzCOwEDbZvzy2IlcMQyVbiWiEgQ6emv9kHDemR0cc6PC_C6Rq00Yf37PUjOz1yPw1GaNDVU', 'android', '2026-08-23 09:11:45');
 
 -- --------------------------------------------------------
 
@@ -449,8 +450,8 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
-(124, 'App\\Models\\User', 1, 'app-token', '68e35973c63f2e280aea7553d9a1b28f6621682ebe73161965117b51d754e51c', '[\"citizen\"]', '2026-08-22 19:24:20', NULL, '2026-08-22 01:15:00', '2026-08-22 19:24:20'),
-(127, 'App\\Models\\User', 4, 'app-token', 'dc7aeeb6731c40b3d0284f4818ba9e50fe814fc16f2b9dec24ce385f8134343c', '[\"admin\",\"dispatcher\",\"citizen\"]', '2026-08-22 21:01:10', NULL, '2026-08-22 06:16:46', '2026-08-22 21:01:10');
+(128, 'App\\Models\\User', 4, 'app-token', '82e9ace25c22a4b2d7d06a80deaddb3c4878573ba93dc03f17146dac5ed493a8', '[\"admin\",\"dispatcher\",\"citizen\"]', '2026-08-23 00:24:15', NULL, '2026-08-23 00:07:55', '2026-08-23 00:24:15'),
+(129, 'App\\Models\\User', 1, 'app-token', '106b04d22ed88b96770a5fbc0925bde239824f18844a1d4f3cef2b379e8d5400', '[\"citizen\"]', '2026-08-23 09:12:22', NULL, '2026-08-23 09:11:42', '2026-08-23 09:12:22');
 
 -- --------------------------------------------------------
 
@@ -517,6 +518,9 @@ CREATE TABLE `users` (
   `valid_id_proof` varchar(255) DEFAULT NULL,
   `valid_id_proof_back` varchar(255) DEFAULT NULL,
   `valid_id_type` varchar(50) DEFAULT NULL,
+  `valid_id_number` varchar(100) DEFAULT NULL,
+  `valid_id_expiry` date DEFAULT NULL,
+  `valid_id_details` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `selfie_with_id_proof` varchar(255) DEFAULT NULL,
   `blood_type` varchar(10) DEFAULT NULL,
   `allergies` text DEFAULT NULL,
@@ -531,13 +535,13 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `phone`, `birthdate`, `profile_picture`, `email`, `password`, `role`, `account_status`, `setup_completed`, `barangay_id`, `created_at`, `updated_at`, `deleted_at`, `valid_id_proof`, `valid_id_proof_back`, `valid_id_type`, `selfie_with_id_proof`, `blood_type`, `allergies`, `medical_conditions`, `pwd_status`, `ban_reason`, `banned_at`, `false_alarm_strikes`) VALUES
-(1, 'Emmanuel John', 'Perez', 'user1', '639940405953', NULL, 'storage/profiles/profile_1784451005_1.png', 'ejperez623@gmail.com', '$2y$12$tf9EDu5GrXqwEi0Mu8KZau/9MnLwEYanOtozFMKQ6Wfs7OPK29U0a', 'citizen', 'active', 1, 9, '2026-05-07 05:45:17', '2026-08-15 11:42:54', NULL, NULL, NULL, NULL, NULL, 'AB+', '', '', '', NULL, NULL, 0),
-(3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 1, 1, '2026-05-07 05:45:17', '2026-08-08 12:39:35', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 0, 1, '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', 0, 3, '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(9, 'dispatcher', '2', 'dispatcher2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis2@mail.com', '$2y$12$WuAbG0j2AFQjlMC/RttG4OF5qv2k372lv6qeIOfjJue5FnBJ8Eml.', 'dispatcher', 'active', 0, 4, '2026-05-08 09:28:54', '2026-05-08 09:28:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(10, 'awd', 'awd', 'awdawd', '131314', '2005-04-13', 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejcp2005@gmail.com', '$2y$12$C5EMGU7mvVIrkGD9VIn.PuKexBvLz4taR/.KJMRLn2qSw4dBlNFpW', 'citizen', 'active', 0, 5, '2026-05-10 12:07:56', '2026-05-10 12:07:56', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0);
+INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `phone`, `birthdate`, `profile_picture`, `email`, `password`, `role`, `account_status`, `setup_completed`, `barangay_id`, `created_at`, `updated_at`, `deleted_at`, `valid_id_proof`, `valid_id_proof_back`, `valid_id_type`, `valid_id_number`, `valid_id_expiry`, `valid_id_details`, `selfie_with_id_proof`, `blood_type`, `allergies`, `medical_conditions`, `pwd_status`, `ban_reason`, `banned_at`, `false_alarm_strikes`) VALUES
+(1, 'Emmanuel John', 'Perez', 'user1', '639940405953', NULL, 'storage/profiles/profile_1784451005_1.png', 'ejperez623@gmail.com', '$2y$12$tf9EDu5GrXqwEi0Mu8KZau/9MnLwEYanOtozFMKQ6Wfs7OPK29U0a', 'citizen', 'active', 1, 9, '2026-05-07 05:45:17', '2026-08-15 11:42:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'AB+', '', '', '', NULL, NULL, 0),
+(3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 1, 1, '2026-05-07 05:45:17', '2026-08-08 12:39:35', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 0, 1, '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', 0, 3, '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(9, 'dispatcher', '2', 'dispatcher2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis2@mail.com', '$2y$12$WuAbG0j2AFQjlMC/RttG4OF5qv2k372lv6qeIOfjJue5FnBJ8Eml.', 'dispatcher', 'active', 0, 4, '2026-05-08 09:28:54', '2026-05-08 09:28:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(10, 'awd', 'awd', 'awdawd', '131314', '2005-04-13', 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejcp2005@gmail.com', '$2y$12$C5EMGU7mvVIrkGD9VIn.PuKexBvLz4taR/.KJMRLn2qSw4dBlNFpW', 'citizen', 'active', 0, 5, '2026-05-10 12:07:56', '2026-05-10 12:07:56', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -775,7 +779,7 @@ ALTER TABLE `broadcasts`
 -- AUTO_INCREMENT for table `device_tokens`
 --
 ALTER TABLE `device_tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `dispatch`
@@ -829,7 +833,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
 -- AUTO_INCREMENT for table `responders`
