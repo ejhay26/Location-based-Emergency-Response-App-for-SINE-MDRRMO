@@ -9,11 +9,12 @@ Schema source: `backend/database/migrations/` and `database/emergencydb.sql`.
 
 ```mermaid
 erDiagram
-    BARANGAYS ||--o{ USERS : "resides in"
+    BARANGAYS ||--o{ USER_PROFILES : "resides in"
     BARANGAYS ||--o{ EMERGENCY_REQUESTS : "located in"
     BARANGAYS ||--o{ HAZARDS : "located in"
     BARANGAYS ||--o{ BROADCAST_BARANGAYS : "targeted by"
     BROADCASTS ||--o{ BROADCAST_BARANGAYS : "scoped to"
+    USERS ||--o| USER_PROFILES : "owns"
     USERS ||--o{ USER_VERIFICATIONS : "submits"
     USERS ||--o| USER_MEDICAL_PROFILES : "has"
     USERS ||--o{ EMERGENCY_REQUESTS : "files"
@@ -33,21 +34,25 @@ erDiagram
     }
     USERS {
         int user_id PK
+        varchar email UK
+        varchar password
+        enum role
+        enum account_status
+        tinyint false_alarm_strikes
+        string ban_reason
+        timestamp banned_at
+    }
+    USER_PROFILES {
+        int profile_id PK
+        int user_id FK
         varchar first_name
         varchar last_name
         varchar username UK
         varchar phone
         date birthdate
         varchar profile_picture
-        varchar email UK
-        varchar password
-        enum role
-        enum account_status
-        boolean setup_completed
         int barangay_id FK
-        tinyint false_alarm_strikes
-        string ban_reason
-        timestamp banned_at
+        boolean setup_completed
     }
     USER_VERIFICATIONS {
         int verification_id PK
@@ -164,28 +169,40 @@ erDiagram
 ## 2. Detailed Table Specifications
 
 ### 2.1 `users`
-Primary user table storing core credentials, roles, and account lifecycle status. Normalized to 3NF — identity verification artifacts live in `user_verifications` and health information lives in `user_medical_profiles`.
+Primary user table storing Identity & Access Management (IAM) credentials, roles, and account lifecycle status. Normalized to 3NF — demographic details live in `user_profiles`, identity verification documents live in `user_verifications`, and health information lives in `user_medical_profiles`.
 
 | Column | Type | Nullable | Description & Constraints |
 |---|---|---|---|
 | `user_id` | `int` | No | Primary Key, Auto Increment |
+| `email` | `varchar(100)` | Yes | Unique contact & OTP email |
+| `password` | `varchar(255)` | Yes | Bcrypt password hash |
+| `role` | `enum('citizen','dispatcher','admin')` | No | Access tier (default `'citizen'`) |
+| `account_status` | `enum('unverified','active','banned')` | No | Account lifecycle status |
+| `false_alarm_strikes`| `tinyint unsigned` | No | Accumulated confirmed false alarm strikes (3 = Auto-Ban) |
+| `ban_reason` | `varchar(500)` | Yes | Reason recorded upon suspension |
+| `banned_at` | `timestamp` | Yes | Suspension timestamp |
+| `created_at` / `updated_at` | `timestamp` | Yes | Audit timestamps |
+| `deleted_at` | `timestamp` | Yes | Soft-delete timestamp |
+
+---
+
+### `user_profiles`
+
+Stores citizen and personnel demographic details, contact information, residence, and avatar image. Decoupled from core authentication to maintain clean separation of concerns between security credentials and personal identity.
+
+| Column | Type | Nullable | Description & Constraints |
+|---|---|---|---|
+| `profile_id` | `int` | No | Primary Key, Auto Increment |
+| `user_id` | `int` | No | Foreign Key → `users.user_id` (CASCADE DELETE, UNIQUE) |
 | `first_name` | `varchar(100)` | Yes | Citizen / Officer given name |
 | `last_name` | `varchar(100)` | Yes | Citizen / Officer surname |
 | `username` | `varchar(50)` | Yes | Unique login handle |
 | `phone` | `varchar(20)` | Yes | Normalized Philippine mobile number (`639...`) |
 | `birthdate` | `date` | Yes | Date of birth (age verification) |
 | `profile_picture` | `varchar(255)` | Yes | Storage URL to avatar image |
-| `email` | `varchar(100)` | Yes | Unique contact & OTP email |
-| `password` | `varchar(255)` | Yes | Bcrypt password hash |
-| `role` | `enum('citizen','dispatcher','admin')` | No | Access tier (default `'citizen'`) |
-| `account_status` | `enum('unverified','active','banned')` | No | Account lifecycle status |
-| `setup_completed` | `boolean` | No | Indicates completion of post-approval onboarding wizard |
 | `barangay_id` | `int` | Yes | Foreign Key → `barangays.barangay_id` |
-| `false_alarm_strikes`| `tinyint unsigned` | No | Accumulated confirmed false alarm strikes (3 = Auto-Ban) |
-| `ban_reason` | `varchar(500)` | Yes | Reason recorded upon suspension |
-| `banned_at` | `timestamp` | Yes | Suspension timestamp |
+| `setup_completed` | `boolean` | No | Indicates completion of post-approval onboarding wizard |
 | `created_at` / `updated_at` | `timestamp` | Yes | Audit timestamps |
-| `deleted_at` | `timestamp` | Yes | Soft-delete timestamp |
 
 ---
 
