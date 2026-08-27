@@ -74,7 +74,8 @@ export class RegisterPage implements OnDestroy {
     { value: '12', label: 'Dec' },
   ];
 
-  birthYears = Array.from({ length: 90 }, (_, i) => String(new Date().getFullYear() - 12 - i));
+  birthYears = Array.from({ length: 100 }, (_, i) => String(new Date().getFullYear() - i));
+  birthdateError = '';
 
   get daysInSelectedMonth(): number[] {
     const month = parseInt(this.birthMonth, 10) || 1;
@@ -86,8 +87,21 @@ export class RegisterPage implements OnDestroy {
   updateBirthdate(): void {
     if (this.birthYear && this.birthMonth && this.birthDay) {
       const dayStr = String(this.birthDay).padStart(2, '0');
-      this.userData.birthdate = `${this.birthYear}-${this.birthMonth}-${dayStr}`;
+      const selectedStr = `${this.birthYear}-${this.birthMonth}-${dayStr}`;
+      const selected = new Date(`${this.birthYear}-${this.birthMonth}-${dayStr}T00:00:00`);
+      const now = new Date();
+      now.setHours(23, 59, 59, 999);
+
+      if (selected > now) {
+        this.birthdateError = 'Birthdate cannot be in the future.';
+        this.userData.birthdate = '';
+        return;
+      }
+
+      this.birthdateError = '';
+      this.userData.birthdate = selectedStr;
     } else {
+      this.birthdateError = '';
       this.userData.birthdate = '';
     }
   }

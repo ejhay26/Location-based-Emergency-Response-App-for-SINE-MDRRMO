@@ -225,7 +225,7 @@ class AuthController extends Controller
             'first_name'     => 'required|string',
             'last_name'      => 'required|string',
             'phone'          => 'required|string',
-            'birthdate'      => 'required|date',
+            'birthdate'      => 'required|date|before_or_equal:today',
             'username'       => 'required|string|min:3|max:20',
             'email'          => 'required|email',
             'password'       => CommonRules::strongPassword(),
