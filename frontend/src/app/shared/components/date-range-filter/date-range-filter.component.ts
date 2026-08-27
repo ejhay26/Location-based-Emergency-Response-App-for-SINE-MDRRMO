@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonButton, IonPopover, IonDatetime, IonSegment, IonSegmentButton, IonLabel } from '@ionic/angular/standalone';
-import { DateFilterMode, DateFilterValue, formatDateFilterLabel } from '../../utils/date-filter.util';
+import { DateFilterMode, DateFilterValue, formatDateFilterLabel, toLocalDateKey } from '../../utils/date-filter.util';
 
 let instanceCounter = 0;
 
@@ -66,6 +66,8 @@ export class DateRangeFilterComponent {
 
   /** The currently applied filter (owned/persisted by the parent panel). */
   @Input() value: DateFilterValue | null = null;
+  /** Maximum selectable date in 'YYYY-MM-DD' format. Defaults to today's date so users/admins cannot select impossible future dates for historical records. */
+  @Input() max: string | null = toLocalDateKey(new Date());
   /** Emits the new applied filter on Apply, or null on Clear. */
   @Output() valueChange = new EventEmitter<DateFilterValue | null>();
 

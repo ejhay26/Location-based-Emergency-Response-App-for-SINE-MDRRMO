@@ -25,6 +25,7 @@
         <ion-datetime
           presentation="date"
           size="cover"
+          [max]="max ?? undefined"
           [multiple]="isMultipleCalendar"
           [value]="calendarValue"
           [highlightedDates]="pendingMode === 'range' ? rangeHighlight : undefined"
