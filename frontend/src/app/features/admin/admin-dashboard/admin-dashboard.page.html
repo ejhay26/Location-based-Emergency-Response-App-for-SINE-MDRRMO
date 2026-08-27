@@ -51,10 +51,6 @@
                   <app-icon name="map" [size]="18" [color]="viewMode === 'active' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
                   <span *ngIf="!isSidebarCollapsed">Incident Map</span>
                 </button>
-                <button id="nav-btn-hazards" (click)="selectViewMode('hazards')" title="Public Road Hazards & Obstructions" class="menu-capsule-link" [class.active]="viewMode === 'hazards'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
-                  <app-icon name="hazard" [size]="18" [color]="viewMode === 'hazards' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
-                  <span *ngIf="!isSidebarCollapsed">Public Hazards</span>
-                </button>
               </div>
             </div>
 
@@ -150,7 +146,7 @@
       <div class="admin-main-viewport">
         <!-- incident-map renders its own flex layout -->
         <div *ngIf="isMapView" style="flex: 1; display: flex; min-width: 0; height: 100%; overflow: hidden;">
-          <app-incident-map-panel style="flex: 1; display: flex; min-width: 0;" [mode]="viewMode === 'hazards' ? 'hazards' : 'active'"></app-incident-map-panel>
+          <app-incident-map-panel style="flex: 1; display: flex; min-width: 0;"></app-incident-map-panel>
         </div>
 
         <!-- analytics renders its own scroll container -->

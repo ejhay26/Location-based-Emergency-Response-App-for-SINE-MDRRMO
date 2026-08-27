@@ -47,8 +47,11 @@ const FALLBACK_POLL_MS = 30_000;
 })
 export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
-  /** Which list is shown in the right-hand column — the map itself always shows both layers. */
-  @Input() mode: 'active' | 'hazards' = 'active';
+  /** Which list is shown in the right-hand column — defaults to 'all' in unified mode. */
+  @Input() mode: 'active' | 'hazards' | 'all' = 'active';
+
+  /** Alert Source Toggle: 'all' (both SOS and Hazards), 'emergency' (SOS only), 'hazard' (Hazards only) */
+  alertSourceFilter: 'all' | 'emergency' | 'hazard' = 'all';
 
   /** Options for the barangay filter dropdown — the 9 San Isidro barangays, same reference list used elsewhere (registration, admin broadcast targeting). */
   readonly barangayOptions = BARANGAYS;
@@ -103,6 +106,19 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     { id: 'Downed Wire',       label: 'Wire',        icon: 'zap',          color: '#ffc409' },
     { id: 'Others',            label: 'Others',      icon: 'circle-alert', color: '#eb445a' }
   ];
+
+  get currentTypeOptions() {
+    if (this.alertSourceFilter === 'emergency') {
+      return this.emergencyTypeOptions;
+    }
+    if (this.alertSourceFilter === 'hazard') {
+      return this.hazardTypeOptions;
+    }
+    return [
+      ...this.emergencyTypeOptions,
+      ...this.hazardTypeOptions.filter(h => h.id !== 'Others' && h.id !== 'Flooded Street')
+    ];
+  }
 
   dateFilterOptions = [
     { id: 'all',   label: 'All Time' },
@@ -167,6 +183,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['mode']) {
+      if (this.mode === 'hazards') {
+        this.alertSourceFilter = 'hazard';
+      } else if (this.mode === 'active') {
+        this.alertSourceFilter = 'all';
+      }
       this.selectedRequestId = null;
       this.previewType = null;
       this.selectedTypes = [];
@@ -227,7 +248,18 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       .replace(/[^a-z0-9]/g, '');
   }
 
+  setAlertSourceFilter(source: 'all' | 'emergency' | 'hazard') {
+    this.alertSourceFilter = source;
+    this.selectedTypes = [];
+    this.selectedRequestId = null;
+    this.previewType = null;
+    this.plotMarkers();
+  }
+
   matchesFilters(r: any, isHazard = false): boolean {
+    if (this.alertSourceFilter === 'emergency' && isHazard) return false;
+    if (this.alertSourceFilter === 'hazard' && !isHazard) return false;
+
     if (this.selectedBarangays.length > 0) {
       if (!r.barangay_id || !this.selectedBarangays.includes(r.barangay_id)) {
         return false;
@@ -239,7 +271,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         const matchesAny = this.selectedTypes.some(t => {
           const target = t.toLowerCase();
           if (target === 'others') {
-            return !['flood', 'road', 'tree', 'wire'].some(k => hType.includes(k));
+            return !['flood', 'road', 'tree', 'wire', 'landslide'].some(k => hType.includes(k));
           }
           return hType.includes(target.split(' ')[0]);
         });
@@ -273,6 +305,25 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   get filteredActiveHazards(): any[] {
     return this.activeHazards.filter(h => this.matchesFilters(h, true));
+  }
+
+  get unifiedActiveItems(): Array<{ type: 'emergency' | 'hazard'; data: any }> {
+    const items: Array<{ type: 'emergency' | 'hazard'; data: any }> = [];
+    if (this.alertSourceFilter === 'all' || this.alertSourceFilter === 'emergency') {
+      this.filteredActiveRequests.forEach(r => items.push({ type: 'emergency', data: r }));
+    }
+    if (this.alertSourceFilter === 'all' || this.alertSourceFilter === 'hazard') {
+      this.filteredActiveHazards.forEach(h => items.push({ type: 'hazard', data: h }));
+    }
+    return items.sort((a, b) => {
+      const tA = new Date(a.data.request_time || a.data.created_at).getTime();
+      const tB = new Date(b.data.request_time || b.data.created_at).getTime();
+      return tB - tA;
+    });
+  }
+
+  trackByUnifiedItem(index: number, item: any): string {
+    return item.type + '-' + (item.type === 'emergency' ? item.data.request_id : item.data.hazard_id);
   }
 
   toggleBarangayFilter(id: number | 'all') {

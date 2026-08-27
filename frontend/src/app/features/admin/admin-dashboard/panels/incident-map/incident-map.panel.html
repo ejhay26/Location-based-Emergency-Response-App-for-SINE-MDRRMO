@@ -2,6 +2,46 @@
 <div id="cad-map-toolbar" class="map-top-toolbar">
   <div class="map-filters-strip">
     
+    <!-- 0. Alert Source Filter Pills (All / SOS / Hazards) -->
+    <div class="filter-group">
+      <span class="filter-group-label">Show:</span>
+      <button
+        type="button"
+        (click)="setAlertSourceFilter('all')"
+        title="Show all emergency SOS and public hazard reports"
+        [style.background]="alertSourceFilter === 'all' ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
+        [style.color]="alertSourceFilter === 'all' ? 'white' : 'var(--ion-text-color)'"
+        [style.border-color]="alertSourceFilter === 'all' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+        class="filter-pill-btn">
+        <app-icon name="layers" [size]="12" [color]="alertSourceFilter === 'all' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
+        <span>All ({{ activeRequests.length + activeHazards.length }})</span>
+      </button>
+
+      <button
+        type="button"
+        (click)="setAlertSourceFilter('emergency')"
+        title="Filter by Emergency SOS Calls"
+        [style.background]="alertSourceFilter === 'emergency' ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
+        [style.color]="alertSourceFilter === 'emergency' ? 'white' : 'var(--ion-text-color)'"
+        [style.border-color]="alertSourceFilter === 'emergency' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+        class="filter-pill-btn">
+        <app-icon name="siren" [size]="12" [color]="alertSourceFilter === 'emergency' ? '#ffffff' : '#eb445a'"></app-icon>
+        <span>Emergency SOS ({{ activeRequests.length }})</span>
+      </button>
+
+      <button
+        type="button"
+        (click)="setAlertSourceFilter('hazard')"
+        title="Filter by Public Road Hazards"
+        [style.background]="alertSourceFilter === 'hazard' ? '#ffc409' : 'var(--ion-card-background, white)'"
+        [style.color]="alertSourceFilter === 'hazard' ? '#000000' : 'var(--ion-text-color)'"
+        [style.border-color]="alertSourceFilter === 'hazard' ? '#ffc409' : 'var(--ion-color-step-200, #ccc)'"
+        class="filter-pill-btn">
+        <app-icon name="hazard" [size]="12" [color]="alertSourceFilter === 'hazard' ? '#000000' : '#ffc409'"></app-icon>
+        <span>Hazards ({{ activeHazards.length }})</span>
+      </button>
+    </div>
+
     <!-- 1. Barangay Filter Pills -->
     <div class="filter-group">
       <span class="filter-group-label">Barangay:</span>
@@ -40,11 +80,11 @@
         [style.border-color]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
         class="filter-pill-btn">
         <app-icon name="layers" [size]="12" [color]="isTypeSelected('all') ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
-        <span>{{ mode === 'active' ? 'All Types' : 'All Hazards' }}</span>
+        <span>All Types</span>
       </button>
 
       <button
-        *ngFor="let t of (mode === 'active' ? emergencyTypeOptions : hazardTypeOptions)"
+        *ngFor="let t of currentTypeOptions"
         type="button"
         (click)="toggleTypeFilter(t.id)"
         [title]="'Filter by ' + t.label"
@@ -120,43 +160,49 @@
   <!-- Right: Incident / Hazard Cards Queue -->
   <div id="cad-queue-container" class="map-queue-col" [style.width]="queueWidth + 'px'">
     
-    <!-- Active Emergencies Queue -->
-    <ng-container *ngIf="mode === 'active'">
-      <div *ngIf="filteredActiveRequests.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:700;padding-top:40px;">
-        <div style="width:56px;height:56px;border-radius:16px;background:var(--ion-color-step-50, rgba(0,0,0,0.04));display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
-          <app-icon name="shield-check" [size]="28" color="var(--ion-color-medium)"></app-icon>
-        </div>
-        <p style="margin:0;font-size:14px;">No active emergencies</p>
+    <!-- Empty State -->
+    <div *ngIf="unifiedActiveItems.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:700;padding-top:40px;">
+      <div style="width:56px;height:56px;border-radius:16px;background:var(--ion-color-step-50, rgba(0,0,0,0.04));display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+        <app-icon name="shield-check" [size]="28" color="var(--ion-color-medium)"></app-icon>
       </div>
+      <p style="margin:0;font-size:14px;">No active alerts or hazards</p>
+    </div>
 
-      <div *ngFor="let request of filteredActiveRequests; let i = index; trackBy: trackByRequestId"
-           [id]="'request-card-' + request.request_id"
-           [appAnnouncementEnter]="i"
-           [ngClass]="{'selected-incident-card': selectedRequestId === request.request_id && previewType === 'emergency'}"
-           class="incident-card"
-           (click)="selectIncidentCard(request, 'emergency')">
+    <!-- Unified Cards List -->
+    <div *ngFor="let item of unifiedActiveItems; let i = index; trackBy: trackByUnifiedItem"
+         [id]="item.type === 'emergency' ? ('request-card-' + item.data.request_id) : ('hazard-card-' + item.data.hazard_id)"
+         [appAnnouncementEnter]="i"
+         [ngClass]="{
+           'selected-incident-card': item.type === 'emergency' && selectedRequestId === item.data.request_id && previewType === 'emergency',
+           'selected-hazard-card': item.type === 'hazard' && selectedRequestId === item.data.hazard_id && previewType === 'hazard'
+         }"
+         class="incident-card"
+         (click)="item.type === 'emergency' ? selectIncidentCard(item.data, 'emergency') : selectIncidentCard(item.data, 'hazard')">
+
+      <!-- EMERGENCY SOS CARD -->
+      <ng-container *ngIf="item.type === 'emergency'">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-          <div style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center;" [style.background]="request.incident_name === 'Fire' ? '#eb445a18' : (request.incident_name === 'Flood' ? '#3880ff18' : (request.incident_name === 'Medical' ? '#2dd36f18' : '#bc6fff18'))">
-            <app-icon [name]="request.incident_name === 'Fire' ? 'flame' : (request.incident_name === 'Flood' ? 'droplet' : (request.incident_name === 'Medical' ? 'medical' : 'shield-alert'))" [size]="20" [color]="request.incident_name === 'Fire' ? '#eb445a' : (request.incident_name === 'Flood' ? '#3880ff' : (request.incident_name === 'Medical' ? '#2dd36f' : '#bc6fff'))"></app-icon>
+          <div style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center;" [style.background]="item.data.incident_name === 'Fire' ? '#eb445a18' : (item.data.incident_name === 'Flood' ? '#3880ff18' : (item.data.incident_name === 'Medical' ? '#2dd36f18' : '#bc6fff18'))">
+            <app-icon [name]="item.data.incident_name === 'Fire' ? 'flame' : (item.data.incident_name === 'Flood' ? 'droplet' : (item.data.incident_name === 'Medical' ? 'medical' : 'shield-alert'))" [size]="20" [color]="item.data.incident_name === 'Fire' ? '#eb445a' : (item.data.incident_name === 'Flood' ? '#3880ff' : (item.data.incident_name === 'Medical' ? '#2dd36f' : '#bc6fff'))"></app-icon>
           </div>
           <div style="flex: 1; min-width: 0;">
-            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">{{ request.request_time | utcDate:'short' }}</span>
-            <h3 style="margin: 2px 0 0 0; font-weight: 800; font-size: 16.5px; color: var(--ion-color-danger); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ request.incident_name }} Emergency</h3>
+            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">{{ item.data.request_time | utcDate:'short' }}</span>
+            <h3 style="margin: 2px 0 0 0; font-weight: 800; font-size: 16.5px; color: var(--ion-color-danger); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.data.incident_name }} Emergency</h3>
           </div>
         </div>
-        <p style="margin: 4px 0; font-size: 14px;"><strong>Victim:</strong> {{ request.first_name }} {{ request.last_name }}</p>
-        <p style="margin: 4px 0; font-size: 14px;"><strong>Contact:</strong> {{ request.phone }}</p>
-        <p style="margin: 4px 0; font-size: 14px;"><strong>Barangay:</strong> {{ request.barangay_name || 'Unresolved' }}</p>
-        <p style="margin: 4px 0; font-size: 13.5px; color: var(--ion-color-step-800, #333);" *ngIf="request.description"><strong>Notes:</strong> "{{ request.description }}"</p>
-        <div *ngIf="request.blood_type" style="margin: 8px 0;">
+        <p style="margin: 4px 0; font-size: 14px;"><strong>Victim:</strong> {{ item.data.first_name }} {{ item.data.last_name }}</p>
+        <p style="margin: 4px 0; font-size: 14px;"><strong>Contact:</strong> {{ item.data.phone }}</p>
+        <p style="margin: 4px 0; font-size: 14px;"><strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+        <p style="margin: 4px 0; font-size: 13.5px; color: var(--ion-color-step-800, #333);" *ngIf="item.data.description"><strong>Notes:</strong> "{{ item.data.description }}"</p>
+        <div *ngIf="item.data.blood_type" style="margin: 8px 0;">
           <span style="background: rgba(235,68,90,0.12); color: var(--ion-color-danger); border: 1px solid rgba(235,68,90,0.25); padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px;">
             <app-icon name="alert" [size]="13" color="var(--ion-color-danger)"></app-icon>
-            <span>{{ request.blood_type }} | {{ request.allergies || 'No known allergies' }}</span>
+            <span>{{ item.data.blood_type }} | {{ item.data.allergies || 'No known allergies' }}</span>
           </span>
         </div>
 
-        <div *ngIf="request.proof_files?.length" class="media-thumb-grid">
-          <div *ngFor="let filePath of request.proof_files"
+        <div *ngIf="item.data.proof_files?.length" class="media-thumb-grid">
+          <div *ngFor="let filePath of item.data.proof_files"
                class="media-thumb"
                (click)="$event.stopPropagation(); ui.openLightbox(filePath, ui.isVideoFile(filePath))">
             <ng-container *ngIf="ui.isVideoFile(filePath); else imgThumb">
@@ -168,45 +214,37 @@
             </ng-template>
           </div>
         </div>
-        <p *ngIf="!request.proof_files?.length" style="font-size: 11.5px; color: var(--ion-color-medium); margin: 8px 0 0 0;">No files attached</p>
+        <p *ngIf="!item.data.proof_files?.length" style="font-size: 11.5px; color: var(--ion-color-medium); margin: 8px 0 0 0;">No files attached</p>
 
         <div style="display: flex; gap: 8px; margin-top: 14px;" (click)="$event.stopPropagation()">
-          <ion-button *ngIf="request.status === 'Pending'" color="warning" size="small" (click)="openDispatchModal(request.request_id)" title="Assign emergency responder team and vehicle" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px;">
+          <ion-button *ngIf="item.data.status === 'Pending'" color="warning" size="small" (click)="openDispatchModal(item.data.request_id)" title="Assign emergency responder team and vehicle" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px;">
             <app-icon name="truck-medical" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Dispatch
           </ion-button>
-          <ion-button color="success" size="small" (click)="resolveEmergency(request.request_id)" title="Mark this emergency incident as resolved and close ticket" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px; --box-shadow: 0 3px 10px rgba(45,211,111,0.25);">
+          <ion-button color="success" size="small" (click)="resolveEmergency(item.data.request_id)" title="Mark this emergency incident as resolved and close ticket" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px; --box-shadow: 0 3px 10px rgba(45,211,111,0.25);">
             <app-icon name="check" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Resolve
           </ion-button>
         </div>
-      </div>
-    </ng-container>
+      </ng-container>
 
-    <!-- Active Hazards Queue -->
-    <ng-container *ngIf="mode === 'hazards'">
-      <div *ngIf="filteredActiveHazards.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:700;padding-top:40px;">
-        <div style="width:56px;height:56px;border-radius:16px;background:var(--ion-color-step-50, rgba(0,0,0,0.04));display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
-          <app-icon name="hazard" [size]="28" color="#ffc409"></app-icon>
+      <!-- PUBLIC HAZARD CARD -->
+      <ng-container *ngIf="item.type === 'hazard'">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+          <div style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(255,196,9,0.15);">
+            <app-icon name="hazard" [size]="20" color="#ffc409"></app-icon>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">{{ item.data.created_at | utcDate:'short' }}</span>
+            <h3 style="margin: 2px 0 0 0; font-weight: 800; font-size: 16px; color: #e0ac00; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.data.hazard_type || 'Public Hazard Report' }}</h3>
+          </div>
         </div>
-        <p style="margin:0;font-size:14px;">No active public hazards logged</p>
-      </div>
+        <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description }}</p>
+        <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Reported by:</strong> {{ item.data.first_name }} {{ item.data.last_name }}</p>
+        <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
 
-      <div *ngFor="let haz of filteredActiveHazards; let i = index; trackBy: trackByHazardId"
-           [id]="'hazard-card-' + haz.hazard_id"
-           [appAnnouncementEnter]="i"
-           [ngClass]="{'selected-hazard-card': selectedRequestId === haz.hazard_id && previewType === 'hazard'}"
-           class="incident-card"
-           (click)="selectIncidentCard(haz, 'hazard')">
-        <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 8px;">
-          <app-icon name="hazard" [size]="20" color="#ffc409"></app-icon>
-          <h4 style="margin: 0; font-weight: 800; font-size: 15.5px; color: var(--ion-text-color);">Public Hazard Report</h4>
-        </div>
-        <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.35;">{{ haz.description }}</p>
-        <span style="font-size: 11.5px; color: var(--ion-color-medium); font-weight: 700;">Source: {{ haz.first_name }} {{ haz.last_name }} | {{ haz.created_at | utcDate:'short' }}</span>
-        <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Barangay:</strong> {{ haz.barangay_name || 'Unresolved' }}</p>
-        <div *ngIf="haz.proof_files?.length" class="media-thumb-grid">
-          <div *ngFor="let filePath of haz.proof_files"
+        <div *ngIf="item.data.proof_files?.length" class="media-thumb-grid">
+          <div *ngFor="let filePath of item.data.proof_files"
                class="media-thumb"
-               (click)="ui.openLightbox(filePath, ui.isVideoFile(filePath))">
+               (click)="$event.stopPropagation(); ui.openLightbox(filePath, ui.isVideoFile(filePath))">
             <ng-container *ngIf="ui.isVideoFile(filePath); else hazImgThumb">
               <img [videoThumbSrc]="filePath" style="width:100%;height:100%;object-fit:cover;background:#222;" />
               <div class="video-badge"><app-icon name="play" [size]="12" color="#ffffff"></app-icon></div>
@@ -214,14 +252,16 @@
             <ng-template #hazImgThumb><img [proxySrc]="filePath" style="width:100%;height:100%;object-fit:cover;" /></ng-template>
           </div>
         </div>
-        <div style="margin-top: 14px;">
-          <ion-button color="medium" fill="outline" expand="block" size="small" (click)="dismissHazard(haz.hazard_id)" title="Acknowledge and archive this public hazard report" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
-            <app-icon name="check" [size]="16" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Acknowledge
+        <p *ngIf="!item.data.proof_files?.length" style="font-size: 11.5px; color: var(--ion-color-medium); margin: 8px 0 0 0;">No files attached</p>
+
+        <div style="display: flex; gap: 8px; margin-top: 14px;" (click)="$event.stopPropagation()">
+          <ion-button color="warning" fill="outline" expand="block" size="small" (click)="dismissHazard(item.data.hazard_id)" title="Acknowledge and archive this public hazard report" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px;">
+            <app-icon name="check" [size]="16" color="#ffc409" style="margin-right: 6px;"></app-icon> Resolve Hazard
           </ion-button>
         </div>
-      </div>
-    </ng-container>
+      </ng-container>
 
+    </div>
   </div>
 </div>
 
