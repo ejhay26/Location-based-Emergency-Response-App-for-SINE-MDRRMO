@@ -67,35 +67,50 @@ class DatabaseSeeder extends Seeder
         // ── 5. Default Admin & Dispatcher Accounts ───────────────────────────
         $defaultUsers = [
             [
-                'first_name'          => 'Admin',
-                'last_name'           => 'MDRRMO',
-                'username'            => 'admin',
                 'email'               => 'admin_user@sine.gov.ph',
-                'phone'               => '09123456789',
                 'password'            => Hash::make('Admin123!'),
                 'role'                => 'admin',
                 'account_status'      => 'active',
-                'setup_completed'     => 1,
-                'barangay_id'         => 5,
                 'false_alarm_strikes' => 0,
+                'profile'             => [
+                    'first_name'      => 'Admin',
+                    'last_name'       => 'MDRRMO',
+                    'username'        => 'admin',
+                    'phone'           => '09123456789',
+                    'setup_completed' => 1,
+                    'barangay_id'     => 5,
+                ],
             ],
             [
-                'first_name'          => 'Dispatcher',
-                'last_name'           => 'One',
-                'username'            => 'dispatcher1',
                 'email'               => 'dis@mail.com',
-                'phone'               => '09123456789',
                 'password'            => Hash::make('Dispatcher123!'),
                 'role'                => 'dispatcher',
                 'account_status'      => 'active',
-                'setup_completed'     => 1,
-                'barangay_id'         => 5,
                 'false_alarm_strikes' => 0,
+                'profile'             => [
+                    'first_name'      => 'Dispatcher',
+                    'last_name'       => 'One',
+                    'username'        => 'dispatcher1',
+                    'phone'           => '09123456789',
+                    'setup_completed' => 1,
+                    'barangay_id'     => 5,
+                ],
             ],
         ];
 
         foreach ($defaultUsers as $u) {
+            $profileData = $u['profile'];
+            unset($u['profile']);
+
             DB::table('users')->updateOrInsert(['email' => $u['email']], $u);
+            $userId = DB::table('users')->where('email', $u['email'])->value('user_id');
+
+            if ($userId) {
+                DB::table('user_profiles')->updateOrInsert(
+                    ['user_id' => $userId],
+                    array_merge($profileData, ['user_id' => $userId])
+                );
+            }
         }
     }
 }

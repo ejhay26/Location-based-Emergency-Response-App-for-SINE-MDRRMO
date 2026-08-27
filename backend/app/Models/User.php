@@ -56,7 +56,7 @@ class User extends Authenticatable
 
     public function verification()
     {
-        return $this->hasOne(UserVerification::class, 'user_id', 'user_id')->latestOfMany();
+        return $this->hasOne(UserVerification::class, 'user_id', 'user_id')->latestOfMany('verification_id');
     }
 
     public function verifications()
