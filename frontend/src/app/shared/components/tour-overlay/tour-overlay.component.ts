@@ -140,6 +140,12 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
     this.tour.cancel();
   }
 
+  private getTargetElement(id: string): HTMLElement | null {
+    if (!id) return null;
+    const cleanId = id.startsWith('#') ? id.slice(1) : id;
+    return document.getElementById(cleanId) || (document.querySelector(id) as HTMLElement | null);
+  }
+
   /**
    * Orchestrates the transition to a new step target:
    * 1. Finds element.
@@ -147,10 +153,10 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
    * 3. Seamlessly morphs the spotlight directly to the final resting target using live-frame tracking.
    */
   private transitionToTarget(id: string, retryCount = 0): void {
-    const el = document.getElementById(id);
+    const el = this.getTargetElement(id);
     if (!el) {
-      if (retryCount < 10) {
-        setTimeout(() => this.transitionToTarget(id, retryCount + 1), 60);
+      if (retryCount < 25) {
+        setTimeout(() => this.transitionToTarget(id, retryCount + 1), 80);
       } else {
         this.handleMissing();
       }
@@ -159,8 +165,8 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
 
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) {
-      if (retryCount < 10) {
-        setTimeout(() => this.transitionToTarget(id, retryCount + 1), 60);
+      if (retryCount < 25) {
+        setTimeout(() => this.transitionToTarget(id, retryCount + 1), 80);
       } else {
         this.handleMissing();
       }
@@ -296,7 +302,7 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
    * without interrupting or re-snapping.
    */
   private quietTrack(id: string): void {
-    const el = document.getElementById(id);
+    const el = this.getTargetElement(id);
     if (!el) return;
 
     const r = el.getBoundingClientRect();

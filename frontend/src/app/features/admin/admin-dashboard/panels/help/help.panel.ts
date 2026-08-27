@@ -42,13 +42,13 @@ export class HelpPanel {
       duration: '1 min',
       steps: [
         {
-          id: '#cad-map-container',
+          id: 'cad-map-container',
           panel: 'active',
           callout: 'Real-Time Incident Map',
           subtext: 'Incoming emergency SOS beacons appear with live GPS coordinates, accuracy radius, and citizen details.',
         },
         {
-          id: '#cad-queue-container',
+          id: 'cad-queue-container',
           panel: 'active',
           callout: 'Incident Queue & Triage',
           subtext: 'Review reported incidents ranked by urgency. Click any incident card to view citizen medical info, photo evidence, and assigned responders.',
@@ -65,19 +65,19 @@ export class HelpPanel {
       duration: '1 min',
       steps: [
         {
-          id: '#broadcast-composer',
+          id: 'broadcast-composer',
           panel: 'broadcast',
           callout: 'Broadcast Message Composer',
           subtext: 'Enter the official emergency advisory, evacuation order, or weather update. You can attach up to 4 photos or videos.',
         },
         {
-          id: '#broadcast-barangay-selector',
+          id: 'broadcast-barangay-selector',
           panel: 'broadcast',
           callout: 'Targeting Barangays',
           subtext: 'Keep on "All Barangays" for town-wide alerts, or tap multiple individual barangays to target specific affected communities.',
         },
         {
-          id: '#broadcast-delivery-mode',
+          id: 'broadcast-delivery-mode',
           panel: 'broadcast',
           callout: 'Immediate vs. Scheduled Release',
           subtext: 'Choose "Post Immediately" for critical warnings, or "Schedule for Later" with the date/time picker to pre-program advisories.',
@@ -94,13 +94,13 @@ export class HelpPanel {
       duration: '1 min',
       steps: [
         {
-          id: '#cad-map-container',
+          id: 'cad-map-container',
           panel: 'hazards',
           callout: 'Hazard Map Plotter',
           subtext: 'All citizen-submitted hazard reports are plotted as orange warning pins with exact GPS coordinates.',
         },
         {
-          id: '#cad-queue-container',
+          id: 'cad-queue-container',
           panel: 'hazards',
           callout: 'Hazard Verification Queue',
           subtext: 'Inspect citizen photo evidence, contact reporting party if needed, and mark the hazard as Resolved when clearing teams finish.',
@@ -117,13 +117,13 @@ export class HelpPanel {
       duration: '45 sec',
       steps: [
         {
-          id: '#archive-filters',
+          id: 'archive-filters',
           panel: 'archive',
           callout: 'Log Search & Filters',
           subtext: 'Filter past emergency reports by date range, status, incident type, or barangay jurisdiction.',
         },
         {
-          id: '#exportArchivePdfBtn',
+          id: 'exportArchivePdfBtn',
           panel: 'archive',
           callout: 'Export Certified Reports',
           subtext: 'Export incident logs to official PDF reports for situation briefings and post-disaster municipal audits.',

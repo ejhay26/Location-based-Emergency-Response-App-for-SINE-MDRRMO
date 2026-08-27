@@ -342,7 +342,7 @@
     </div>
 
     <div *ngIf="resetOtpVerified && resetData.new_password.length > 0"
-         style="background: var(--ion-card-background, white); padding: 14px 16px; border-radius: 16px; margin-top: 12px; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); border-left: 4px solid var(--ion-color-danger); text-align: left; box-shadow: var(--card-shadow);">
+         style="background: var(--ion-card-background, white); padding: 14px 16px; border-radius: 16px; margin-top: 12px; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); text-align: left; box-shadow: var(--card-shadow);">
       <p style="margin: 4px 0; font-size: 12px; display: flex; align-items: center; gap: 8px;"
          [style.color]="resetPwdLength ? '#2dd36f' : 'var(--ion-color-medium)'">
         <app-icon [name]="resetPwdLength ? 'check' : 'circle'" [size]="14" [color]="resetPwdLength ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>

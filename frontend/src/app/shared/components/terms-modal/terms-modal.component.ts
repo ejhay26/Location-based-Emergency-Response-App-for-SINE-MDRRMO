@@ -53,7 +53,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
       </p>
 
       <h4 style="color: var(--ion-color-danger); font-size: 13px; font-weight: 800; margin: 16px 0 6px 0;">2. No Fake Reports or Pranks</h4>
-      <div style="background: rgba(235,68,90,0.08); border-left: 4px solid var(--ion-color-danger); padding: 10px 12px; border-radius: 10px; margin: 8px 0;">
+      <div style="background: rgba(235,68,90,0.08); border: 1px solid rgba(235,68,90,0.2); padding: 10px 12px; border-radius: 10px; margin: 8px 0;">
         <strong style="color: var(--ion-color-danger); font-size: 12px;">IMPORTANT NOTICE:</strong>
         <p style="margin: 4px 0 0 0; font-size: 12px;">
           Please never send fake or prank reports. First responders risk their lives responding to emergencies. If you send a false alarm, you will receive a strike. Getting 3 strikes will permanently ban your account and may be reported to the police for legal action under local and national laws.

@@ -88,29 +88,25 @@
         </div>
       </div>
 
-      <!-- Delivery Mode (Segmented Control) -->
+      <!-- Delivery Mode (System Responsive Segment Toggle) -->
       <div id="broadcast-delivery-mode" style="margin-top: 18px;">
         <label style="font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.6px; display: block; margin-bottom: 6px;">
           Delivery Mode
         </label>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); padding: 4px; border-radius: 12px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
-          <button type="button" (click)="setScheduledMode(false)"
-                  [style.background]="!isScheduled ? 'var(--ion-color-danger)' : 'transparent'"
-                  [style.color]="!isScheduled ? '#ffffff' : 'var(--ion-text-color)'"
-                  [style.box-shadow]="!isScheduled ? '0 2px 8px rgba(235,68,90,0.3)' : 'none'"
-                  style="display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 9px; padding: 10px 14px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.18s ease;">
-            <app-icon name="send" [size]="14" [color]="!isScheduled ? '#ffffff' : 'var(--ion-color-medium)'"></app-icon>
-            <span>Post Immediately</span>
-          </button>
-          <button type="button" (click)="setScheduledMode(true)"
-                  [style.background]="isScheduled ? 'var(--ion-color-danger)' : 'transparent'"
-                  [style.color]="isScheduled ? '#ffffff' : 'var(--ion-text-color)'"
-                  [style.box-shadow]="isScheduled ? '0 2px 8px rgba(235,68,90,0.3)' : 'none'"
-                  style="display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 9px; padding: 10px 14px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.18s ease;">
-            <app-icon name="calendar-clock" [size]="14" [color]="isScheduled ? '#ffffff' : 'var(--ion-color-medium)'"></app-icon>
-            <span>Schedule for Later</span>
-          </button>
-        </div>
+        <ion-segment [(ngModel)]="deliveryMode" (ionChange)="onDeliveryModeChange($event)" class="map-style-segment" style="width: 100%; max-width: 100%; --background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06)); border-radius: 12px; height: 42px;">
+          <ion-segment-button value="immediate">
+            <div class="segment-pill-inner" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 12.5px;">
+              <app-icon name="send" [size]="14"></app-icon>
+              <ion-label>Post Immediately</ion-label>
+            </div>
+          </ion-segment-button>
+          <ion-segment-button value="scheduled">
+            <div class="segment-pill-inner" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 12.5px;">
+              <app-icon name="calendar-clock" [size]="14"></app-icon>
+              <ion-label>Schedule for Later</ion-label>
+            </div>
+          </ion-segment-button>
+        </ion-segment>
       </div>
 
       <!-- Aesthetic Popover Date & Time Selector -->
@@ -122,40 +118,58 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <!-- Date Column -->
           <div>
-            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); display: block; margin-bottom: 4px;">Target Date</span>
-            <div style="display: grid; grid-template-columns: 1.2fr 1fr 1.1fr; gap: 4px;">
-              <ion-select [(ngModel)]="schedMonth" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="Month"
-                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
-                <ion-select-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</ion-select-option>
-              </ion-select>
-              <ion-select [(ngModel)]="schedDay" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="Day"
-                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
-                <ion-select-option *ngFor="let d of daysInSchedMonth" [value]="d < 10 ? '0' + d : '' + d">{{ d }}</ion-select-option>
-              </ion-select>
-              <ion-select [(ngModel)]="schedYear" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="Year"
-                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
-                <ion-select-option *ngFor="let y of scheduledYears" [value]="y">{{ y }}</ion-select-option>
-              </ion-select>
+            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); display: block; margin-bottom: 6px;">Target Date</span>
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr 1.1fr; gap: 6px;">
+              <div>
+                <span style="font-size: 10px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; display: block; margin-bottom: 2px;">Month</span>
+                <ion-select [(ngModel)]="schedMonth" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="Month"
+                            style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                  <ion-select-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</ion-select-option>
+                </ion-select>
+              </div>
+              <div>
+                <span style="font-size: 10px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; display: block; margin-bottom: 2px;">Day</span>
+                <ion-select [(ngModel)]="schedDay" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="Day"
+                            style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                  <ion-select-option *ngFor="let d of daysInSchedMonth" [value]="d < 10 ? '0' + d : '' + d">{{ d }}</ion-select-option>
+                </ion-select>
+              </div>
+              <div>
+                <span style="font-size: 10px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; display: block; margin-bottom: 2px;">Year</span>
+                <ion-select [(ngModel)]="schedYear" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="Year"
+                            style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                  <ion-select-option *ngFor="let y of scheduledYears" [value]="y">{{ y }}</ion-select-option>
+                </ion-select>
+              </div>
             </div>
           </div>
 
           <!-- Time Column -->
           <div>
-            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); display: block; margin-bottom: 4px;">Target Time</span>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
-              <ion-select [(ngModel)]="schedHour" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="HH"
-                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
-                <ion-select-option *ngFor="let h of hours" [value]="h">{{ h }}</ion-select-option>
-              </ion-select>
-              <ion-select [(ngModel)]="schedMinute" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="MM"
-                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
-                <ion-select-option *ngFor="let min of minutes" [value]="min">:{{ min }}</ion-select-option>
-              </ion-select>
-              <ion-select [(ngModel)]="schedPeriod" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="AM/PM"
-                          style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
-                <ion-select-option value="AM">AM</ion-select-option>
-                <ion-select-option value="PM">PM</ion-select-option>
-              </ion-select>
+            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); display: block; margin-bottom: 6px;">Target Time</span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+              <div>
+                <span style="font-size: 10px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; display: block; margin-bottom: 2px;">Hour</span>
+                <ion-select [(ngModel)]="schedHour" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="HH"
+                            style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                  <ion-select-option *ngFor="let h of hours" [value]="h">{{ h }}</ion-select-option>
+                </ion-select>
+              </div>
+              <div>
+                <span style="font-size: 10px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; display: block; margin-bottom: 2px;">Minute</span>
+                <ion-select [(ngModel)]="schedMinute" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="MM"
+                            style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                  <ion-select-option *ngFor="let min of minutes" [value]="min">:{{ min }}</ion-select-option>
+                </ion-select>
+              </div>
+              <div>
+                <span style="font-size: 10px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; display: block; margin-bottom: 2px;">Period</span>
+                <ion-select [(ngModel)]="schedPeriod" (ionChange)="updateScheduledDateTime()" interface="popover" placeholder="AM/PM"
+                            style="--padding-start: 6px; --padding-end: 4px; font-size: 12px; font-weight: 700; background: var(--ion-card-background, #fff); border-radius: 8px; border: 1px solid var(--ion-color-step-200, #ccc);">
+                  <ion-select-option value="AM">AM</ion-select-option>
+                  <ion-select-option value="PM">PM</ion-select-option>
+                </ion-select>
+              </div>
             </div>
           </div>
         </div>

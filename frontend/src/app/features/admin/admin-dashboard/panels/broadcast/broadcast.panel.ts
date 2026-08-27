@@ -5,7 +5,8 @@ import { Subscription } from 'rxjs';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonItem, IonInput, IonButton,
-  IonSelect, IonSelectOption
+  IonSelect, IonSelectOption,
+  IonSegment, IonSegmentButton, IonLabel
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -45,6 +46,7 @@ export interface BroadcastMediaItem {
     CommonModule, FormsModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonInput, IonButton,
     IonSelect, IonSelectOption,
+    IonSegment, IonSegmentButton, IonLabel,
     UtcDatePipe, ListEnterDirective, ProxyImageDirective, AppIconComponent
   ],
   templateUrl: './broadcast.panel.html',
@@ -145,20 +147,72 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     return Array.from({ length: daysCount }, (_, i) => i + 1);
   }
 
+  deliveryMode: 'immediate' | 'scheduled' = 'immediate';
+
+  onDeliveryModeChange(ev?: any): void {
+    const val = ev?.detail?.value || this.deliveryMode;
+    this.deliveryMode = val;
+    this.setScheduledMode(val === 'scheduled');
+  }
+
   setScheduledMode(enable: boolean): void {
     this.isScheduled = enable;
-    if (enable && !this.schedYear) {
-      const target = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
-      this.schedYear = String(target.getFullYear());
-      this.schedMonth = String(target.getMonth() + 1).padStart(2, '0');
-      this.schedDay = String(target.getDate());
-      let h = target.getHours();
+    this.deliveryMode = enable ? 'scheduled' : 'immediate';
+    if (enable) {
+      if (!this.schedYear) {
+        this.initScheduledDateTime();
+      } else {
+        this.autoCorrectIfPast(false);
+      }
+    } else {
+      this.scheduledDateTime = '';
+    }
+  }
+
+  initScheduledDateTime(): void {
+    const target = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    this.schedYear = String(target.getFullYear());
+    this.schedMonth = String(target.getMonth() + 1).padStart(2, '0');
+    this.schedDay = String(target.getDate());
+    let h = target.getHours();
+    this.schedPeriod = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    this.schedHour = String(h).padStart(2, '0');
+    this.schedMinute = '00';
+    this.updateScheduledDateTime();
+  }
+
+  autoCorrectIfPast(notify = false): boolean {
+    if (!this.isScheduled) return true;
+    this.updateScheduledDateTime();
+    if (!this.scheduledDateTime) return true;
+
+    const scheduledTime = new Date(this.scheduledDateTime).getTime();
+    const now = Date.now();
+
+    // If the scheduled time is in the past or within 1 minute of current time
+    if (isNaN(scheduledTime) || scheduledTime <= now) {
+      const corrected = new Date(now + 10 * 60 * 1000); // Set to +10 mins
+      this.schedYear = String(corrected.getFullYear());
+      this.schedMonth = String(corrected.getMonth() + 1).padStart(2, '0');
+      this.schedDay = String(corrected.getDate());
+      let h = corrected.getHours();
       this.schedPeriod = h >= 12 ? 'PM' : 'AM';
       h = h % 12 || 12;
       this.schedHour = String(h).padStart(2, '0');
-      this.schedMinute = '00';
+      const m = Math.ceil(corrected.getMinutes() / 5) * 5;
+      this.schedMinute = String(m >= 60 ? 55 : m).padStart(2, '0');
       this.updateScheduledDateTime();
+
+      if (notify) {
+        this.ui.showToast(
+          `Selected time was in the past. We automatically adjusted it to ${this.formattedSchedulePreview} (+10 mins).`,
+          'secondary'
+        );
+      }
+      return false;
     }
+    return true;
   }
 
   updateScheduledDateTime(): void {
@@ -279,14 +333,10 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     if (this.isScheduled) {
       this.updateScheduledDateTime();
       if (!this.scheduledDateTime) {
-        this.ui.showToast('Please select a release date and time for the scheduled announcement.', 'warning');
-        return;
+        this.initScheduledDateTime();
       }
-      const scheduledTime = new Date(this.scheduledDateTime).getTime();
-      if (isNaN(scheduledTime) || scheduledTime <= Date.now()) {
-        this.ui.showToast('Scheduled release time must be in the future.', 'warning');
-        return;
-      }
+      // If time has already passed, proactively advance to +10 mins rather than giving errors!
+      this.autoCorrectIfPast(true);
     }
 
     const target = this.isTownWide

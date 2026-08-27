@@ -85,8 +85,7 @@
 
   <!-- Password Box & Confirm Password Box grouped in Inset Card -->
   <div class="inset-card" style="margin-top: 12px; margin-bottom: 6px;">
-    <ion-item lines="full"
-      [style.border-left]="isPasswordValid ? '3px solid #2dd36f' : (passwordFocused ? '3px solid var(--ion-color-danger)' : 'none')">
+    <ion-item lines="full">
       <app-icon name="lock" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
       <ion-input label="Password" labelPlacement="stacked" type="password" placeholder="Create a strong password"
                  [(ngModel)]="userData.password"
@@ -95,8 +94,7 @@
       </ion-input>
     </ion-item>
 
-    <ion-item lines="none"
-      [style.border-left]="passwordsMatch === true ? '3px solid #2dd36f' : (passwordsMatch === false ? '3px solid #eb445a' : 'none')">
+    <ion-item lines="none">
       <app-icon name="lock" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
       <ion-input label="Confirm Password" labelPlacement="stacked" type="password" placeholder="Re-enter your password"
                  [(ngModel)]="userData.confirm_password" required>
@@ -119,7 +117,7 @@
 
   <!-- Password Requirements Checklist -->
   <div *ngIf="passwordFocused || (userData.password ?? '').length > 0"
-       style="background: var(--ion-card-background, white); padding: 14px 16px; border-radius: 16px; margin: 10px 0; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); border-left: 4px solid var(--ion-color-danger); box-shadow: var(--card-shadow);">
+       style="background: var(--ion-card-background, white); padding: 14px 16px; border-radius: 16px; margin: 10px 0; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); box-shadow: var(--card-shadow);">
     <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdLength ? '#2dd36f' : 'var(--ion-color-medium)'">
       <app-icon [name]="pwdLength ? 'check' : 'circle'" [size]="14" [color]="pwdLength ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
       Minimum 8 characters
