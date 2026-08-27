@@ -1,40 +1,41 @@
 # Dispatcher User Guide
 
-How to monitor, dispatch, and coordinate emergency responses using the SINE MDRRMO Command Center desktop application.
+How to monitor emergencies, review incoming alerts, dispatch responder teams, and broadcast public advisories using the SINE MDRRMO Operations Dashboard.
 
 ---
 
 ## 1. Launching & Logging In
 
-1. Launch the **SINE MDRRMO Command Center** desktop application on your workstation.
-2. Sign in using the dispatcher credentials provided by your System Administrator.
-3. Upon login, the application establishes an active **Laravel Reverb WebSocket connection** for sub-second incident streaming.
+1. Open the **SINE MDRRMO Operations Dashboard** on your workstation or mobile browser.
+2. Sign in using the dispatcher credentials provided by your Administrator.
+3. Upon login, the application connects to **Laravel Reverb WebSockets** for live incident streaming and real-time updates.
 
 ---
 
-## 2. Dispatcher Sidebar Overview
+## 2. Dispatcher Navigation Overview
 
-Dispatchers have access to five primary command panels:
+Dispatchers have access to primary operational panels:
 - **Incident Map:** Live interactive map tracking active SOS emergencies and public road hazards.
-- **Public Hazards:** Overview of active road blockages, fallen trees, and flooded streets.
+- **Public Hazards:** Direct overview of active road blockages, fallen trees, and flooded streets.
 - **Log Archive:** Searchable historical record of resolved incidents and false alarm moderation.
-- **Analytics:** Statistical incident trends, charts, and barangay volume distribution.
-- **Alert Broadcast:** Municipal emergency banner push system with rich media support.
+- **Analytics:** Statistical incident trends, charts, and barangay volume breakdown.
+- **Alert Broadcast:** Town-wide and barangay-specific emergency announcement composer with media attachments.
+- **Help & Procedures:** Step-by-step interactive walkthroughs for all primary dashboard functions.
 
 ---
 
-## 3. Incident Map: Active Emergency Workflow
+## 3. Incident Map: Active Emergency & Hazard Workflow
 
 The **Incident Map** is the primary operational dashboard:
 
 ```
-[Incoming SOS Alert]
-        │ (Instant Pin Drop via WebSocket + Desktop Notification)
+[Incoming SOS or Hazard Alert]
+        │ (Instant Pin Drop via WebSocket + Sound & Desktop Alert)
         ▼
-[Click Pin / Open Incident Card]
+[Click Pin / Open Alert Card]
         ├─ Review live photo or 10-second video evidence
         ├─ Inspect "Golden Minute" Medical Data (Blood type, Allergies, Conditions, PWD)
-        ├─ Check citizen false-alarm strike count
+        ├─ Check citizen phone number and false-alarm strike count
         ├─ Interactive Map Sync (Clicking card smoothly pans/zooms map to pin)
         │
         ▼
@@ -56,10 +57,10 @@ Status becomes "Resolved" & moved to Log Archive
 
 ## 4. Managing Public Road Hazards
 
-Hazard reports (e.g. fallen trees, downed electrical wires, flooded streets) appear as cautionary orange markers on the Incident Map:
-1. Click the hazard marker to inspect photo proof and citizen description.
+Hazard reports (e.g. fallen trees, downed electrical wires, flooded streets) appear as orange markers on the Incident Map:
+1. Click the hazard marker or list item to inspect photo proof and citizen description.
 2. Coordinate with DPWH or municipal maintenance teams to clear the obstruction.
-3. Tap **Acknowledge / Resolve** once cleared to remove the marker from the active monitoring map.
+3. Tap **Resolve** once cleared to remove the marker from the active monitoring map.
 
 ---
 
@@ -69,7 +70,8 @@ The **Log Archive** stores all completed, resolved, and cancelled emergency reco
 
 ### Features
 - **Keyword Search:** Search by citizen name, username, phone number, or description.
-- **Unified Date-Range Filter:** Filter by Single Day, Multi-Day, or a custom Date Range using the shared calendar selector.
+- **Date Range Filter:** Filter by Single Day, Multi-Day, or a custom Date Range using the calendar selector.
+- **Download Certified PDF:** Export filtered records into a formatted situation summary for council briefings.
 - **Mark False Alarm:**  
   If field responders confirm that a reported emergency was fraudulent or malicious:
   1. Open the incident in Log Archive.
@@ -80,30 +82,32 @@ The **Log Archive** stores all completed, resolved, and cancelled emergency reco
 
 ## 6. Real-Time Analytics Dashboard
 
-The **Analytics** panel presents interactive Chart.js visualizations filterable by **7-day**, **30-day**, or **90-day** rolling windows:
+The **Analytics** panel presents interactive visualizations filterable by **7-day**, **30-day**, or **90-day** rolling windows:
 - **Daily Incident Trends:** Line/Bar chart breakdown by type (Fire, Flood, Medical, Crime, Others).
 - **Incident Category Distribution:** Doughnut chart of incident types.
 - **Barangay Volume Breakdown:** Identifies geographic areas with the highest emergency frequency.
 - **Hazard Analytics:** Track flood frequency, road blockages, and power line hazards over time.
-- **Interactive Filtering:** Clicking any chart segment automatically filters the underlying incident list to inspect matching records.
 
 ---
 
-## 7. Pushing Alert Broadcasts
+## 7. Public Advisories & Scheduled Broadcasts
 
-Dispatchers can transmit critical public safety banners directly to citizens' mobile apps:
+Dispatchers can transmit critical public safety announcements directly to citizens' mobile phones:
 1. Navigate to **Alert Broadcast**.
-2. Enter an optional **Title** (e.g. *"Heavy Rainfall Warning"*).
-3. Type the detailed emergency message.
+2. Enter an optional **Headline** (e.g. *"Heavy Rainfall Warning"*).
+3. Type the detailed advisory message.
 4. **Select Audience:**
-   - Leave empty / tap **All** for a **Town-Wide** broadcast.
+   - Leave on **All Barangays** for a municipal-wide broadcast.
    - Or select specific **Barangays** (e.g. *Tabon*, *Pulo*) for localized alerts.
 5. **Attach Media:** Optionally attach up to **4 images or weather tracking charts**.
-6. Tap **Send Broadcast**.
-7. Active broadcasts appear on the panel and can be dismissed individually once the hazard subsides.
+6. **Delivery Mode:**
+   - **Post Immediately:** Sends the push notification right away.
+   - **Schedule for Later:** Pick a future date and time for automated release. The system prevents picking past dates.
+7. **Active Announcements:** Currently running broadcasts appear below the composer. Click **Stop** when the advisory has ended.
 
 ---
 
-## 8. Desktop Notifications
+## 8. Desktop Notifications & Mobile Responsive View
 
-When the desktop app is running, native OS notifications and audio alerts sound for any new SOS or hazard submission, even when viewing other panels or when the window is minimized.
+- **Sound & Desktop Alerts:** When running the dashboard, audio cues and notifications sound for incoming SOS calls even when minimized.
+- **Mobile Support:** On tablets and mobile phones, dispatchers can use the slide-out navigation drawer while keeping full access to the live map and incident queue.

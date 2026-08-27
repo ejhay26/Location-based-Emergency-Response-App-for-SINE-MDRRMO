@@ -1,16 +1,26 @@
 # Administrator User Guide
 
-Comprehensive guide for **Master Administrators** managing user accounts, citizen identity verifications, staff dispatchers, system feedback, and global command center settings.
+Comprehensive guide for **Master Administrators** managing user accounts, citizen identity verifications, staff dispatchers, system feedback, and global emergency response settings.
 
 ---
 
 ## 1. Administrator Capabilities
 
-Master Admin accounts hold full system abilities (`['admin', 'dispatcher', 'citizen']`). In addition to all operational dispatch tools (Incident Map, Hazards, Log Archive, Analytics, Alert Broadcast), Admins have access to four dedicated management panels and the Admin Settings suite.
+Master Admin accounts hold full system abilities (`['admin', 'dispatcher', 'citizen']`). In addition to all operational dispatch tools (Live Incident & Hazard Map, Log Archive, Analytics, Alert Broadcast), Admins have access to four dedicated management panels and the Admin Settings suite.
 
 ---
 
-## 2. Citizen ID Verifications Panel
+## 2. Live Incident & Hazard Map
+
+The **Incident Map** serves as the central operational hub, bringing together:
+- **Emergency SOS Alerts:** Live GPS pins with golden-minute medical info, caller phone, and attached photo/video proof.
+- **Public Hazards:** Orange caution markers for reported road blockages, flooded streets, fallen trees, and downed electrical lines.
+- **Category & Barangay Filters:** Filter what is visible on the map in 1-click.
+- **Mobile Responsive Drawer:** On mobile screens, dispatchers and admins can navigate via the off-canvas drawer while viewing the full live map.
+
+---
+
+## 3. Citizen ID Verifications Panel
 
 Every newly registered citizen remains in an `unverified` status until reviewed by an administrator:
 
@@ -32,7 +42,7 @@ For each applicant in the verification queue, the admin can inspect:
 
 ---
 
-## 3. Citizens Management Panel
+## 4. Citizens Management Panel
 
 The **Citizens** panel is a full directory of all registered residents across San Isidro.
 
@@ -48,7 +58,7 @@ The **Citizens** panel is a full directory of all registered residents across Sa
 
 ---
 
-## 4. Dispatchers Management Panel
+## 5. Dispatchers Management Panel
 
 Dispatchers cannot self-register; they are created and managed directly by administrators:
 - **Add Dispatcher:** Create a new staff account with Name, Mobile Number, Username, Email, Password, and Assigned Barangay.
@@ -57,7 +67,7 @@ Dispatchers cannot self-register; they are created and managed directly by admin
 
 ---
 
-## 5. Citizen Feedback Portal
+## 6. Citizen Feedback Portal
 
 All feedback submitted by citizens from the mobile app's Help tab is routed to this panel:
 - **Details Displayed:** Sender name, username, email, submission timestamp, category badge (*General*, *Bug*, *Suggestion*, *Other*), and message content.
@@ -66,13 +76,22 @@ All feedback submitted by citizens from the mobile app's Help tab is routed to t
 
 ---
 
-## 6. Command Center Settings Panel
+## 7. Public Advisories & Scheduled Broadcasts
 
-Administrators and dispatchers can customize their command center interface:
-- **Custom Desktop Controls:** Frameless Electron desktop window with smooth, theme-aware minimize, maximize, and exit controls.
+Admins and dispatchers can compose town-wide or barangay-scoped push advisories:
+- **Immediate Push:** Sends notifications instantly to citizen devices.
+- **Schedule for Later:** Choose a future date and time to queue automated announcements.
+- **Past-Time Guard:** Automatically prevents scheduling timestamps in the past with visual warning cards and button protection.
+- **Active Broadcasts Management:** Inspect currently running advisories, view duration, and stop announcements when cleared.
+
+---
+
+## 8. Dashboard Settings & Help Guides
+
 - **Dark Theme:** Toggle between High-Contrast Dark Mode and Clean Light Mode.
 - **Reduce Animations:** Minimize UI transition effects for maximum performance on lower-spec workstations.
 - **Emergency Audio & Push Alerts:** Enable or mute real-time sound cues and push alerts for incoming SOS calls.
 - **Default Map Style:** Set the default tile layer for the Incident Map (**Street View** vs. **Satellite Imagery**).
-- **Animated Action Confirmation:** Interactive confirmation dialogs with loading spinners during user approvals, rejections, false alarm flags, and incident resolutions.
+- **Interactive Guided Tours:** Step-by-step walkthroughs for dispatch, broadcasts, archiving, and admin staff management.
 - **Session Logout:** Safely terminate the administrative session and clear local credentials.
+

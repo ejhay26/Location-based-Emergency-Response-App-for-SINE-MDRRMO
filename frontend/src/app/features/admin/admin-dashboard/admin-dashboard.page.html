@@ -47,7 +47,7 @@
                 <span *ngIf="isSidebarCollapsed" class="sidebar-section-dot"></span>
               </div>
               <div class="sidebar-section-items">
-                <button id="nav-btn-active" (click)="selectViewMode('active')" title="Live Incident CAD Map & Dispatches" class="menu-capsule-link" [class.active]="viewMode === 'active'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button id="nav-btn-active" (click)="selectViewMode('active')" title="Live Incident & Hazard Map" class="menu-capsule-link" [class.active]="viewMode === 'active'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <app-icon name="map" [size]="18" [color]="viewMode === 'active' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
                   <span *ngIf="!isSidebarCollapsed">Incident Map</span>
                 </button>
@@ -127,7 +127,7 @@
                   <app-icon name="settings" [size]="18" [color]="viewMode === 'settings' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
                   <span *ngIf="!isSidebarCollapsed">Settings</span>
                 </button>
-                <button id="nav-btn-help" (click)="selectViewMode('help')" title="Operations Manual & Procedural SOP Guides" class="menu-capsule-link" [class.active]="viewMode === 'help'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button id="nav-btn-help" (click)="selectViewMode('help')" title="Help & Operations Guides" class="menu-capsule-link" [class.active]="viewMode === 'help'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <app-icon name="graduation-cap" [size]="18" [color]="viewMode === 'help' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
                   <span *ngIf="!isSidebarCollapsed">Help & Procedures</span>
                 </button>

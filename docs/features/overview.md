@@ -69,20 +69,22 @@ When an SOS is transmitted, this medical record is attached automatically to the
 
 - **Granular Audience Targeting:** Dispatchers can broadcast alerts either **Town-wide** (all residents) or scoped to one or more specific **Barangays**.
 - **Rich Media & Titles:** Broadcasts support titles and up to **4 attached images or videos** (e.g., typhoon tracking maps, evacuation center directions).
+- **Immediate & Scheduled Delivery:** Dispatchers can send broadcasts immediately or schedule them for a future release date and time, protected by automated past-time guards.
+- **Active Announcements Management:** Operators can monitor all active alerts, view how long they have been broadcast, and stop them with one click.
 - **Client-Side Filtering:** Citizens only receive push notifications and UI banners that apply to their home barangay or the entire municipality.
 
 ---
 
 ## 9. Desktop Notifications for Dispatchers (Electron)
 
-- **Continuous Background Awareness:** Built specifically for the Electron desktop command center, `DesktopNotificationsService` emits native OS notifications with audio cues whenever a new emergency or hazard is logged, even if the dispatcher is currently reviewing Analytics or the Log Archive.
+- **Continuous Background Awareness:** Built specifically for the Electron desktop dashboard, `DesktopNotificationsService` emits native OS notifications with audio cues whenever a new emergency or hazard is logged, even if the dispatcher is currently reviewing Analytics or the Log Archive.
 
 ---
 
 ## 10. Advanced Search & Unified Date-Range Filtering
 
 All administrative panels (Citizens, Dispatchers, Verifications, Log Archive, and Analytics) share two modular components:
-1. **`DateRangeFilterComponent`:** A unified calendar popover supporting Single Day, Multi-Day, and Custom Date Range filtering.
+1. **`DateRangeFilterComponent`:** A unified calendar popover supporting Single Day, Multi-Day, and Custom Date Range filtering with responsive sizing that prevents day/number crushing.
 2. **`FilterSummaryBarComponent`:** A persistent active-filter chip bar indicating current query parameters with one-click reset capabilities.
 
 ---
@@ -97,4 +99,5 @@ All administrative panels (Citizens, Dispatchers, Verifications, Log Archive, an
 ## 12. Interactive Guided Tour & Tutorial System
 
 - **First-Run Onboarding Tour:** A multi-step animated overlay (`TourOverlayComponent`) highlighting primary app actions for first-time users.
-- **Interactive Help Center:** A dedicated Help tab containing emergency hotlines (Globe and Smart with direct-dial links), interactive chapter tutorials, FAQs, and a direct feedback portal.
+- **Help & Operations Guides:** Interactive procedural walkthroughs on the Admin and Dispatcher dashboards that spotlight live controls, animate seamlessly, and auto-manage navigation across desktop and mobile drawer views.
+- **Citizen Help Center:** A dedicated Help tab containing emergency hotlines (Globe and Smart with direct-dial links), interactive chapter tutorials, FAQs, and a direct feedback portal.

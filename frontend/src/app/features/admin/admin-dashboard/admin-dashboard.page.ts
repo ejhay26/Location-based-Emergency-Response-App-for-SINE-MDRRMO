@@ -121,6 +121,17 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
         this.viewMode = panel as ViewMode;
       }
     });
+
+    effect(() => {
+      const active = this.tour.isActive();
+      const target = this.tour.targetId();
+      if (active && target && target.startsWith('nav-btn-')) {
+        // If on mobile screen, automatically open the sidebar drawer so the target is accessible!
+        if (window.innerWidth <= 768) {
+          this.isMobileSidebarOpen = true;
+        }
+      }
+    });
   }
 
   ngOnInit() {
