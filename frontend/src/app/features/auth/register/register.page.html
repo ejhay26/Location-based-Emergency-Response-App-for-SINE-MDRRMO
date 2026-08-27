@@ -121,22 +121,138 @@
         </div>
       </div>
 
-      <!-- ID Type Dropdown -->
+      <!-- ID Type Dropdown (Top 6 Philippine Government IDs) -->
       <div class="inset-card" style="margin-bottom: 14px;">
         <ion-item lines="none">
-          <ion-select label="Valid ID Type" labelPlacement="stacked" placeholder="Select your ID type" [(ngModel)]="userData.valid_id_type" required>
-            <ion-select-option value="Philippine National ID (PhilSys)">Philippine National ID (PhilSys)</ion-select-option>
-            <ion-select-option value="Driver's License">Driver's License</ion-select-option>
-            <ion-select-option value="Voter's ID">Voter's ID</ion-select-option>
-            <ion-select-option value="UMID">UMID</ion-select-option>
-            <ion-select-option value="Postal ID">Postal ID</ion-select-option>
-            <ion-select-option value="PWD ID">PWD ID</ion-select-option>
-            <ion-select-option value="Senior Citizen ID">Senior Citizen ID</ion-select-option>
-            <ion-select-option value="Student/School ID">Student/School ID</ion-select-option>
-            <ion-select-option value="Barangay ID">Barangay ID</ion-select-option>
-            <ion-select-option value="Other">Other</ion-select-option>
+          <ion-select label="Valid ID Type" labelPlacement="stacked" placeholder="Select Philippine Government ID" [(ngModel)]="userData.valid_id_type" (ionChange)="onIdTypeChange()" required>
+            <ion-select-option value="Philippine National ID (PhilSys)">Philippine National ID (PhilSys / ePhilID)</ion-select-option>
+            <ion-select-option value="Driver's License">Driver's License (LTO)</ion-select-option>
+            <ion-select-option value="Philippine Passport">Philippine Passport (DFA)</ion-select-option>
+            <ion-select-option value="UMID / SSS ID">UMID / SSS ID</ion-select-option>
+            <ion-select-option value="Postal ID">Postal ID (PhilPost)</ion-select-option>
+            <ion-select-option value="PRC License">PRC ID / Professional License</ion-select-option>
           </ion-select>
         </ion-item>
+      </div>
+
+      <!-- Dynamic ID Number & Details based on Selected Type -->
+      <div *ngIf="userData.valid_id_type" class="inset-card" style="margin-bottom: 14px; padding: 14px;">
+        <div style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--ion-color-medium); margin-bottom: 10px;">
+          ID Credentials Verification
+        </div>
+
+        <!-- PhilSys PCN -->
+        <div *ngIf="userData.valid_id_type === 'Philippine National ID (PhilSys)'">
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            16-Digit PhilSys Card Number (PCN)
+          </label>
+          <div class="boxed-input-wrap">
+            <ion-input type="text" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19"
+              [value]="userData.valid_id_number"
+              (ionInput)="onPhilSysInput($event.detail.value)">
+            </ion-input>
+          </div>
+          <p style="font-size: 11px; color: var(--ion-color-medium); margin: 6px 0 0 2px;">
+            Enter the 16-digit number printed on your physical PhilSys ID or printed ePhilID.
+          </p>
+        </div>
+
+        <!-- Driver's License -->
+        <div *ngIf="userData.valid_id_type === 'Driver\'s License'">
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            LTO License Number
+          </label>
+          <div class="boxed-input-wrap" style="margin-bottom: 12px;">
+            <ion-input type="text" placeholder="e.g. N01-12-345678" maxlength="13"
+              [value]="userData.valid_id_number"
+              (ionInput)="onDriverLicenseInput($event.detail.value)">
+            </ion-input>
+          </div>
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            Expiration Date
+          </label>
+          <div class="boxed-input-wrap">
+            <ion-input type="date" [(ngModel)]="userData.valid_id_expiry"></ion-input>
+          </div>
+        </div>
+
+        <!-- Philippine Passport -->
+        <div *ngIf="userData.valid_id_type === 'Philippine Passport'">
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            DFA Passport Number
+          </label>
+          <div class="boxed-input-wrap" style="margin-bottom: 12px;">
+            <ion-input type="text" placeholder="e.g. P1234567A" maxlength="10"
+              [(ngModel)]="userData.valid_id_number"
+              (ionInput)="userData.valid_id_number = ($event.detail.value || '').toUpperCase().trim()">
+            </ion-input>
+          </div>
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            Passport Expiry Date
+          </label>
+          <div class="boxed-input-wrap">
+            <ion-input type="date" [(ngModel)]="userData.valid_id_expiry"></ion-input>
+          </div>
+        </div>
+
+        <!-- UMID / SSS ID -->
+        <div *ngIf="userData.valid_id_type === 'UMID / SSS ID'">
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            Common Reference Number (CRN) / SSS Number
+          </label>
+          <div class="boxed-input-wrap">
+            <ion-input type="text" placeholder="0000-0000000-0" maxlength="14"
+              [value]="userData.valid_id_number"
+              (ionInput)="onUmidInput($event.detail.value)">
+            </ion-input>
+          </div>
+        </div>
+
+        <!-- Postal ID -->
+        <div *ngIf="userData.valid_id_type === 'Postal ID'">
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            Postal Reference Number (PRN)
+          </label>
+          <div class="boxed-input-wrap" style="margin-bottom: 12px;">
+            <ion-input type="text" placeholder="e.g. 1234567890" maxlength="20"
+              [(ngModel)]="userData.valid_id_number"
+              (ionInput)="userData.valid_id_number = ($event.detail.value || '').toUpperCase().trim()">
+            </ion-input>
+          </div>
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            Card Expiration Date
+          </label>
+          <div class="boxed-input-wrap">
+            <ion-input type="date" [(ngModel)]="userData.valid_id_expiry"></ion-input>
+          </div>
+        </div>
+
+        <!-- PRC License -->
+        <div *ngIf="userData.valid_id_type === 'PRC License'">
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            Profession / Regulated Title
+          </label>
+          <div class="boxed-input-wrap" style="margin-bottom: 12px;">
+            <ion-input type="text" placeholder="e.g. Registered Nurse, Civil Engineer"
+              [(ngModel)]="idProfession">
+            </ion-input>
+          </div>
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            PRC Registration Number (7 Digits)
+          </label>
+          <div class="boxed-input-wrap" style="margin-bottom: 12px;">
+            <ion-input type="text" placeholder="0000000" maxlength="7"
+              [value]="userData.valid_id_number"
+              (ionInput)="onPrcNumberInput($event.detail.value)">
+            </ion-input>
+          </div>
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+            License Valid Until (Expiry Date)
+          </label>
+          <div class="boxed-input-wrap">
+            <ion-input type="date" [(ngModel)]="userData.valid_id_expiry"></ion-input>
+          </div>
+        </div>
       </div>
 
       <app-register-id-capture variant="id" fieldName="valid_id_image" [userData]="userData" (toast)="showToast($event)"></app-register-id-capture>

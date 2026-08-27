@@ -99,15 +99,60 @@ export class RegisterPage implements OnDestroy {
 
   @ViewChild(RegisterAccountDetailsComponent) accountDetailsCmp?: RegisterAccountDetailsComponent;
 
+  idProfession = '';
+
   userData = {
     first_name: '', last_name: '', phone: '', birthdate: '', username: '',
     email: '', password: '', confirm_password: '', barangay_id: null as number | null,
     valid_id_image: '',
     valid_id_image_back: '',
     valid_id_type: '',
+    valid_id_number: '',
+    valid_id_expiry: '',
+    valid_id_details: null as any,
     selfie_with_id_image: '',
     otp_channel: 'email' as 'email' | 'sms'
   };
+
+  onIdTypeChange(): void {
+    this.userData.valid_id_number = '';
+    this.userData.valid_id_expiry = '';
+    this.userData.valid_id_details = null;
+    this.idProfession = '';
+  }
+
+  onPhilSysInput(val: string | null | undefined): void {
+    const digits = (val ?? '').replace(/\D/g, '').slice(0, 16);
+    const chunks = digits.match(/.{1,4}/g);
+    this.userData.valid_id_number = chunks ? chunks.join('-') : '';
+  }
+
+  onDriverLicenseInput(val: string | null | undefined): void {
+    let clean = (val ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (clean.length > 9) clean = clean.slice(0, 9);
+    if (clean.length > 5) {
+      this.userData.valid_id_number = `${clean.slice(0, 3)}-${clean.slice(3, 5)}-${clean.slice(5)}`;
+    } else if (clean.length > 3) {
+      this.userData.valid_id_number = `${clean.slice(0, 3)}-${clean.slice(3)}`;
+    } else {
+      this.userData.valid_id_number = clean;
+    }
+  }
+
+  onUmidInput(val: string | null | undefined): void {
+    const digits = (val ?? '').replace(/\D/g, '').slice(0, 12);
+    if (digits.length > 11) {
+      this.userData.valid_id_number = `${digits.slice(0, 4)}-${digits.slice(4, 11)}-${digits.slice(11)}`;
+    } else if (digits.length > 4) {
+      this.userData.valid_id_number = `${digits.slice(0, 4)}-${digits.slice(4)}`;
+    } else {
+      this.userData.valid_id_number = digits;
+    }
+  }
+
+  onPrcNumberInput(val: string | null | undefined): void {
+    this.userData.valid_id_number = (val ?? '').replace(/\D/g, '').slice(0, 7);
+  }
 
   private modalCtrl = inject(ModalController);
   private otpAutofill = inject(OtpAutofillService);
@@ -183,8 +228,20 @@ export class RegisterPage implements OnDestroy {
     // ── STEP 3: Identity Verification ──
     if (this.currentStep === 3) {
       if (!this.userData.valid_id_type) {
-        this.showToast('Please select your ID type.');
+        this.showToast('Please select a Philippine Government ID type.');
         return;
+      }
+      if (!this.userData.valid_id_number?.trim()) {
+        this.showToast('Please enter your valid ID number.');
+        return;
+      }
+      const typesWithExpiry = ["Driver's License", 'Philippine Passport', 'Postal ID', 'PRC License'];
+      if (typesWithExpiry.includes(this.userData.valid_id_type) && !this.userData.valid_id_expiry) {
+        this.showToast('Please select your ID expiration date.');
+        return;
+      }
+      if (this.userData.valid_id_type === 'PRC License' && this.idProfession.trim()) {
+        this.userData.valid_id_details = { profession: this.idProfession.trim() };
       }
       if (!this.userData.valid_id_image) {
         this.showToast('A photo of the front of your ID is required.');
