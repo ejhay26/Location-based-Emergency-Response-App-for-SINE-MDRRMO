@@ -15,20 +15,25 @@ class User extends Authenticatable
     public $timestamps = false;
 
     protected $fillable = [
-        'first_name', 'last_name', 'phone', 'username', 'birthdate',
-        'email', 'password', 'barangay_id', 'role', 'profile_picture',
-        'account_status', 'setup_completed',
+        'email', 'password', 'role',
+        'account_status',
         'ban_reason', 'banned_at',
         'false_alarm_strikes',
     ];
 
     protected $hidden = ['password'];
 
-    protected $casts = [
-        'setup_completed' => 'boolean',
-    ];
+    protected $with = ['profile'];
 
     protected $appends = [
+        'first_name',
+        'last_name',
+        'username',
+        'phone',
+        'birthdate',
+        'profile_picture',
+        'barangay_id',
+        'setup_completed',
         'valid_id_type',
         'valid_id_number',
         'valid_id_expiry',
@@ -44,6 +49,11 @@ class User extends Authenticatable
 
     // ── Relationships ───────────────────────────────────────────────────
 
+    public function profile()
+    {
+        return $this->hasOne(UserProfile::class, 'user_id', 'user_id');
+    }
+
     public function verification()
     {
         return $this->hasOne(UserVerification::class, 'user_id', 'user_id')->latestOfMany();
@@ -57,6 +67,48 @@ class User extends Authenticatable
     public function medicalProfile()
     {
         return $this->hasOne(UserMedicalProfile::class, 'user_id', 'user_id');
+    }
+
+    // ── Demographic Profile Accessors ──────────────────────────────────
+
+    public function getFirstNameAttribute()
+    {
+        return $this->profile?->first_name;
+    }
+
+    public function getLastNameAttribute()
+    {
+        return $this->profile?->last_name;
+    }
+
+    public function getUsernameAttribute()
+    {
+        return $this->profile?->username;
+    }
+
+    public function getPhoneAttribute()
+    {
+        return $this->profile?->phone;
+    }
+
+    public function getBirthdateAttribute()
+    {
+        return $this->profile?->birthdate;
+    }
+
+    public function getProfilePictureAttribute()
+    {
+        return $this->profile?->profile_picture;
+    }
+
+    public function getBarangayIdAttribute()
+    {
+        return $this->profile?->barangay_id;
+    }
+
+    public function getSetupCompletedAttribute()
+    {
+        return (bool) ($this->profile?->setup_completed ?? false);
     }
 
     // ── Backwards-Compatible Accessors ─────────────────────────────────
