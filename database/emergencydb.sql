@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 27, 2026 at 04:39 AM
+-- Generation Time: Aug 27, 2026 at 07:42 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -500,32 +500,13 @@ CREATE TABLE `sessions` (
 
 CREATE TABLE `users` (
   `user_id` int(11) NOT NULL,
-  `first_name` varchar(100) DEFAULT NULL,
-  `last_name` varchar(100) DEFAULT NULL,
-  `username` varchar(50) DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `birthdate` date DEFAULT NULL,
-  `profile_picture` varchar(255) DEFAULT 'https://ionicframework.com/docs/img/demos/avatar.svg',
   `email` varchar(100) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `role` enum('citizen','dispatcher','admin') NOT NULL DEFAULT 'citizen',
   `account_status` enum('unverified','active','banned') NOT NULL DEFAULT 'active',
-  `setup_completed` tinyint(1) NOT NULL DEFAULT 0,
-  `barangay_id` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` timestamp NULL DEFAULT NULL,
-  `valid_id_proof` varchar(255) DEFAULT NULL,
-  `valid_id_proof_back` varchar(255) DEFAULT NULL,
-  `valid_id_type` varchar(50) DEFAULT NULL,
-  `valid_id_number` varchar(100) DEFAULT NULL,
-  `valid_id_expiry` date DEFAULT NULL,
-  `valid_id_details` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
-  `selfie_with_id_proof` varchar(255) DEFAULT NULL,
-  `blood_type` varchar(10) DEFAULT NULL,
-  `allergies` text DEFAULT NULL,
-  `medical_conditions` text DEFAULT NULL,
-  `pwd_status` varchar(100) DEFAULT NULL,
   `ban_reason` varchar(500) DEFAULT NULL,
   `banned_at` timestamp NULL DEFAULT NULL,
   `false_alarm_strikes` tinyint(3) UNSIGNED NOT NULL DEFAULT 0
@@ -535,13 +516,70 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `phone`, `birthdate`, `profile_picture`, `email`, `password`, `role`, `account_status`, `setup_completed`, `barangay_id`, `created_at`, `updated_at`, `deleted_at`, `valid_id_proof`, `valid_id_proof_back`, `valid_id_type`, `valid_id_number`, `valid_id_expiry`, `valid_id_details`, `selfie_with_id_proof`, `blood_type`, `allergies`, `medical_conditions`, `pwd_status`, `ban_reason`, `banned_at`, `false_alarm_strikes`) VALUES
-(1, 'Emmanuel John', 'Perez', 'user1', '639940405953', NULL, 'storage/profiles/profile_1784451005_1.png', 'ejperez623@gmail.com', '$2y$12$tf9EDu5GrXqwEi0Mu8KZau/9MnLwEYanOtozFMKQ6Wfs7OPK29U0a', 'citizen', 'active', 1, 9, '2026-05-07 05:45:17', '2026-08-15 11:42:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'AB+', '', '', '', NULL, NULL, 0),
-(3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', 1, 1, '2026-05-07 05:45:17', '2026-08-08 12:39:35', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 0, 1, '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', 0, 3, '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(9, 'dispatcher', '2', 'dispatcher2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 'dis2@mail.com', '$2y$12$WuAbG0j2AFQjlMC/RttG4OF5qv2k372lv6qeIOfjJue5FnBJ8Eml.', 'dispatcher', 'active', 0, 4, '2026-05-08 09:28:54', '2026-05-08 09:28:54', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(10, 'awd', 'awd', 'awdawd', '131314', '2005-04-13', 'https://ionicframework.com/docs/img/demos/avatar.svg', 'ejcp2005@gmail.com', '$2y$12$C5EMGU7mvVIrkGD9VIn.PuKexBvLz4taR/.KJMRLn2qSw4dBlNFpW', 'citizen', 'active', 0, 5, '2026-05-10 12:07:56', '2026-05-10 12:07:56', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0);
+INSERT INTO `users` (`user_id`, `email`, `password`, `role`, `account_status`, `created_at`, `updated_at`, `deleted_at`, `ban_reason`, `banned_at`, `false_alarm_strikes`) VALUES
+(1, 'ejperez623@gmail.com', '$2y$12$tf9EDu5GrXqwEi0Mu8KZau/9MnLwEYanOtozFMKQ6Wfs7OPK29U0a', 'citizen', 'active', '2026-05-07 05:45:17', '2026-08-15 11:42:54', NULL, NULL, NULL, 0),
+(3, 'ejperez634@gmail.com', '$2y$12$rEM8co2YcwxaGgxRDZkzzu372zNnL1J8UzVfXdykwnGXuFB0SkoRe', 'citizen', 'active', '2026-05-07 05:45:17', '2026-08-08 12:39:35', NULL, NULL, NULL, 0),
+(4, 'admin_user@sine.gov.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', '2026-05-07 05:45:17', '2026-05-07 17:31:52', NULL, NULL, NULL, 0),
+(8, 'dis@mail.com', '$2y$12$7O1Kw6owYNV9D5wcfJxs5./mGMgpzOYv06Ipi1D4XoxsoiHNwuZ8O', 'dispatcher', 'active', '2026-05-07 16:23:26', '2026-05-08 08:52:34', NULL, NULL, NULL, 0),
+(9, 'dis2@mail.com', '$2y$12$WuAbG0j2AFQjlMC/RttG4OF5qv2k372lv6qeIOfjJue5FnBJ8Eml.', 'dispatcher', 'active', '2026-05-08 09:28:54', '2026-05-08 09:28:54', NULL, NULL, NULL, 0),
+(10, 'ejcp2005@gmail.com', '$2y$12$C5EMGU7mvVIrkGD9VIn.PuKexBvLz4taR/.KJMRLn2qSw4dBlNFpW', 'citizen', 'active', '2026-05-10 12:07:56', '2026-05-10 12:07:56', NULL, NULL, NULL, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_medical_profiles`
+--
+
+CREATE TABLE `user_medical_profiles` (
+  `profile_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `blood_type` varchar(10) DEFAULT NULL,
+  `allergies` text DEFAULT NULL,
+  `medical_conditions` text DEFAULT NULL,
+  `pwd_status` varchar(100) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_medical_profiles`
+--
+
+INSERT INTO `user_medical_profiles` (`profile_id`, `user_id`, `blood_type`, `allergies`, `medical_conditions`, `pwd_status`, `created_at`, `updated_at`) VALUES
+(1, 1, 'AB+', '', '', '', '2026-08-27 04:28:13', '2026-08-27 04:28:13');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_profiles`
+--
+
+CREATE TABLE `user_profiles` (
+  `profile_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `first_name` varchar(100) DEFAULT NULL,
+  `last_name` varchar(100) DEFAULT NULL,
+  `username` varchar(50) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `birthdate` date DEFAULT NULL,
+  `profile_picture` varchar(255) DEFAULT 'https://ionicframework.com/docs/img/demos/avatar.svg',
+  `barangay_id` int(11) DEFAULT NULL,
+  `setup_completed` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_profiles`
+--
+
+INSERT INTO `user_profiles` (`profile_id`, `user_id`, `first_name`, `last_name`, `username`, `phone`, `birthdate`, `profile_picture`, `barangay_id`, `setup_completed`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Emmanuel John', 'Perez', 'user1', '639940405953', NULL, 'storage/profiles/profile_1784451005_1.png', 9, 1, '2026-08-27 05:16:38', '2026-08-27 05:16:38'),
+(2, 3, 'Emmanuel', 'Perezzz', 'user2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 1, 1, '2026-08-27 05:16:38', '2026-08-27 05:16:38'),
+(3, 4, 'admin_user', 'Admin', 'admin', 'N/A', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 1, 0, '2026-08-27 05:16:38', '2026-08-27 05:16:38'),
+(4, 8, 'Dispatcher 1', '1', 'dispatcher1', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 3, 0, '2026-08-27 05:16:38', '2026-08-27 05:16:38'),
+(5, 9, 'dispatcher', '2', 'dispatcher2', '09123456789', NULL, 'https://ionicframework.com/docs/img/demos/avatar.svg', 4, 0, '2026-08-27 05:16:38', '2026-08-27 05:16:38'),
+(6, 10, 'awd', 'awd', 'awdawd', '131314', '2005-04-13', 'https://ionicframework.com/docs/img/demos/avatar.svg', 5, 0, '2026-08-27 05:16:38', '2026-08-27 05:16:38');
 
 -- --------------------------------------------------------
 
@@ -575,6 +613,30 @@ INSERT INTO `user_settings` (`id`, `user_id`, `key`, `value`, `updated_at`, `sav
 (10, 3, 'notif_broadcast_alerts', 'true', '2026-08-18 00:41:04', 0),
 (11, 4, 'map_default_style', 'street', '2026-08-20 21:58:22', 0),
 (12, 4, 'reduce_animations', 'false', '2026-08-21 22:23:15', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_verifications`
+--
+
+CREATE TABLE `user_verifications` (
+  `verification_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `valid_id_type` varchar(50) DEFAULT NULL,
+  `valid_id_number` varchar(100) DEFAULT NULL,
+  `valid_id_expiry` date DEFAULT NULL,
+  `valid_id_details` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `valid_id_proof` varchar(255) DEFAULT NULL,
+  `valid_id_proof_back` varchar(255) DEFAULT NULL,
+  `selfie_with_id_proof` varchar(255) DEFAULT NULL,
+  `verification_status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `rejection_reason` varchar(500) DEFAULT NULL,
+  `reviewed_by` int(11) DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -741,9 +803,24 @@ ALTER TABLE `sessions`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`user_id`),
-  ADD UNIQUE KEY `email` (`email`),
-  ADD UNIQUE KEY `username` (`username`),
-  ADD KEY `barangay_id` (`barangay_id`);
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `user_medical_profiles`
+--
+ALTER TABLE `user_medical_profiles`
+  ADD PRIMARY KEY (`profile_id`),
+  ADD UNIQUE KEY `idx_medical_user_id` (`user_id`);
+
+--
+-- Indexes for table `user_profiles`
+--
+ALTER TABLE `user_profiles`
+  ADD PRIMARY KEY (`profile_id`),
+  ADD UNIQUE KEY `idx_profile_user_id` (`user_id`),
+  ADD UNIQUE KEY `idx_profile_username` (`username`),
+  ADD KEY `idx_profile_phone` (`phone`),
+  ADD KEY `fk_profile_barangay` (`barangay_id`);
 
 --
 -- Indexes for table `user_settings`
@@ -751,6 +828,14 @@ ALTER TABLE `users`
 ALTER TABLE `user_settings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `user_settings_user_id_key_unique` (`user_id`,`key`);
+
+--
+-- Indexes for table `user_verifications`
+--
+ALTER TABLE `user_verifications`
+  ADD PRIMARY KEY (`verification_id`),
+  ADD KEY `idx_verif_user_id` (`user_id`),
+  ADD KEY `idx_verif_status` (`verification_status`);
 
 --
 -- Indexes for table `vehicles`
@@ -848,10 +933,28 @@ ALTER TABLE `users`
   MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
+-- AUTO_INCREMENT for table `user_medical_profiles`
+--
+ALTER TABLE `user_medical_profiles`
+  MODIFY `profile_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `user_profiles`
+--
+ALTER TABLE `user_profiles`
+  MODIFY `profile_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT for table `user_settings`
 --
 ALTER TABLE `user_settings`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `user_verifications`
+--
+ALTER TABLE `user_verifications`
+  MODIFY `verification_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
@@ -898,16 +1001,29 @@ ALTER TABLE `hazards`
   ADD CONSTRAINT `hazards_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 
 --
--- Constraints for table `users`
+-- Constraints for table `user_medical_profiles`
 --
-ALTER TABLE `users`
-  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`);
+ALTER TABLE `user_medical_profiles`
+  ADD CONSTRAINT `fk_medical_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `user_profiles`
+--
+ALTER TABLE `user_profiles`
+  ADD CONSTRAINT `fk_profile_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_profile_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `user_settings`
 --
 ALTER TABLE `user_settings`
   ADD CONSTRAINT `user_settings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `user_verifications`
+--
+ALTER TABLE `user_verifications`
+  ADD CONSTRAINT `fk_verif_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `vehicles`
