@@ -95,7 +95,8 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
   constructor(public tour: TourService, private cdr: ChangeDetectorRef) {
     effect(() => {
       const id = this.tour.targetId();
-      if (!this.tour.isActive() || !id) {
+      const active = this.tour.isActive();
+      if (!active || !id) {
         this.cancelSpring();
         this.holeReady = false;
         this.currentTargetId = '';
@@ -104,11 +105,9 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
       }
 
       this.missingSince = null;
-      if (id !== this.currentTargetId) {
-        this.currentTargetId = id;
-        // Schedule next-tick transition so any page/DOM navigation settles
-        requestAnimationFrame(() => this.transitionToTarget(id));
-      }
+      this.currentTargetId = id;
+      // Schedule next-tick transition so any page/DOM navigation settles
+      requestAnimationFrame(() => this.transitionToTarget(id));
     });
   }
 
@@ -401,21 +400,64 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
 
   private positionText(actualHeight?: number) {
     const TEXT_H = actualHeight ?? 180;
-    const TEXT_W = 360;
+    const TEXT_W = 380;
     const VH = window.innerHeight;
     const VW = window.innerWidth;
     const PAD = 20;
 
-    const spaceBelow = VH - (this.hole.top + this.hole.height);
-    const spaceAbove = this.hole.top;
-    let top: number;
-    if (spaceBelow >= TEXT_H + PAD * 2)      top = this.hole.top + this.hole.height + PAD;
-    else if (spaceAbove >= TEXT_H + PAD * 2) top = this.hole.top - TEXT_H - PAD;
-    else                                      top = Math.max(PAD, Math.min((VH - TEXT_H) / 2, VH - TEXT_H - PAD));
+    const holeTop = this.hole.top;
+    const holeBottom = this.hole.top + this.hole.height;
+    const holeLeft = this.hole.left;
+    const holeRight = this.hole.left + this.hole.width;
 
+    const spaceBelow = VH - holeBottom;
+    const spaceAbove = holeTop;
+    const spaceRight = VW - holeRight;
+    const spaceLeft = holeLeft;
+
+    let top: number;
+    let left: number;
     const textW = Math.min(TEXT_W, VW - 32);
-    let left = this.hole.left + this.hole.width / 2 - textW / 2;
+
+    // 1. If element is tall (takes up > 55% of screen height, e.g. sidebar or CAD columns)
+    if (this.hole.height > VH * 0.55) {
+      if (spaceRight >= textW + PAD) {
+        // Place text to the right of the hole (e.g. sidebar on left)
+        left = holeRight + PAD;
+        top = Math.max(PAD, Math.min(holeTop + 40, VH - TEXT_H - PAD));
+      } else if (spaceLeft >= textW + PAD) {
+        // Place text to the left of the hole (e.g. queue on right)
+        left = holeLeft - textW - PAD;
+        top = Math.max(PAD, Math.min(holeTop + 40, VH - TEXT_H - PAD));
+      } else {
+        // Fallback: place below or above
+        top = spaceBelow >= spaceAbove ? Math.max(PAD, VH - TEXT_H - PAD) : PAD;
+        left = (VW - textW) / 2;
+      }
+    }
+    // 2. Standard elements: Prefer placing BELOW or ABOVE
+    else if (spaceBelow >= TEXT_H + PAD) {
+      top = holeBottom + PAD;
+      left = holeLeft + this.hole.width / 2 - textW / 2;
+    } else if (spaceAbove >= TEXT_H + PAD) {
+      top = holeTop - TEXT_H - PAD;
+      left = holeLeft + this.hole.width / 2 - textW / 2;
+    } else if (spaceRight >= textW + PAD) {
+      left = holeRight + PAD;
+      top = Math.max(PAD, Math.min(holeTop, VH - TEXT_H - PAD));
+    } else if (spaceLeft >= textW + PAD) {
+      left = holeLeft - textW - PAD;
+      top = Math.max(PAD, Math.min(holeTop, VH - TEXT_H - PAD));
+    } else {
+      // If element is very large, dock at bottom or top outside center
+      top = spaceBelow > spaceAbove ? Math.max(PAD, VH - TEXT_H - PAD) : PAD;
+      left = (VW - textW) / 2;
+    }
+
+    // Keep strictly within screen bounds
     left = Math.max(PAD, Math.min(left, VW - textW - PAD));
+    top = Math.max(PAD, Math.min(top, VH - TEXT_H - PAD));
+
     this.textStyle = `top:${top}px;left:${left}px;width:${textW}px;`;
   }
 }

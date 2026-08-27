@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
@@ -14,7 +14,7 @@ export interface ProcedureGuide {
   icon: string;
   badgeColor: string;
   description: string;
-  duration: string;
+  adminOnly?: boolean;
   steps: TourStep[];
 }
 
@@ -31,6 +31,8 @@ export interface ProcedureGuide {
 })
 export class HelpPanel {
 
+  @Input() isAdmin = false;
+
   readonly procedures: ProcedureGuide[] = [
     {
       id: 'dispatch',
@@ -38,20 +40,31 @@ export class HelpPanel {
       category: 'Operations',
       icon: 'siren',
       badgeColor: '#eb445a',
-      description: 'Standard procedure for receiving live citizen SOS calls, assessing medical & triage urgency, locating on map, and dispatching rescue teams.',
-      duration: '1 min',
+      description: 'Standard operational procedure for receiving incoming citizen emergency alerts, pinpointing precise GPS coordinates, evaluating urgency, and dispatching response units.',
       steps: [
         {
-          id: 'cad-map-container',
+          id: 'nav-btn-active',
           panel: 'active',
-          callout: 'Real-Time Incident Map',
-          subtext: 'Incoming emergency SOS beacons appear with live GPS coordinates, accuracy radius, and citizen details.',
+          callout: 'Step 1: Open CAD Workspace',
+          subtext: 'Click Incident Map on the sidebar to access the live Computer-Aided Dispatch (CAD) command center.',
+        },
+        {
+          id: 'cad-map-toolbar',
+          panel: 'active',
+          callout: 'Command Filter Toolbar',
+          subtext: 'Filter live incidents by Barangay, category (Medical, Fire, Crime), and toggle between Street and Satellite view.',
+        },
+        {
+          id: 'dispatch-map',
+          panel: 'active',
+          callout: 'Live GPS Incident Map',
+          subtext: 'All emergency SOS beacons are plotted in real time with exact coordinates, GPS accuracy rings, and active responder markers.',
         },
         {
           id: 'cad-queue-container',
           panel: 'active',
-          callout: 'Incident Queue & Triage',
-          subtext: 'Review reported incidents ranked by urgency. Click any incident card to view citizen medical info, photo evidence, and assigned responders.',
+          callout: 'Incident Triage Queue',
+          subtext: 'Incoming calls appear ranked by severity. Click any incident card to view citizen medical info, photos, and dispatch units.',
         },
       ]
     },
@@ -62,25 +75,36 @@ export class HelpPanel {
       icon: 'broadcast',
       badgeColor: '#ffc409',
       description: 'How to compose official disaster warnings, target specific barangays or town-wide, and schedule announcements for future auto-release.',
-      duration: '1 min',
       steps: [
+        {
+          id: 'nav-btn-broadcast',
+          panel: 'broadcast',
+          callout: 'Step 1: Open Alert Broadcast',
+          subtext: 'Click Alert Broadcast on the sidebar to access the town-wide public advisory composer.',
+        },
         {
           id: 'broadcast-composer',
           panel: 'broadcast',
-          callout: 'Broadcast Message Composer',
-          subtext: 'Enter the official emergency advisory, evacuation order, or weather update. You can attach up to 4 photos or videos.',
+          callout: 'Advisory Message & Media',
+          subtext: 'Enter the headline and advisory notice. Attach up to 4 photos or video updates for citizen guidance.',
         },
         {
           id: 'broadcast-barangay-selector',
           panel: 'broadcast',
-          callout: 'Targeting Barangays',
-          subtext: 'Keep on "All Barangays" for town-wide alerts, or tap multiple individual barangays to target specific affected communities.',
+          callout: 'Audience Targeting',
+          subtext: 'Leave on "All Barangays" for municipal blasts, or tap individual barangays to restrict the alert to specific zones.',
         },
         {
           id: 'broadcast-delivery-mode',
           panel: 'broadcast',
-          callout: 'Immediate vs. Scheduled Release',
-          subtext: 'Choose "Post Immediately" for critical warnings, or "Schedule for Later" with the date/time picker to pre-program advisories.',
+          callout: 'Delivery Mode Toggle',
+          subtext: 'Select "Post Immediately" for critical warnings, or toggle to "Schedule for Later" to pick an auto-release date and time.',
+        },
+        {
+          id: 'broadcast-submit-btn',
+          panel: 'broadcast',
+          callout: 'Review & Dispatch Alert',
+          subtext: 'Click here to review recipients and send or queue the push announcement across all citizen apps.',
         },
       ]
     },
@@ -90,20 +114,31 @@ export class HelpPanel {
       category: 'Road & Safety',
       icon: 'alert-triangle',
       badgeColor: '#2dd36f',
-      description: 'Procedure for verifying citizen-reported flooded streets, fallen trees, and downed electrical wires, and updating hazard status when cleared.',
-      duration: '1 min',
+      description: 'Procedure for inspecting citizen-reported flooded streets, fallen trees, and downed electrical wires, and updating hazard status when cleared.',
       steps: [
         {
-          id: 'cad-map-container',
+          id: 'nav-btn-hazards',
           panel: 'hazards',
-          callout: 'Hazard Map Plotter',
-          subtext: 'All citizen-submitted hazard reports are plotted as orange warning pins with exact GPS coordinates.',
+          callout: 'Step 1: Open Public Hazards',
+          subtext: 'Click Public Hazards on the sidebar to access the road obstruction inspection map.',
+        },
+        {
+          id: 'cad-map-toolbar',
+          panel: 'hazards',
+          callout: 'Hazard Category Filters',
+          subtext: 'Filter obstruction reports by Flood, Road Obstruction, Power Lines, or Landslide.',
+        },
+        {
+          id: 'dispatch-map',
+          panel: 'hazards',
+          callout: 'Hazard Location Map',
+          subtext: 'Orange hazard warning markers show exact road obstruction points submitted by citizens with GPS tracking.',
         },
         {
           id: 'cad-queue-container',
           panel: 'hazards',
-          callout: 'Hazard Verification Queue',
-          subtext: 'Inspect citizen photo evidence, contact reporting party if needed, and mark the hazard as Resolved when clearing teams finish.',
+          callout: 'Verification & Clearing',
+          subtext: 'Inspect citizen photo evidence, contact the reporter if clarification is needed, and mark the hazard Resolved once cleared.',
         },
       ]
     },
@@ -114,23 +149,73 @@ export class HelpPanel {
       icon: 'history',
       badgeColor: '#3880ff',
       description: 'How to search historical incident logs, filter by date or barangay, and export certified records for municipal and disaster councils.',
-      duration: '45 sec',
       steps: [
+        {
+          id: 'nav-btn-archive',
+          panel: 'archive',
+          callout: 'Step 1: Open Log Archive',
+          subtext: 'Click Log Archive on the sidebar to access historical records of all resolved emergency incidents.',
+        },
         {
           id: 'archive-filters',
           panel: 'archive',
-          callout: 'Log Search & Filters',
-          subtext: 'Filter past emergency reports by date range, status, incident type, or barangay jurisdiction.',
+          callout: 'Multi-Criteria Search & Filter',
+          subtext: 'Filter past emergency reports by custom date ranges, incident severity, status, or barangay jurisdiction.',
         },
         {
           id: 'exportArchivePdfBtn',
           panel: 'archive',
-          callout: 'Export Certified Reports',
-          subtext: 'Export incident logs to official PDF reports for situation briefings and post-disaster municipal audits.',
+          callout: 'Export Certified PDF',
+          subtext: 'Export filtered incident logs to official certified PDF situation reports for disaster council briefings and audit compliance.',
+        },
+      ]
+    },
+    {
+      id: 'account-management',
+      title: 'Personnel & Account Management',
+      category: 'Admin Control',
+      icon: 'users',
+      badgeColor: '#bc6fff',
+      adminOnly: true,
+      description: 'Administrative standard procedure for managing dispatcher staff, creating responder accounts, verifying citizen KYC identity credentials, and moderating false alarm strikes.',
+      steps: [
+        {
+          id: 'nav-btn-dispatchers',
+          panel: 'dispatchers',
+          callout: 'Step 1: Open Dispatchers Staff',
+          subtext: 'Click Dispatchers on the sidebar to manage all municipal response operators and their assigned duties.',
+        },
+        {
+          id: 'add-dispatcher-btn',
+          panel: 'dispatchers',
+          callout: 'Register New Dispatcher',
+          subtext: 'Click here to securely create accounts for newly appointed municipal dispatchers and assign their station credentials.',
+        },
+        {
+          id: 'dispatcherSearch',
+          panel: 'dispatchers',
+          callout: 'Staff Search & Roster',
+          subtext: 'Search dispatchers by name, email, or barangay assignment, and monitor their active duty statuses.',
+        },
+        {
+          id: 'nav-btn-citizens',
+          panel: 'citizens',
+          callout: 'Step 4: Citizen Directory',
+          subtext: 'Click Citizens on the sidebar to inspect all registered residents, verify identity documents, and enforce disciplinary strikes.',
+        },
+        {
+          id: 'citizenSearch',
+          panel: 'citizens',
+          callout: 'Citizen Search & Moderation',
+          subtext: 'Look up citizens to inspect submitted KYC verification documents, phone validity, and strike counts for misuse.',
         },
       ]
     },
   ];
+
+  get filteredProcedures(): ProcedureGuide[] {
+    return this.procedures.filter(p => !p.adminOnly || this.isAdmin);
+  }
 
   constructor(private tour: TourService) {}
 

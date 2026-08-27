@@ -4,7 +4,7 @@
       <h2 style="margin: 0; font-weight: 800; font-size: 22px; color: var(--ion-text-color);">Dispatchers</h2>
       <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--ion-color-medium); font-weight: 600;">{{ filteredDispatchers.length }} of {{ dispatchers.length }} shown</p>
     </div>
-    <ion-button color="danger" (click)="openDispatcherModal(null)" style="font-weight: 800; height: 42px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(235,68,90,0.3);">
+    <ion-button id="add-dispatcher-btn" color="danger" (click)="openDispatcherModal(null)" style="font-weight: 800; height: 42px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(235,68,90,0.3);">
       <app-icon name="user-plus" [size]="16" color="#ffffff" style="margin-right: 8px;"></app-icon> Add Dispatcher
     </ion-button>
   </div>

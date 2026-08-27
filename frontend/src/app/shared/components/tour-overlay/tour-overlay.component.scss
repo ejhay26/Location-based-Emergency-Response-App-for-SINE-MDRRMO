@@ -89,6 +89,14 @@
   z-index: 99000;
   pointer-events: none; /* purely visual — taps pass through to the catcher/dim beneath */
   text-align: center;
+  padding: 16px 22px;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
   transition: top 0.42s cubic-bezier(0.16, 1, 0.3, 1), left 0.42s cubic-bezier(0.16, 1, 0.3, 1);
   animation: textPop 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
 }

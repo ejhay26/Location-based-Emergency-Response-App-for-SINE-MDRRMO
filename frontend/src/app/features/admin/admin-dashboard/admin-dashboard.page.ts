@@ -62,8 +62,40 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   // Only present in the DOM while viewMode is 'active'/'hazards'; undefined otherwise.
   @ViewChild(IncidentMapPanel) private incidentMapPanel?: IncidentMapPanel;
 
+  isMobileSidebarOpen = false;
+
   get isDarkMode(): boolean { return this.userSettings.getBool('dark_mode'); }
   get isMapView(): boolean { return this.viewMode === 'active' || this.viewMode === 'hazards'; }
+
+  toggleMobileSidebar(): void {
+    this.isMobileSidebarOpen = !this.isMobileSidebarOpen;
+  }
+
+  closeMobileSidebar(): void {
+    this.isMobileSidebarOpen = false;
+  }
+
+  selectViewMode(mode: ViewMode): void {
+    this.viewMode = mode;
+    this.isMobileSidebarOpen = false;
+  }
+
+  get currentViewTitle(): string {
+    const titles: Record<ViewMode, string> = {
+      active: 'Incident Map',
+      hazards: 'Public Hazards',
+      archive: 'Log Archive',
+      analytics: 'Analytics',
+      broadcast: 'Alert Broadcast',
+      verifications: 'ID Verifications',
+      dispatchers: 'Dispatchers',
+      citizens: 'Citizens Directory',
+      feedback: 'Feedback',
+      settings: 'Settings',
+      help: 'Help & Procedures'
+    };
+    return titles[this.viewMode] || 'MDRRMO';
+  }
 
   constructor(
     private router: Router,

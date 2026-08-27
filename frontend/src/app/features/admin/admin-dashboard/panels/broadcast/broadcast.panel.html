@@ -183,9 +183,18 @@
         </div>
       </div>
 
+      <!-- Past Schedule Warning Box -->
+      <div *ngIf="isScheduled && isPastScheduleTime"
+           style="margin-top: 14px; padding: 11px 14px; border-radius: 12px; background: rgba(235,68,90,0.08); border: 1px solid rgba(235,68,90,0.28); display: flex; align-items: center; gap: 10px;">
+        <app-icon name="alert" [size]="18" color="var(--ion-color-danger)" style="flex-shrink: 0;"></app-icon>
+        <span style="font-size: 12.5px; font-weight: 700; color: var(--ion-color-danger); line-height: 1.4;">
+          The selected date and time is in the past. Please pick a future date and time to schedule this announcement.
+        </span>
+      </div>
+
       <!-- Submit / Schedule Alert Button -->
       <ion-button id="broadcast-submit-btn" expand="block" color="danger" (click)="confirmSubmitBroadcast()"
-        [disabled]="!broadcastForm.message.trim()"
+        [disabled]="!broadcastForm.message.trim() || (isScheduled && isPastScheduleTime)"
         title="Send emergency broadcast alert to selected recipients"
         style="font-weight: 800; height: 48px; margin-top: 18px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(235,68,90,0.3);">
         <app-icon [name]="isScheduled ? 'calendar-clock' : 'send'" [size]="16" color="#ffffff" style="margin-right: 8px;"></app-icon>

@@ -243,6 +243,12 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     });
   }
 
+  get isPastScheduleTime(): boolean {
+    if (!this.isScheduled || !this.scheduledDateTime) return false;
+    const target = new Date(this.scheduledDateTime).getTime();
+    return !isNaN(target) && target <= Date.now();
+  }
+
   timeAgo(dateStr: string): string {
     if (!dateStr) return '';
     const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -333,10 +339,13 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     if (this.isScheduled) {
       this.updateScheduledDateTime();
       if (!this.scheduledDateTime) {
-        this.initScheduledDateTime();
+        this.ui.showToast('Please select a release date and time for the scheduled announcement.', 'warning');
+        return;
       }
-      // If time has already passed, proactively advance to +10 mins rather than giving errors!
-      this.autoCorrectIfPast(true);
+      if (this.isPastScheduleTime) {
+        this.ui.showToast('The selected date and time is in the past. Please choose a future time.', 'warning');
+        return;
+      }
     }
 
     const target = this.isTownWide
