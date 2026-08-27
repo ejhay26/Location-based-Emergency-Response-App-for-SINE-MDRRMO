@@ -25,17 +25,6 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent()->nullable();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate()->nullable();
             $table->softDeletes();
-            $table->string('valid_id_proof', 255)->nullable();
-            $table->string('valid_id_proof_back', 255)->nullable();
-            $table->string('valid_id_type', 50)->nullable();
-            $table->string('valid_id_number', 100)->nullable();
-            $table->date('valid_id_expiry')->nullable();
-            $table->json('valid_id_details')->nullable();
-            $table->string('selfie_with_id_proof', 255)->nullable();
-            $table->string('blood_type', 10)->nullable();
-            $table->text('allergies')->nullable();
-            $table->text('medical_conditions')->nullable();
-            $table->string('pwd_status', 100)->nullable();
             $table->string('ban_reason', 500)->nullable();
             $table->timestamp('banned_at')->nullable();
             $table->unsignedTinyInteger('false_alarm_strikes')->default(0);
