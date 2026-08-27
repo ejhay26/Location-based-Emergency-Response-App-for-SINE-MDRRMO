@@ -84,58 +84,77 @@
    stays readable at a glance, including for seniors on a small phone
    screen. Layered text-shadow keeps it legible over any photo, color, or
    brightness behind it since there's no solid backing panel anymore. */
+/* ── Floating Tour Callout Card (Native SINE MDRRMO Theme) ── */
 .tour-text {
   position: fixed;
   z-index: 99000;
-  pointer-events: none; /* purely visual — taps pass through to the catcher/dim beneath */
-  text-align: center;
-  padding: 16px 22px;
-  border-radius: 18px;
-  background: rgba(15, 23, 42, 0.78);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  pointer-events: none; /* taps pass through to the catcher or button */
+  text-align: left;
+  padding: 16px 20px;
+  border-radius: var(--app-radius, 16px);
+  background: var(--ion-card-background, #1c1c1e);
+  color: var(--ion-text-color, #ffffff);
+  border: 1px solid var(--ion-color-step-200, rgba(255, 255, 255, 0.14));
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25);
   box-sizing: border-box;
-  transition: top 0.42s cubic-bezier(0.16, 1, 0.3, 1), left 0.42s cubic-bezier(0.16, 1, 0.3, 1);
-  animation: textPop 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: top 0.35s cubic-bezier(0.16, 1, 0.3, 1), left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: textPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.tour-step-counter {
-  font-size: 12px;
+.tour-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(211, 47, 47, 0.12);
+  color: var(--ion-color-danger, #d32f2f);
+  border: 1px solid rgba(211, 47, 47, 0.25);
+  border-radius: 8px;
+  padding: 3px 8px;
+  font-size: 10.5px;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.85);
   text-transform: uppercase;
-  letter-spacing: 1.2px;
-  margin-bottom: 10px;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.6px;
+  margin-bottom: 8px;
+
+  .tour-step-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ion-color-danger, #d32f2f);
+    animation: pulseDot 1.4s ease-in-out infinite;
+  }
 }
 
 .tour-callout-main {
-  font-size: clamp(22px, 6vw, 28px);
+  font-size: 16.5px;
   font-weight: 800;
-  color: white;
-  margin: 0 0 10px;
+  color: var(--ion-text-color, #ffffff);
+  margin: 0 0 6px;
   line-height: 1.35;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85), 0 0 24px rgba(0, 0, 0, 0.5);
+  letter-spacing: -0.2px;
 }
 
 .tour-callout-sub {
-  font-size: clamp(15px, 4vw, 17px);
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.92);
-  margin: 0 0 16px;
-  line-height: 1.5;
-  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.85);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ion-color-medium, #aeaeb2);
+  margin: 0 0 12px;
+  line-height: 1.45;
 }
 
 .tour-tap-hint {
-  margin: 4px 0 0;
-  font-size: 14px;
-  font-weight: 800;
-  color: white;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
-  animation: hintPulse 1.4s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ion-color-danger, #d32f2f);
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.75); }
 }
 
 @keyframes tourFadeIn {

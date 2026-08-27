@@ -78,6 +78,14 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   selectViewMode(mode: ViewMode): void {
     this.viewMode = mode;
     this.isMobileSidebarOpen = false;
+
+    // If an interactive tour step is active targeting this sidebar button, advance tour!
+    if (this.tour.isActive()) {
+      const target = this.tour.targetId();
+      if (target === `nav-btn-${mode}`) {
+        this.tour.next();
+      }
+    }
   }
 
   get currentViewTitle(): string {

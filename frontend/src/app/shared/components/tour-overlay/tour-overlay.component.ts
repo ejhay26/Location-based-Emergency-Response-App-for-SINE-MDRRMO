@@ -54,20 +54,18 @@ interface Hole {
   <button class="tour-exit-btn" (click)="onExitClick($event)" aria-label="Exit tutorial" style="display:inline-flex;align-items:center;gap:6px;">
     <app-icon name="close" [size]="14" color="#ffffff"></app-icon> <span>Exit</span>
   </button>
-
-  <!-- Text-only callout — no card, no background box. Bold and large so
-       it stays readable at a glance, including for seniors on a small
-       phone screen. Layered text-shadow keeps it legible over any photo,
-       color, or brightness behind it since there's no solid backing
-       panel. -->
+  <!-- Floating Callout Card Styled with Native App Theme -->
   <div class="tour-text" [style]="textStyle">
-    <div class="tour-step-counter">Step {{ tour.stepIndex() + 1 }} of {{ tour.totalSteps }}</div>
-    <p class="tour-callout-main">{{ tour.currentStep.callout }}</p>
+    <div class="tour-step-badge">
+      <span class="tour-step-dot"></span>
+      <span>STEP {{ tour.stepIndex() + 1 }} OF {{ tour.totalSteps }}</span>
+    </div>
+    <h4 class="tour-callout-main">{{ tour.currentStep.callout }}</h4>
     <p class="tour-callout-sub" *ngIf="tour.currentStep.subtext">{{ tour.currentStep.subtext }}</p>
-    <p class="tour-tap-hint" style="display:flex;align-items:center;gap:6px;">
-      <app-icon [name]="tour.currentStep.waitForInteraction ? 'crosshairs' : 'chevron-right'" [size]="14" color="#ffffff"></app-icon>
-      <span>{{ tour.currentStep.waitForInteraction ? (tour.currentStep.interactionHint || 'Tap the highlighted item') : 'Tap anywhere to continue' }}</span>
-    </p>
+    <div class="tour-tap-hint">
+      <app-icon [name]="tour.currentStep.waitForInteraction ? 'crosshairs' : 'chevron-right'" [size]="14" color="var(--ion-color-danger)"></app-icon>
+      <span>{{ tour.currentStep.waitForInteraction ? (tour.currentStep.interactionHint || 'Click the highlighted button') : 'Tap anywhere to continue' }}</span>
+    </div>
   </div>
 
 </ng-container>
@@ -129,7 +127,7 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
   private onResize = () => {
     this.vw = window.innerWidth;
     this.vh = window.innerHeight;
-    if (this.tour.isActive() && this.currentTargetId) {
+    if (this.currentTargetId && this.holeReady) {
       this.quietTrack(this.currentTargetId);
     }
   };
@@ -148,14 +146,14 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
   /**
    * Orchestrates the transition to a new step target:
    * 1. Finds element.
-   * 2. Scrolls container if needed and WAITS for the scroll to settle.
-   * 3. Seamlessly morphs the spotlight directly to the final resting target using live-frame tracking.
+   * 2. If already in view, morphs immediately.
+   * 3. Otherwise smoothly scrolls and morphs once settled.
    */
   private transitionToTarget(id: string, retryCount = 0): void {
     const el = this.getTargetElement(id);
     if (!el) {
-      if (retryCount < 25) {
-        setTimeout(() => this.transitionToTarget(id, retryCount + 1), 80);
+      if (retryCount < 30) {
+        setTimeout(() => this.transitionToTarget(id, retryCount + 1), 60);
       } else {
         this.handleMissing();
       }
@@ -164,8 +162,8 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
 
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) {
-      if (retryCount < 25) {
-        setTimeout(() => this.transitionToTarget(id, retryCount + 1), 80);
+      if (retryCount < 30) {
+        setTimeout(() => this.transitionToTarget(id, retryCount + 1), 60);
       } else {
         this.handleMissing();
       }
@@ -175,9 +173,15 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
     this.missingSince = null;
     clearTimeout(this.scrollTimeoutId);
 
-    const scrollParent = this.findScrollParent(el);
-    let needsScroll = false;
+    // If element is already in view, start morph immediately with zero delay
+    const inView = r.top >= 0 && r.bottom <= window.innerHeight &&
+                   r.left >= 0 && r.right <= window.innerWidth;
+    if (inView) {
+      this.executeMorph(el);
+      return;
+    }
 
+    const scrollParent = this.findScrollParent(el);
     if (scrollParent) {
       const parentRect = scrollParent.getBoundingClientRect();
       const elRect = el.getBoundingClientRect();
@@ -185,7 +189,6 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
       const delta = elRect.top - desiredTop;
 
       if (Math.abs(delta) > 28) {
-        needsScroll = true;
         scrollParent.scrollBy({ top: delta, behavior: 'smooth' });
 
         let settled = false;
@@ -198,13 +201,11 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
         };
 
         scrollParent.addEventListener('scrollend', onSettled, { once: true });
-        // 260ms timeout fallback for platforms without native scrollend event
-        this.scrollTimeoutId = setTimeout(onSettled, 260);
+        this.scrollTimeoutId = setTimeout(onSettled, 180);
         return;
       }
     }
 
-    // No scroll required — start morph immediately
     this.executeMorph(el);
   }
 
@@ -218,20 +219,21 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
       this.hole = { ...targetHole };
       this.renderCurrentHole();
       this.holeReady = true;
-      this.positionText();
+      this.positionText(targetHole);
       this.cdr.detectChanges();
 
       requestAnimationFrame(() => {
         const textNode = document.querySelector('.tour-text') as HTMLElement | null;
         if (textNode) {
-          this.positionText(textNode.offsetHeight);
+          this.positionText(targetHole, textNode.offsetHeight);
           this.cdr.detectChanges();
         }
       });
       return;
     }
 
-    // Subsequent steps: Always fluid spring animation
+    // Subsequent steps: Position the card for target hole, then smooth spring-morph the spotlight!
+    this.positionText(targetHole);
     this.animateToElement(el);
   }
 
@@ -247,9 +249,9 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
 
     const from = { ...this.hole };
     const startTime = performance.now();
-    const durationMs = 450;
-    const zeta = 0.76;
-    const omega = 14.5;
+    const durationMs = 380;
+    const zeta = 0.78;
+    const omega = 15.0;
     const omegaD = omega * Math.sqrt(1 - zeta * zeta);
 
     const tick = (now: number) => {
@@ -262,7 +264,7 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
         progress = 1 - decay * oscillation;
       }
 
-      // Compute live target on every frame to eliminate any jumping or pre-scroll guessing
+      // Compute live target on every frame to eliminate any jumping
       const currentTarget = this.computeHole(el);
 
       this.hole.top    = from.top    + (currentTarget.top    - from.top)    * progress;
@@ -273,7 +275,6 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
       this.hole.isCircle = progress > 0.5 ? currentTarget.isCircle : from.isCircle;
 
       this.renderCurrentHole();
-      this.positionText();
       this.cdr.detectChanges();
 
       if (elapsed * 1000 < durationMs) {
@@ -287,7 +288,7 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
 
         const textNode = document.querySelector('.tour-text') as HTMLElement | null;
         if (textNode) {
-          this.positionText(textNode.offsetHeight);
+          this.positionText(finalTarget, textNode.offsetHeight);
         }
         this.cdr.detectChanges();
       }
@@ -358,7 +359,6 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
   }
 
   private handleMissing() {
-    this.holeReady = false;
     if (this.missingSince === null) {
       this.missingSince = Date.now();
     } else if (Date.now() - this.missingSince > this.MISSING_TIMEOUT_MS) {
@@ -398,17 +398,18 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
       : `M${x},${y}H${x + w}V${y + h}H${x}Z`;
   }
 
-  private positionText(actualHeight?: number) {
-    const TEXT_H = actualHeight ?? 180;
-    const TEXT_W = 380;
+  private positionText(target?: Hole, actualHeight?: number) {
+    const holeToUse = target || this.hole;
+    const TEXT_H = actualHeight ?? 160;
+    const TEXT_W = 360;
     const VH = window.innerHeight;
     const VW = window.innerWidth;
     const PAD = 20;
 
-    const holeTop = this.hole.top;
-    const holeBottom = this.hole.top + this.hole.height;
-    const holeLeft = this.hole.left;
-    const holeRight = this.hole.left + this.hole.width;
+    const holeTop = holeToUse.top;
+    const holeBottom = holeToUse.top + holeToUse.height;
+    const holeLeft = holeToUse.left;
+    const holeRight = holeToUse.left + holeToUse.width;
 
     const spaceBelow = VH - holeBottom;
     const spaceAbove = holeTop;
@@ -420,17 +421,16 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
     const textW = Math.min(TEXT_W, VW - 32);
 
     // 1. If element is tall (takes up > 55% of screen height, e.g. sidebar or CAD columns)
-    if (this.hole.height > VH * 0.55) {
+    if (holeToUse.height > VH * 0.55) {
       if (spaceRight >= textW + PAD) {
         // Place text to the right of the hole (e.g. sidebar on left)
         left = holeRight + PAD;
-        top = Math.max(PAD, Math.min(holeTop + 40, VH - TEXT_H - PAD));
+        top = Math.max(PAD, Math.min(holeTop + 30, VH - TEXT_H - PAD));
       } else if (spaceLeft >= textW + PAD) {
         // Place text to the left of the hole (e.g. queue on right)
         left = holeLeft - textW - PAD;
-        top = Math.max(PAD, Math.min(holeTop + 40, VH - TEXT_H - PAD));
+        top = Math.max(PAD, Math.min(holeTop + 30, VH - TEXT_H - PAD));
       } else {
-        // Fallback: place below or above
         top = spaceBelow >= spaceAbove ? Math.max(PAD, VH - TEXT_H - PAD) : PAD;
         left = (VW - textW) / 2;
       }
@@ -438,10 +438,10 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
     // 2. Standard elements: Prefer placing BELOW or ABOVE
     else if (spaceBelow >= TEXT_H + PAD) {
       top = holeBottom + PAD;
-      left = holeLeft + this.hole.width / 2 - textW / 2;
+      left = holeLeft + holeToUse.width / 2 - textW / 2;
     } else if (spaceAbove >= TEXT_H + PAD) {
       top = holeTop - TEXT_H - PAD;
-      left = holeLeft + this.hole.width / 2 - textW / 2;
+      left = holeLeft + holeToUse.width / 2 - textW / 2;
     } else if (spaceRight >= textW + PAD) {
       left = holeRight + PAD;
       top = Math.max(PAD, Math.min(holeTop, VH - TEXT_H - PAD));
@@ -449,7 +449,6 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
       left = holeLeft - textW - PAD;
       top = Math.max(PAD, Math.min(holeTop, VH - TEXT_H - PAD));
     } else {
-      // If element is very large, dock at bottom or top outside center
       top = spaceBelow > spaceAbove ? Math.max(PAD, VH - TEXT_H - PAD) : PAD;
       left = (VW - textW) / 2;
     }

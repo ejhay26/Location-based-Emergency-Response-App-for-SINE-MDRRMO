@@ -1,9 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonButton, IonBadge
-} from '@ionic/angular/standalone';
 import { TourService, TourStep } from '../../../../../core/services/tour';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
@@ -23,8 +19,6 @@ export interface ProcedureGuide {
   standalone: true,
   imports: [
     CommonModule,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonButton, IonBadge,
     AppIconComponent,
   ],
   templateUrl: './help.panel.html',
@@ -40,31 +34,35 @@ export class HelpPanel {
       category: 'Operations',
       icon: 'siren',
       badgeColor: '#eb445a',
-      description: 'Standard operational procedure for receiving incoming citizen emergency alerts, pinpointing precise GPS coordinates, evaluating urgency, and dispatching response units.',
+      description: 'Standard operational procedure for receiving incoming citizen emergency alerts, evaluating urgency, and dispatching response units.',
       steps: [
         {
           id: 'nav-btn-active',
-          panel: 'active',
           callout: 'Step 1: Open CAD Workspace',
-          subtext: 'Click Incident Map on the sidebar to access the live Computer-Aided Dispatch (CAD) command center.',
+          subtext: 'Click the highlighted Incident Map button on the sidebar to open the live CAD command center.',
+          waitForInteraction: true,
+          interactionHint: 'Click Incident Map on the sidebar'
         },
         {
           id: 'cad-map-toolbar',
           panel: 'active',
           callout: 'Command Filter Toolbar',
           subtext: 'Filter live incidents by Barangay, category (Medical, Fire, Crime), and toggle between Street and Satellite view.',
+          waitForInteraction: false,
         },
         {
           id: 'dispatch-map',
           panel: 'active',
           callout: 'Live GPS Incident Map',
           subtext: 'All emergency SOS beacons are plotted in real time with exact coordinates, GPS accuracy rings, and active responder markers.',
+          waitForInteraction: false,
         },
         {
           id: 'cad-queue-container',
           panel: 'active',
           callout: 'Incident Triage Queue',
           subtext: 'Incoming calls appear ranked by severity. Click any incident card to view citizen medical info, photos, and dispatch units.',
+          waitForInteraction: false,
         },
       ]
     },
@@ -78,33 +76,38 @@ export class HelpPanel {
       steps: [
         {
           id: 'nav-btn-broadcast',
-          panel: 'broadcast',
           callout: 'Step 1: Open Alert Broadcast',
-          subtext: 'Click Alert Broadcast on the sidebar to access the town-wide public advisory composer.',
+          subtext: 'Click the highlighted Alert Broadcast button on the sidebar to open the town-wide advisory composer.',
+          waitForInteraction: true,
+          interactionHint: 'Click Alert Broadcast on the sidebar'
         },
         {
           id: 'broadcast-composer',
           panel: 'broadcast',
           callout: 'Advisory Message & Media',
           subtext: 'Enter the headline and advisory notice. Attach up to 4 photos or video updates for citizen guidance.',
+          waitForInteraction: false,
         },
         {
           id: 'broadcast-barangay-selector',
           panel: 'broadcast',
           callout: 'Audience Targeting',
           subtext: 'Leave on "All Barangays" for municipal blasts, or tap individual barangays to restrict the alert to specific zones.',
+          waitForInteraction: false,
         },
         {
           id: 'broadcast-delivery-mode',
           panel: 'broadcast',
           callout: 'Delivery Mode Toggle',
           subtext: 'Select "Post Immediately" for critical warnings, or toggle to "Schedule for Later" to pick an auto-release date and time.',
+          waitForInteraction: false,
         },
         {
           id: 'broadcast-submit-btn',
           panel: 'broadcast',
           callout: 'Review & Dispatch Alert',
           subtext: 'Click here to review recipients and send or queue the push announcement across all citizen apps.',
+          waitForInteraction: false,
         },
       ]
     },
@@ -118,27 +121,31 @@ export class HelpPanel {
       steps: [
         {
           id: 'nav-btn-hazards',
-          panel: 'hazards',
           callout: 'Step 1: Open Public Hazards',
-          subtext: 'Click Public Hazards on the sidebar to access the road obstruction inspection map.',
+          subtext: 'Click the highlighted Public Hazards button on the sidebar to open the road obstruction inspection map.',
+          waitForInteraction: true,
+          interactionHint: 'Click Public Hazards on the sidebar'
         },
         {
           id: 'cad-map-toolbar',
           panel: 'hazards',
           callout: 'Hazard Category Filters',
           subtext: 'Filter obstruction reports by Flood, Road Obstruction, Power Lines, or Landslide.',
+          waitForInteraction: false,
         },
         {
           id: 'dispatch-map',
           panel: 'hazards',
           callout: 'Hazard Location Map',
           subtext: 'Orange hazard warning markers show exact road obstruction points submitted by citizens with GPS tracking.',
+          waitForInteraction: false,
         },
         {
           id: 'cad-queue-container',
           panel: 'hazards',
           callout: 'Verification & Clearing',
           subtext: 'Inspect citizen photo evidence, contact the reporter if clarification is needed, and mark the hazard Resolved once cleared.',
+          waitForInteraction: false,
         },
       ]
     },
@@ -152,21 +159,24 @@ export class HelpPanel {
       steps: [
         {
           id: 'nav-btn-archive',
-          panel: 'archive',
           callout: 'Step 1: Open Log Archive',
-          subtext: 'Click Log Archive on the sidebar to access historical records of all resolved emergency incidents.',
+          subtext: 'Click the highlighted Log Archive button on the sidebar to access historical records of all resolved incidents.',
+          waitForInteraction: true,
+          interactionHint: 'Click Log Archive on the sidebar'
         },
         {
           id: 'archive-filters',
           panel: 'archive',
           callout: 'Multi-Criteria Search & Filter',
           subtext: 'Filter past emergency reports by custom date ranges, incident severity, status, or barangay jurisdiction.',
+          waitForInteraction: false,
         },
         {
           id: 'exportArchivePdfBtn',
           panel: 'archive',
           callout: 'Export Certified PDF',
           subtext: 'Export filtered incident logs to official certified PDF situation reports for disaster council briefings and audit compliance.',
+          waitForInteraction: false,
         },
       ]
     },
@@ -181,33 +191,38 @@ export class HelpPanel {
       steps: [
         {
           id: 'nav-btn-dispatchers',
-          panel: 'dispatchers',
           callout: 'Step 1: Open Dispatchers Staff',
-          subtext: 'Click Dispatchers on the sidebar to manage all municipal response operators and their assigned duties.',
+          subtext: 'Click the highlighted Dispatchers button on the sidebar to manage all municipal response operators.',
+          waitForInteraction: true,
+          interactionHint: 'Click Dispatchers on the sidebar'
         },
         {
           id: 'add-dispatcher-btn',
           panel: 'dispatchers',
           callout: 'Register New Dispatcher',
           subtext: 'Click here to securely create accounts for newly appointed municipal dispatchers and assign their station credentials.',
+          waitForInteraction: false,
         },
         {
           id: 'dispatcherSearch',
           panel: 'dispatchers',
           callout: 'Staff Search & Roster',
           subtext: 'Search dispatchers by name, email, or barangay assignment, and monitor their active duty statuses.',
+          waitForInteraction: false,
         },
         {
           id: 'nav-btn-citizens',
-          panel: 'citizens',
           callout: 'Step 4: Citizen Directory',
-          subtext: 'Click Citizens on the sidebar to inspect all registered residents, verify identity documents, and enforce disciplinary strikes.',
+          subtext: 'Click the highlighted Citizens button on the sidebar to inspect all registered residents.',
+          waitForInteraction: true,
+          interactionHint: 'Click Citizens on the sidebar'
         },
         {
           id: 'citizenSearch',
           panel: 'citizens',
           callout: 'Citizen Search & Moderation',
           subtext: 'Look up citizens to inspect submitted KYC verification documents, phone validity, and strike counts for misuse.',
+          waitForInteraction: false,
         },
       ]
     },
