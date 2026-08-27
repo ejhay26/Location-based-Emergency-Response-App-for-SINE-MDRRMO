@@ -55,6 +55,17 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   selectedMedia: BroadcastMediaItem[] = [];
   selectedBarangayIds: number[] = []; // empty = town-wide
   activeBroadcasts: any[] = [];
+  scheduledBroadcasts: any[] = [];
+  archivedBroadcasts: any[] = [];
+
+  // Collapsible section states
+  showActiveSection = true;
+  showScheduledSection = true;
+  showArchivedSection = false;
+
+  // Post Scheduling
+  isScheduled = false;
+  scheduledDateTime = '';
 
   private echoBroadcastSub?: Subscription;
 
@@ -94,9 +105,33 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     return this.selectedBarangayIds.includes(id);
   }
 
+  get minScheduledDateTime(): string {
+    const d = new Date(Date.now() + 5 * 60000); // at least 5 mins in future
+    return d.toISOString().slice(0, 16);
+  }
+
+  timeAgo(dateStr: string): string {
+    if (!dateStr) return '';
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  }
+
   fetchBroadcasts() {
     this.api.getActiveBroadcast().subscribe({
-      next: (res: any) => { this.activeBroadcasts = Array.isArray(res) ? res : (res?.message ? [res] : []); },
+      next: (res: any) => {
+        if (res && typeof res === 'object' && !Array.isArray(res)) {
+          this.activeBroadcasts    = res.active || [];
+          this.scheduledBroadcasts = res.scheduled || [];
+          this.archivedBroadcasts  = res.archived || [];
+        } else if (Array.isArray(res)) {
+          this.activeBroadcasts    = res;
+          this.scheduledBroadcasts = [];
+          this.archivedBroadcasts  = [];
+        }
+      },
       error: () => {}
     });
   }
@@ -162,6 +197,18 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   confirmSubmitBroadcast() {
     if (!this.broadcastForm.message.trim()) return;
 
+    if (this.isScheduled) {
+      if (!this.scheduledDateTime) {
+        this.ui.showToast('Please select a release date and time for the scheduled announcement.', 'warning');
+        return;
+      }
+      const scheduledTime = new Date(this.scheduledDateTime).getTime();
+      if (isNaN(scheduledTime) || scheduledTime <= Date.now()) {
+        this.ui.showToast('Scheduled release time must be in the future.', 'warning');
+        return;
+      }
+    }
+
     const target = this.isTownWide
       ? 'every citizen in San Isidro'
       : `citizens in: ${this.selectedBarangayIds.map(id => this.barangays.find(b => b.id === id)?.name).join(', ')}`;
@@ -169,6 +216,13 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     const details: any[] = [
       { label: 'Target',  value: this.isTownWide ? 'Town-wide (all citizens)' : target, icon: 'map-pin' },
     ];
+
+    if (this.isScheduled) {
+      const scheduledFormatted = new Date(this.scheduledDateTime).toLocaleString([], {
+        month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      details.push({ label: 'Scheduled For', value: scheduledFormatted, icon: 'calendar-clock' });
+    }
 
     if (this.broadcastForm.title.trim()) {
       details.push({ label: 'Title', value: this.broadcastForm.title.trim(), icon: 'file-text' });
@@ -181,11 +235,13 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     }
 
     this.ui.confirm({
-      title: 'Send Alert / Announcement',
-      message: `This will immediately push an official notification and notice to ${target}. This cannot be unsent — only stopped.`,
-      icon: 'broadcast',
+      title: this.isScheduled ? 'Schedule Alert / Announcement' : 'Send Alert / Announcement',
+      message: this.isScheduled
+        ? `This announcement will be automatically released to ${target} at the scheduled time.`
+        : `This will immediately push an official notification and notice to ${target}. This cannot be unsent — only stopped.`,
+      icon: this.isScheduled ? 'calendar-clock' : 'broadcast',
       iconColor: '#eb445a',
-      confirmLabel: 'Send Announcement',
+      confirmLabel: this.isScheduled ? 'Schedule Announcement' : 'Send Announcement',
       confirmColor: 'danger',
       details,
       onConfirm: () => new Promise<void>((resolve, reject) => {
@@ -194,22 +250,25 @@ export class BroadcastPanel implements OnInit, OnDestroy {
           message: this.broadcastForm.message.trim(),
           media_files: this.selectedMedia.map(m => m.preview),
           ...(this.isTownWide ? {} : { barangay_ids: this.selectedBarangayIds }),
+          ...(this.isScheduled ? { scheduled_at: this.scheduledDateTime } : {}),
         };
         this.api.createBroadcast(payload).subscribe({
-          next: () => {
+          next: (res: any) => {
             this.ui.showToast(
-              this.isTownWide ? 'Announcement sent to all citizens!' : 'Announcement sent to selected barangay(s)!',
+              res?.message || (this.isScheduled ? 'Announcement scheduled!' : 'Announcement sent!'),
               'success',
             );
             this.broadcastForm.title   = '';
             this.broadcastForm.message = '';
             this.selectedMedia         = [];
             this.selectedBarangayIds   = [];
+            this.isScheduled           = false;
+            this.scheduledDateTime     = '';
             this.fetchBroadcasts();
             resolve();
           },
-          error: () => {
-            this.ui.showToast('Failed to send announcement.', 'danger');
+          error: (err: any) => {
+            this.ui.showToast(err?.error?.message || 'Failed to send announcement.', 'danger');
             reject();
           },
         });

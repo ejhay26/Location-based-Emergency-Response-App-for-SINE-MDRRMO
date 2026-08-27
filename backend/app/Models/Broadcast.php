@@ -19,11 +19,12 @@ class Broadcast extends Model
     protected $primaryKey = 'broadcast_id';
     public $timestamps = false;
 
-    protected $fillable = ['title', 'message', 'media_files', 'is_active', 'created_at'];
+    protected $fillable = ['title', 'message', 'media_files', 'is_active', 'scheduled_at', 'created_at'];
 
     protected $casts = [
-        'media_files' => 'array',
-        'is_active'   => 'integer',
+        'media_files'  => 'array',
+        'is_active'    => 'integer',
+        'scheduled_at' => 'datetime',
     ];
 
     public function barangays(): BelongsToMany

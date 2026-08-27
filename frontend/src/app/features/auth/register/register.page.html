@@ -1,7 +1,9 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="danger">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/login" text="Back" style="color: white; font-weight: 600;"></ion-back-button>
+      <ion-button (click)="cancelRegistration()" style="color: white; font-weight: 700; --padding-start: 4px;">
+        <app-icon name="close" [size]="18" color="#ffffff" style="margin-right: 4px;"></app-icon> Cancel
+      </ion-button>
     </ion-buttons>
     <ion-title style="color: white; font-weight: 800; font-size: 16px;">Citizen Registration</ion-title>
   </ion-toolbar>
@@ -172,12 +174,25 @@
               (ionInput)="onDriverLicenseInput($event.detail.value)">
             </ion-input>
           </div>
-          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
             Expiration Date
           </label>
-          <div class="boxed-date-picker" (click)="triggerDatePicker(dlExpiry)">
-            <input #dlExpiry type="date" class="native-date-field" [min]="todayStr" [(ngModel)]="userData.valid_id_expiry" />
-            <app-icon name="calendar" [size]="16" color="var(--ion-color-danger)"></app-icon>
+          <div class="birthdate-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Month" [(ngModel)]="expiryMonth" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Day" [(ngModel)]="expiryDay" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let d of daysInExpiryMonth" [value]="d">{{ d }}</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Year" [(ngModel)]="expiryYear" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let y of expiryYears" [value]="y">{{ y }}</ion-select-option>
+              </ion-select>
+            </div>
           </div>
         </div>
 
@@ -192,12 +207,25 @@
               (ionInput)="userData.valid_id_number = ($event.detail.value || '').toUpperCase().trim()">
             </ion-input>
           </div>
-          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
             Passport Expiry Date
           </label>
-          <div class="boxed-date-picker" (click)="triggerDatePicker(passExpiry)">
-            <input #passExpiry type="date" class="native-date-field" [min]="todayStr" [(ngModel)]="userData.valid_id_expiry" />
-            <app-icon name="calendar" [size]="16" color="var(--ion-color-danger)"></app-icon>
+          <div class="birthdate-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Month" [(ngModel)]="expiryMonth" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Day" [(ngModel)]="expiryDay" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let d of daysInExpiryMonth" [value]="d">{{ d }}</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Year" [(ngModel)]="expiryYear" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let y of expiryYears" [value]="y">{{ y }}</ion-select-option>
+              </ion-select>
+            </div>
           </div>
         </div>
 
@@ -225,12 +253,25 @@
               (ionInput)="userData.valid_id_number = ($event.detail.value || '').toUpperCase().trim()">
             </ion-input>
           </div>
-          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
             Card Expiration Date
           </label>
-          <div class="boxed-date-picker" (click)="triggerDatePicker(postalExpiry)">
-            <input #postalExpiry type="date" class="native-date-field" [min]="todayStr" [(ngModel)]="userData.valid_id_expiry" />
-            <app-icon name="calendar" [size]="16" color="var(--ion-color-danger)"></app-icon>
+          <div class="birthdate-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Month" [(ngModel)]="expiryMonth" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Day" [(ngModel)]="expiryDay" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let d of daysInExpiryMonth" [value]="d">{{ d }}</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Year" [(ngModel)]="expiryYear" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let y of expiryYears" [value]="y">{{ y }}</ion-select-option>
+              </ion-select>
+            </div>
           </div>
         </div>
 
@@ -253,12 +294,25 @@
               (ionInput)="onPrcNumberInput($event.detail.value)">
             </ion-input>
           </div>
-          <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
             License Valid Until (Expiry Date)
           </label>
-          <div class="boxed-date-picker" (click)="triggerDatePicker(prcExpiry)">
-            <input #prcExpiry type="date" class="native-date-field" [min]="todayStr" [(ngModel)]="userData.valid_id_expiry" />
-            <app-icon name="calendar" [size]="16" color="var(--ion-color-danger)"></app-icon>
+          <div class="birthdate-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Month" [(ngModel)]="expiryMonth" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Day" [(ngModel)]="expiryDay" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let d of daysInExpiryMonth" [value]="d">{{ d }}</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="birthdate-select-box" style="border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.12)); border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); overflow: hidden;">
+              <ion-select placeholder="Year" [(ngModel)]="expiryYear" (ionChange)="updateExpiryDate()" interface="popover">
+                <ion-select-option *ngFor="let y of expiryYears" [value]="y">{{ y }}</ion-select-option>
+              </ion-select>
+            </div>
           </div>
         </div>
       </div>

@@ -14,6 +14,7 @@ return new class extends Migration
             $table->text('message')->nullable();
             $table->longText('media_files')->nullable();
             $table->boolean('is_active')->default(true)->nullable();
+            $table->timestamp('scheduled_at')->nullable();
             $table->timestamp('created_at')->useCurrent()->nullable();
         });
     }

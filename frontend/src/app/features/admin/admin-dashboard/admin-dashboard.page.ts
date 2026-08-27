@@ -151,22 +151,6 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     }
   }
 
-  ionViewDidEnter() {
-    // Auto-start the guided tour for dispatchers on their first login.
-    // Uses a localStorage key per user so it only fires once.
-    const role = localStorage.getItem('role');
-    if (role === 'dispatcher') {
-      const userStr = localStorage.getItem('user');
-      const userId  = userStr ? JSON.parse(userStr)?.user_id : null;
-      const tourKey = `dispatcherTourSeen_${userId}`;
-      if (userId && localStorage.getItem(tourKey) !== 'true') {
-        localStorage.setItem(tourKey, 'true');
-        // Short delay so the map finishes initializing before the tour dims it.
-        setTimeout(() => { this.tour.start(); }, 1200);
-      }
-    }
-  }
-
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
     this.incidentMapPanel?.invalidateMapSize();

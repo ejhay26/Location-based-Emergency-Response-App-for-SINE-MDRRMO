@@ -102,9 +102,19 @@
                  [(ngModel)]="userData.confirm_password" required>
         <ion-input-password-toggle slot="end"></ion-input-password-toggle>
       </ion-input>
-      <app-icon name="check" slot="end" *ngIf="passwordsMatch === true" [size]="18" color="#2dd36f" style="margin-right: 6px;"></app-icon>
-      <app-icon name="close" slot="end" *ngIf="passwordsMatch === false" [size]="18" color="#eb445a" style="margin-right: 6px;"></app-icon>
     </ion-item>
+  </div>
+
+  <!-- Real-Time Password Match Feedback -->
+  <div *ngIf="(userData.confirm_password ?? '').length > 0" style="margin: 4px 0 8px 8px; font-size: 12px;">
+    <p *ngIf="passwordsMatch === true" style="color: #2dd36f; margin: 2px 0; display: flex; align-items: center; gap: 6px; font-weight: 600;">
+      <app-icon name="check" [size]="14" color="#2dd36f"></app-icon>
+      <span>Passwords match!</span>
+    </p>
+    <p *ngIf="passwordsMatch === false" style="color: #eb445a; margin: 2px 0; display: flex; align-items: center; gap: 6px; font-weight: 600;">
+      <app-icon name="close" [size]="14" color="#eb445a"></app-icon>
+      <span>Passwords do not match.</span>
+    </p>
   </div>
 
   <!-- Password Requirements Checklist -->

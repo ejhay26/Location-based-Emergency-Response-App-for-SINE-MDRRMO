@@ -78,13 +78,37 @@ export class RegisterPage implements OnDestroy {
   birthdateError = '';
   todayStr = new Date().toISOString().split('T')[0];
 
-  triggerDatePicker(input: HTMLInputElement): void {
-    try {
-      input.focus();
-      if (typeof (input as any).showPicker === 'function') {
-        (input as any).showPicker();
-      }
-    } catch (e) {}
+  expiryMonth = '';
+  expiryDay = '';
+  expiryYear = '';
+  expiryYears = Array.from({ length: 16 }, (_, i) => String(new Date().getFullYear() + i)); // 2026 to 2041
+
+  get daysInExpiryMonth(): number[] {
+    const month = parseInt(this.expiryMonth, 10) || 1;
+    const year = parseInt(this.expiryYear, 10) || new Date().getFullYear();
+    const daysCount = new Date(year, month, 0).getDate();
+    return Array.from({ length: daysCount }, (_, i) => i + 1);
+  }
+
+  updateExpiryDate(): void {
+    if (this.expiryYear && this.expiryMonth && this.expiryDay) {
+      const dayStr = String(this.expiryDay).padStart(2, '0');
+      this.userData.valid_id_expiry = `${this.expiryYear}-${this.expiryMonth}-${dayStr}`;
+    } else {
+      this.userData.valid_id_expiry = '';
+    }
+  }
+
+  onHeaderBack(): void {
+    if (this.currentStep > 1) {
+      this.prevStep();
+    } else {
+      this.router.navigate(['/login']);
+    }
+  }
+
+  cancelRegistration(): void {
+    this.router.navigate(['/login']);
   }
 
   get daysInSelectedMonth(): number[] {
@@ -143,6 +167,9 @@ export class RegisterPage implements OnDestroy {
     this.userData.valid_id_expiry = '';
     this.userData.valid_id_details = null;
     this.idProfession = '';
+    this.expiryMonth = '';
+    this.expiryDay = '';
+    this.expiryYear = '';
   }
 
   onPhilSysInput(val: string | null | undefined): void {

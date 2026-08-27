@@ -251,6 +251,30 @@ export class IconRegistryService {
       }
     ],
     [
+      'broadcast',
+      {
+        name: 'broadcast',
+        faClass: 'fa-solid fa-tower-broadcast',
+        lucideSvg: '<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/>'
+      }
+    ],
+    [
+      'megaphone',
+      {
+        name: 'megaphone',
+        faClass: 'fa-solid fa-bullhorn',
+        lucideSvg: '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>'
+      }
+    ],
+    [
+      'calendar-clock',
+      {
+        name: 'calendar-clock',
+        faClass: 'fa-solid fa-calendar-check',
+        lucideSvg: '<path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><circle cx="16" cy="16" r="6"/><polyline points="16 14 16 16 18 17"/>'
+      }
+    ],
+    [
       'circle-question',
       {
         name: 'circle-question',
@@ -729,7 +753,6 @@ export class IconRegistryService {
       'handcuffs': 'shield-alert',
       'clock-rotate-left': 'history',
       'house': 'home',
-      'bullhorn': 'siren',
       'circle-user': 'user',
       'images': 'camera',
       'floppy-disk': 'check',
@@ -748,7 +771,10 @@ export class IconRegistryService {
       'trash-can': 'trash',
       'layer-group': 'layers',
       'box-archive': 'history',
-      'comment-dots': 'message-square'
+      'comment-dots': 'message-square',
+      'announcement': 'broadcast',
+      'tower-broadcast': 'broadcast',
+      'bullhorn': 'megaphone'
     };
 
     const alias = aliases[normalized];
