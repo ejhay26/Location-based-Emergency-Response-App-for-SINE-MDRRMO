@@ -8,7 +8,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    // Allow Capacitor mobile apps (Android & iOS) and Electron desktop
+    // Allow Capacitor mobile apps (Android & iOS), Electron, and Tauri desktop
     'allowed_origins' => [
         'http://localhost',
         'https://localhost',
@@ -16,14 +16,19 @@ return [
         'ionic://localhost',
         'http://127.0.0.1',
         'https://127.0.0.1',
+        'tauri://localhost',
+        'http://tauri.localhost',
+        'https://tauri.localhost',
     ],
 
-    // Allows ionic serve dev servers (any port e.g. :8100, :4200) and native file/capacitor protocols
+    // Allows ionic serve dev servers (any port e.g. :8100, :4200) and native file/capacitor/tauri protocols
     'allowed_origins_patterns' => [
         '#^http(s)?://(localhost|127\.0\.0\.1)(:\d+)?$#',
+        '#^http(s)?://tauri\.localhost(:\d+)?$#',
         '#^capacitor://#',
         '#^ionic://#',
         '#^file://#',
+        '#^tauri://#',
     ],
 
     'allowed_headers' => ['*'],
