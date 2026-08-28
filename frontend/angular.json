@@ -82,6 +82,12 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "buildTarget": "app:build",
+            "allowedHosts": [
+              "all"
+            ]
+          },
           "configurations": {
             "production": {
               "buildTarget": "app:build:production"
@@ -90,9 +96,8 @@
               "buildTarget": "app:build:development",
               "allowedHosts": [
                 "all"
-    ]
+              ]
             }
-            
           },
           "defaultConfiguration": "development"
         },

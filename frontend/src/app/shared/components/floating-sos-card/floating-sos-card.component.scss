@@ -34,25 +34,6 @@
   animation: sosPillIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.sos-pill::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--ion-color-warning, #ffc409);
-  border-radius: 4px 0 0 4px;
-}
-
-.sos-pill--dispatched::before {
-  background: #2dd36f; // Success / Dispatched Green
-}
-
-.sos-pill--offline::before {
-  background: var(--ion-color-medium, #8e8e93);
-}
-
 .sos-pill__cancel-action-btn {
   pointer-events: all;
   background: rgba(235, 68, 90, 0.12);

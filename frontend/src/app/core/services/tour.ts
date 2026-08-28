@@ -24,7 +24,7 @@ export interface TourStep {
 const STEPS: TourStep[] = [
   // ── HOME / SOS / HAZARD: Nav step ──────────────────────────────────────────
   {
-    id: 'tour-tab-home', page: '/tabs/help', chapters: ['home', 'emergency', 'hazard'],
+    id: 'tour-tab-home', chapters: ['home', 'emergency', 'hazard'],
     callout: 'First, tap the Home tab at the bottom.',
     subtext: 'This opens your primary emergency response dashboard.',
     waitForInteraction: true, interactionHint: 'Tap the Home tab'
@@ -102,7 +102,7 @@ const STEPS: TourStep[] = [
   },
   // ── HISTORY ───────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-history', page: '/tabs/home', chapters: ['all', 'history'],
+    id: 'tour-tab-history', chapters: ['all', 'history'],
     callout: 'Tap the History tab to check your submitted reports.',
     subtext: 'You can track whether your report is Pending, Dispatched, or Resolved in real time.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
@@ -115,7 +115,7 @@ const STEPS: TourStep[] = [
   },
   // ── PROFILE ───────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-profile', page: '/tabs/history', chapters: ['all', 'profile'],
+    id: 'tour-tab-profile', chapters: ['all', 'profile'],
     callout: 'Tap the Profile tab to manage your account.',
     subtext: 'Manage your personal details, profile picture, and life-saving medical data.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
@@ -134,7 +134,7 @@ const STEPS: TourStep[] = [
   },
   // ── SETTINGS ──────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-settings', page: '/tabs/profile', chapters: ['all', 'settings'],
+    id: 'tour-tab-settings', chapters: ['all', 'settings'],
     callout: 'Tap the Settings tab to customize the app.',
     subtext: 'Customize your theme, notification sounds, and safety preferences.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
@@ -147,7 +147,7 @@ const STEPS: TourStep[] = [
   },
   // ── HELP ──────────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-help', page: '/tabs/settings', chapters: ['all'],
+    id: 'tour-tab-help', chapters: ['all'],
     callout: 'The Help tab is your guide whenever you need it.',
     subtext: 'Find FAQs, replay any chapter of this tutorial, or send feedback to the development team.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
@@ -191,7 +191,6 @@ export class TourService {
   isTourMode = computed(() => this.isActive());
 
   // True while a modal (photo cropper, video trimmer) is open.
-  // True while a modal (photo cropper, video trimmer) is open.
   // The overlay hides itself when this is true so it doesn't cover modals.
   modalOpen  = signal(false);
 
@@ -216,7 +215,9 @@ export class TourService {
         if (this.navigating) { this.navigating = false; return; }
         const actual = (e.urlAfterRedirects as string).split('?')[0];
         const validPages = new Set(this.steps.filter(s => !!s.page).map(s => s.page!.split('?')[0]));
-        if (!validPages.has(actual)) this.cancelSilent();
+        if (validPages.size > 0 && !validPages.has(actual) && !actual.startsWith('/tabs/')) {
+          this.cancelSilent();
+        }
       });
   }
 
@@ -275,11 +276,15 @@ export class TourService {
       this.adminPanelSwitch.set(step.panel);
     }
     if (step.page) {
-      const target  = step.page.split('?')[0];
       const current = this.router.url.split('?')[0];
-      if (current !== target) {
-        this.navigating = true;
-        this.router.navigateByUrl(step.page);
+      const isBottomTabStep = step.id.startsWith('tour-tab-');
+      const isAlreadyOnTabs = current.startsWith('/tabs/');
+      if (!isBottomTabStep || !isAlreadyOnTabs) {
+        const target = step.page.split('?')[0];
+        if (current !== target) {
+          this.navigating = true;
+          this.router.navigateByUrl(step.page);
+        }
       }
     }
   }
