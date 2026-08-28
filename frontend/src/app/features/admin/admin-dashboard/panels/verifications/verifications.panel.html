@@ -73,7 +73,7 @@
         </div>
         <div *ngIf="user.birthdate" style="display: flex; align-items: center; gap: 8px;">
           <app-icon name="calendar" [size]="14" color="var(--ion-color-medium)"></app-icon>
-          <span style="font-size: 13px;"><strong>Birthdate:</strong> {{ user.birthdate }}</span>
+          <span style="font-size: 13px;"><strong>Birthdate:</strong> {{ user.birthdate | utcDate:'mediumDate' }}</span>
         </div>
       </div>
 

@@ -1,0 +1,26 @@
+[package]
+name = "mdrrmo-emergency-response-app"
+version = "0.72.0"
+description = "MDRRMO Emergency Response App"
+authors = ["MDRRMO-SINE"]
+edition = "2021"
+
+[lib]
+# The `_lib` suffix is the Tauri v2 convention — main.rs stays a thin
+# entry point that just calls into this lib, which is what lets the same
+# lib target be reused for a future mobile (Android/iOS) Tauri target
+# without duplicating the app setup.
+name = "mdrrmo_emergency_response_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# rustls-tls instead of the default native-tls: avoids depending on the
+# system OpenSSL/schannel setup on the build machine, which is one less
+# thing to have installed correctly before a build works.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }

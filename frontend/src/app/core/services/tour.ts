@@ -10,6 +10,7 @@ export interface TourStep {
   page?: string;
   panel?: string;
   chapter?: TourChapter;
+  chapters?: TourChapter[];
   callout: string;
   subtext?: string;
   waitForInteraction?: boolean;
@@ -21,143 +22,156 @@ export interface TourStep {
 // → Hazard report steps → back to Home → Announcement → History tab → History page
 // → Profile tab → Profile steps → Settings tab → Settings steps → Help tab → Finish
 const STEPS: TourStep[] = [
+  // ── HOME / SOS / HAZARD: Nav step ──────────────────────────────────────────
+  {
+    id: 'tour-tab-home', page: '/tabs/help', chapters: ['home', 'emergency', 'hazard'],
+    callout: 'First, tap the Home tab at the bottom.',
+    subtext: 'This opens your primary emergency response dashboard.',
+    waitForInteraction: true, interactionHint: 'Tap the Home tab'
+  },
   // ── HOME: intro ───────────────────────────────────────────────────────────
   {
-    id: 'tour-sos-button', page: '/tabs/home', chapter: 'home',
+    id: 'tour-sos-button', page: '/tabs/home', chapters: ['all', 'home'],
     callout: 'This is your Emergency SOS button.',
     subtext: 'Use this when you need immediate help — fire, flood, medical emergency, or crime. Tap it to see how it works.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted button'
   },
   // ── EMERGENCY REPORT ──────────────────────────────────────────────────────
   {
-    id: 'tour-incident-grid', page: '/report?type=emergency&tour=1', chapter: 'emergency',
+    id: 'tour-sos-button', page: '/tabs/home', chapters: ['emergency'],
+    callout: 'Tap the Emergency SOS button to start.',
+    subtext: 'Pressing this opens the emergency submission form.',
+    waitForInteraction: true, interactionHint: 'Tap the SOS button'
+  },
+  {
+    id: 'tour-incident-grid', page: '/report?type=emergency&tour=1', chapters: ['all', 'emergency'],
     callout: 'First, choose the type of emergency.',
     subtext: 'Tap the category that best matches your situation. This helps MDRRMO prepare the right response before arriving.',
     waitForInteraction: true, interactionHint: 'Tap a category'
   },
   {
-    id: 'tour-description-field', page: '/report?type=emergency&tour=1', chapter: 'emergency',
+    id: 'tour-description-field', page: '/report?type=emergency&tour=1', chapters: ['all', 'emergency'],
     callout: 'Add extra details here.',
     subtext: 'Describe what\'s happening — landmarks nearby, number of people, what happened. This field is optional but very helpful for responders.',
     waitForInteraction: false
   },
   {
-    id: 'tour-media-buttons', page: '/report?type=emergency&tour=1', chapter: 'emergency',
+    id: 'tour-media-buttons', page: '/report?type=emergency&tour=1', chapters: ['all', 'emergency'],
     callout: 'Attach a photo or short video as proof.',
     subtext: 'Visual evidence helps MDRRMO assess the severity and prepare the right equipment before they arrive.',
     waitForInteraction: false
   },
   {
-    id: 'tour-map-area', page: '/report?type=emergency&tour=1', chapter: 'emergency',
+    id: 'tour-map-area', page: '/report?type=emergency&tour=1', chapters: ['all', 'emergency'],
     callout: 'Drag the map to pin your exact location.',
     subtext: 'The location pin marks where your report will be submitted. You can also tap "Use My Location" to jump to your GPS position.',
     waitForInteraction: false
   },
   {
-    id: 'tour-submit-button', page: '/report?type=emergency&tour=1', chapter: 'emergency',
+    id: 'tour-submit-button', page: '/report?type=emergency&tour=1', chapters: ['all', 'emergency'],
     callout: 'This button sends your SOS to MDRRMO.',
     subtext: 'In a real emergency this immediately alerts the dispatch team. We won\'t submit anything during this tutorial — tap Next to continue.',
     waitForInteraction: false
   },
   // ── HOME: hazard ──────────────────────────────────────────────────────────
   {
-    id: 'tour-hazard-button', page: '/tabs/home', chapter: 'home',
+    id: 'tour-hazard-button', page: '/tabs/home', chapters: ['all', 'home', 'hazard'],
     callout: 'This button is for reporting hazards.',
     subtext: 'Use this for dangers that need attention but aren\'t immediate emergencies — flooded roads, downed wires, fallen trees. Tap it to see how it works.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted button'
   },
   // ── HAZARD REPORT ─────────────────────────────────────────────────────────
   {
-    id: 'tour-hazard-grid', page: '/report?type=hazard&tour=1', chapter: 'hazard',
+    id: 'tour-hazard-grid', page: '/report?type=hazard&tour=1', chapters: ['all', 'hazard'],
     callout: 'Choose the type of hazard you\'re reporting.',
     subtext: 'Select the category that best matches what you see. MDRRMO will assess and send the appropriate team.',
     waitForInteraction: true, interactionHint: 'Tap a category'
   },
   {
-    id: 'tour-submit-button', page: '/report?type=hazard&tour=1', chapter: 'hazard',
+    id: 'tour-submit-button', page: '/report?type=hazard&tour=1', chapters: ['all', 'hazard'],
     callout: 'Same process — pin location, attach proof, then submit.',
     subtext: 'MDRRMO will be notified and will address the hazard as soon as possible.',
     waitForInteraction: false
   },
   // ── HOME: announcement ────────────────────────────────────────────────────
   {
-    id: 'tour-announcement-pane', page: '/tabs/home', chapter: 'home',
+    id: 'tour-announcement-pane', page: '/tabs/home', chapters: ['all', 'home'],
     callout: 'This is the Announcements section.',
     subtext: 'When MDRRMO posts an official notice — like a flood warning or road closure — it appears here as a highlighted alert card.',
     waitForInteraction: false
   },
   // ── HISTORY ───────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-history', page: '/tabs/home', chapter: 'all',
+    id: 'tour-tab-history', page: '/tabs/home', chapters: ['all', 'history'],
     callout: 'Tap the History tab to check your submitted reports.',
     subtext: 'You can track whether your report is Pending, Dispatched, or Resolved in real time.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
   },
   {
-    id: 'tour-history-page', page: '/tabs/history', chapter: 'history',
+    id: 'tour-history-page', page: '/tabs/history', chapters: ['all', 'history'],
     callout: 'All your submitted reports appear here.',
     subtext: 'Filter by date or status to find a specific report. Each card shows the type, time, and current status — tap any card to see full details.',
     waitForInteraction: false
   },
   // ── PROFILE ───────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-profile', page: '/tabs/history', chapter: 'all',
+    id: 'tour-tab-profile', page: '/tabs/history', chapters: ['all', 'profile'],
     callout: 'Tap the Profile tab to manage your account.',
-    subtext: '',
+    subtext: 'Manage your personal details, profile picture, and life-saving medical data.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
   },
   {
-    id: 'tour-avatar-area', page: '/tabs/profile', chapter: 'profile',
+    id: 'tour-avatar-area', page: '/tabs/profile', chapters: ['all', 'profile'],
     callout: 'Tap "Change Photo" to set your profile picture.',
     subtext: 'A clear photo helps MDRRMO personnel identify you during emergencies.',
     waitForInteraction: false
   },
   {
-    id: 'tour-medical-section', page: '/tabs/profile', chapter: 'profile',
+    id: 'tour-medical-section', page: '/tabs/profile', chapters: ['all', 'profile'],
     callout: 'Fill in your medical information here.',
     subtext: 'Blood type, allergies, and conditions let responders prepare the right equipment and medications before they arrive. This can save critical time.',
     waitForInteraction: false
   },
   // ── SETTINGS ──────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-settings', page: '/tabs/profile', chapter: 'all',
+    id: 'tour-tab-settings', page: '/tabs/profile', chapters: ['all', 'settings'],
     callout: 'Tap the Settings tab to customize the app.',
-    subtext: '',
+    subtext: 'Customize your theme, notification sounds, and safety preferences.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
   },
   {
-    id: 'tour-settings-page', page: '/tabs/settings', chapter: 'settings',
+    id: 'tour-settings-page', page: '/tabs/settings', chapters: ['all', 'settings'],
     callout: 'Choose your app preferences here.',
     subtext: 'Dark mode, map style, location precision, notifications, reporting defaults, and even a Home Screen Widget — all saved automatically and synced across your devices.',
     waitForInteraction: false
   },
   // ── HELP ──────────────────────────────────────────────────────────────────
   {
-    id: 'tour-tab-help', page: '/tabs/settings', chapter: 'all',
+    id: 'tour-tab-help', page: '/tabs/settings', chapters: ['all'],
     callout: 'The Help tab is your guide whenever you need it.',
     subtext: 'Find FAQs, replay any chapter of this tutorial, or send feedback to the development team.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted tab'
   },
   {
-    id: 'tour-help-contacts', page: '/tabs/help', chapter: 'all',
+    id: 'tour-help-contacts', page: '/tabs/help', chapters: ['all'],
     callout: "MDRRMO's hotlines are always one tap away.",
     subtext: 'Call either hotline directly from here, or check the office address and 24/7 operating hours.',
     waitForInteraction: false
   },
   {
-    id: 'tour-help-tutorial', page: '/tabs/help', chapter: 'all',
+    id: 'tour-help-tutorial', page: '/tabs/help', chapters: ['all'],
     callout: 'You can replay this tutorial anytime.',
     subtext: 'Tap "Start Complete Tour" for the full walkthrough, or pick any chapter card below to jump straight to that topic instead.',
     waitForInteraction: false
   },
   {
-    id: 'tour-help-faq', page: '/tabs/help', chapter: 'all',
+    id: 'tour-help-faq', page: '/tabs/help', chapters: ['all'],
     callout: 'Check the FAQs for quick answers.',
     subtext: 'Tap any question to expand it — covers reports, location accuracy, medical info, and more.',
     waitForInteraction: false
   },
   {
-    id: 'tour-help-feedback', page: '/tabs/help', chapter: 'all',
+    id: 'tour-help-feedback', page: '/tabs/help', chapters: ['all'],
     callout: "You're all set! 🎉",
     subtext: 'You now know how to use the MDRRMO Emergency App. Found a bug or have an idea? Send it to us right here.',
     waitForInteraction: false
@@ -235,10 +249,10 @@ export class TourService {
     this.currentChapter = chapter;
     this.returnUrl = returnUrl || (chapter === 'all' ? '/tabs/home' : '/tabs/help');
     if (chapter === 'all') {
-      this.filteredSteps = STEPS;
+      this.filteredSteps = STEPS.filter(s => s.chapters ? s.chapters.includes('all') : s.chapter === 'all');
       this.stepIndex.set(0);
     } else {
-      this.filteredSteps = STEPS.filter(s => s.chapter === chapter);
+      this.filteredSteps = STEPS.filter(s => s.chapters ? s.chapters.includes(chapter) : s.chapter === chapter);
       this.stepIndex.set(0);
     }
     this.isActive.set(true);

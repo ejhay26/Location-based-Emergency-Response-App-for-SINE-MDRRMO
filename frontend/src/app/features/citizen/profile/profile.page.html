@@ -43,7 +43,10 @@
         <app-icon name="calendar" slot="start" [size]="16" color="var(--ion-color-danger)" style="width:22px;"></app-icon>
         <ion-label>
           <h3 style="font-size:12px;color:var(--ion-color-medium);margin-bottom:2px;">Birthdate & Age</h3>
-          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);">{{ userData.birthdate ? userData.birthdate : 'Not set' }}<span *ngIf="userData.birthdate"> ({{ calculatedAge }} years old)</span></p>
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);">
+            {{ formattedBirthdate }}
+            <span *ngIf="userData.birthdate && calculatedAge !== 'N/A'"> ({{ calculatedAge }} years old)</span>
+          </p>
         </ion-label>
       </ion-item>
     </div>

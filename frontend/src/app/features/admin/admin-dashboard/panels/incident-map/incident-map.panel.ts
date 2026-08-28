@@ -17,6 +17,7 @@ import { VideoThumbnailDirective } from '../../../../../shared/directives/video-
 import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
+import { isTauri } from '../../../../../shared/utils/platform.util';
 import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
 import { DateFilterValue, matchesDateFilter } from '../../../../../shared/utils/date-filter.util';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
@@ -440,7 +441,16 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   initMap() {
     if (this.map) return;
     this.map = L.map('dispatch-map', { minZoom: 12, zoomControl: true }).setView([15.3014, 120.9274], 13);
-    this.streetLayer    = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors', crossOrigin: true });
+    // Under Tauri, tiles are requested through the `osmtile://` custom
+    // protocol (registered in src-tauri/src/lib.rs) instead of hitting
+    // OpenStreetMap's CDN directly from the webview — that's what strips
+    // the problematic Referer header now, taking over from Electron's
+    // main.js `onBeforeSendHeaders` intercept. Every other shell
+    // (Electron, browser, Capacitor) keeps requesting the tiles directly.
+    const osmTileUrl = isTauri()
+      ? 'osmtile://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    this.streetLayer    = L.tileLayer(osmTileUrl, { maxZoom: 19, attribution: '© OpenStreetMap contributors', crossOrigin: true });
     this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri' });
 
     if (this.mapStyle === 'street') {

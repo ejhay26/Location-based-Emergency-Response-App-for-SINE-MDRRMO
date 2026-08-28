@@ -3,12 +3,22 @@ import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { isTauri, isElectron } from '../../utils/platform.util';
 
 /** Minimal shape of Electron's ipcRenderer that this component uses. */
 interface ElectronIpcRenderer {
   send(channel: string, ...args: unknown[]): void;
   on(channel: string, listener: (...args: unknown[]) => void): void;
   removeListener(channel: string, listener: (...args: unknown[]) => void): void;
+}
+
+/** Minimal shape of the Tauri v2 window handle that this component uses. */
+interface TauriWindowHandle {
+  minimize(): Promise<void>;
+  toggleMaximize(): Promise<void>;
+  close(): Promise<void>;
+  isMaximized(): Promise<boolean>;
+  onResized(handler: () => void): Promise<() => void>;
 }
 
 @Component({
@@ -18,7 +28,7 @@ interface ElectronIpcRenderer {
   styleUrl: './app-titlebar.component.scss',
   template: `
     <div class="app-titlebar" [class.red-header]="isRedHeader">
-      <div class="app-titlebar__drag"></div>
+      <div class="app-titlebar__drag" data-tauri-drag-region></div>
       <div class="app-titlebar__controls" (mousedown)="$event.stopPropagation()">
         <button
           type="button"
@@ -63,14 +73,26 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
   private sub?: Subscription;
   private ipc: ElectronIpcRenderer | null = null;
 
+  // Tauri's window handle and unlisten function are resolved once via a
+  // dynamic import of `@tauri-apps/api/window` — dynamic, not a static
+  // top-level import, so this module has zero effect when running under
+  // Electron/Capacitor/browser (where the package may not even be bundled
+  // for that target).
+  private tauriWindow: TauriWindowHandle | null = null;
+  private tauriUnlistenResize: (() => void) | null = null;
+
   private readonly handleWindowState = (...args: unknown[]): void => {
     const state = args[0] as { maximized?: boolean } | undefined;
     this.isMaximized = !!state?.maximized;
   };
 
-  ngOnInit(): void {
-    this.ipc = this.resolveIpcRenderer();
-    this.ipc?.on('window:state', this.handleWindowState);
+  async ngOnInit(): Promise<void> {
+    if (isTauri()) {
+      await this.initTauriWindowControls();
+    } else if (isElectron()) {
+      this.ipc = this.resolveIpcRenderer();
+      this.ipc?.on('window:state', this.handleWindowState);
+    }
 
     this.updateHeaderState(this.router.url);
     this.sub = this.router.events.pipe(
@@ -83,6 +105,7 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
     this.ipc?.removeListener('window:state', this.handleWindowState);
+    this.tauriUnlistenResize?.();
   }
 
   private updateHeaderState(url: string): void {
@@ -94,6 +117,7 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
   minimize(event?: MouseEvent): void {
     event?.stopPropagation();
     event?.preventDefault();
+    if (this.tauriWindow) { void this.tauriWindow.minimize(); return; }
     const ipc = this.ipc || this.resolveIpcRenderer();
     ipc?.send('window:minimize');
   }
@@ -101,6 +125,7 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
   toggleMaximize(event?: MouseEvent): void {
     event?.stopPropagation();
     event?.preventDefault();
+    if (this.tauriWindow) { void this.tauriWindow.toggleMaximize(); return; }
     const ipc = this.ipc || this.resolveIpcRenderer();
     ipc?.send('window:maximize-toggle');
   }
@@ -108,6 +133,7 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
   close(event?: MouseEvent): void {
     event?.stopPropagation();
     event?.preventDefault();
+    if (this.tauriWindow) { void this.tauriWindow.close(); return; }
     const ipc = this.ipc || this.resolveIpcRenderer();
     ipc?.send('window:close');
   }
@@ -124,5 +150,20 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
       return null;
     }
     return null;
+  }
+
+  /** Resolves the Tauri window handle and wires maximize-state sync via onResized. */
+  private async initTauriWindowControls(): Promise<void> {
+    try {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
+      const win = getCurrentWindow() as unknown as TauriWindowHandle;
+      this.tauriWindow = win;
+      this.isMaximized = await win.isMaximized();
+      this.tauriUnlistenResize = await win.onResized(async () => {
+        this.isMaximized = await win.isMaximized();
+      });
+    } catch (err) {
+      console.warn('[Titlebar] Failed to initialize Tauri window controls:', err);
+    }
   }
 }

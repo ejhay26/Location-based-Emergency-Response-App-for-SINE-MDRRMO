@@ -65,6 +65,10 @@ yarn-error.log
 testem.log
 /typings
 
+# Tauri
+/src-tauri/target
+/src-tauri/gen
+
 # System files
 .DS_Store
 Thumbs.db

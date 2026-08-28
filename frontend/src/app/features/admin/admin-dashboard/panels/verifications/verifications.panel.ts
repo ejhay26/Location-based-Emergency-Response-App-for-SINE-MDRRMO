@@ -15,6 +15,8 @@ import { FilterSummaryBarComponent } from '../../../../../shared/components/filt
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
+import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
+
 /**
  * VerificationsPanel — refreshes its queue in real-time via the Echo
  * `users` channel (UserVerified event). When one admin approves or rejects
@@ -28,7 +30,7 @@ import { AppIconComponent } from '../../../../../shared/components/app-icon/app-
   imports: [
     CommonModule, FormsModule, IonButton, ProxyImageDirective,
     DateRangeFilterComponent, FilterSummaryBarComponent, RevealAnimateDirective, ListEnterDirective,
-    AppIconComponent
+    AppIconComponent, UtcDatePipe
   ],
   templateUrl: './verifications.panel.html',
 })

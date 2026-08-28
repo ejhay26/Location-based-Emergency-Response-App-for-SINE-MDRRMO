@@ -169,3 +169,56 @@ ion-toggle {
   width: 50px;
   height: 28px;
 }
+
+/* ===========================================================================
+   FLUID SECTION & ELEMENT ENTRANCE ANIMATIONS (PAGE TRANSITIONS)
+   =========================================================================== */
+@keyframes sineElementEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+.page-enter-animate,
+.animate-enter-fade,
+ion-content .inset-card,
+ion-content .inset-group {
+  animation: sineElementEnter 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger entrance for consecutive grouped containers */
+ion-content .inset-card:nth-of-type(1),
+ion-content .inset-group:nth-of-type(1),
+.enter-stagger-1 {
+  animation-delay: 0.03s;
+}
+
+ion-content .inset-card:nth-of-type(2),
+ion-content .inset-group:nth-of-type(2),
+.enter-stagger-2 {
+  animation-delay: 0.08s;
+}
+
+ion-content .inset-card:nth-of-type(3),
+ion-content .inset-group:nth-of-type(3),
+.enter-stagger-3 {
+  animation-delay: 0.13s;
+}
+
+ion-content .inset-card:nth-of-type(4),
+ion-content .inset-group:nth-of-type(4),
+.enter-stagger-4 {
+  animation-delay: 0.18s;
+}
+
+ion-content .inset-card:nth-of-type(n+5),
+ion-content .inset-group:nth-of-type(n+5),
+.enter-stagger-5 {
+  animation-delay: 0.22s;
+}
+

@@ -136,12 +136,42 @@ export class ProfilePage implements OnInit, OnDestroy {
     });
   }
 
+  get formattedBirthdate(): string {
+    if (!this.userData?.birthdate) return 'Not set';
+    try {
+      const bStr = String(this.userData.birthdate).trim();
+      const datePart = bStr.includes('T') ? bStr.split('T')[0] : (bStr.includes(' ') ? bStr.split(' ')[0] : bStr);
+      const parts = datePart.split('-').map(Number);
+      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+        const [year, month, day] = parts;
+        const d = new Date(year, month - 1, day);
+        return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      }
+      return datePart;
+    } catch {
+      return String(this.userData.birthdate).split('T')[0];
+    }
+  }
+
   calculateAge(birthdateStr: string) {
-    const birth = new Date(birthdateStr), today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-    this.calculatedAge = age;
+    if (!birthdateStr) {
+      this.calculatedAge = 'N/A';
+      return;
+    }
+    const bStr = String(birthdateStr).trim();
+    const datePart = bStr.includes('T') ? bStr.split('T')[0] : (bStr.includes(' ') ? bStr.split(' ')[0] : bStr);
+    const parts = datePart.split('-').map(Number);
+    if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+      const [year, month, day] = parts;
+      const birth = new Date(year, month - 1, day);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+      this.calculatedAge = age >= 0 ? age : 'N/A';
+    } else {
+      this.calculatedAge = 'N/A';
+    }
   }
 
   showToast(msg: string, color = 'success') {
