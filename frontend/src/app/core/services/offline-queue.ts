@@ -77,28 +77,12 @@ export class OfflineQueueService {
   private flushing = false;
 
   constructor(private api: ApiService, private network: NetworkService) {
-    // The browser's native 'online' event only fires when the network
-    // INTERFACE itself transitions from down to up (Wi-Fi reconnecting,
-    // airplane mode toggling off). It does NOT fire when the interface was
-    // up the whole time but requests were failing for another reason (CORS
-    // misconfiguration, an expired tunnel, the backend being briefly down) —
-    // in that case navigator.onLine was already true throughout, so
-    // 'online' never fires again once the real problem is fixed, and a
-    // queued item would sit here forever with nothing ever retrying it.
-    // Reacting to NetworkService.isOnline() instead is the real fix: it's
-    // driven by an actual reachability probe against the backend (recheck()),
-    // not just the OS-level interface state, so it correctly flips true the
-    // moment the backend becomes genuinely reachable again for ANY reason.
-    window.addEventListener('online', () => { this.flush(); });
-    effect(() => {
-      if (this.network.isOnline()) this.flush();
-    });
-    // Also attempt a flush immediately on app boot — covers the case where
-    // a report was queued in a previous session (app was closed/backgrounded
-    // while offline) and connectivity is already fine by the time the app
-    // is opened again, with no transition event of any kind to react to.
-    this.flush();
-    this.refreshCount();
+    window.addEventListener('online', () => { void this.flush(); });
+    // Attempt a flush on boot if online
+    if (typeof navigator !== 'undefined' && navigator.onLine) {
+      setTimeout(() => { void this.flush(); }, 1000);
+    }
+    void this.refreshCount();
   }
 
   private openDb(): Promise<IDBDatabase> {

@@ -1,6 +1,6 @@
-<ion-app [class.electron-app]="isElectron">
-  <!-- Custom Electron Titlebar with Minimize, Maximize, and Close -->
-  @if (isElectron) {
+<ion-app [class.electron-app]="isDesktop">
+  <!-- Custom Desktop Titlebar with Minimize, Maximize, and Close -->
+  @if (isDesktop) {
     <app-titlebar></app-titlebar>
   }
   <ion-router-outlet></ion-router-outlet>
