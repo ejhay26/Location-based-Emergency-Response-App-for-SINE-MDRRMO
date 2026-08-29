@@ -2,6 +2,7 @@ import { Injectable, signal, computed } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 import { filter } from 'rxjs/operators';
+import { Subject, BehaviorSubject } from 'rxjs';
 
 export type TourChapter = 'all' | 'home' | 'emergency' | 'hazard' | 'history' | 'profile' | 'settings';
 
@@ -58,13 +59,13 @@ const STEPS: TourStep[] = [
   {
     id: 'tour-media-buttons', page: '/report?type=emergency&tour=1', chapters: ['all', 'emergency'],
     callout: 'Attach a photo or short video as proof.',
-    subtext: 'Visual evidence helps MDRRMO assess the severity and prepare the right equipment before they arrive.',
+    subtext: 'Tap "Attach Photo/Video" to capture or select media. Responders use this to assess danger before reaching the scene.',
     waitForInteraction: false
   },
   {
-    id: 'tour-map-area', page: '/report?type=emergency&tour=1', chapters: ['all', 'emergency'],
-    callout: 'Drag the map to pin your exact location.',
-    subtext: 'The location pin marks where your report will be submitted. You can also tap "Use My Location" to jump to your GPS position.',
+    id: 'tour-location-card', page: '/report?type=emergency&tour=1', chapters: ['all', 'emergency'],
+    callout: 'Confirm your emergency location.',
+    subtext: 'Your GPS pinpoint and detected address appear here automatically. You can drag the map marker if you need to adjust it.',
     waitForInteraction: false
   },
   {
@@ -76,15 +77,15 @@ const STEPS: TourStep[] = [
   // ── HOME: hazard ──────────────────────────────────────────────────────────
   {
     id: 'tour-hazard-button', page: '/tabs/home', chapters: ['all', 'home', 'hazard'],
-    callout: 'This button is for reporting hazards.',
-    subtext: 'Use this for dangers that need attention but aren\'t immediate emergencies — flooded roads, downed wires, fallen trees. Tap it to see how it works.',
+    callout: 'This is the Public Hazard button.',
+    subtext: 'Report non-emergency dangers — like fallen trees, road damage, flooded streets, or loose electrical wires — to warn your community.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted button'
   },
   // ── HAZARD REPORT ─────────────────────────────────────────────────────────
   {
-    id: 'tour-hazard-grid', page: '/report?type=hazard&tour=1', chapters: ['all', 'hazard'],
-    callout: 'Choose the type of hazard you\'re reporting.',
-    subtext: 'Select the category that best matches what you see. MDRRMO will assess and send the appropriate team.',
+    id: 'tour-incident-grid', page: '/report?type=hazard&tour=1', chapters: ['hazard'],
+    callout: 'Choose the hazard category.',
+    subtext: 'Pick the type of hazard — Fallen Tree, Flooded Road, Blocked Route, Wire Down, or Other.',
     waitForInteraction: true, interactionHint: 'Tap a category'
   },
   {
@@ -93,10 +94,10 @@ const STEPS: TourStep[] = [
     subtext: 'MDRRMO will be notified and will address the hazard as soon as possible.',
     waitForInteraction: false
   },
-  // ── HOME: announcement ────────────────────────────────────────────────────
+  // ── ANNOUNCEMENTS / FEED ──────────────────────────────────────────────────
   {
-    id: 'tour-announcement-pane', page: '/tabs/home', chapters: ['all', 'home'],
-    callout: 'This is the Announcements section.',
+    id: 'tour-announcement-card', page: '/tabs/home', chapters: ['all', 'home'],
+    callout: 'Public Safety Alerts appear here.',
     subtext: 'When MDRRMO posts an official notice — like a flood warning or road closure — it appears here as a highlighted alert card.',
     waitForInteraction: false
   },
@@ -197,6 +198,10 @@ export class TourService {
   // Emits panel names ('active', 'broadcast', etc.) when an admin step specifies a dashboard panel
   adminPanelSwitch = signal<string | null>(null);
 
+  /** RxJS Streams for components to subscribe cleanly without needing Angular effect() */
+  stepChange$  = new BehaviorSubject<{ id: string; active: boolean }>({ id: '', active: false });
+  panelChange$ = new Subject<string>();
+
   private currentChapter: TourChapter = 'all';
   private filteredSteps: TourStep[] = STEPS;
   private navigating = false;
@@ -272,9 +277,21 @@ export class TourService {
     const step = this.currentStep;
     if (!step) { this.finish(); return; }
     this.targetId.set(step.id);
+
+    // If the step switches to a different panel, emit panelChange$ first
+    // and delay the stepChange$ so Angular has time to render the panel's DOM.
     if (step.panel) {
       this.adminPanelSwitch.set(step.panel);
+      this.panelChange$.next(step.panel);
+      // Give Angular ~450ms to mount & render the panel before the
+      // overlay tries to find the target element inside it.
+      setTimeout(() => {
+        this.stepChange$.next({ id: step.id, active: true });
+      }, 450);
+    } else {
+      this.stepChange$.next({ id: step.id, active: true });
     }
+
     if (step.page) {
       const current = this.router.url.split('?')[0];
       const isBottomTabStep = step.id.startsWith('tour-tab-');
@@ -303,6 +320,7 @@ export class TourService {
     this.targetId.set('');
     this.stepIndex.set(0);
     this.filteredSteps = STEPS;
+    this.stepChange$.next({ id: '', active: false });
     this.dismissAnyModal();
     if (customCb) {
       customCb();
@@ -321,6 +339,7 @@ export class TourService {
     this.targetId.set('');
     this.stepIndex.set(0);
     this.filteredSteps = STEPS;
+    this.stepChange$.next({ id: '', active: false });
     this.dismissAnyModal();
   }
 
@@ -331,6 +350,7 @@ export class TourService {
     this.targetId.set('');
     this.stepIndex.set(0);
     this.filteredSteps = STEPS;
+    this.stepChange$.next({ id: '', active: false });
     this.dismissAnyModal();
     if (customCb) {
       customCb();
