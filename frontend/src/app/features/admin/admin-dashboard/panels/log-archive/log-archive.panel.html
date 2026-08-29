@@ -15,12 +15,12 @@
       </app-date-range-filter>
     </div>
 
-    <div style="display:flex;gap:8px;align-items:center;">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <select
         id="archiveTypeFilter"
         name="archiveTypeFilter"
         [(ngModel)]="archiveTypeFilter"
-        style="padding:8px 12px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12.5px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
+        style="padding:8px 12px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12.5px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;min-width:110px;flex:1 1 auto;">
         <option value="all">All Types</option>
         <option *ngFor="let t of archiveIncidentTypes" [value]="t">{{t}}</option>
       </select>
@@ -29,7 +29,7 @@
         id="archiveBarangayFilter"
         name="archiveBarangayFilter"
         [(ngModel)]="archiveBarangayFilter"
-        style="padding:8px 12px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12.5px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
+        style="padding:8px 12px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12.5px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;min-width:130px;flex:1 1 auto;">
         <option [ngValue]="'all'">All Barangays</option>
         <option *ngFor="let b of barangayOptions" [ngValue]="b.id">{{b.name}}</option>
       </select>
@@ -39,7 +39,7 @@
         name="archiveSort"
         [ngModel]="archiveSort"
         (ngModelChange)="onSortChange($event)"
-        style="padding:8px 12px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12.5px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;">
+        style="padding:8px 12px;border-radius:10px;border:1px solid var(--ion-color-step-200,#ccc);font-size:12.5px;background:var(--ion-card-background,white);color:var(--ion-text-color);font-weight:600;min-width:115px;flex:1 1 auto;">
         <option value="newest">Newest First</option>
         <option value="oldest">Oldest First</option>
         <option value="type">By Type</option>
@@ -50,7 +50,7 @@
         type="button"
         (click)="openExportModal()"
         title="Export filtered emergency incident logs to an official PDF report"
-        style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:none;background:var(--ion-color-danger);color:white;font-size:12.5px;font-weight:700;cursor:pointer;transition:transform 0.1s, opacity 0.15s;box-shadow:0 3px 10px rgba(235,68,90,0.3);">
+        style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:10px;border:none;background:var(--ion-color-danger);color:white;font-size:12.5px;font-weight:700;cursor:pointer;transition:transform 0.1s, opacity 0.15s;box-shadow:0 3px 10px rgba(235,68,90,0.3);flex:0 0 auto;">
         <app-icon name="file-pdf" [size]="15" color="#ffffff"></app-icon>
         <span>Export PDF</span>
       </button>

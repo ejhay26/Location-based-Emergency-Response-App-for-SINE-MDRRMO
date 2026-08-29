@@ -14,6 +14,7 @@ import { DateRangeFilterComponent } from '../../../../../shared/components/date-
 import { FilterSummaryBarComponent } from '../../../../../shared/components/filter-summary-bar/filter-summary-bar.component';
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { TourService } from '../../../../../core/services/tour';
 
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 
@@ -46,11 +47,31 @@ export class VerificationsPanel implements OnInit, OnDestroy {
   readonly barangays = BARANGAYS;
 
   private echoUserSub?: Subscription;
+  private tourSub?: Subscription;
+
+  readonly DEMO_VERIFICATION = {
+    user_id: 999999,
+    first_name: 'Maria Clara',
+    last_name: 'Santos',
+    username: 'mariasantos',
+    email: 'maria.santos@example.com',
+    phone: '09171234567',
+    barangay_id: 1,
+    valid_id_type: 'National ID (PhilID)',
+    valid_id_number: '1234-5678-9012-3456',
+    valid_id_expiry: '2030-12-31',
+    valid_id_proof: 'assets/sample-id-front.jpg',
+    valid_id_proof_back: 'assets/sample-id-back.jpg',
+    selfie_with_id_proof: 'assets/sample-id-selfie.jpg',
+    created_at: new Date().toISOString(),
+    is_demo: true
+  };
 
   constructor(
     public api: ApiService,
     public ui: AdminUiService,
     private echo: EchoService,
+    public tour: TourService,
   ) {}
 
   ngOnInit() {
@@ -60,14 +81,31 @@ export class VerificationsPanel implements OnInit, OnDestroy {
     this.echoUserSub = this.echo.onUserVerified.subscribe(() => {
       this.loadPendingVerifications();
     });
+
+    this.tourSub = this.tour.stepChange$.subscribe(({ active }) => {
+      if (active && this.pendingVerifications.length === 0) {
+        this.pendingVerifications = [this.DEMO_VERIFICATION];
+      } else if (!active && this.pendingVerifications.length === 1 && this.pendingVerifications[0].is_demo) {
+        this.pendingVerifications = [];
+      }
+    });
   }
 
   ngOnDestroy() {
     this.echoUserSub?.unsubscribe();
+    this.tourSub?.unsubscribe();
   }
 
   loadPendingVerifications() {
-    this.api.getPendingVerifications().subscribe((res: any) => { this.pendingVerifications = res; });
+    this.api.getPendingVerifications().subscribe((res: any) => {
+      if (Array.isArray(res) && res.length > 0) {
+        this.pendingVerifications = res;
+      } else if (this.tour.isActive()) {
+        this.pendingVerifications = [this.DEMO_VERIFICATION];
+      } else {
+        this.pendingVerifications = [];
+      }
+    });
   }
 
   get filteredVerifications(): any[] {

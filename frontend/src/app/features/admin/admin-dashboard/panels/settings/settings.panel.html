@@ -88,7 +88,7 @@
         <span [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'"
           style="font-size: 11.5px; font-weight: 800; min-width: 28px; text-align: right; margin-right: 4px;">{{ s.value
           ? 'ON' : 'OFF' }}</span>
-        <ion-toggle mode="ios" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+        <ion-toggle mode="ios" color="danger" [class.theme-toggle-live]="s.key === 'dark_mode'" [checked]="s.value" (ionChange)="onToggle(s, $event)"></ion-toggle>
       </div>
     </div>
   </div>
@@ -190,7 +190,7 @@
         <span [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'"
           style="font-size: 11.5px; font-weight: 800; min-width: 28px; text-align: right; margin-right: 4px;">{{ s.value
           ? 'ON' : 'OFF' }}</span>
-        <ion-toggle mode="ios" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
+        <ion-toggle mode="ios" color="danger" [checked]="s.value" (ionChange)="onToggle(s, $event)"></ion-toggle>
       </div>
     </div>
   </div>

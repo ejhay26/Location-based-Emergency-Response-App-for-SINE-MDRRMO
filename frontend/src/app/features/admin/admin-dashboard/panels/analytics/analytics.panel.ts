@@ -53,6 +53,7 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
   private hazardTrendChartInstance: any = null;
   private hazardTypeChartInstance: any = null;
   private hazardBarangayChartInstance: any = null;
+  private analyticsSub?: any = null;
 
   constructor(
     public api: ApiService,
@@ -61,12 +62,14 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    console.log('[AnalyticsPanel] ngOnInit');
     this.loadAnalytics();
   }
 
   ngOnDestroy() {
-    console.log('[AnalyticsPanel] ngOnDestroy');
+    if (this.analyticsSub) {
+      this.analyticsSub.unsubscribe();
+      this.analyticsSub = null;
+    }
     this.destroyAllCharts();
   }
 
@@ -98,10 +101,13 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
   }
 
   loadAnalytics() {
+    if (this.analyticsSub) {
+      this.analyticsSub.unsubscribe();
+      this.analyticsSub = null;
+    }
     this.isLoading = true;
-    this.api.getAnalytics(this.chartRange).subscribe({
+    this.analyticsSub = this.api.getAnalytics(this.chartRange).subscribe({
       next: (res: any) => {
-        console.log('[AnalyticsPanel] getAnalytics response received');
         this.analyticsData = res || { daily_stats: [], type_stats: [], recent_records: [], barangay_stats: [], hazard_stats: [], hazard_daily_stats: [], hazard_barangay_stats: [] };
         this.activeTypeFilter = null;
         this.activeBarangayFilter = null;

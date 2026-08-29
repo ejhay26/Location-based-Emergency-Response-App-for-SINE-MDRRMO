@@ -1,21 +1,35 @@
 <ion-content class="ion-padding" style="--padding-top: 0; --padding-bottom: 0; --padding-start: 0; --padding-end: 0; --overflow: hidden;">
   <div class="admin-desktop-wrapper">
 
-    <!-- ── MOBILE TOP NAVIGATION BAR ── -->
-    <div class="admin-mobile-header">
-      <button (click)="toggleMobileSidebar()" class="mobile-menu-btn" aria-label="Toggle navigation menu">
-        <app-icon name="menu" [size]="20" color="var(--ion-text-color)"></app-icon>
-      </button>
-      <div class="mobile-header-title">
-        <img src="assets/icon/logo.jpg" alt="MDRRMO logo" class="mobile-header-logo" />
-        <div style="min-width: 0;">
-          <h5 class="mobile-title-main">{{ currentViewTitle }}</h5>
-          <span class="mobile-role-tag">{{ currentRole === 'admin' ? 'Administrator' : 'Dispatcher' }}</span>
+    <!-- ── MOBILE TOP NAVIGATION BAR (FIXED AT TOP ON SUB-PANELS & MENU) ── -->
+    <div *ngIf="!isMapView" class="admin-mobile-header">
+      <!-- 1. Left Action: Back to Menu button when inside a sub-panel -->
+      <div class="mobile-header-left">
+        <button *ngIf="isSubPanel" id="mobile-nav-back-btn" (click)="selectViewMode('menu')" class="mobile-nav-back-btn" aria-label="Back to Menu">
+          <app-icon name="chevron-left" [size]="20" color="var(--ion-color-danger)"></app-icon>
+          <span>Menu</span>
+        </button>
+        <!-- On Menu root tab: clean title with no icon -->
+        <h4 *ngIf="viewMode === 'menu'" class="mobile-header-menu-title">Menu</h4>
+        <!-- On other main tabs (Broadcast, Archive): brand logo + title -->
+        <div *ngIf="!isSubPanel && viewMode !== 'menu'" class="mobile-header-title">
+          <img src="assets/icon/logo.jpg" alt="MDRRMO logo" class="mobile-header-logo" />
+          <div style="min-width: 0;">
+            <h5 class="mobile-title-main">{{ currentViewTitle }}</h5>
+            <span class="mobile-role-tag">{{ currentRole === 'admin' ? 'Administrator' : 'Dispatcher' }}</span>
+          </div>
         </div>
       </div>
-      <button (click)="selectViewMode('help')" class="mobile-help-btn" aria-label="Open help and procedures">
-        <app-icon name="graduation-cap" [size]="18" color="var(--ion-color-danger)"></app-icon>
-      </button>
+
+      <!-- 2. Center: Sub-panel title (Centered across navbar) -->
+      <div *ngIf="isSubPanel" class="mobile-header-subpanel-title">
+        <h5 class="subpanel-title-text">{{ currentViewTitle }}</h5>
+      </div>
+
+      <!-- 3. Right: Role / Status Badge -->
+      <div class="mobile-header-right">
+        <span class="mobile-role-badge-pill">{{ currentRole === 'admin' ? 'Admin' : 'Dispatcher' }}</span>
+      </div>
     </div>
 
     <!-- Mobile Sidebar Backdrop (clicking outside closes drawer) -->
@@ -150,12 +164,31 @@
         </div>
 
         <!-- analytics renders its own scroll container -->
-        <div *ngIf="viewMode === 'analytics'" style="flex: 1; display: flex; min-width: 0; height: 100%; overflow: hidden;">
+        <div *ngIf="viewMode === 'analytics'"
+             class="admin-scroll-panel"
+             [class.panel-slide-forward]="isSubPanel && navDirection === 'forward'"
+             style="flex: 1; display: flex; min-width: 0; height: 100%; overflow: hidden;">
           <app-analytics-panel style="flex: 1; display: flex; min-width: 0;"></app-analytics-panel>
         </div>
 
-        <!-- Single-column panels share one full-width scrollable container -->
-        <div *ngIf="!isMapView && viewMode !== 'analytics'" class="admin-scroll-panel" style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
+        <!-- Dedicated Mobile Menu Panel (Hub) -->
+        <div *ngIf="viewMode === 'menu'"
+             class="admin-scroll-panel menu-panel-wrapper"
+             [class.panel-slide-back]="navDirection === 'back'"
+             style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
+          <app-mobile-menu-panel
+            [currentRole]="currentRole || 'admin'"
+            [pendingVerificationsCount]="pendingVerificationsCount"
+            (viewSelect)="navigateToSubPanel($any($event))"
+            (logout)="logout()">
+          </app-mobile-menu-panel>
+        </div>
+
+        <!-- Single-column panels share one full-width scrollable container with slide transitions -->
+        <div *ngIf="!isMapView && viewMode !== 'analytics' && viewMode !== 'menu'"
+             class="admin-scroll-panel"
+             [class.panel-slide-forward]="isSubPanel && navDirection === 'forward'"
+             style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
           <app-verifications-panel *ngIf="viewMode === 'verifications'"></app-verifications-panel>
           <app-log-archive-panel   *ngIf="viewMode === 'archive'"></app-log-archive-panel>
           <app-broadcast-panel     *ngIf="viewMode === 'broadcast'"></app-broadcast-panel>
@@ -168,6 +201,16 @@
       </div>
 
     </div><!-- end admin-desktop-body -->
+
+    <!-- ── MOBILE 4-TAB BOTTOM NAVIGATION BAR (MOBILE ONLY - HIDDEN ON SUB-PANELS) ── -->
+    <app-mobile-admin-nav
+      *ngIf="!isSubPanel"
+      class="mobile-bottom-nav-wrapper"
+      [currentView]="$any(viewMode)"
+      [activeIncidentsCount]="activeIncidentsCount"
+      [pendingVerificationsCount]="pendingVerificationsCount"
+      (viewChange)="selectViewMode($any($event))">
+    </app-mobile-admin-nav>
 
   </div><!-- end admin-desktop-wrapper -->
 </ion-content>

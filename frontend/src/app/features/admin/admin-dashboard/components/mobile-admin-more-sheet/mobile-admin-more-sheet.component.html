@@ -1,0 +1,146 @@
+<div class="more-sheet-backdrop" [class.open]="isOpen" (click)="onBackdropClick()"></div>
+
+<div class="more-sheet-container" [class.open]="isOpen">
+  
+  <!-- Drag / Close Handle -->
+  <div class="sheet-handle-bar" (click)="onBackdropClick()">
+    <div class="sheet-handle"></div>
+  </div>
+
+  <!-- Header -->
+  <div class="sheet-header">
+    <div class="header-brand">
+      <img src="assets/icon/logo.jpg" alt="MDRRMO Logo" class="header-logo" />
+      <div>
+        <h4 class="header-title">MDRRMO Menu</h4>
+        <p class="header-sub">MDRRMO San Isidro, Nueva Ecija</p>
+      </div>
+    </div>
+    <button type="button" class="sheet-close-btn" (click)="onBackdropClick()" aria-label="Close menu">
+      <app-icon name="close" [size]="18" color="var(--ion-text-color)"></app-icon>
+    </button>
+  </div>
+
+  <!-- Grid of Management Options -->
+  <div class="sheet-grid">
+
+    <!-- 1. ID Verifications (Admin Only) -->
+    <button
+      *ngIf="currentRole === 'admin'"
+      type="button"
+      class="grid-card-btn"
+      [class.active]="currentView === 'verifications'"
+      (click)="onSelect('verifications')">
+      <div class="grid-card-icon-box" style="background: rgba(45, 211, 111, 0.12); color: #2dd36f;">
+        <app-icon name="shield-check" [size]="22" color="#2dd36f"></app-icon>
+      </div>
+      <div class="grid-card-info">
+        <span class="grid-card-title">Verifications</span>
+        <span class="grid-card-sub">Citizen ID KYC Queue</span>
+      </div>
+      <span *ngIf="pendingVerificationsCount > 0" class="grid-card-badge">{{ pendingVerificationsCount }}</span>
+    </button>
+
+    <!-- 2. Personnel / Dispatchers (Admin Only) -->
+    <button
+      *ngIf="currentRole === 'admin'"
+      type="button"
+      class="grid-card-btn"
+      [class.active]="currentView === 'dispatchers'"
+      (click)="onSelect('dispatchers')">
+      <div class="grid-card-icon-box" style="background: rgba(56, 128, 255, 0.12); color: #3880ff;">
+        <app-icon name="users" [size]="22" color="#3880ff"></app-icon>
+      </div>
+      <div class="grid-card-info">
+        <span class="grid-card-title">Personnel</span>
+        <span class="grid-card-sub">Dispatchers &amp; Responders</span>
+      </div>
+    </button>
+
+    <!-- 3. Citizens Directory -->
+    <button
+      type="button"
+      class="grid-card-btn"
+      [class.active]="currentView === 'citizens'"
+      (click)="onSelect('citizens')">
+      <div class="grid-card-icon-box" style="background: rgba(188, 111, 255, 0.12); color: #bc6fff;">
+        <app-icon name="user" [size]="22" color="#bc6fff"></app-icon>
+      </div>
+      <div class="grid-card-info">
+        <span class="grid-card-title">Citizens</span>
+        <span class="grid-card-sub">Registered Residents</span>
+      </div>
+    </button>
+
+    <!-- 4. Analytics & Reports -->
+    <button
+      type="button"
+      class="grid-card-btn"
+      [class.active]="currentView === 'analytics'"
+      (click)="onSelect('analytics')">
+      <div class="grid-card-icon-box" style="background: rgba(255, 196, 9, 0.12); color: #ffc409;">
+        <app-icon name="chart-pie" [size]="22" color="#ffc409"></app-icon>
+      </div>
+      <div class="grid-card-info">
+        <span class="grid-card-title">Analytics</span>
+        <span class="grid-card-sub">Incident Statistics &amp; Metrics</span>
+      </div>
+    </button>
+
+    <!-- 5. Citizen Feedback (Admin Only) -->
+    <button
+      *ngIf="currentRole === 'admin'"
+      type="button"
+      class="grid-card-btn"
+      [class.active]="currentView === 'feedback'"
+      (click)="onSelect('feedback')">
+      <div class="grid-card-icon-box" style="background: rgba(235, 68, 90, 0.12); color: #eb445a;">
+        <app-icon name="message-square" [size]="22" color="#eb445a"></app-icon>
+      </div>
+      <div class="grid-card-info">
+        <span class="grid-card-title">Feedback</span>
+        <span class="grid-card-sub">Citizen Ratings &amp; Reviews</span>
+      </div>
+    </button>
+
+    <!-- 6. System Settings -->
+    <button
+      type="button"
+      class="grid-card-btn"
+      [class.active]="currentView === 'settings'"
+      (click)="onSelect('settings')">
+      <div class="grid-card-icon-box" style="background: rgba(142, 142, 147, 0.12); color: #8e8e93;">
+        <app-icon name="settings" [size]="22" color="var(--ion-color-medium)"></app-icon>
+      </div>
+      <div class="grid-card-info">
+        <span class="grid-card-title">Settings</span>
+        <span class="grid-card-sub">System &amp; Audio Preferences</span>
+      </div>
+    </button>
+
+    <!-- 7. Help & Dispatcher SOP -->
+    <button
+      type="button"
+      class="grid-card-btn"
+      [class.active]="currentView === 'help'"
+      (click)="onSelect('help')">
+      <div class="grid-card-icon-box" style="background: rgba(45, 211, 111, 0.12); color: #2dd36f;">
+        <app-icon name="graduation-cap" [size]="22" color="#2dd36f"></app-icon>
+      </div>
+      <div class="grid-card-info">
+        <span class="grid-card-title">Guide &amp; SOP</span>
+        <span class="grid-card-sub">Protocols &amp; Tutorials</span>
+      </div>
+    </button>
+
+  </div>
+
+  <!-- Sign Out Button -->
+  <div class="sheet-footer">
+    <button type="button" class="sheet-logout-btn" (click)="onLogout()">
+      <app-icon name="log-out" [size]="18" color="#eb445a"></app-icon>
+      <span>Sign Out</span>
+    </button>
+  </div>
+
+</div>

@@ -76,17 +76,16 @@ export class SettingsPanel implements OnInit {
     this.mapDefaultStyle = this.settings.get('map_default_style') || 'street';
   }
 
-  onToggle(setting: SettingToggle): void {
-    this.settings.setBool(setting.key, setting.value);
+  onToggle(setting: SettingToggle, event?: any): void {
+    const isChecked = event?.detail?.checked !== undefined ? event.detail.checked : !setting.value;
+    setting.value = isChecked;
     if (setting.key === 'dark_mode') {
-      document.documentElement.classList.toggle('ion-palette-dark', setting.value);
-      // Sync Electron window-control button color immediately after dark mode changes.
-      // isRedHeader = false because the admin dashboard always uses the dark/light header,
-      // never the red auth header, so symbolColor follows isDark only.
-      this.settings.syncElectronTitleBar(false);
-    }
-    if (setting.key === 'reduce_animations') {
-      document.documentElement.classList.toggle('reduce-animations', setting.value);
+      this.settings.toggleDarkMode(isChecked, event);
+    } else {
+      this.settings.setBool(setting.key, isChecked);
+      if (setting.key === 'reduce_animations') {
+        document.documentElement.classList.toggle('reduce-animations', isChecked);
+      }
     }
   }
 

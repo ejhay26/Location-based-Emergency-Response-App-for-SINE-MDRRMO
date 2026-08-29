@@ -1,0 +1,77 @@
+<nav class="mobile-bottom-nav" aria-label="Mobile Admin Navigation">
+  
+  <!-- 1. Incident Map -->
+  <button
+    type="button"
+    id="mobile-tab-active"
+    class="mobile-nav-item"
+    [class.active]="currentView === 'active' && !isMoreOpen"
+    (click)="onTabClick('active')"
+    aria-label="Incident Map">
+    <div class="nav-icon-box">
+      <app-icon
+        name="map"
+        [size]="22"
+        [color]="currentView === 'active' && !isMoreOpen ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'">
+      </app-icon>
+      <span *ngIf="activeIncidentsCount > 0" class="nav-badge">{{ activeIncidentsCount > 99 ? '99+' : activeIncidentsCount }}</span>
+    </div>
+    <span class="nav-label">Incident Map</span>
+  </button>
+
+  <!-- 2. Alert Broadcast -->
+  <button
+    type="button"
+    id="mobile-tab-broadcast"
+    class="mobile-nav-item"
+    [class.active]="currentView === 'broadcast' && !isMoreOpen"
+    (click)="onTabClick('broadcast')"
+    aria-label="Alert Broadcast">
+    <div class="nav-icon-box">
+      <app-icon
+        name="siren"
+        [size]="22"
+        [color]="currentView === 'broadcast' && !isMoreOpen ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'">
+      </app-icon>
+    </div>
+    <span class="nav-label">Broadcast</span>
+  </button>
+
+  <!-- 3. Log Archive -->
+  <button
+    type="button"
+    id="mobile-tab-archive"
+    class="mobile-nav-item"
+    [class.active]="currentView === 'archive' && !isMoreOpen"
+    (click)="onTabClick('archive')"
+    aria-label="Log Archive">
+    <div class="nav-icon-box">
+      <app-icon
+        name="history"
+        [size]="22"
+        [color]="currentView === 'archive' && !isMoreOpen ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'">
+      </app-icon>
+    </div>
+    <span class="nav-label">Log Archive</span>
+  </button>
+
+  <!-- 4. Menu Hub -->
+  <button
+    type="button"
+    id="mobile-tab-menu"
+    class="mobile-nav-item"
+    [class.active]="currentView === 'menu' || !isPrimaryTab(currentView)"
+    (click)="onTabClick('menu')"
+    aria-label="Menu Options">
+    <div class="nav-icon-box">
+      <app-icon
+        name="menu"
+        [size]="22"
+        [color]="(currentView === 'menu' || !isPrimaryTab(currentView)) ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'">
+      </app-icon>
+      <span *ngIf="pendingVerificationsCount > 0" class="nav-badge nav-badge-warning">{{ pendingVerificationsCount }}</span>
+    </div>
+    <span class="nav-label">Menu</span>
+  </button>
+
+</nav>
