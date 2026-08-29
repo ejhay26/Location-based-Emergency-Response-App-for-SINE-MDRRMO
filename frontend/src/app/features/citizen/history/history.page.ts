@@ -92,6 +92,17 @@ export class HistoryPage implements OnInit, OnDestroy {
   private filterSettleTimer?: ReturnType<typeof setTimeout>;
 
   private echoEmergencySub?: Subscription;
+  private tourSub?: Subscription;
+
+  readonly DEMO_EMERGENCY_HISTORY = {
+    request_id: 999991,
+    incident_name: 'Medical Assistance',
+    description: 'Requested emergency ambulance assistance for sudden chest tightness and breathing difficulty.',
+    status: 'Resolved',
+    barangay_name: 'Poblacion',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+    is_demo: true
+  };
 
   constructor(
     private api: ApiService,
@@ -104,17 +115,6 @@ export class HistoryPage implements OnInit, OnDestroy {
     private toastService: ToastService,
   ) {}
 
-  /**
-   * Stage 5 — "Pending offline / queued" indicator, History page half. An
-   * item still sitting in the offline queue hasn't reached the server at
-   * all yet, so it can never appear in `emergencies` (fetched from
-   * getMyEmergencies) — rendered separately, read-only (no expand/cancel;
-   * cancelling a not-yet-sent report is just deleting the local queue entry,
-   * out of scope here), and only for kind 'sos' since this page only ever
-   * shows SOS records to begin with (getMyEmergencies never returns hazard
-   * reports). Reads the shared reactive signal directly — no separate
-   * IndexedDB call of its own.
-   */
   get queuedSosItems(): QueuedReport[] {
     return this.offlineQueue.items().filter(i => i.kind === 'sos');
   }
@@ -122,22 +122,25 @@ export class HistoryPage implements OnInit, OnDestroy {
   ngOnInit() {
     this.load();
 
-    // Connect is idempotent — safe even if HomePage already called it.
     this.echo.connect();
 
-    // When the admin dispatches or resolves this citizen's emergency,
-    // the status badge and card details update immediately without
-    // requiring a manual pull-to-refresh. Only EmergencyUpdated matters
-    // here — hazard and broadcast events are irrelevant to this page.
     this.echoEmergencySub = this.echo.onEmergencyUpdated.subscribe(() => {
       this.load();
+    });
+
+    this.tourSub = this.tour.stepChange$.subscribe(({ active }) => {
+      if (active && this.emergencies.length === 0) {
+        this.emergencies = [this.DEMO_EMERGENCY_HISTORY];
+      } else if (!active && this.emergencies.length === 1 && this.emergencies[0].is_demo) {
+        this.emergencies = [];
+      }
     });
   }
 
   ngOnDestroy() {
     this.echoEmergencySub?.unsubscribe();
+    this.tourSub?.unsubscribe();
     clearTimeout(this.filterSettleTimer);
-    // Do NOT disconnect Echo — it is a root singleton.
   }
 
   load(event?: any) {
@@ -146,8 +149,24 @@ export class HistoryPage implements OnInit, OnDestroy {
     const user = JSON.parse(userStr);
     this.isLoading = !event;
     this.api.getMyEmergencies(user.user_id).subscribe({
-      next: (res: any) => { this.emergencies = Array.isArray(res) ? res : []; this.isLoading = false; event?.target.complete(); },
-      error: () => { this.isLoading = false; event?.target.complete(); }
+      next: (res: any) => {
+        if (Array.isArray(res) && res.length > 0) {
+          this.emergencies = res;
+        } else if (this.tour.isActive()) {
+          this.emergencies = [this.DEMO_EMERGENCY_HISTORY];
+        } else {
+          this.emergencies = [];
+        }
+        this.isLoading = false;
+        event?.target.complete();
+      },
+      error: () => {
+        if (this.tour.isActive()) {
+          this.emergencies = [this.DEMO_EMERGENCY_HISTORY];
+        }
+        this.isLoading = false;
+        event?.target.complete();
+      }
     });
   }
 

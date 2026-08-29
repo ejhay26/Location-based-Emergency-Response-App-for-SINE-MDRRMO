@@ -114,6 +114,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   @ViewChild('mapSlot')       private mapSlotRef?: ElementRef<HTMLElement>;
   @ViewChild('toggleSlot')    private toggleSlotRef?: ElementRef<HTMLElement>;
   @ViewChild('fullscreenSlot') private fullscreenSlotRef?: ElementRef<HTMLElement>;
+  /** The small view's own expand button — given Leaflet's official disableClickPropagation/disableScrollPropagation treatment in ngAfterViewInit. */
+  @ViewChild('smallExpandBtn') private smallExpandBtnRef?: ElementRef<HTMLElement>;
+  /** The curtain-clipped map-visual layer inside the fullscreen overlay — NOT the whole overlay. */
+  @ViewChild('mapCurtainWrap') private mapCurtainWrapRef?: ElementRef<HTMLElement>;
   private renderer = inject(Renderer2);
   /** Where the overlay node originally lived in the DOM, so close can put it back before Angular removes it via *ngIf. */
   private overlayOriginalParent: Node | null = null;
@@ -155,6 +159,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     this.tryInit();
+    if (this.smallExpandBtnRef?.nativeElement) {
+      L.DomEvent.disableClickPropagation(this.smallExpandBtnRef.nativeElement);
+      L.DomEvent.disableScrollPropagation(this.smallExpandBtnRef.nativeElement);
+    }
     if (this.mapCanvasRef?.nativeElement && typeof ResizeObserver !== 'undefined') {
       this.resizeObserver = new ResizeObserver(() => {
         if (this.map) {
@@ -319,14 +327,16 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   private mountFullscreenOverlay(srcRect: DOMRect | null): void {
     let node = this.fullscreenOverlayRef?.nativeElement;
     let slotEl = this.fullscreenSlotRef?.nativeElement;
+    let curtainEl = this.mapCurtainWrapRef?.nativeElement;
 
-    if (!node || !slotEl) {
+    if (!node || !slotEl || !curtainEl) {
       this.cdr.detectChanges();
       node = this.fullscreenOverlayRef?.nativeElement;
       slotEl = this.fullscreenSlotRef?.nativeElement;
+      curtainEl = this.mapCurtainWrapRef?.nativeElement;
     }
 
-    if (!node || !slotEl) return;
+    if (!node || !slotEl || !curtainEl) return;
 
     // Reparenting all the way out to document.body is what actually escapes
     // ion-content's CSS `contain` (which makes it the containing block for
@@ -360,7 +370,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       L.DomEvent.disableScrollPropagation(btn as HTMLElement);
     });
 
-    this.playCurtainReveal(node, srcRect, 'in')
+    this.playCurtainReveal(curtainEl, srcRect, 'in')
       .then(() => { if (this.map) this.map.invalidateSize(); })
       .catch(() => { if (this.map) this.map.invalidateSize(); });
   }
@@ -370,14 +380,15 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     this.mapCollapsing = true;
 
     const node = this.fullscreenOverlayRef?.nativeElement;
-    if (!node) { this.finishCollapse(); return; }
+    const curtainEl = this.mapCurtainWrapRef?.nativeElement;
+    if (!node || !curtainEl) { this.finishCollapse(); return; }
 
     // Target is the small map's CURRENT rect — it's still sitting in its
     // normal place behind the overlay the whole time, so this reads its
     // real live position rather than a value cached from expand time.
     const destRect = this.smallMapRect();
 
-    this.playCurtainReveal(node, destRect, 'out')
+    this.playCurtainReveal(curtainEl, destRect, 'out')
       .then(() => this.finishCollapse())
       .catch(() => this.finishCollapse()); // interrupted tween must still land on a fully-closed, fully-cleaned-up state
   }
@@ -484,16 +495,19 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       requestAnimationFrame(() => { if (this.map) this.map.invalidateSize(); });
     }
     const node = this.fullscreenOverlayRef?.nativeElement;
-    if (node && this.overlayOriginalParent) {
+    const curtainEl = this.mapCurtainWrapRef?.nativeElement;
+    if (curtainEl) {
       // Clear inline animation styles before moving/unmounting so a stale
       // clip-path value can never leak onto the next expand's fresh curtain
       // (a brand-new element instance has no inline style of its own, but
       // reusing the same DOM node — which Angular does here since it's only
       // toggled by mapExpanded||mapCollapsing, not recreated — means
       // whatever was left on it survives across cycles).
-      node.style.clipPath = '';
-      node.style.willChange = '';
-      node.style.transform = '';
+      curtainEl.style.clipPath = '';
+      curtainEl.style.willChange = '';
+      curtainEl.style.transform = '';
+    }
+    if (node && this.overlayOriginalParent) {
       this.renderer.insertBefore(this.overlayOriginalParent, node, this.overlayOriginalNextSibling);
       this.overlayOriginalParent = null;
       this.overlayOriginalNextSibling = null;

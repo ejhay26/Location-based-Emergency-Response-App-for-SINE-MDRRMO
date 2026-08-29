@@ -190,10 +190,6 @@ export class LoginPage {
   }
 
   private handleLoginSuccess(res: any) {
-    if (Capacitor.isNativePlatform() && (res.role === 'admin' || res.role === 'dispatcher')) {
-      this.isLoggingIn = false;
-      this.showToast('Admin access is not available on the mobile app.', 'danger'); return;
-    }
     this.attemptCount = 0;
     this.api.setToken(res.token);
     localStorage.setItem('user', JSON.stringify(res.user));
@@ -219,9 +215,8 @@ export class LoginPage {
       // segments, not embedded '?' query strings.
       this.router.navigateByUrl(target).then(() => {
         requestAnimationFrame(() => { this.settings.applyToDom(); });
-        if (isCitizen) {
-          this.pushNotificationsService.registerPush(res.user.user_id);
-        }
+        // Register push notifications on mobile for all authenticated accounts (citizens & admins/dispatchers)
+        this.pushNotificationsService.registerPush(res.user.user_id);
       });
     });
   }

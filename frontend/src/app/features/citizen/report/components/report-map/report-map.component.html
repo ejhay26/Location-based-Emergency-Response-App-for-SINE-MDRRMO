@@ -14,7 +14,7 @@
       <span>Drag the map to position pin</span>
     </div>
     <!-- Expand fullscreen button -->
-    <button type="button" (click)="onFullscreenBtnClick($event)" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+    <button type="button" #smallExpandBtn (click)="onFullscreenBtnClick($event)" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
       style="position:absolute;top:10px;right:10px;z-index:1002;width:44px;height:44px;border-radius:14px;border:none;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,0.3);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto !important;transition:transform 0.15s ease;">
       <app-icon name="expand" [size]="18" color="#ffffff"></app-icon>
     </button>
@@ -40,23 +40,46 @@
 <!-- Fullscreen Overlay with iOS Glassmorphism Layout -->
 <div *ngIf="mapExpanded || mapCollapsing" #fullscreenOverlay style="position:fixed;inset:0;z-index:99999;background:var(--ion-background-color,#fff);display:flex;flex-direction:column;">
   <div id="report-map-fullscreen-wrap" style="position:relative;flex:1;min-height:0;">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:1000;pointer-events:none;display:flex;flex-direction:column;align-items:center;">
-      <app-icon name="map-pin" [size]="44" [color]="pinColor" style="filter:drop-shadow(0 6px 14px rgba(0,0,0,0.5));"></app-icon>
-      <div style="width:10px;height:5px;background:rgba(0,0,0,0.4);border-radius:50%;margin-top:-2px;filter:blur(1px);"></div>
-    </div>
-    
-    <!-- Barangay preview -->
-    <div *ngIf="resolvedBarangayName" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:16px;z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.68);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.25);">
-      <app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon>{{ resolvedBarangayName }}
-    </div>
 
-    <!-- Drag hint -->
-    <div *ngIf="showMapHint" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.68);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;">
-      <span>Drag map to position pin</span>
-    </div>
+    <!-- Curtain-clipped map visual layer. Deliberately position:fixed —
+         both to escape #report-map-fullscreen-wrap's shorter (flex-item)
+         box so the clip-path percentage math (computed against
+         window.innerHeight in playCurtainReveal) stays correctly aligned,
+         AND to keep the compress/location/submit buttons below OUT of its
+         clip-path entirely. clip-path removes hit-testing for whatever
+         falls outside the clipped region, and those buttons used to be
+         descendants of the SAME node that got clipped — the compress
+         button (top:12px) sat outside the curtain's starting band (which
+         tracks the small map preview's real, lower on-screen position) for
+         most of the ~340ms open animation, making it genuinely untappable
+         during that window, not just visually cut off. Buttons now live as
+         direct children of #report-map-fullscreen-wrap instead (see below,
+         unchanged position/parent — zero risk to their bottom: offsets),
+         painting on top of this layer by DOM order, always fully
+         interactive regardless of the curtain's current clip state.
+         Trade-off: the Street/Satellite toggle bar below (a separate,
+         never-clipped flex row) now simply appears via *ngIf rather than
+         riding the curtain growth like it used to — a minor visual
+         simplification, not a functional regression. -->
+    <div id="report-map-fullscreen-mapvisual" #mapCurtainWrap style="position:absolute;inset:0;">
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:1000;pointer-events:none;display:flex;flex-direction:column;align-items:center;">
+        <app-icon name="map-pin" [size]="44" [color]="pinColor" style="filter:drop-shadow(0 6px 14px rgba(0,0,0,0.5));"></app-icon>
+        <div style="width:10px;height:5px;background:rgba(0,0,0,0.4);border-radius:50%;margin-top:-2px;filter:blur(1px);"></div>
+      </div>
 
-    <!-- Leaflet Fullscreen Slot -->
-    <div id="report-map-fullscreen-slot" #fullscreenSlot style="position:absolute;inset:0;width:100%;height:100%;"></div>
+      <!-- Barangay preview -->
+      <div *ngIf="resolvedBarangayName" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:16px;z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.68);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.25);">
+        <app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon>{{ resolvedBarangayName }}
+      </div>
+
+      <!-- Drag hint -->
+      <div *ngIf="showMapHint" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.68);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;">
+        <span>Drag map to position pin</span>
+      </div>
+
+      <!-- Leaflet Fullscreen Slot -->
+      <div id="report-map-fullscreen-slot" #fullscreenSlot style="position:absolute;inset:0;width:100%;height:100%;"></div>
+    </div>
 
     <!-- Compress (Exit Fullscreen) Button -->
     <button type="button" (click)="onFullscreenBtnClick($event)" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
@@ -86,7 +109,7 @@
     </div>
   </div>
 
-  <!-- Fullscreen Street | Satellite Toggle Bar -->
+  <!-- Fullscreen Street | Satellite Toggle Bar (same ion-segment as small view) -->
   <div style="flex-shrink:0;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--ion-background-color,#fff);border-top:var(--inset-divider, 1px solid rgba(0,0,0,0.06));">
     <ion-segment mode="ios" [value]="mapStyle" (ionChange)="onMapStyleChange($event)">
       <ion-segment-button value="street">

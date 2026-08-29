@@ -98,8 +98,8 @@
       </button>
     </div>
 
-    <div id="tour-announcement-pane"
-         [class.tour-highlight]="tour.targetId() === 'tour-announcement-pane'">
+    <div id="tour-announcement-card"
+         [class.tour-highlight]="tour.targetId() === 'tour-announcement-card' || tour.targetId() === 'tour-announcement-pane'">
 
       <!-- Top 2 Announcement Cards -->
       <div *ngFor="let broadcast of topAnnouncements; let i = index; trackBy: trackByBroadcastId"

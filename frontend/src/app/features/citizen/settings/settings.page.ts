@@ -97,12 +97,15 @@ export class SettingsPage implements OnInit {
     this.widgetPin.isAvailable().then(v => this.widgetAvailable = v);
   }
 
-  onToggle(setting: SettingToggle) {
-    this.settings.setBool(setting.key, setting.value);
-    if (setting.key === 'dark_mode')         document.documentElement.classList.toggle('ion-palette-dark', setting.value);
-    if (setting.key === 'reduce_animations') document.documentElement.classList.toggle('reduce-animations', setting.value);
-    if (setting.key === 'location_auto_fetch') {
-      if (setting.value) this.locationSvc.restart(); else this.locationSvc.stop();
+  onToggle(setting: SettingToggle, event?: any) {
+    if (setting.key === 'dark_mode') {
+      this.settings.toggleDarkMode(setting.value, event);
+    } else {
+      this.settings.setBool(setting.key, setting.value);
+      if (setting.key === 'reduce_animations') document.documentElement.classList.toggle('reduce-animations', setting.value);
+      if (setting.key === 'location_auto_fetch') {
+        if (setting.value) this.locationSvc.restart(); else this.locationSvc.stop();
+      }
     }
   }
 
