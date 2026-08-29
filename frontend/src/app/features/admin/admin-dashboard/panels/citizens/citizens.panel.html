@@ -109,33 +109,39 @@
   </div>
 </div>
 
-<!-- ── STRIKE MANAGEMENT MODAL ── -->
-<div *ngIf="isStrikeModalOpen" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px;">
-  <div style="background: var(--ion-card-background, #ffffff); border-radius: 20px; width: 100%; max-width: 520px; box-shadow: 0 16px 40px rgba(0,0,0,0.25); border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.1)); overflow: hidden;">
-    
-    <!-- Header -->
-    <div style="padding: 18px 22px; background: var(--ion-color-step-50, #f8f9fa); border-bottom: 1px solid var(--ion-color-step-150, #e9ecef); display: flex; align-items: center; justify-content: space-between;">
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(235,68,90,0.12); display: flex; align-items: center; justify-content: center;">
-          <app-icon name="alert-triangle" [size]="18" color="#eb445a"></app-icon>
+<!-- ── STRIKE MANAGEMENT MODAL (ION-MODAL DIMS ENTIRE VIEWPORT INCLUDING SIDEBAR) ── -->
+<ion-modal [isOpen]="isStrikeModalOpen" (didDismiss)="closeStrikeModal()" class="strike-manager-modal" style="--max-width: 520px; --width: 92%; --height: auto; --border-radius: 20px; --box-shadow: 0 16px 48px rgba(0,0,0,0.35);">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar color="danger">
+        <div style="display: flex; align-items: center; gap: 8px; padding-left: 12px;">
+          <app-icon name="alert-triangle" [size]="18" color="#ffffff"></app-icon>
+          <ion-title style="color: white; font-weight: 800; font-size: 16.5px; padding: 0;">False Alarm Strike Manager</ion-title>
         </div>
-        <div>
-          <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--ion-text-color);">False Alarm Strike Manager</h3>
-          <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--ion-color-medium); font-weight: 600;">{{ selectedCitizen?.first_name }} {{ selectedCitizen?.last_name }} (&#64;{{ selectedCitizen?.username }})</p>
-        </div>
-      </div>
-      <button type="button" (click)="closeStrikeModal()" style="background: none; border: none; font-size: 18px; cursor: pointer; color: var(--ion-color-medium); padding: 4px;">
-        <app-icon name="close" [size]="18" color="var(--ion-color-medium)"></app-icon>
-      </button>
-    </div>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeStrikeModal()" style="color: white; font-weight: 700;">Close</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
 
-    <!-- Body -->
-    <div style="padding: 20px 22px;">
-      
+    <ion-content class="ion-padding">
+      <!-- Citizen Header / Subtitle -->
+      <div style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding-bottom: 12px;">
+        <div>
+          <h4 style="margin: 0; font-weight: 800; font-size: 16px; color: var(--ion-text-color);">{{ selectedCitizen?.first_name }} {{ selectedCitizen?.last_name }}</h4>
+          <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--ion-color-medium); font-weight: 600;">&#64;{{ selectedCitizen?.username }} &bull; {{ selectedCitizen?.email }}</p>
+        </div>
+        <span style="border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 800;"
+              [style.background]="selectedCitizen?.account_status === 'banned' ? 'rgba(235,68,90,0.12)' : 'rgba(45,211,111,0.12)'"
+              [style.color]="selectedCitizen?.account_status === 'banned' ? '#eb445a' : '#2dd36f'">
+          {{ selectedCitizen?.account_status === 'banned' ? 'Suspended' : 'Active' }}
+        </span>
+      </div>
+
       <!-- Current Strike Status Box -->
       <div style="background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border: 1px solid var(--ion-color-step-150, #e9ecef); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
         <div>
-          <span style="font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">Current Strike Record</span>
+          <span style="font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">Current Disciplinary Record</span>
           <div style="font-size: 17px; font-weight: 800; margin-top: 2px;" [style.color]="(selectedCitizen?.false_alarm_strikes || 0) >= 3 ? '#eb445a' : ((selectedCitizen?.false_alarm_strikes || 0) > 0 ? '#d99000' : '#2dd36f')">
             {{ selectedCitizen?.false_alarm_strikes || 0 }} of 3 Strikes
           </div>
@@ -151,7 +157,7 @@
       </div>
 
       <!-- Issue New Strike Section -->
-      <label style="display: block; font-size: 12px; font-weight: 800; color: var(--ion-text-color); margin-bottom: 6px;">
+      <label style="display: block; font-size: 12.5px; font-weight: 800; color: var(--ion-text-color); margin-bottom: 6px;">
         Select Reason for Strike #{{ (selectedCitizen?.false_alarm_strikes || 0) + 1 }}:
       </label>
       <select [(ngModel)]="selectedStrikeReason" style="width: 100%; padding: 10px 12px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); font-weight: 600; margin-bottom: 12px;">
@@ -165,7 +171,7 @@
       </div>
 
       <!-- Info Banner -->
-      <div style="background: rgba(235,68,90,0.08); border-left: 3px solid #eb445a; border-radius: 6px; padding: 10px 12px; font-size: 11.5px; color: var(--ion-text-color); line-height: 1.5; margin-bottom: 18px;">
+      <div style="background: rgba(235,68,90,0.08); border-left: 3px solid #eb445a; border-radius: 6px; padding: 10px 12px; font-size: 11.5px; color: var(--ion-text-color); line-height: 1.5; margin-bottom: 20px;">
         <strong>Automated Notice:</strong> Issuing this strike automatically dispatches a formal warning notice email to <em>{{ selectedCitizen?.email }}</em> and sends a push notification. Reaching 3 strikes results in automatic account suspension.
       </div>
 
@@ -179,8 +185,6 @@
           <span>{{ (selectedCitizen?.false_alarm_strikes || 0) >= 2 ? 'Issue Strike 3 & Auto-Suspend' : 'Issue Strike ' + ((selectedCitizen?.false_alarm_strikes || 0) + 1) + ' of 3' }}</span>
         </button>
       </div>
-
-    </div>
-
-  </div>
-</div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
