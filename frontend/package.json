@@ -13,14 +13,13 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
+    "tauri": "tauri",
     "start:desktop": "tauri dev",
-    "build:desktop": "ionic build --prod && tauri build --no-bundle",
+    "build:win": "ionic build --prod && tauri build --no-bundle",
+    "build:linux": "ionic build --prod && tauri build --bundles appimage,deb",
     "build:mobile": "ionic build --prod && npx cap sync",
     "build:android": "ionic build --prod && npx cap sync android",
-    "build:ios": "ionic build --prod && npx cap sync ios",
-    "tauri": "tauri",
-    "start:desktop:tauri": "tauri dev",
-    "build:tauri:win": "ionic build --prod && tauri build --no-bundle"
+    "build:ios": "ionic build --prod && npx cap sync ios"
   },
   "private": true,
   "dependencies": {
