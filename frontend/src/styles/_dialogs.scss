@@ -36,21 +36,22 @@
    FALSE ALARM STRIKE MANAGER MODAL
    ========================================= */
 ion-modal.strike-manager-modal {
-  --width: 520px;
+  --width: 480px;
   --max-width: 92vw;
-  --height: 540px;
-  --max-height: 88vh;
+  --height: 440px;
+  --max-height: 85vh;
   --border-radius: 20px;
-  --box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+  --box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 
   &::part(content) {
     border-radius: 20px;
     overflow: hidden;
+    background: var(--ion-card-background, #ffffff);
   }
 
   @media (max-width: 768px) {
     --width: 94vw;
-    --height: 85vh;
+    --height: 80vh;
   }
 }
 
