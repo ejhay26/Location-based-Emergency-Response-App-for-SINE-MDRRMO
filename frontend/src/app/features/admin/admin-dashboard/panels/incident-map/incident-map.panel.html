@@ -382,6 +382,7 @@
   <!-- ── MOBILE PULLABLE BOTTOM SHEET QUEUE (MOBILE ONLY) ── -->
   <div class="mobile-queue-sheet"
        id="mobile-queue-sheet"
+       [class.state-collapsed]="mobileSheetState === 'collapsed'"
        [class.state-peek]="mobileSheetState === 'peek'"
        [class.state-half]="mobileSheetState === 'half'"
        [class.state-full]="mobileSheetState === 'full'"

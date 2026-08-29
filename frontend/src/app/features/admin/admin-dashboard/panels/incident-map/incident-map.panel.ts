@@ -135,7 +135,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   // ── Mobile Responsive State ──
   isMobileFilterOpen = false;
-  mobileSheetState: 'peek' | 'half' | 'full' = 'peek';
+  mobileSheetState: 'collapsed' | 'peek' | 'half' | 'full' = 'peek';
   touchSheetHeight: number | null = null;
   isDraggingSheet = false;
   private touchStartY = 0;
@@ -183,8 +183,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       this.hasMovedTouch = false;
       return;
     }
-    // Simple intuitive 2-state toggle when tapping header
-    if (this.mobileSheetState === 'peek') {
+    // Intuitive toggle: from collapsed/peek -> half, from half/full -> peek
+    if (this.mobileSheetState === 'collapsed' || this.mobileSheetState === 'peek') {
       this.mobileSheetState = 'half';
     } else {
       this.mobileSheetState = 'peek';
@@ -198,7 +198,9 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.touchStartY = e.touches[0].clientY;
 
     const vh = window.innerHeight;
-    if (this.mobileSheetState === 'peek') {
+    if (this.mobileSheetState === 'collapsed') {
+      this.touchStartHeight = 56;
+    } else if (this.mobileSheetState === 'peek') {
       this.touchStartHeight = 170;
     } else if (this.mobileSheetState === 'half') {
       this.touchStartHeight = vh * 0.52;
@@ -216,7 +218,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     }
 
     const vh = window.innerHeight;
-    const minHeight = 140;
+    const minHeight = 56;
     const maxHeight = vh * 0.90;
     const newHeight = Math.max(minHeight, Math.min(maxHeight, this.touchStartHeight + deltaY));
     this.touchSheetHeight = newHeight;
@@ -240,7 +242,9 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.touchSheetHeight = null;
 
     // Snap to nearest state
-    if (h < (peekSnap + halfSnap) / 2) {
+    if (h < 110) {
+      this.mobileSheetState = 'collapsed';
+    } else if (h < (peekSnap + halfSnap) / 2) {
       this.mobileSheetState = 'peek';
     } else if (h < (halfSnap + fullSnap) / 2) {
       this.mobileSheetState = 'half';
@@ -249,7 +253,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     }
   }
 
-  setMobileSheetState(state: 'peek' | 'half' | 'full'): void {
+  setMobileSheetState(state: 'collapsed' | 'peek' | 'half' | 'full'): void {
     this.mobileSheetState = state;
   }
 
@@ -629,13 +633,12 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   initMap() {
     if (this.map) return;
-    this.map = L.map('dispatch-map', { minZoom: 12, zoomControl: true }).setView([15.3014, 120.9274], 13);
+    this.map = L.map('dispatch-map', { minZoom: 12, zoomControl: false }).setView([15.3014, 120.9274], 13);
     // Under Tauri, tiles are requested through the `osmtile://` custom
     // protocol (registered in src-tauri/src/lib.rs) instead of hitting
-    // OpenStreetMap's CDN directly from the webview — that's what strips
-    // the problematic Referer header now, taking over from Electron's
-    // main.js `onBeforeSendHeaders` intercept. Every other shell
-    // (Electron, browser, Capacitor) keeps requesting the tiles directly.
+    // OpenStreetMap's CDN directly from the webview — that strips
+    // the problematic Referer header. Other shells (browser, Capacitor)
+    // keep requesting the tiles directly.
     const osmTileUrl = isTauri()
       ? 'osmtile://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
       : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';

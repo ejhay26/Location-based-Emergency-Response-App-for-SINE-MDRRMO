@@ -53,6 +53,10 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   // Drag & drop state for desktop
   isDraggingFileOver = false;
 
+  get isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
   // Collapsible section states
   showActiveSection = true;
   showScheduledSection = true;

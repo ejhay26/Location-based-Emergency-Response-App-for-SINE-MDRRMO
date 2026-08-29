@@ -7,15 +7,16 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   align-items: center;
-  height: 60px;
+  min-height: calc(56px + max(16px, env(safe-area-inset-bottom, 16px)));
   background: var(--ion-card-background, #ffffff);
   border-top: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
-  padding: 4px 6px max(6px, env(safe-area-inset-bottom, 6px));
+  padding: 6px 8px max(16px, env(safe-area-inset-bottom, 16px));
   position: relative;
   z-index: 1000;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  box-sizing: border-box;
 }
 
 .mobile-nav-item {
