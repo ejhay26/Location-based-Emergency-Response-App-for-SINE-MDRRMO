@@ -13,7 +13,7 @@ The application operates as a decoupled client-server architecture consisting of
 │                        FRONTEND CLIENT LAYER                           │
 │                                                                        │
 │  ┌────────────────────────┐  ┌──────────────────────────────────────┐  │
-│  │   Citizen Mobile App   │  │   Admin & Dispatcher Command Center  │  │
+│  │   Citizen Mobile App   │  │  Admin & Dispatcher Operations Desk  │  │
 │  │  (Android / iOS Mobile)│  │   (Tauri Desktop / Mobile Admin UI)  │  │
 │  └────────────────────────┘  └──────────────────────────────────────┘  │
 └────────────────▲───────────────────────────────▲───────────────────────┘
@@ -85,6 +85,6 @@ The system enforces strict multi-tenant role isolation across three tiers: **`ci
 3. **Anti-Prank Multi-Point Verification:**
    - SOS reports require live camera capture (preventing gallery uploads) and GPS lock. Confirmed false alarms accumulate strikes (`false_alarm_strikes`), triggering automatic account suspension on the 3rd strike.
 4. **Multi-Platform Admin Operations:**
-   - The command center runs as a lightweight **Tauri v2 Desktop App** on Windows, macOS, and Linux with custom frameless window controls and background OS alerts, as well as an adaptive **Mobile Admin UI** with draggable bottom sheets and touch filters for field dispatchers.
+   - The operations dashboard runs as a lightweight **Tauri v2 Desktop App** on Windows, macOS, and Linux with custom frameless window controls and background OS alerts, as well as an adaptive **Mobile Admin UI** with draggable bottom sheets and touch filters for field dispatchers.
 5. **Interactive Onboarding & Operations Guided Tours:**
    - Unified tour engine with viewport-responsive step definitions (desktop vs mobile), animated map pin focus (`flyTo`), and triage popup trigger cards with mock demo fallbacks.

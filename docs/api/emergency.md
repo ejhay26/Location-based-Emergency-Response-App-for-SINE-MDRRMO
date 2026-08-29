@@ -39,7 +39,7 @@ Returns the authenticated citizen's personal emergency history.
 ---
 
 ### 1.4 `GET /api/active-emergencies` & `GET /api/archived-emergencies`
-Feeds the Command Center live map and historical archive panels.
+Feeds the Operations Dashboard live map and historical archive panels.
 - Returns requests with joined citizen names, contact numbers, "Golden Minute" medical profile (blood type, allergies, conditions, PWD), incident category, and proof files.
 
 ---

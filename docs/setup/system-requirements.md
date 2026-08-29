@@ -1,6 +1,6 @@
 # System Requirements
 
-Detailed hardware, operating system, and software specifications required to run the **SINE MDRRMO Emergency Response System** across Citizen Mobile, Admin Command Center (Portable Desktop & Mobile CAD), and Backend Cloud Infrastructure.
+Detailed hardware, operating system, and software specifications required to run the **SINE MDRRMO Emergency Response System** across Citizen Mobile, Admin & Dispatcher Operations Dashboard (Portable Desktop & Mobile Interface), and Backend Cloud Infrastructure.
 
 ---
 
@@ -25,9 +25,9 @@ The citizen application is built on **Ionic 8 / Angular 20** and compiled native
 
 ---
 
-## 2. Admin & Dispatcher Command Center (Windows Portable .EXE & Mobile CAD)
+## 2. Admin & Dispatcher Operations Dashboard (Windows Portable .EXE & Mobile View)
 
-The MDRRMO Command Center runs as a lightweight, standalone portable executable (**Tauri v2 / Rust**) with zero installer overhead, as well as an adaptive **Mobile CAD Interface** on smartphones and tablets.
+The MDRRMO Operations Dashboard runs as a lightweight, standalone portable executable (**Tauri v2 / Rust**) with zero installer overhead, as well as an adaptive **Mobile Web Interface** on smartphones and tablets.
 
 ### Desktop & Dispatcher Specifications
 

@@ -91,13 +91,13 @@ export class TourGeometryUtil {
       if (altEl && altEl.offsetParent !== null) return altEl;
     }
 
-    // 2c. Mobile CAD panel aliases
+    // 2c. Mobile panel aliases
     if (isMobile) {
-      if (cleanId === 'cad-map-toolbar') {
+      if (cleanId === 'admin-map-toolbar' || cleanId === 'cad-map-toolbar') {
         const filterBtn = document.getElementById('mobile-filter-btn');
         if (filterBtn && filterBtn.offsetParent !== null) return filterBtn;
       }
-      if (cleanId === 'cad-queue-container' || cleanId === 'mobile-sheet-cards') {
+      if (cleanId === 'admin-queue-container' || cleanId === 'cad-queue-container' || cleanId === 'mobile-sheet-cards') {
         const sheet = document.getElementById('mobile-sheet-cards') || document.getElementById('mobile-queue-sheet');
         if (sheet && sheet.offsetParent !== null) return sheet;
       }

@@ -1,6 +1,6 @@
 # Administrator User Guide
 
-Comprehensive guide for **Master Administrators** managing user accounts, citizen identity verifications, staff dispatchers, system feedback, and global emergency response settings across both Desktop and Mobile Command Centers.
+Comprehensive guide for **Master Administrators** managing user accounts, citizen identity verifications, staff dispatchers, system feedback, and global emergency response settings across Desktop and Mobile interfaces.
 
 ---
 
@@ -15,7 +15,7 @@ Master Admin accounts hold full system abilities (`['admin', 'dispatcher', 'citi
 The **Incident Map** serves as the central operational hub:
 - **Emergency SOS Alerts:** Live GPS pins with golden-minute medical info, caller phone, and attached photo/video proof.
 - **Public Hazards:** Orange caution markers for reported road blockages, flooded streets, fallen trees, and downed electrical lines.
-- **Desktop CAD Split View:** Resizable split-pane layout showing the full-width map on the left and the active incidents queue on the right with custom divider dragging.
+- **Desktop Split View:** Resizable split-pane layout showing the full-width map on the left and the active incidents queue on the right with custom divider dragging.
 - **Mobile Bottom Sheet:** Interactive draggable drawer at the bottom of mobile screens supporting **Peek** (170px for quick glance), **Half** (50% screen for queue browsing), and **Full** expansion.
 - **Mobile Filter Drawer:** Tap the floating **Filter** button to filter by alert type pills (All, Emergency SOS, Hazards), date range, and target barangays.
 
@@ -23,7 +23,7 @@ The **Incident Map** serves as the central operational hub:
 
 ## 3. Mobile Admin Interface & Menu Drawer
 
-On smartphones and tablets, the Admin Command Center transitions to an app-like layout:
+On smartphones and tablets, the administrative dashboard transitions to an app-like layout:
 - **Bottom Navigation Bar:** Switch directly between **Incident Map**, **Alert Broadcast**, and **Menu**.
 - **Mobile Menu Drawer:** Tap **Menu** to access:
   - **Personnel Management** (Staff accounts and dispatchers)

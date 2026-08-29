@@ -132,12 +132,12 @@ ionic serve --port=8100
 - Opens at `http://localhost:8100`.
 - Use Browser DevTools Device Mode (e.g., iPhone 15 or Pixel 8) to test the Citizen interface and the Mobile Admin Dashboard.
 
-#### B. Native Desktop Command Center (Tauri v2)
+#### B. Native Desktop Application (Tauri v2)
 ```bash
 npm run start:desktop:tauri
 ```
 - Launches the lightweight native desktop application with custom window controls and OS audio alerts.
-- To produce an installation bundle: `npm run build:tauri:win`
+- To produce a standalone portable executable: `npm run build:tauri:win`
 
 #### C. Native Android Build (Capacitor)
 ```bash

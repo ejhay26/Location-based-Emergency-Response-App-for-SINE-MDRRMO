@@ -44,21 +44,21 @@ export class HelpPanel {
           interactionHint: 'Click Incident Map on the sidebar'
         },
         {
-          id: 'cad-map-toolbar',
+          id: 'admin-map-toolbar',
           panel: 'active',
           callout: 'Barangay & Type Filters',
           subtext: 'Easily filter what you see on the map — choose specific barangays, or filter between Emergency SOS calls (Medical, Fire, Crime) and Public Hazards (Floods, Road blocks).',
           waitForInteraction: false,
         },
         {
-          id: 'cad-queue-container',
+          id: 'admin-queue-container',
           panel: 'active',
           callout: 'Incoming Alerts List',
           subtext: 'All incoming emergency calls and hazard reports appear in this list. Click any card to view photos, medical info, and assign responder units.',
           waitForInteraction: false,
         },
         {
-          id: 'cad-incident-focus',
+          id: 'desktop-incident-focus',
           panel: 'active',
           callout: 'Step 5: Focus Pin & Victim Details',
           subtext: 'Selecting an incident centers the map directly on the GPS pin, highlights the location, and opens the citizen contact, barangay, and triage card.',

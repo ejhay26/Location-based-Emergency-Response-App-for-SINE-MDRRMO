@@ -355,14 +355,14 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
       if (id === 'mobile-filter-card' || id === 'mobile-filter-close-btn' || id === 'mobile-filter-apply-btn') {
         this.isMobileFilterOpen = true;
-      } else if (id === 'mobile-sheet-cards' || id === 'mobile-queue-sheet' || id === 'cad-queue-container') {
+      } else if (id === 'mobile-sheet-cards' || id === 'mobile-queue-sheet' || id === 'admin-queue-container') {
         this.isMobileFilterOpen = false;
         this.isAutoOpenedByTour = true;
         // Automatically drag up the handle sheet to reveal the active cards list
         if (isMobile) {
           this.mobileSheetState = 'half';
         }
-      } else if (id === 'mobile-incident-focus' || id === 'cad-incident-focus') {
+      } else if (id === 'mobile-incident-focus' || id === 'desktop-incident-focus') {
         this.isMobileFilterOpen = false;
         if (isMobile) {
           this.mobileSheetState = 'peek';

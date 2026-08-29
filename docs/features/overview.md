@@ -48,7 +48,7 @@ To maintain functionality during cell tower congestion or signal outages:
 
 ## 6. Smart Unit & Fleet Dispatching
 
-- **Linked Asset Dropdowns:** The Command Center prevents mismatched unit assignments by linking responder teams (Fire, Police, Rescue, RHU) to their specific assigned vehicles (e.g. selecting BFP only reveals fire trucks and water tenders).
+- **Linked Asset Dropdowns:** The dispatch system prevents mismatched unit assignments by linking responder teams (Fire, Police, Rescue, RHU) to their specific assigned vehicles (e.g. selecting BFP only reveals fire trucks and water tenders).
 - **Incident Lifecycle Tracking:** Dispatches transition incidents through `Pending` → `Dispatched` (`En Route`) → `Resolved` (`Completed`), sending push notifications to reporting citizens at each milestone.
 
 ---
@@ -75,7 +75,7 @@ When an SOS is transmitted, this medical record is attached automatically to the
 
 ---
 
-## 9. Native Desktop Command Center (Tauri v2)
+## 9. Native Desktop Application (Tauri v2)
 
 - **Rust-Powered Native Architecture:** Packaged via **Tauri v2** for Windows, macOS, and Linux with a 10–15 MB distribution size and ultra-low RAM footprint (~30–50 MB).
 - **Custom Frameless Titlebar:** Theme-aware window minimize, maximize, and close controls integrated seamlessly with the application header.

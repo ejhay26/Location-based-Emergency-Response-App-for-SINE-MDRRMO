@@ -21,7 +21,7 @@ Bachelor of Science in Information Technology Capstone Project — Nueva Ecija U
 The platform operates as a cohesive, multi-platform emergency ecosystem:
 
 - **Citizen Mobile Application (Android / iOS via Capacitor 8)** — Residents sign up with verified dual-sided government ID proof, manage emergency health profiles, send one-tap SOS alerts with live GPS and camera proof (with offline queueing support), report road hazards, and receive barangay-targeted broadcast alerts.
-- **Admin & Dispatcher Command Center (Tauri v2 Desktop & Mobile Admin UI)** — 
+- **Admin & Dispatcher Operations Dashboard (Tauri v2 Desktop & Mobile Admin UI)** — 
   - **Desktop:** High-performance native desktop application powered by **Tauri v2 (Rust)** for Windows, macOS, and Linux with lightweight resource usage (~30MB RAM), frameless custom titlebar controls, and native OS audio/push notifications.
   - **Mobile:** Adaptive mobile interface featuring a dedicated bottom navigation bar (`Incident Map`, `Broadcast`, `Menu`), interactive draggable active incidents bottom sheet (peek, half, and full expansion), quick touch-friendly filter sheets, and full access to staff management, ID verifications, and analytics on the go.
 - **Backend API & Real-Time Engine (Laravel 13 & Reverb)** — Containerized via Podman / Docker on a cloud Linux VPS, providing REST APIs, Sanctum token authentication, authoritative geospatial point-in-polygon resolution, transactional SMS via PhilSMS, and sub-second WebSocket broadcasting via Laravel Reverb.
@@ -69,7 +69,7 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 - **Home Screen Emergency Widget & Deep Links** — 1-Tap SOS widget pinned to the Android home screen connecting directly via `sinemdrrmo://report` with full-viewport map support.
 - **Authoritative Server Geolocation (`BarangayResolver`)** — Ray-casting point-in-polygon math against official PSA boundaries locks incidents and camera views to San Isidro's municipal territory.
 - **Interactive Admin Incident Map & Mobile Bottom Sheet** — Live incident queue with draggable sheet handle (peek/half/expanded states), automated map centering (`flyTo`), boundary dimming, and interactive popup cards.
-- **Tauri v2 Desktop Command Center** — Native desktop command center built on Rust with frameless window controls, low RAM overhead, and background audio/push notifications.
+- **Tauri v2 Desktop Application** — Native desktop operations app built on Rust with frameless window controls, low RAM overhead, and background audio/push notifications.
 - **Mobile-Responsive Admin UI** — Responsive layout with dedicated mobile bottom tabs, touch-friendly filter sheets, and a unified Mobile Menu drawer for complete dispatch capability on phones and tablets.
 - **Interactive Spotlight Walkthroughs (Tour Engine)** — Step-by-step guided onboarding tours tailored for desktop and mobile viewports with mock fallback cards for offline and empty-state training.
 - **Drag-and-Drop Broadcast Composer** — Desktop drag-and-drop file upload zone supporting up to 4 photos or MP4 videos, target barangay selector, and scheduled future announcements with past-time guards.
@@ -87,7 +87,7 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 |---|---|---|
 | [Citizen Guide](./docs/guides/citizen-guide.md) | San Isidro Residents | Registration, Front/Back ID check, SOS filing, offline sync, widget setup, medical profile |
 | [Dispatcher Guide](./docs/guides/dispatcher-guide.md) | Municipal Dispatchers | Incident Map, mobile dispatch sheet, fleet assignment, hazard clearance, alert broadcasts |
-| [Admin Guide](./docs/guides/admin-guide.md) | Master Administrators | Mobile & Desktop Command Center, ID verification review, citizen moderation, staff CRUD, feedback |
+| [Admin Guide](./docs/guides/admin-guide.md) | Master Administrators | Mobile & Desktop Operations Dashboard, ID verification review, citizen moderation, staff CRUD, feedback |
 
 ---
 

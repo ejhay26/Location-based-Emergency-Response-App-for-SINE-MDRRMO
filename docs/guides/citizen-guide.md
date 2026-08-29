@@ -80,13 +80,13 @@ The large red **SOS** button is located prominently on the Home screen:
         ├─ 4. Enter brief description
         │
         ▼
-[Submit SOS] ──▶ Instant Real-Time Alert to MDRRMO Command Center
+[Submit SOS] ──▶ Instant Real-Time Alert to MDRRMO Dispatchers
 ```
 
 ### Offline SOS Queueing
 If you have no cellular signal or internet connection during a disaster:
 - The app automatically saves your SOS report, GPS position, and media proof to your device's local **IndexedDB storage**.
-- The moment your device reconnects to a mobile network or Wi-Fi, the report is automatically synced and transmitted to the command center.
+- The moment your device reconnects to a mobile network or Wi-Fi, the report is automatically synced and transmitted to the dispatch office.
 
 ---
 
