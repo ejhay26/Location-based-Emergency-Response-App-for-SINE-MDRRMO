@@ -1,7 +1,7 @@
 <!-- ── TOP COMMAND TOOLBAR (DESKTOP) ── -->
 <div id="admin-map-toolbar" class="map-top-toolbar">
-  <div class="map-filters-strip">
-    
+  <!-- Top Row: Alert Source (SHOW) on Left, DATE Presets on Far Right -->
+  <div class="map-toolbar-top-row">
     <!-- 0. Alert Source Filter Pills (All / SOS / Hazards) -->
     <div class="filter-group">
       <span class="filter-group-label">Show:</span>
@@ -42,8 +42,8 @@
       </button>
     </div>
 
-    <!-- 1. Date Presets & Calendar (Beside Show) -->
-    <div class="filter-group">
+    <!-- 1. Date Presets & Calendar (Pushed to Far Right, sits directly above Street | Satellite) -->
+    <div class="filter-group filter-group-date-right">
       <span class="filter-group-label">Date:</span>
       <button
         *ngFor="let d of dateFilterOptions"
@@ -62,79 +62,83 @@
         (valueChange)="onCalendarFilterChange($event)">
       </app-date-range-filter>
     </div>
-
-    <!-- 2. Barangay Filter Pills -->
-    <div class="filter-group">
-      <span class="filter-group-label">Barangay:</span>
-      <button
-        type="button"
-        (click)="toggleBarangayFilter('all')"
-        title="Show all barangays"
-        [style.background]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-        [style.color]="isBarangaySelected('all') ? 'white' : 'var(--ion-text-color)'"
-        [style.border-color]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-        class="filter-pill-btn">
-        All
-      </button>
-      <button
-        *ngFor="let b of barangayOptions"
-        type="button"
-        (click)="toggleBarangayFilter(b.id)"
-        [title]="'Filter by Barangay ' + b.name"
-        [style.background]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-        [style.color]="isBarangaySelected(b.id) ? 'white' : 'var(--ion-text-color)'"
-        [style.border-color]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-        class="filter-pill-btn">
-        {{ b.name }}
-      </button>
-    </div>
-
-    <!-- 3. Type Filter Pills -->
-    <div class="filter-group">
-      <span class="filter-group-label">Type:</span>
-      <button
-        type="button"
-        (click)="toggleTypeFilter('all')"
-        title="Show all incident categories"
-        [style.background]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-        [style.color]="isTypeSelected('all') ? 'white' : 'var(--ion-text-color)'"
-        [style.border-color]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-        class="filter-pill-btn">
-        <app-icon name="layers" [size]="12" [color]="isTypeSelected('all') ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
-        <span>All Types</span>
-      </button>
-
-      <button
-        *ngFor="let t of currentTypeOptions"
-        type="button"
-        (click)="toggleTypeFilter(t.id)"
-        [title]="'Filter by ' + t.label"
-        [style.background]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-        [style.color]="isTypeSelected(t.id) ? 'white' : 'var(--ion-text-color)'"
-        [style.border-color]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-        class="filter-pill-btn">
-        <app-icon [name]="t.icon" [size]="12" [color]="isTypeSelected(t.id) ? '#ffffff' : (t.color || 'var(--ion-color-danger)')"></app-icon>
-        <span>{{ t.label }}</span>
-      </button>
-    </div>
-
   </div>
 
-  <!-- 4. Map Style Segmented Control (Street | Satellite) -->
-  <ion-segment mode="ios" [value]="mapStyle" (ionChange)="toggleMapStyle($any($event.detail.value))" color="danger" class="map-style-segment">
-    <ion-segment-button value="street">
-      <div class="segment-pill-inner">
-        <app-icon name="map" [size]="13"></app-icon>
-        <ion-label>Street</ion-label>
+  <!-- Bottom Row: Barangay & Type on Left, Street | Satellite Toggle on Right -->
+  <div class="map-toolbar-bottom-row">
+    <div class="map-filters-strip">
+      <!-- 2. Barangay Filter Pills -->
+      <div class="filter-group">
+        <span class="filter-group-label">Barangay:</span>
+        <button
+          type="button"
+          (click)="toggleBarangayFilter('all')"
+          title="Show all barangays"
+          [style.background]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
+          [style.color]="isBarangaySelected('all') ? 'white' : 'var(--ion-text-color)'"
+          [style.border-color]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+          class="filter-pill-btn">
+          All
+        </button>
+        <button
+          *ngFor="let b of barangayOptions"
+          type="button"
+          (click)="toggleBarangayFilter(b.id)"
+          [title]="'Filter by Barangay ' + b.name"
+          [style.background]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
+          [style.color]="isBarangaySelected(b.id) ? 'white' : 'var(--ion-text-color)'"
+          [style.border-color]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+          class="filter-pill-btn">
+          {{ b.name }}
+        </button>
       </div>
-    </ion-segment-button>
-    <ion-segment-button value="satellite">
-      <div class="segment-pill-inner">
-        <app-icon name="satellite" [size]="13"></app-icon>
-        <ion-label>Satellite</ion-label>
+
+      <!-- 3. Type Filter Pills -->
+      <div class="filter-group">
+        <span class="filter-group-label">Type:</span>
+        <button
+          type="button"
+          (click)="toggleTypeFilter('all')"
+          title="Show all incident categories"
+          [style.background]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
+          [style.color]="isTypeSelected('all') ? 'white' : 'var(--ion-text-color)'"
+          [style.border-color]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+          class="filter-pill-btn">
+          <app-icon name="layers" [size]="12" [color]="isTypeSelected('all') ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
+          <span>All Types</span>
+        </button>
+
+        <button
+          *ngFor="let t of currentTypeOptions"
+          type="button"
+          (click)="toggleTypeFilter(t.id)"
+          [title]="'Filter by ' + t.label"
+          [style.background]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
+          [style.color]="isTypeSelected(t.id) ? 'white' : 'var(--ion-text-color)'"
+          [style.border-color]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
+          class="filter-pill-btn">
+          <app-icon [name]="t.icon" [size]="12" [color]="isTypeSelected(t.id) ? '#ffffff' : (t.color || 'var(--ion-color-danger)')"></app-icon>
+          <span>{{ t.label }}</span>
+        </button>
       </div>
-    </ion-segment-button>
-  </ion-segment>
+    </div>
+
+    <!-- 4. Map Style Segmented Control (Street | Satellite) -->
+    <ion-segment mode="ios" [value]="mapStyle" (ionChange)="toggleMapStyle($any($event.detail.value))" color="danger" class="map-style-segment">
+      <ion-segment-button value="street">
+        <div class="segment-pill-inner">
+          <app-icon name="map" [size]="13"></app-icon>
+          <ion-label>Street</ion-label>
+        </div>
+      </ion-segment-button>
+      <ion-segment-button value="satellite">
+        <div class="segment-pill-inner">
+          <app-icon name="satellite" [size]="13"></app-icon>
+          <ion-label>Satellite</ion-label>
+        </div>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
 </div>
 
 <!-- ── MOBILE FLOATING COMMAND BAR (MOBILE ONLY) ── -->
@@ -147,6 +151,7 @@
 
   <!-- Visible Street / Satellite Layer Segment -->
   <div class="mobile-layer-segment">
+    <div class="layer-seg-indicator" [class.is-satellite]="mapStyle === 'satellite'"></div>
     <button
       type="button"
       class="layer-seg-btn"

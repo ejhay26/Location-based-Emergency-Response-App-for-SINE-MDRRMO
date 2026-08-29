@@ -200,28 +200,4 @@ export class VerificationsPanel implements OnInit, OnDestroy {
       this.ui.showToast('Could not copy to clipboard', 'medium');
     }
   }
-
-  getPortalInfo(idType: string): { name: string; url: string } | null {
-    if (!idType) return null;
-    if (idType.includes('PhilSys') || idType.includes('National ID')) {
-      return { name: 'PhilSys eVerify Portal', url: 'https://check.philsys.gov.ph' };
-    }
-    if (idType.includes("Driver's License") || idType.includes('LTO')) {
-      return { name: 'LTO LTMS Portal', url: 'https://portal.lto.gov.ph' };
-    }
-    if (idType.includes('Passport') || idType.includes('DFA')) {
-      return { name: 'DFA Passport Tracker', url: 'https://passport.gov.ph' };
-    }
-    if (idType.includes('PRC')) {
-      return { name: 'PRC LERIS Portal', url: 'https://online.prc.gov.ph/Verification' };
-    }
-    if (idType.includes('Postal')) {
-      return { name: 'PHLPost Tracking', url: 'https://tracking.phlpost.gov.ph' };
-    }
-    return null;
-  }
-
-  openGovPortal(url: string): void {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }
 }

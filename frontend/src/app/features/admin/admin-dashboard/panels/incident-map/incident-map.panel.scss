@@ -14,11 +14,31 @@
   border-radius: 16px;
   border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08)));
   box-shadow: var(--card-shadow, 0 2px 8px rgba(0, 0, 0, 0.04));
-  padding: 10px 14px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.map-toolbar-top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.filter-group-date-right {
+  margin-left: auto;
+}
+
+.map-toolbar-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
   flex-wrap: wrap;
 }
 
@@ -343,6 +363,7 @@
   }
 
   .mobile-layer-segment {
+    position: relative;
     display: inline-flex;
     align-items: center;
     background: var(--ion-card-background, #ffffff);
@@ -353,13 +374,32 @@
     box-sizing: border-box;
     border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.14));
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    gap: 3px;
+    isolation: isolate;
+
+    .layer-seg-indicator {
+      position: absolute;
+      top: 3px;
+      bottom: 3px;
+      left: 3px;
+      width: calc(50% - 3px);
+      border-radius: 9999px;
+      background: var(--ion-color-danger, #eb445a);
+      box-shadow: 0 2px 8px rgba(235, 68, 90, 0.38);
+      transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+      z-index: 1;
+      pointer-events: none;
+
+      &.is-satellite {
+        transform: translateX(100%);
+      }
+    }
 
     .layer-seg-btn {
+      position: relative;
+      z-index: 2;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       padding: 0 13px;
       height: 34px;
@@ -371,12 +411,10 @@
       font-size: 12.5px;
       font-weight: 800;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: color 0.2s ease, transform 0.1s ease;
 
       &.active {
-        background: var(--ion-color-danger, #eb445a);
         color: #ffffff;
-        box-shadow: 0 2px 6px rgba(235, 68, 90, 0.35);
       }
 
       &:active {

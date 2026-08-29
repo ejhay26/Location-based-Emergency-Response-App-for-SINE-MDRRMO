@@ -201,7 +201,7 @@ export class HelpPanel {
           waitForInteraction: false,
         },
         {
-          id: 'verify-approve-btn',
+          id: 'verify-actions-group',
           panel: 'verifications',
           callout: 'Approve or Deny Account',
           subtext: 'Click Approve to verify the citizen and activate full emergency SOS features, or Deny if invalid.',
@@ -362,7 +362,7 @@ export class HelpPanel {
           waitForInteraction: false,
         },
         {
-          id: 'verify-approve-btn',
+          id: 'verify-actions-group',
           panel: 'verifications',
           callout: 'Step 8: Approve or Deny',
           subtext: 'Tap Approve to grant verified citizen status, or Deny if credentials do not match.',
