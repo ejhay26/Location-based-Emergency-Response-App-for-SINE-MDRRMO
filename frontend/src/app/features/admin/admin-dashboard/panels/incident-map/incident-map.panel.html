@@ -1,4 +1,4 @@
-<!-- ── TOP COMMAND TOOLBAR ── -->
+<!-- ── TOP COMMAND TOOLBAR (DESKTOP) ── -->
 <div id="cad-map-toolbar" class="map-top-toolbar">
   <div class="map-filters-strip">
     
@@ -42,7 +42,28 @@
       </button>
     </div>
 
-    <!-- 1. Barangay Filter Pills -->
+    <!-- 1. Date Presets & Calendar (Beside Show) -->
+    <div class="filter-group">
+      <span class="filter-group-label">Date:</span>
+      <button
+        *ngFor="let d of dateFilterOptions"
+        type="button"
+        (click)="setDateFilter(d.id)"
+        [title]="'Filter incidents from ' + d.label"
+        [style.background]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #3a3a3c)' : 'var(--ion-card-background, white)'"
+        [style.color]="!customCalendarFilter && dateFilter === d.id ? 'white' : 'var(--ion-text-color)'"
+        [style.border-color]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #3a3a3c)' : 'var(--ion-color-step-200, #ccc)'"
+        class="filter-pill-btn">
+        {{ d.label }}
+      </button>
+
+      <app-date-range-filter
+        [value]="customCalendarFilter"
+        (valueChange)="onCalendarFilterChange($event)">
+      </app-date-range-filter>
+    </div>
+
+    <!-- 2. Barangay Filter Pills -->
     <div class="filter-group">
       <span class="filter-group-label">Barangay:</span>
       <button
@@ -68,7 +89,7 @@
       </button>
     </div>
 
-    <!-- 2. Type Filter Pills -->
+    <!-- 3. Type Filter Pills -->
     <div class="filter-group">
       <span class="filter-group-label">Type:</span>
       <button
@@ -97,27 +118,6 @@
       </button>
     </div>
 
-    <!-- 3. Date Presets & Calendar -->
-    <div class="filter-group">
-      <span class="filter-group-label">Date:</span>
-      <button
-        *ngFor="let d of dateFilterOptions"
-        type="button"
-        (click)="setDateFilter(d.id)"
-        [title]="'Filter incidents from ' + d.label"
-        [style.background]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #3a3a3c)' : 'var(--ion-card-background, white)'"
-        [style.color]="!customCalendarFilter && dateFilter === d.id ? 'white' : 'var(--ion-text-color)'"
-        [style.border-color]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #3a3a3c)' : 'var(--ion-color-step-200, #ccc)'"
-        class="filter-pill-btn">
-        {{ d.label }}
-      </button>
-
-      <app-date-range-filter
-        [value]="customCalendarFilter"
-        (valueChange)="onCalendarFilterChange($event)">
-      </app-date-range-filter>
-    </div>
-
   </div>
 
   <!-- 4. Map Style Segmented Control (Street | Satellite) -->
@@ -137,19 +137,129 @@
   </ion-segment>
 </div>
 
+<!-- ── MOBILE FLOATING COMMAND BAR (MOBILE ONLY) ── -->
+<div class="mobile-map-floating-bar">
+  <button type="button" id="mobile-filter-btn" class="mobile-filter-pill-btn" (click)="toggleMobileFilter()">
+    <app-icon name="sliders-horizontal" [size]="14" color="var(--ion-color-danger)"></app-icon>
+    <span>Filter</span>
+    <span *ngIf="activeFilterCount > 0" class="mobile-filter-badge">{{ activeFilterCount }}</span>
+  </button>
+
+  <!-- Visible Street / Satellite Layer Segment -->
+  <div class="mobile-layer-segment">
+    <button
+      type="button"
+      class="layer-seg-btn"
+      [class.active]="mapStyle === 'street'"
+      (click)="toggleMapStyle('street')"
+      aria-label="Street Map View">
+      <app-icon name="map" [size]="12" [color]="mapStyle === 'street' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+      <span>Street</span>
+    </button>
+    <button
+      type="button"
+      class="layer-seg-btn"
+      [class.active]="mapStyle === 'satellite'"
+      (click)="toggleMapStyle('satellite')"
+      aria-label="Satellite Map View">
+      <app-icon name="satellite" [size]="12" [color]="mapStyle === 'satellite' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+      <span>Satellite</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── MOBILE FLOATING FILTER MODAL (SLIDE-UP / FLOAT) ── -->
+<div class="mobile-filter-overlay" [class.open]="isMobileFilterOpen" (click)="closeMobileFilter()"></div>
+<div class="mobile-filter-card" id="mobile-filter-card" [class.open]="isMobileFilterOpen">
+  <div class="mobile-filter-card-header">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <app-icon name="sliders-horizontal" [size]="18" color="var(--ion-color-danger)"></app-icon>
+      <h4 style="margin: 0; font-weight: 800; font-size: 15px; color: var(--ion-text-color);">Map Filters</h4>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button type="button" class="mobile-filter-reset-link" (click)="resetAllFilters()">Reset</button>
+      <button type="button" id="mobile-filter-close-btn" class="mobile-filter-close-btn" (click)="closeMobileFilter()" aria-label="Close filters">
+        <app-icon name="close" [size]="18" color="var(--ion-text-color)"></app-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-filter-card-body">
+    <!-- Show Filter -->
+    <div class="mobile-filter-section">
+      <span class="mobile-section-label">Show Alerts</span>
+      <div class="mobile-filter-pills-row">
+        <button type="button" class="filter-pill-btn" [style.background]="alertSourceFilter === 'all' ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="alertSourceFilter === 'all' ? 'white' : 'var(--ion-text-color)'" (click)="setAlertSourceFilter('all')">
+          All ({{ activeRequests.length + activeHazards.length }})
+        </button>
+        <button type="button" class="filter-pill-btn" [style.background]="alertSourceFilter === 'emergency' ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="alertSourceFilter === 'emergency' ? 'white' : 'var(--ion-text-color)'" (click)="setAlertSourceFilter('emergency')">
+          Emergency SOS ({{ activeRequests.length }})
+        </button>
+        <button type="button" class="filter-pill-btn" [style.background]="alertSourceFilter === 'hazard' ? '#ffc409' : 'var(--ion-card-background, white)'" [style.color]="alertSourceFilter === 'hazard' ? '#000000' : 'var(--ion-text-color)'" (click)="setAlertSourceFilter('hazard')">
+          Hazards ({{ activeHazards.length }})
+        </button>
+      </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="mobile-filter-section">
+      <span class="mobile-section-label">Date Range</span>
+      <div class="mobile-filter-pills-row">
+        <button *ngFor="let d of dateFilterOptions" type="button" class="filter-pill-btn" [style.background]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #3a3a3c)' : 'var(--ion-card-background, white)'" [style.color]="!customCalendarFilter && dateFilter === d.id ? 'white' : 'var(--ion-text-color)'" (click)="setDateFilter(d.id)">
+          {{ d.label }}
+        </button>
+        <app-date-range-filter [value]="customCalendarFilter" (valueChange)="onCalendarFilterChange($event)"></app-date-range-filter>
+      </div>
+    </div>
+
+    <!-- Barangay Filter -->
+    <div class="mobile-filter-section">
+      <span class="mobile-section-label">Barangay</span>
+      <div class="mobile-filter-pills-row">
+        <button type="button" class="filter-pill-btn" [style.background]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="isBarangaySelected('all') ? 'white' : 'var(--ion-text-color)'" (click)="toggleBarangayFilter('all')">
+          All
+        </button>
+        <button *ngFor="let b of barangayOptions" type="button" class="filter-pill-btn" [style.background]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="isBarangaySelected(b.id) ? 'white' : 'var(--ion-text-color)'" (click)="toggleBarangayFilter(b.id)">
+          {{ b.name }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Type Filter -->
+    <div class="mobile-filter-section">
+      <span class="mobile-section-label">Incident Type</span>
+      <div class="mobile-filter-pills-row">
+        <button type="button" class="filter-pill-btn" [style.background]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="isTypeSelected('all') ? 'white' : 'var(--ion-text-color)'" (click)="toggleTypeFilter('all')">
+          All Types
+        </button>
+        <button *ngFor="let t of currentTypeOptions" type="button" class="filter-pill-btn" [style.background]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="isTypeSelected(t.id) ? 'white' : 'var(--ion-text-color)'" (click)="toggleTypeFilter(t.id)">
+          <app-icon [name]="t.icon" [size]="12" [color]="isTypeSelected(t.id) ? '#ffffff' : (t.color || 'var(--ion-color-danger)')"></app-icon>
+          <span>{{ t.label }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mobile-filter-card-footer">
+    <button type="button" id="mobile-filter-apply-btn" class="mobile-filter-apply-btn" (click)="closeMobileFilter()">
+      Apply &amp; View Map ({{ unifiedActiveItems.length }})
+    </button>
+  </div>
+</div>
+
 <!-- ── WORKSPACE SPLIT (MAP + RESIZER + QUEUE) ── -->
 <div class="map-workspace-split">
   
-  <!-- Left: Map Container -->
+  <!-- Left / Main: Map Container -->
   <div id="cad-map-container" class="map-container-col">
     <ion-card class="map-card-wrapper">
       <ion-card-content class="ion-no-padding" style="height:100%;flex:1;display:flex;">
-        <div id="dispatch-map" style="height:100%;width:100%;min-height:480px;background-color:#e5e5e5;flex:1;"></div>
+        <div id="dispatch-map" style="height:100%;width:100%;min-height:360px;background-color:#e5e5e5;flex:1;"></div>
       </ion-card-content>
     </ion-card>
   </div>
 
-  <!-- Middle: Draggable Splitter Divider -->
+  <!-- Middle: Draggable Splitter Divider (Desktop Only) -->
   <div class="map-split-resizer"
        [class.resizing]="isResizingQueue"
        (mousedown)="onSplitterMouseDown($event)"
@@ -157,46 +267,51 @@
     <div class="resizer-bar"></div>
   </div>
 
-  <!-- Right: Incident / Hazard Cards Queue -->
-  <div id="cad-queue-container" class="map-queue-col" [style.width]="queueWidth + 'px'">
+  <!-- Right: Incident / Hazard Cards Queue (Desktop Split Pane) -->
+  <div id="cad-queue-container" class="map-queue-col" [style.width.px]="queueWidth">
     
-    <!-- Empty State -->
-    <div *ngIf="unifiedActiveItems.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:700;padding-top:40px;">
-      <div style="width:56px;height:56px;border-radius:16px;background:var(--ion-color-step-50, rgba(0,0,0,0.04));display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
-        <app-icon name="shield-check" [size]="28" color="var(--ion-color-medium)"></app-icon>
-      </div>
-      <p style="margin:0;font-size:14px;">No active alerts or hazards</p>
+    <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 28px;">
+      <h3 style="margin: 0; font-weight: 800; font-size: 15px; color: var(--ion-text-color); display: flex; align-items: center; gap: 8px;">
+        <span>Active Incidents &amp; Hazards</span>
+        <span style="font-size: 11px; padding: 2px 7px; border-radius: 9999px; background: rgba(235,68,90,0.12); color: #eb445a; font-weight: 800;">
+          {{ unifiedActiveItems.length }}
+        </span>
+      </h3>
     </div>
 
-    <!-- Unified Cards List -->
-    <div *ngFor="let item of unifiedActiveItems; let i = index; trackBy: trackByUnifiedItem"
-         [id]="item.type === 'emergency' ? ('request-card-' + item.data.request_id) : ('hazard-card-' + item.data.hazard_id)"
-         [appAnnouncementEnter]="i"
-         [ngClass]="{
-           'selected-incident-card': item.type === 'emergency' && selectedRequestId === item.data.request_id && previewType === 'emergency',
-           'selected-hazard-card': item.type === 'hazard' && selectedRequestId === item.data.hazard_id && previewType === 'hazard'
-         }"
+    <!-- Empty state -->
+    <div *ngIf="unifiedActiveItems.length === 0" style="text-align: center; padding: 40px 16px; color: var(--ion-color-medium); background: var(--ion-card-background, white); border-radius: 16px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow);">
+      <app-icon name="shield-check" [size]="40" color="var(--ion-color-success, #2dd36f)" style="margin-bottom: 12px;"></app-icon>
+      <h4 style="margin: 0 0 6px 0; font-weight: 800; color: var(--ion-text-color);">All Clear</h4>
+      <p style="margin: 0; font-size: 13px;">No active emergency SOS requests or hazard reports match your current filters.</p>
+    </div>
+
+    <!-- Queue card list (Desktop) -->
+    <div *ngFor="let item of unifiedActiveItems; trackBy: trackByUnifiedItem"
+         [attr.id]="item.type === 'emergency' ? ('cad-incident-' + item.data.request_id) : ('cad-hazard-' + item.data.hazard_id)"
          class="incident-card"
-         (click)="item.type === 'emergency' ? selectIncidentCard(item.data, 'emergency') : selectIncidentCard(item.data, 'hazard')">
+         [class.selected-incident-card]="item.type === 'emergency' && selectedRequestId === item.data.request_id && previewType === 'emergency'"
+         [class.selected-hazard-card]="item.type === 'hazard' && selectedRequestId === item.data.hazard_id && previewType === 'hazard'"
+         (click)="selectIncidentCard(item.data, item.type)">
 
       <!-- EMERGENCY SOS CARD -->
       <ng-container *ngIf="item.type === 'emergency'">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-          <div style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center;" [style.background]="item.data.incident_name === 'Fire' ? '#eb445a18' : (item.data.incident_name === 'Flood' ? '#3880ff18' : (item.data.incident_name === 'Medical' ? '#2dd36f18' : '#bc6fff18'))">
-            <app-icon [name]="item.data.incident_name === 'Fire' ? 'flame' : (item.data.incident_name === 'Flood' ? 'droplet' : (item.data.incident_name === 'Medical' ? 'medical' : 'shield-alert'))" [size]="20" [color]="item.data.incident_name === 'Fire' ? '#eb445a' : (item.data.incident_name === 'Flood' ? '#3880ff' : (item.data.incident_name === 'Medical' ? '#2dd36f' : '#bc6fff'))"></app-icon>
+          <div style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(235,68,90,0.15);">
+            <app-icon name="siren" [size]="20" color="#eb445a"></app-icon>
           </div>
           <div style="flex: 1; min-width: 0;">
-            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">{{ item.data.request_time | utcDate:'short' }}</span>
-            <h3 style="margin: 2px 0 0 0; font-weight: 800; font-size: 16.5px; color: var(--ion-color-danger); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.data.incident_name }} Emergency</h3>
+            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">{{ (item.data.request_time || item.data.created_at) | utcDate:'short' }}</span>
+            <h3 style="margin: 2px 0 0 0; font-weight: 800; font-size: 16px; color: var(--ion-color-danger); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.data.incident_name || 'Emergency SOS' }}</h3>
           </div>
         </div>
-        <p style="margin: 4px 0; font-size: 14px;"><strong>Victim:</strong> {{ item.data.first_name }} {{ item.data.last_name }}</p>
-        <p style="margin: 4px 0; font-size: 14px;"><strong>Contact:</strong> {{ item.data.phone }}</p>
-        <p style="margin: 4px 0; font-size: 14px;"><strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
-        <p style="margin: 4px 0; font-size: 13.5px; color: var(--ion-color-step-800, #333);" *ngIf="item.data.description"><strong>Notes:</strong> "{{ item.data.description }}"</p>
-        <div *ngIf="item.data.blood_type" style="margin: 8px 0;">
-          <span style="background: rgba(235,68,90,0.12); color: var(--ion-color-danger); border: 1px solid rgba(235,68,90,0.25); padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px;">
-            <app-icon name="alert" [size]="13" color="var(--ion-color-danger)"></app-icon>
+        <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description || 'Emergency alert triggered' }}</p>
+        <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Citizen:</strong> {{ item.data.first_name }} {{ item.data.last_name }}</p>
+        <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+
+        <div *ngIf="item.data.blood_type || item.data.allergies" style="display: flex; align-items: center; gap: 6px; margin: 6px 0 0 0; padding: 4px 8px; border-radius: 8px; background: rgba(45,211,111,0.1); border: 1px solid rgba(45,211,111,0.25);">
+          <app-icon name="heart" [size]="14" color="#2dd36f"></app-icon>
+          <span style="font-size: 11.5px; font-weight: 700; color: #2dd36f;">
             <span>{{ item.data.blood_type }} | {{ item.data.allergies || 'No known allergies' }}</span>
           </span>
         </div>
@@ -233,7 +348,7 @@
             <app-icon name="hazard" [size]="20" color="#ffc409"></app-icon>
           </div>
           <div style="flex: 1; min-width: 0;">
-            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">{{ item.data.created_at | utcDate:'short' }}</span>
+            <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">{{ (item.data.created_at || item.data.report_time) | utcDate:'short' }}</span>
             <h3 style="margin: 2px 0 0 0; font-weight: 800; font-size: 16px; color: #e0ac00; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.data.hazard_type || 'Public Hazard Report' }}</h3>
           </div>
         </div>
@@ -263,6 +378,99 @@
 
     </div>
   </div>
+
+  <!-- ── MOBILE PULLABLE BOTTOM SHEET QUEUE (MOBILE ONLY) ── -->
+  <div class="mobile-queue-sheet"
+       id="mobile-queue-sheet"
+       [class.state-peek]="mobileSheetState === 'peek'"
+       [class.state-half]="mobileSheetState === 'half'"
+       [class.state-full]="mobileSheetState === 'full'"
+       [style.height.px]="touchSheetHeight || null"
+       [class.is-dragging]="isDraggingSheet">
+    
+    <!-- Pull Handle & Header Toggle (Touch-Draggable) -->
+    <div class="sheet-top-toggle"
+         id="mobile-sheet-toggle"
+         (touchstart)="onSheetTouchStart($event)"
+         (touchmove)="onSheetTouchMove($event)"
+         (touchend)="onSheetTouchEnd($event)"
+         (click)="toggleMobileSheet()">
+      <div class="sheet-drag-pill"></div>
+      <div class="sheet-header-line">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <app-icon name="layers" [size]="17" color="var(--ion-color-danger)"></app-icon>
+          <span class="sheet-title-text">Active Incident Queue</span>
+          <span class="sheet-count-badge">{{ unifiedActiveItems.length }}</span>
+        </div>
+        <span class="sheet-drag-hint">Drag handle to expand</span>
+      </div>
+    </div>
+
+    <!-- Scrollable Cards inside Bottom Sheet -->
+    <div class="sheet-cards-scroll" id="mobile-sheet-cards">
+      <!-- Empty state -->
+      <div *ngIf="unifiedActiveItems.length === 0" style="text-align: center; padding: 28px 16px; color: var(--ion-color-medium);">
+        <app-icon name="shield-check" [size]="36" color="var(--ion-color-success, #2dd36f)" style="margin-bottom: 8px;"></app-icon>
+        <h4 style="margin: 0 0 4px 0; font-weight: 800; font-size: 15px; color: var(--ion-text-color);">All Clear</h4>
+        <p style="margin: 0; font-size: 12.5px;">No active emergency SOS requests or hazard reports.</p>
+      </div>
+
+      <!-- Incident card loop for mobile sheet -->
+      <div *ngFor="let item of unifiedActiveItems; trackBy: trackByUnifiedItem"
+           class="incident-card"
+           [class.selected-incident-card]="item.type === 'emergency' && selectedRequestId === item.data.request_id && previewType === 'emergency'"
+           [class.selected-hazard-card]="item.type === 'hazard' && selectedRequestId === item.data.hazard_id && previewType === 'hazard'"
+           (click)="selectIncidentCard(item.data, item.type)">
+
+        <!-- EMERGENCY SOS CARD -->
+        <ng-container *ngIf="item.type === 'emergency'">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <div style="width: 38px; height: 38px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(235,68,90,0.15);">
+              <app-icon name="siren" [size]="20" color="#eb445a"></app-icon>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">{{ (item.data.request_time || item.data.created_at) | utcDate:'short' }}</span>
+              <h3 style="margin: 1px 0 0 0; font-weight: 800; font-size: 15.5px; color: var(--ion-color-danger); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.data.incident_name || 'Emergency SOS' }}</h3>
+            </div>
+          </div>
+          <p style="font-size: 13.5px; margin: 3px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description || 'Emergency alert triggered' }}</p>
+          <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Citizen:</strong> {{ item.data.first_name }} {{ item.data.last_name }} · <strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+
+          <div style="display: flex; gap: 8px; margin-top: 12px;" (click)="$event.stopPropagation()">
+            <ion-button *ngIf="item.data.status === 'Pending'" color="warning" (click)="openDispatchModal(item.data.request_id)" style="font-weight: 800; flex: 1; height: 42px; margin: 0; --border-radius: 12px; font-size: 13.5px;">
+              <app-icon name="truck-medical" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Dispatch Team
+            </ion-button>
+            <ion-button color="success" (click)="resolveEmergency(item.data.request_id)" style="font-weight: 800; flex: 1; height: 42px; margin: 0; --border-radius: 12px; font-size: 13.5px;">
+              <app-icon name="check" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Resolve
+            </ion-button>
+          </div>
+        </ng-container>
+
+        <!-- HAZARD CARD -->
+        <ng-container *ngIf="item.type === 'hazard'">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <div style="width: 38px; height: 38px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(255,196,9,0.15);">
+              <app-icon name="hazard" [size]="20" color="#ffc409"></app-icon>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">{{ (item.data.created_at || item.data.report_time) | utcDate:'short' }}</span>
+              <h3 style="margin: 1px 0 0 0; font-weight: 800; font-size: 15.5px; color: #e0ac00; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.data.hazard_type || 'Public Hazard Report' }}</h3>
+            </div>
+          </div>
+          <p style="font-size: 13.5px; margin: 3px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description }}</p>
+          <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Reported by:</strong> {{ item.data.first_name }} {{ item.data.last_name }} · <strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+
+          <div style="display: flex; gap: 8px; margin-top: 12px;" (click)="$event.stopPropagation()">
+            <ion-button color="warning" fill="outline" expand="block" (click)="dismissHazard(item.data.hazard_id)" style="font-weight: 800; flex: 1; height: 42px; margin: 0; --border-radius: 12px; font-size: 13.5px;">
+              <app-icon name="check" [size]="16" color="#ffc409" style="margin-right: 6px;"></app-icon> Resolve Hazard
+            </ion-button>
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Dispatch modal -->

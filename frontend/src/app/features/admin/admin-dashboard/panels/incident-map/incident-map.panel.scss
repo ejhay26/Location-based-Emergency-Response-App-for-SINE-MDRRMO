@@ -5,9 +5,10 @@
   height: 100%;
   overflow: hidden;
   gap: 12px;
+  position: relative;
 }
 
-/* ── TOP COMMAND TOOLBAR ── */
+/* ── TOP COMMAND TOOLBAR (DESKTOP) ── */
 .map-top-toolbar {
   background: var(--ion-card-background, #ffffff);
   border-radius: 16px;
@@ -99,52 +100,48 @@
 .map-container-col {
   flex: 1;
   min-width: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  height: 100%;
-
-  .map-card-wrapper {
-    margin: 0;
-    box-shadow: none;
-    border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08)));
-    border-radius: 16px;
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
 }
 
-/* ── DRAGGABLE SPLITTER DIVIDER ── */
+.map-card-wrapper {
+  margin: 0;
+  border-radius: 16px;
+  border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08)));
+  box-shadow: var(--card-shadow, 0 2px 8px rgba(0, 0, 0, 0.04));
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .map-split-resizer {
   width: 12px;
-  flex-shrink: 0;
   cursor: col-resize;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   user-select: none;
-  position: relative;
-  transition: background 0.15s ease;
-
-  .resizer-bar {
-    width: 3.5px;
-    height: 48px;
-    border-radius: 3px;
-    background: var(--ion-color-step-250, #ccc);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+  -webkit-user-select: none;
+  z-index: 10;
+  transition: background-color 0.2s;
 
   &:hover,
   &.resizing {
     .resizer-bar {
-      background: var(--ion-color-danger, #eb445a);
-      height: 80px;
-      width: 4.5px;
-      box-shadow: 0 0 10px rgba(235, 68, 90, 0.5);
+      background-color: var(--ion-color-danger, #eb445a);
+      height: 48px;
     }
+  }
+
+  .resizer-bar {
+    width: 4px;
+    height: 32px;
+    background-color: var(--ion-color-step-200, rgba(0, 0, 0, 0.15));
+    border-radius: 4px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -164,7 +161,7 @@
   margin: 0 0 12px 0;
   background: var(--ion-card-background, #ffffff);
   border-radius: 16px;
-  padding: 16px;
+  padding: 14px 16px;
   color: var(--ion-text-color);
   cursor: pointer;
   border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.06)));
@@ -195,8 +192,8 @@
 }
 
 .media-thumb {
-  width: 58px;
-  height: 58px;
+  width: 54px;
+  height: 54px;
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -214,11 +211,394 @@
     right: 3px;
     background: rgba(0, 0, 0, 0.6);
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
+  }
+}
+
+/* ── MOBILE SPECIFIC ELEMENTS (HIDDEN ON DESKTOP) ── */
+.mobile-map-floating-bar,
+.mobile-filter-overlay,
+.mobile-filter-card,
+.mobile-queue-sheet {
+  display: none;
+}
+
+/* ── MOBILE RESPONSIVE OVERRIDES (<= 768px) ── */
+@media (max-width: 768px) {
+  :host {
+    gap: 0;
+  }
+
+  /* Hide the bulky desktop toolbar & resizer */
+  .map-top-toolbar,
+  .map-split-resizer,
+  .map-queue-col {
+    display: none !important;
+  }
+
+  /* Full-bleed background map */
+  .map-workspace-split {
+    position: absolute;
+    inset: 0;
+  }
+  .map-container-col {
+    width: 100%;
+    height: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .map-card-wrapper {
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    --background: transparent;
+    --ion-card-background: transparent;
+  }
+
+  ion-card.map-card-wrapper {
+    --background: transparent;
+    --ion-card-background: transparent;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #dispatch-map {
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide Leaflet zoom controls on mobile */
+  .leaflet-control-zoom,
+  .leaflet-top.leaflet-left {
+    display: none !important;
+  }
+
+  /* ── 1. Floating Top Pill Bar (Symmetric Matching Pills) ── */
+  .mobile-map-floating-bar {
+    display: flex;
+    position: absolute;
+    top: max(env(safe-area-inset-top, 0px), 24px);
+    left: 14px;
+    right: 14px;
+    z-index: 500;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    pointer-events: none;
+
+    > * {
+      pointer-events: auto;
+    }
+  }
+
+  .mobile-filter-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 16px;
+    height: 42px;
+    min-height: 42px;
+    box-sizing: border-box;
+    border-radius: 9999px;
+    background: var(--ion-card-background, #ffffff);
+    border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.14));
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+    color: var(--ion-text-color);
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    outline: none;
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  .mobile-filter-badge {
+    background: var(--ion-color-danger, #eb445a);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+  }
+
+  .mobile-layer-segment {
+    display: inline-flex;
+    align-items: center;
+    background: var(--ion-card-background, #ffffff);
+    border-radius: 9999px;
+    padding: 3px;
+    height: 42px;
+    min-height: 42px;
+    box-sizing: border-box;
+    border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.14));
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    gap: 3px;
+
+    .layer-seg-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 13px;
+      height: 34px;
+      min-height: 34px;
+      border-radius: 9999px;
+      border: none;
+      background: transparent;
+      color: var(--ion-color-medium);
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &.active {
+        background: var(--ion-color-danger, #eb445a);
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(235, 68, 90, 0.35);
+      }
+
+      &:active {
+        transform: scale(0.96);
+      }
+    }
+  }
+
+  /* ── 2. Floating Filter Modal Overlay ── */
+  .mobile-filter-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1050;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+
+    &.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  .mobile-filter-card {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    bottom: 12px;
+    left: 10px;
+    right: 10px;
+    max-height: 80vh;
+    background: var(--ion-card-background, #ffffff);
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    z-index: 1100;
+    transform: translateY(110%);
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow: hidden;
+
+    &.open {
+      transform: translateY(0);
+    }
+  }
+
+  .mobile-filter-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
+  }
+
+  .mobile-filter-reset-link {
+    background: none;
+    border: none;
+    color: var(--ion-color-danger, #eb445a);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .mobile-filter-close-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .mobile-filter-card-body {
+    padding: 14px 16px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .mobile-filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mobile-section-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ion-color-medium);
+  }
+
+  .mobile-filter-pills-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .mobile-filter-card-footer {
+    padding: 10px 16px;
+    border-top: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
+  }
+
+  .mobile-filter-apply-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--ion-color-danger, #eb445a);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(235, 68, 90, 0.35);
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  /* ── 3. Pullable Bottom Sheet Queue ── */
+  .mobile-queue-sheet {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--ion-card-background, #ffffff);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.16);
+    z-index: 600;
+    transition: height 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow: hidden;
+
+    &.is-dragging {
+      transition: none !important;
+    }
+
+    &.state-peek {
+      height: 170px;
+    }
+
+    &.state-half {
+      height: 52vh;
+    }
+
+    &.state-full {
+      height: 88vh;
+    }
+  }
+
+  .sheet-top-toggle {
+    padding: 10px 16px 12px;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    border-bottom: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  .sheet-drag-pill {
+    width: 44px;
+    height: 5px;
+    border-radius: 9999px;
+    background: var(--ion-color-step-300, rgba(0, 0, 0, 0.24));
+  }
+
+  .sheet-header-line {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sheet-title-text {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--ion-text-color);
+  }
+
+  .sheet-count-badge {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background: rgba(235, 68, 90, 0.12);
+    color: #eb445a;
+  }
+
+  .sheet-drag-hint {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+  }
+
+  .sheet-cards-scroll {
+    padding: 12px 14px 24px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 }

@@ -62,7 +62,7 @@
         <button type="button" (click)="startWalkthrough(proc)"
                 style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--ion-color-danger); background: linear-gradient(135deg, rgba(235,68,90,0.08), rgba(235,68,90,0.02)); color: var(--ion-color-danger); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
           <app-icon name="play" [size]="13" color="var(--ion-color-danger)"></app-icon>
-          <span>Start Walkthrough ({{ proc.steps.length }} Steps)</span>
+          <span>Start Walkthrough ({{ getStepCount(proc) }} Steps)</span>
         </button>
       </div>
     </div>

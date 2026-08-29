@@ -14,13 +14,13 @@ import { AdminUiService } from '../../admin-ui.service';
 import { EchoService } from '../../../../../core/services/echo.service';
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
 import { VideoThumbnailDirective } from '../../../../../shared/directives/video-thumbnail.directive';
-import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { isTauri } from '../../../../../shared/utils/platform.util';
 import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
 import { DateFilterValue, matchesDateFilter } from '../../../../../shared/utils/date-filter.util';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { TourService } from '../../../../../core/services/tour';
 
 /**
  * Fallback polling interval for the incident map — active continuously as
@@ -40,7 +40,7 @@ const FALLBACK_POLL_MS = 30_000;
     IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
     IonSegment, IonSegmentButton, IonLabel,
-    ProxyImageDirective, VideoThumbnailDirective, ListEnterDirective,
+    ProxyImageDirective, VideoThumbnailDirective,
     UtcDatePipe, DateRangeFilterComponent, AppIconComponent
   ],
   templateUrl: './incident-map.panel.html',
@@ -133,11 +133,135 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   private startX = 0;
   private startWidth = 0;
 
+  // ── Mobile Responsive State ──
+  isMobileFilterOpen = false;
+  mobileSheetState: 'peek' | 'half' | 'full' = 'peek';
+  touchSheetHeight: number | null = null;
+  isDraggingSheet = false;
+  private touchStartY = 0;
+  private touchStartHeight = 0;
+  private hasMovedTouch = false;
+
+  get activeFilterCount(): number {
+    let count = 0;
+    if (this.alertSourceFilter !== 'all') count++;
+    count += this.selectedBarangays.length;
+    count += this.selectedTypes.length;
+    if (this.dateFilter !== 'all' || this.customCalendarFilter !== null) count++;
+    return count;
+  }
+
+  toggleMobileFilter(): void {
+    this.isMobileFilterOpen = !this.isMobileFilterOpen;
+    if (this.tour.isActive() && this.tour.targetId() === 'mobile-filter-btn') {
+      this.tour.next();
+    }
+  }
+
+  closeMobileFilter(): void {
+    this.isMobileFilterOpen = false;
+    if (this.tour.isActive()) {
+      const target = this.tour.targetId();
+      if (target === 'mobile-filter-close-btn' || target === 'mobile-filter-apply-btn') {
+        this.tour.next();
+      }
+    }
+  }
+
+  resetAllFilters(): void {
+    this.alertSourceFilter = 'all';
+    this.selectedBarangays = [];
+    this.selectedTypes = [];
+    this.dateFilter = 'all';
+    this.customCalendarFilter = null;
+    this.highlightBarangays();
+    this.plotMarkers();
+  }
+
+  toggleMobileSheet(): void {
+    if (this.hasMovedTouch) {
+      this.hasMovedTouch = false;
+      return;
+    }
+    // Simple intuitive 2-state toggle when tapping header
+    if (this.mobileSheetState === 'peek') {
+      this.mobileSheetState = 'half';
+    } else {
+      this.mobileSheetState = 'peek';
+    }
+  }
+
+  onSheetTouchStart(e: TouchEvent): void {
+    if (!e.touches || e.touches.length === 0) return;
+    this.isDraggingSheet = true;
+    this.hasMovedTouch = false;
+    this.touchStartY = e.touches[0].clientY;
+
+    const vh = window.innerHeight;
+    if (this.mobileSheetState === 'peek') {
+      this.touchStartHeight = 170;
+    } else if (this.mobileSheetState === 'half') {
+      this.touchStartHeight = vh * 0.52;
+    } else {
+      this.touchStartHeight = vh * 0.88;
+    }
+  }
+
+  onSheetTouchMove(e: TouchEvent): void {
+    if (!this.isDraggingSheet || !e.touches || e.touches.length === 0) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = this.touchStartY - currentY; // positive = dragging UP, negative = dragging DOWN
+    if (Math.abs(deltaY) > 6) {
+      this.hasMovedTouch = true;
+    }
+
+    const vh = window.innerHeight;
+    const minHeight = 140;
+    const maxHeight = vh * 0.90;
+    const newHeight = Math.max(minHeight, Math.min(maxHeight, this.touchStartHeight + deltaY));
+    this.touchSheetHeight = newHeight;
+  }
+
+  onSheetTouchEnd(e: TouchEvent): void {
+    if (!this.isDraggingSheet) return;
+    this.isDraggingSheet = false;
+
+    if (!this.hasMovedTouch || !this.touchSheetHeight) {
+      this.touchSheetHeight = null;
+      return;
+    }
+
+    const vh = window.innerHeight;
+    const peekSnap = 170;
+    const halfSnap = vh * 0.52;
+    const fullSnap = vh * 0.88;
+
+    const h = this.touchSheetHeight;
+    this.touchSheetHeight = null;
+
+    // Snap to nearest state
+    if (h < (peekSnap + halfSnap) / 2) {
+      this.mobileSheetState = 'peek';
+    } else if (h < (halfSnap + fullSnap) / 2) {
+      this.mobileSheetState = 'half';
+    } else {
+      this.mobileSheetState = 'full';
+    }
+  }
+
+  setMobileSheetState(state: 'peek' | 'half' | 'full'): void {
+    this.mobileSheetState = state;
+  }
+
+  private tourSub?: Subscription;
+  private isAutoOpenedByTour = false;
+
   constructor(
     private http: HttpClient,
     public api: ApiService,
     public ui: AdminUiService,
     private echo: EchoService,
+    public tour: TourService,
   ) {
     const savedWidth = localStorage.getItem('admin_map_queue_width');
     if (savedWidth) {
@@ -213,9 +337,51 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.fallbackPollSub = interval(FALLBACK_POLL_MS).subscribe(() => {
       this.loadData();
     });
+
+    // ── Tour step listener for automated mobile bottom-sheet & modal expansion ──
+    this.tourSub = this.tour.stepChange$.subscribe(({ id, active }) => {
+      if (!active || !id) {
+        if (this.isAutoOpenedByTour) {
+          this.isAutoOpenedByTour = false;
+          this.mobileSheetState = 'peek';
+          this.isMobileFilterOpen = false;
+        }
+        return;
+      }
+
+      this.plotMarkers();
+
+      const isMobile = window.innerWidth <= 768;
+
+      if (id === 'mobile-filter-card' || id === 'mobile-filter-close-btn' || id === 'mobile-filter-apply-btn') {
+        this.isMobileFilterOpen = true;
+      } else if (id === 'mobile-sheet-cards' || id === 'mobile-queue-sheet' || id === 'cad-queue-container') {
+        this.isMobileFilterOpen = false;
+        this.isAutoOpenedByTour = true;
+        // Automatically drag up the handle sheet to reveal the active cards list
+        if (isMobile) {
+          this.mobileSheetState = 'half';
+        }
+      } else if (id === 'mobile-incident-focus' || id === 'cad-incident-focus') {
+        this.isMobileFilterOpen = false;
+        if (isMobile) {
+          this.mobileSheetState = 'peek';
+        }
+        // Smoothly fly to the first available incident (real or demo fallback) and pop open its triage details card
+        const target = this.unifiedActiveItems.length > 0 ? this.unifiedActiveItems[0] : this.DEMO_INCIDENT;
+        this.selectIncidentCard(target.data, target.type);
+      } else if (id === 'mobile-filter-btn' || id === 'dispatch-map' || id.startsWith('mobile-tab-')) {
+        this.isMobileFilterOpen = false;
+        if (this.isAutoOpenedByTour && this.mobileSheetState === 'half') {
+          this.mobileSheetState = 'peek';
+          this.isAutoOpenedByTour = false;
+        }
+      }
+    });
   }
 
   ngOnDestroy() {
+    this.tourSub?.unsubscribe();
     this.fallbackPollSub?.unsubscribe();
     this.echoEmergencySub?.unsubscribe();
     this.echoHazardSub?.unsubscribe();
@@ -308,6 +474,26 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     return this.activeHazards.filter(h => this.matchesFilters(h, true));
   }
 
+  readonly DEMO_INCIDENT = {
+    type: 'emergency' as const,
+    data: {
+      request_id: 999999,
+      incident_name: 'Medical',
+      description: 'Citizen experiencing severe dizziness and breathing distress, requires ambulance dispatch.',
+      first_name: 'Juan',
+      last_name: 'Dela Cruz',
+      phone: '09171234567',
+      barangay_name: 'Poblacion',
+      barangay_id: 1,
+      latitude: 15.3090,
+      longitude: 120.9000,
+      status: 'Pending',
+      request_time: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      is_demo: true
+    }
+  };
+
   get unifiedActiveItems(): Array<{ type: 'emergency' | 'hazard'; data: any }> {
     const items: Array<{ type: 'emergency' | 'hazard'; data: any }> = [];
     if (this.alertSourceFilter === 'all' || this.alertSourceFilter === 'emergency') {
@@ -315,6 +501,9 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     }
     if (this.alertSourceFilter === 'all' || this.alertSourceFilter === 'hazard') {
       this.filteredActiveHazards.forEach(h => items.push({ type: 'hazard', data: h }));
+    }
+    if (items.length === 0 && this.tour.isActive()) {
+      items.push(this.DEMO_INCIDENT);
     }
     return items.sort((a, b) => {
       const tA = new Date(a.data.request_time || a.data.created_at).getTime();
@@ -601,6 +790,41 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       });
       this.mapMarkers.push(marker);
     });
+
+    // ── Tour Fallback Marker: Plot interactive demo pin if queue is empty during tour ──
+    if (this.filteredActiveRequests.length === 0 && this.filteredActiveHazards.length === 0 && this.tour.isActive()) {
+      const demoReq = this.DEMO_INCIDENT.data;
+      const cfg = iconConfig['Medical'] || defaultIcon;
+      const pulseClass = 'sos-pulse-ripple';
+      const icon = L.divIcon({
+        html: `<div class="custom-fa-marker-wrapper ${pulseClass}">
+          <svg viewBox="0 0 30 42" class="vector-pin-shape" style="width:45px;height:60px;display:block;">
+            <path d="M15 0C6.7 0 0 6.7 0 15c0 10.5 15 27 15 27s15-16.5 15-27C30 6.7 23.3 0 15 0z" fill="#eb445a"/>
+            <circle cx="15" cy="15" r="9" fill="white"/>
+            <svg x="8" y="8" width="14" height="14" viewBox="${cfg.viewBox}">
+              <path fill="${cfg.color}" d="${cfg.path}"/>
+            </svg>
+          </svg>
+        </div>`,
+        className: 'leaflet-blank-div-icon', iconSize: [45, 60], iconAnchor: [22.5, 60], popupAnchor: [0, -52]
+      });
+      const popup = `<div class="accessible-popup-box">
+        <h2 style="color:#eb445a;font-size:18px;font-weight:bold;margin:0 0 8px 0;border-bottom:2px solid #eb445a20;padding-bottom:4px;">MEDICAL EMERGENCY (DEMO)</h2>
+        <p style="font-size:15px;margin:4px 0;"><b>Citizen:</b> ${demoReq.first_name} ${demoReq.last_name}</p>
+        <p style="font-size:15px;margin:4px 0;"><b>Contact:</b> ${demoReq.phone}</p>
+        <p style="font-size:13px;margin:4px 0;color:gray;background:var(--ion-color-light);padding:4px;border-radius:4px;"><b>Coords:</b> ${demoReq.latitude}, ${demoReq.longitude}</p>
+        <p style="font-size:13px;margin:4px 0;"><b>Barangay:</b> ${demoReq.barangay_name}</p>
+        <div style="margin-top:12px;display:flex;gap:8px;">
+          <button onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${demoReq.request_id}}))" style="background:#ffc409;color:black;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">DISPATCH UNIT</button>
+          <button onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${demoReq.request_id}}))"  style="background:#2dd36f;color:white;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">RESOLVE</button>
+        </div></div>`;
+      const marker = L.marker([demoReq.latitude, demoReq.longitude], { icon }).bindPopup(popup).addTo(this.map);
+      marker.on('click', () => {
+        this.selectedRequestId = demoReq.request_id;
+        this.previewType = 'emergency';
+      });
+      this.mapMarkers.push(marker);
+    }
   }
 
   openDispatchModal(requestId: number) {
@@ -633,19 +857,28 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   selectIncidentCard(item: any, type: 'emergency' | 'hazard') {
+    if (!item) return;
     const id = type === 'emergency' ? item.request_id : item.hazard_id;
     this.selectedRequestId = id;
     this.previewType = type;
 
-    if (item.latitude && item.longitude && this.map) {
-      this.map.flyTo([item.latitude, item.longitude], 16, { animate: true, duration: 0.5 });
-      const targetMarker = this.mapMarkers.find(m => {
-        const latLng = m.getLatLng();
-        return Math.abs(latLng.lat - Number(item.latitude)) < 0.0001 && Math.abs(latLng.lng - Number(item.longitude)) < 0.0001;
-      });
-      if (targetMarker) {
-        targetMarker.openPopup();
-      }
+    const lat = parseFloat(String(item.latitude));
+    const lng = parseFloat(String(item.longitude));
+
+    if (!isNaN(lat) && !isNaN(lng) && this.map) {
+      this.map.flyTo([lat, lng], 16, { animate: true, duration: 0.5 });
+      setTimeout(() => {
+        let targetMarker = this.mapMarkers.find(m => {
+          const latLng = m.getLatLng();
+          return Math.abs(latLng.lat - lat) < 0.001 && Math.abs(latLng.lng - lng) < 0.001;
+        });
+        if (!targetMarker && this.mapMarkers.length > 0) {
+          targetMarker = this.mapMarkers[0];
+        }
+        if (targetMarker) {
+          targetMarker.openPopup();
+        }
+      }, 250);
     }
   }
 

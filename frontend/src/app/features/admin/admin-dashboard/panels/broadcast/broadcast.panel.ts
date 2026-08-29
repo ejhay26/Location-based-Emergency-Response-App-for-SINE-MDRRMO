@@ -16,22 +16,10 @@ import { ListEnterDirective } from '../../../../../shared/directives/list-enter.
 import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
 import { BARANGAYS, Barangay } from '../../../../../shared/constants/barangays';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { TourService } from '../../../../../core/services/tour';
 
 /**
- * BroadcastPanel — send an alert either town-wide (no barangays selected)
- * or scoped to one or more specific barangays via the button multi-select.
- * Multiple broadcasts (town-wide and/or barangay-scoped) can be active at
- * once; each is listed and stopped individually.
- *
- * Real-time: subscribes to the Echo 'broadcasts' channel so the active
- * list updates instantly when any admin creates or clears an alert —
- * including from another browser session or the Electron admin dashboard.
- *
- * Both the Send Alert and Stop Alert actions go through a confirmation
- * dialog. The dialog's own Confirm button shows a loading spinner via
- * DialogService.onConfirm() — the HTTP call happens inside the dialog's
- * loading state, so there is no separate isBroadcasting / isStoppingId
- * flag needed; the dialog handles it.
+ * BroadcastPanel — admin alert broadcaster with immediate and scheduled modes.
  */
 export interface BroadcastMediaItem {
   preview: string;
@@ -62,6 +50,9 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   scheduledBroadcasts: any[] = [];
   archivedBroadcasts: any[] = [];
 
+  // Drag & drop state for desktop
+  isDraggingFileOver = false;
+
   // Collapsible section states
   showActiveSection = true;
   showScheduledSection = true;
@@ -91,11 +82,52 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   minutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
 
   private echoBroadcastSub?: Subscription;
+  private tourSub?: Subscription;
+
+  readonly DEMO_ACTIVE_BROADCAST = {
+    broadcast_id: 999991,
+    title: 'Severe Weather Warning: Heavy Rainfall & River Monitoring',
+    message: 'MDRRMO is monitoring water levels along riverbanks. All residents in low-lying barangays are advised to prepare emergency go-bags and stay alert.',
+    barangays: [{ barangay_id: 1, barangay_name: 'Poblacion' }, { barangay_id: 2, barangay_name: 'Alua' }],
+    location: 'Poblacion, Alua',
+    is_active: 1,
+    scheduled_at: null,
+    created_at: new Date().toISOString(),
+    media_files: [],
+    is_demo: true
+  };
+
+  readonly DEMO_SCHEDULED_BROADCAST = {
+    broadcast_id: 999992,
+    title: 'Scheduled Relief Goods Distribution at Municipal Gym',
+    message: 'Relief distribution for affected households begins tomorrow at 8:00 AM. Please present your verified Resident ID.',
+    barangays: [],
+    location: 'Town-Wide (All Barangays)',
+    is_active: 0,
+    scheduled_at: new Date(Date.now() + 86400000).toISOString(),
+    created_at: new Date().toISOString(),
+    media_files: [],
+    is_demo: true
+  };
+
+  readonly DEMO_ARCHIVED_BROADCAST = {
+    broadcast_id: 999993,
+    title: 'Cleared: Power Line Obstruction Along Highway',
+    message: 'Utility repair teams have cleared fallen electrical cables. Traffic flow along San Roque has returned to normal.',
+    barangays: [{ barangay_id: 3, barangay_name: 'San Roque' }],
+    location: 'San Roque',
+    is_active: 0,
+    scheduled_at: null,
+    created_at: new Date(Date.now() - 172800000).toISOString(),
+    media_files: [],
+    is_demo: true
+  };
 
   constructor(
     public api: ApiService,
     public ui: AdminUiService,
     private echo: EchoService,
+    public tour: TourService,
   ) {}
 
   ngOnInit() {
@@ -104,10 +136,37 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     this.echoBroadcastSub = this.echo.onBroadcastUpdated.subscribe(() => {
       this.fetchBroadcasts();
     });
+
+    this.tourSub = this.tour.stepChange$.subscribe(({ active }) => {
+      if (active) {
+        this.showScheduledSection = true;
+        this.showArchivedSection = true;
+        if (this.activeBroadcasts.length === 0) {
+          this.activeBroadcasts = [this.DEMO_ACTIVE_BROADCAST];
+        }
+        if (this.scheduledBroadcasts.length === 0) {
+          this.scheduledBroadcasts = [this.DEMO_SCHEDULED_BROADCAST];
+        }
+        if (this.archivedBroadcasts.length === 0) {
+          this.archivedBroadcasts = [this.DEMO_ARCHIVED_BROADCAST];
+        }
+      } else {
+        if (this.activeBroadcasts.length === 1 && this.activeBroadcasts[0].is_demo) {
+          this.activeBroadcasts = [];
+        }
+        if (this.scheduledBroadcasts.length === 1 && this.scheduledBroadcasts[0].is_demo) {
+          this.scheduledBroadcasts = [];
+        }
+        if (this.archivedBroadcasts.length === 1 && this.archivedBroadcasts[0].is_demo) {
+          this.archivedBroadcasts = [];
+        }
+      }
+    });
   }
 
   ngOnDestroy() {
     this.echoBroadcastSub?.unsubscribe();
+    this.tourSub?.unsubscribe();
   }
 
   get isTownWide(): boolean {
@@ -283,10 +342,36 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     document.getElementById('broadcastMediaInput')?.click();
   }
 
+  onDragOver(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.isDraggingFileOver = true;
+  }
+
+  onDragLeave(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.isDraggingFileOver = false;
+  }
+
+  onFileDrop(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.isDraggingFileOver = false;
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      this.handleFileList(e.dataTransfer.files);
+    }
+  }
+
   onFilesSelected(event: any): void {
     const files: FileList = event.target.files;
-    if (!files || files.length === 0) return;
+    if (files && files.length > 0) {
+      this.handleFileList(files);
+    }
+    event.target.value = '';
+  }
 
+  handleFileList(files: FileList): void {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'video/mp4'];
     const maxSizeBytes = 10 * 1024 * 1024; // 10MB
 
@@ -320,8 +405,6 @@ export class BroadcastPanel implements OnInit, OnDestroy {
       };
       reader.readAsDataURL(file);
     }
-
-    event.target.value = '';
   }
 
   removeMedia(index: number): void {
