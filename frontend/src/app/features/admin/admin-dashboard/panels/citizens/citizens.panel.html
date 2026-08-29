@@ -11,8 +11,10 @@
       </div>
       <select id="citizenFilterStatus" name="citizenFilterStatus" [ngModel]="citizenFilterStatus" (ngModelChange)="onStatusFilterChange($event)" style="padding: 9px 12px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); font-weight: 600;">
         <option value="all">All Status</option>
-        <option value="active">Active</option>
-        <option value="suspended">Suspended</option>
+        <option value="active">Active Only</option>
+        <option value="suspended">Suspended / Banned</option>
+        <option value="has_strikes">Has Strikes (1-3)</option>
+        <option value="clean">Clean Record (0)</option>
       </select>
       <select id="citizenBarangayFilter" name="citizenBarangayFilter" [ngModel]="citizenBarangayFilter" (ngModelChange)="onBarangayFilterChange($event === 'all' ? 'all' : +$event)"
         style="padding: 9px 12px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); font-weight: 600;">
@@ -39,7 +41,9 @@
 
   <div #citizensGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
     <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="c.user_id" [appAnnouncementEnter]="i" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)));" [style.border-color]="c.account_status === 'banned' ? '#eb445a' : 'var(--ion-color-step-150, rgba(0,0,0,0.07))'">
-      <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px;">
+      
+      <!-- Top Row: User Avatar & Status Badge -->
+      <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
         <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
           <app-icon name="user" [size]="24" color="var(--ion-color-medium)"></app-icon>
           <img *ngIf="ui.getProxyUrl(c.profile_picture)"
@@ -52,17 +56,131 @@
         </div>
         <span style="border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 800; white-space: nowrap; flex-shrink: 0;" [style.background]="c.account_status === 'banned' ? 'rgba(235,68,90,0.12)' : (c.account_status === 'active' ? 'rgba(45,211,111,0.12)' : 'rgba(255,196,9,0.12)')" [style.color]="c.account_status === 'banned' ? '#eb445a' : (c.account_status === 'active' ? '#2dd36f' : '#e0ac00')" [style.border]="c.account_status === 'banned' ? '1px solid rgba(235,68,90,0.3)' : (c.account_status === 'active' ? '1px solid rgba(45,211,111,0.3)' : '1px solid rgba(255,196,9,0.3)')">{{ c.account_status === 'banned' ? 'Suspended' : (c.account_status === 'active' ? 'Active' : 'Pending') }}</span>
       </div>
+
+      <!-- False Alarm Strikes Badge & Dots Bar -->
+      <div [attr.id]="i === 0 ? 'citizen-strike-badge-0' : null" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 10px; margin-bottom: 12px;"
+           [style.background]="(c.false_alarm_strikes || 0) >= 3 ? 'rgba(235,68,90,0.12)' : ((c.false_alarm_strikes || 0) > 0 ? 'rgba(255,196,9,0.14)' : 'rgba(45,211,111,0.08)')"
+           [style.border]="(c.false_alarm_strikes || 0) >= 3 ? '1px solid rgba(235,68,90,0.3)' : ((c.false_alarm_strikes || 0) > 0 ? '1px solid rgba(255,196,9,0.35)' : '1px solid rgba(45,211,111,0.2)')">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <app-icon [name]="(c.false_alarm_strikes || 0) > 0 ? 'alert-triangle' : 'shield'" [size]="14" [color]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : ((c.false_alarm_strikes || 0) > 0 ? '#d99000' : '#2dd36f')"></app-icon>
+          <span style="font-weight: 800; font-size: 12px;" [style.color]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : ((c.false_alarm_strikes || 0) > 0 ? '#c68400' : '#28a745')">
+            {{ (c.false_alarm_strikes || 0) }} of 3 Strikes {{ (c.false_alarm_strikes || 0) >= 3 ? '(Auto-Banned)' : ((c.false_alarm_strikes || 0) > 0 ? '(Warning)' : '(Clean)') }}
+          </span>
+        </div>
+
+        <!-- 3-Dot Strike Indicator Pips -->
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <span title="Strike 1" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
+                [style.background]="(c.false_alarm_strikes || 0) >= 1 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
+                [style.box-shadow]="(c.false_alarm_strikes || 0) >= 1 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
+          <span title="Strike 2" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
+                [style.background]="(c.false_alarm_strikes || 0) >= 2 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
+                [style.box-shadow]="(c.false_alarm_strikes || 0) >= 2 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
+          <span title="Strike 3 (Ban)" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
+                [style.background]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
+                [style.box-shadow]="(c.false_alarm_strikes || 0) >= 3 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
+        </div>
+      </div>
+
+      <!-- Info Details List -->
       <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 12px; margin-bottom: 16px; font-size: 13px; border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.04));">
         <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="phone" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ c.phone }}</span></div>
         <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;"><app-icon name="mail" [size]="13" color="var(--ion-color-danger)"></app-icon><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.email }}</span></div>
         <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ ui.getBarangayName(c.barangay_id) }}</span></div>
         <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="calendar" [size]="13" color="var(--ion-color-danger)"></app-icon><span>Joined {{ c.created_at | utcDate:'mediumDate' }}</span></div>
       </div>
-      <ion-button [color]="c.account_status === 'banned' ? 'success' : 'danger'" fill="outline" size="small" expand="block" (click)="suspendCitizen(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
-        <app-icon [name]="c.account_status === 'banned' ? 'user-check' : 'user-xmark'" [size]="14" [color]="c.account_status === 'banned' ? 'var(--ion-color-success)' : 'var(--ion-color-danger)'" style="margin-right: 8px;"></app-icon>
-        {{ c.account_status === 'banned' ? 'Reinstate Account' : 'Suspend Account' }}
-      </ion-button>
+
+      <!-- Action Buttons Grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto;">
+        <!-- Manage Strikes Button -->
+        <ion-button [attr.id]="i === 0 ? 'citizen-manage-strikes-btn-0' : null" color="warning" fill="outline" size="small" (click)="openStrikeModal(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
+          <app-icon name="gavel" [size]="13" color="#ffc409" style="margin-right: 6px;"></app-icon>
+          Strikes
+        </ion-button>
+
+        <!-- Suspend / Reinstate Button -->
+        <ion-button [attr.id]="i === 0 ? 'citizen-status-action-btn-0' : null" [color]="c.account_status === 'banned' ? 'success' : 'danger'" fill="outline" size="small" (click)="suspendCitizen(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
+          <app-icon [name]="c.account_status === 'banned' ? 'user-check' : 'user-xmark'" [size]="13" [color]="c.account_status === 'banned' ? 'var(--ion-color-success)' : 'var(--ion-color-danger)'" style="margin-right: 6px;"></app-icon>
+          {{ c.account_status === 'banned' ? 'Reinstate' : 'Suspend' }}
+        </ion-button>
+      </div>
+
     </div>
   </div>
 </div>
 
+<!-- ── STRIKE MANAGEMENT MODAL ── -->
+<div *ngIf="isStrikeModalOpen" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px;">
+  <div style="background: var(--ion-card-background, #ffffff); border-radius: 20px; width: 100%; max-width: 520px; box-shadow: 0 16px 40px rgba(0,0,0,0.25); border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.1)); overflow: hidden;">
+    
+    <!-- Header -->
+    <div style="padding: 18px 22px; background: var(--ion-color-step-50, #f8f9fa); border-bottom: 1px solid var(--ion-color-step-150, #e9ecef); display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(235,68,90,0.12); display: flex; align-items: center; justify-content: center;">
+          <app-icon name="alert-triangle" [size]="18" color="#eb445a"></app-icon>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--ion-text-color);">False Alarm Strike Manager</h3>
+          <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--ion-color-medium); font-weight: 600;">{{ selectedCitizen?.first_name }} {{ selectedCitizen?.last_name }} (&#64;{{ selectedCitizen?.username }})</p>
+        </div>
+      </div>
+      <button type="button" (click)="closeStrikeModal()" style="background: none; border: none; font-size: 18px; cursor: pointer; color: var(--ion-color-medium); padding: 4px;">
+        <app-icon name="close" [size]="18" color="var(--ion-color-medium)"></app-icon>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding: 20px 22px;">
+      
+      <!-- Current Strike Status Box -->
+      <div style="background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border: 1px solid var(--ion-color-step-150, #e9ecef); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <span style="font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px;">Current Strike Record</span>
+          <div style="font-size: 17px; font-weight: 800; margin-top: 2px;" [style.color]="(selectedCitizen?.false_alarm_strikes || 0) >= 3 ? '#eb445a' : ((selectedCitizen?.false_alarm_strikes || 0) > 0 ? '#d99000' : '#2dd36f')">
+            {{ selectedCitizen?.false_alarm_strikes || 0 }} of 3 Strikes
+          </div>
+        </div>
+        
+        <button *ngIf="(selectedCitizen?.false_alarm_strikes || 0) > 0"
+                type="button"
+                (click)="resetCitizenStrikes(selectedCitizen)"
+                style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; border: 1px solid rgba(45,211,111,0.35); background: rgba(45,211,111,0.1); color: #2dd36f; font-weight: 700; font-size: 12px; cursor: pointer;">
+          <app-icon name="rotate-ccw" [size]="12" color="#2dd36f"></app-icon>
+          Reset to 0
+        </button>
+      </div>
+
+      <!-- Issue New Strike Section -->
+      <label style="display: block; font-size: 12px; font-weight: 800; color: var(--ion-text-color); margin-bottom: 6px;">
+        Select Reason for Strike #{{ (selectedCitizen?.false_alarm_strikes || 0) + 1 }}:
+      </label>
+      <select [(ngModel)]="selectedStrikeReason" style="width: 100%; padding: 10px 12px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); font-weight: 600; margin-bottom: 12px;">
+        <option *ngFor="let r of STRIKE_PRESET_REASONS" [value]="r">{{ r }}</option>
+      </select>
+
+      <!-- Custom Reason Textarea if selected -->
+      <div *ngIf="selectedStrikeReason === 'Other / Custom Reason'" style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 11.5px; font-weight: 700; color: var(--ion-color-medium); margin-bottom: 4px;">Specify details / findings:</label>
+        <textarea [(ngModel)]="customStrikeReason" rows="3" placeholder="Provide specific reason for issuing this strike..." style="width: 100%; padding: 10px 12px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 12.5px; background: var(--ion-card-background, white); color: var(--ion-text-color); resize: vertical; box-sizing: border-box;"></textarea>
+      </div>
+
+      <!-- Info Banner -->
+      <div style="background: rgba(235,68,90,0.08); border-left: 3px solid #eb445a; border-radius: 6px; padding: 10px 12px; font-size: 11.5px; color: var(--ion-text-color); line-height: 1.5; margin-bottom: 18px;">
+        <strong>Automated Notice:</strong> Issuing this strike automatically dispatches a formal warning notice email to <em>{{ selectedCitizen?.email }}</em> and sends a push notification. Reaching 3 strikes results in automatic account suspension.
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" (click)="closeStrikeModal()" style="padding: 10px 16px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); background: transparent; font-weight: 700; font-size: 13px; color: var(--ion-color-medium); cursor: pointer;">
+          Cancel
+        </button>
+        <button type="button" (click)="submitIssueStrike()" [disabled]="isSubmittingStrike" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: none; background: var(--ion-color-danger, #eb445a); color: #ffffff; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(235,68,90,0.35);">
+          <app-icon name="alert-triangle" [size]="14" color="#ffffff"></app-icon>
+          <span>{{ (selectedCitizen?.false_alarm_strikes || 0) >= 2 ? 'Issue Strike 3 & Auto-Suspend' : 'Issue Strike ' + ((selectedCitizen?.false_alarm_strikes || 0) + 1) + ' of 3' }}</span>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+</div>

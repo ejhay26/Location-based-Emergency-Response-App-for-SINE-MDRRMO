@@ -142,6 +142,8 @@ export class ApiService {
   }
   suspendCitizen(data: any): Observable<any>      { return this.http.post(`${this.url}/suspend-citizen`, data, this.opts(true)); }
   reactivateCitizen(data: any): Observable<any>   { return this.http.post(`${this.url}/reactivate-citizen`, data, this.opts(true)); }
+  issueStrike(data: { user_id: number; reason: string }): Observable<any> { return this.http.post(`${this.url}/issue-strike`, data, this.opts(true)); }
+  resetStrikes(data: { user_id: number; reason?: string }): Observable<any> { return this.http.post(`${this.url}/reset-strikes`, data, this.opts(true)); }
   dispatchEmergency(data: any): Observable<any>   { return this.http.post(`${this.url}/dispatch-emergency`, data, this.opts(true)); }
   resolveEmergency(data: any): Observable<any>    { return this.http.post(`${this.url}/resolve-emergency`, data, this.opts(true)); }
   getDispatchers(): Observable<any>               { return this.http.get(`${this.url}/dispatchers`, this.opts(true)); }

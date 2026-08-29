@@ -96,6 +96,24 @@ class DispatchController extends Controller
             DB::table('personal_access_tokens')->where('tokenable_id', $emergency->user_id)->delete();
             $this->notifications->notifyUser($emergency->user_id, 'Account Suspended', 'Your account has been suspended due to repeated false emergency reports.', ['type' => 'suspended']);
 
+            if (!empty($user->email)) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\FalseAlarmStrikeMail(
+                        $user->first_name,
+                        $user->email,
+                        $strikes,
+                        3,
+                        'Emergency report marked as false alarm during responder on-site verification.',
+                        'banned'
+                    ));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('DispatchController: failed to send FalseAlarmStrikeMail on ban.', [
+                        'user_id' => $user->user_id,
+                        'error'   => $e->getMessage(),
+                    ]);
+                }
+            }
+
             broadcast(new EmergencyUpdated('false_alarm', $request->request_id))->toOthers();
 
             return response()->json(['message' => 'User suspended after reaching 3 false alarm strikes.', 'false_alarm_strikes' => $strikes, 'account_status' => 'banned']);
@@ -107,6 +125,24 @@ class DispatchController extends Controller
             "This report was marked as a false alarm by MDRRMO. {$remaining} more strike(s) will result in account suspension.",
             ['type' => 'false_alarm_strike']
         );
+
+        if (!empty($user->email)) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\FalseAlarmStrikeMail(
+                    $user->first_name,
+                    $user->email,
+                    $strikes,
+                    3,
+                    'Emergency report marked as false alarm during responder on-site verification.',
+                    'active'
+                ));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('DispatchController: failed to send FalseAlarmStrikeMail on strike.', [
+                    'user_id' => $user->user_id,
+                    'error'   => $e->getMessage(),
+                ]);
+            }
+        }
 
         broadcast(new EmergencyUpdated('false_alarm', $request->request_id))->toOthers();
 

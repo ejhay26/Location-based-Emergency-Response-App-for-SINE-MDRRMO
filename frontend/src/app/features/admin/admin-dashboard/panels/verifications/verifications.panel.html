@@ -155,13 +155,15 @@
       </div>
 
       <!-- Action Buttons Row -->
-      <div [attr.id]="i === 0 ? 'verify-actions-group' : null" style="display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06)); padding-top: 16px;">
-        <ion-button [attr.id]="i === 0 ? 'verify-reject-btn' : null" color="danger" fill="outline" (click)="rejectCitizen(user.user_id)" title="Deny verification request" style="font-weight: 700; height: 44px; min-width: 130px; --border-radius: 12px;">
-          <app-icon name="user-xmark" [size]="15" color="var(--ion-color-danger)" style="margin-right: 8px;"></app-icon> Deny
-        </ion-button>
-        <ion-button [attr.id]="i === 0 ? 'verify-approve-btn' : null" color="success" (click)="approveCitizen(user.user_id)" title="Approve citizen account and dispatch welcome email" style="font-weight: 700; height: 44px; min-width: 150px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(45,211,111,0.3);">
-          <app-icon name="user-check" [size]="15" color="#ffffff" style="margin-right: 8px;"></app-icon> Approve Citizen
-        </ion-button>
+      <div style="display: flex; justify-content: flex-end; border-top: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06)); padding-top: 16px;">
+        <div [attr.id]="i === 0 ? 'verify-actions-group' : null" style="display: inline-flex; align-items: center; gap: 12px; border-radius: 14px;">
+          <ion-button [attr.id]="i === 0 ? 'verify-reject-btn' : null" color="danger" fill="outline" (click)="rejectCitizen(user.user_id)" title="Deny verification request" style="font-weight: 700; height: 44px; min-width: 130px; --border-radius: 12px; margin: 0;">
+            <app-icon name="user-xmark" [size]="15" color="var(--ion-color-danger)" style="margin-right: 8px;"></app-icon> Deny
+          </ion-button>
+          <ion-button [attr.id]="i === 0 ? 'verify-approve-btn' : null" color="success" (click)="approveCitizen(user.user_id)" title="Approve citizen account and dispatch welcome email" style="font-weight: 700; height: 44px; min-width: 150px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(45,211,111,0.3); margin: 0;">
+            <app-icon name="user-check" [size]="15" color="#ffffff" style="margin-right: 8px;"></app-icon> Approve Citizen
+          </ion-button>
+        </div>
       </div>
     </div>
   </div>

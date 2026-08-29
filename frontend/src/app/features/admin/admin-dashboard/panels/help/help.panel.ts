@@ -217,8 +217,22 @@ export class HelpPanel {
         {
           id: 'citizenSearch',
           panel: 'citizens',
-          callout: 'Citizen Search & Strike System',
-          subtext: 'Look up citizens to inspect account details, verification status, and manage disciplinary strikes for false alarms.',
+          callout: 'Step 7: Citizen Search & Filters',
+          subtext: 'Search residents by name, username, email, phone, or filter by barangay and strike status.',
+          waitForInteraction: false,
+        },
+        {
+          id: 'citizen-strike-badge-0',
+          panel: 'citizens',
+          callout: 'Step 8: False Alarm Strike Counter',
+          subtext: 'Inspect the resident’s current false alarm strike count (0 of 3). Reaching 3 strikes triggers automatic account suspension.',
+          waitForInteraction: false,
+        },
+        {
+          id: 'citizen-manage-strikes-btn-0',
+          panel: 'citizens',
+          callout: 'Step 9: Manage Strikes & Issue Notices',
+          subtext: 'Click Strikes to record a false alarm violation with categorized reasons, dispatch automated warning emails, or reset strikes to 0.',
           waitForInteraction: false,
         },
       ]
@@ -233,7 +247,7 @@ export class HelpPanel {
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
     if (isMobile) {
       if (proc.id === 'incident-map') return 7;
-      if (proc.id === 'account-management') return 11;
+      if (proc.id === 'account-management') return 13;
       if (proc.id === 'broadcast') return 8;
       if (proc.id === 'archive') return 3;
     }
@@ -386,8 +400,22 @@ export class HelpPanel {
         {
           id: 'citizenSearch',
           panel: 'citizens',
-          callout: 'Step 11: Search & Verify Citizens',
-          subtext: 'Look up residents to check verified ID credentials and false alarm strikes.',
+          callout: 'Step 11: Search & Filter Citizens',
+          subtext: 'Look up residents by name, email, phone, or filter by barangay and false alarm strike status.',
+          waitForInteraction: false,
+        },
+        {
+          id: 'citizen-strike-badge-0',
+          panel: 'citizens',
+          callout: 'Step 12: Strike Counter & Badges',
+          subtext: 'Inspect the resident’s current false alarm strike count (0 of 3). Reaching 3 strikes triggers automatic account suspension.',
+          waitForInteraction: false,
+        },
+        {
+          id: 'citizen-manage-strikes-btn-0',
+          panel: 'citizens',
+          callout: 'Step 13: Manage Strikes & Issue Notices',
+          subtext: 'Tap Strikes to record a false alarm violation with categorized reasons, dispatch automated warning emails, or reset strikes to 0.',
           waitForInteraction: false,
         },
       ];

@@ -307,6 +307,54 @@ export class IconRegistryService {
       }
     ],
     [
+      'alert-triangle',
+      {
+        name: 'alert-triangle',
+        faClass: 'fa-solid fa-triangle-exclamation',
+        lucideSvg: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/>'
+      }
+    ],
+    [
+      'shield-alert',
+      {
+        name: 'shield-alert',
+        faClass: 'fa-solid fa-shield-halved',
+        lucideSvg: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>'
+      }
+    ],
+    [
+      'rotate-ccw',
+      {
+        name: 'rotate-ccw',
+        faClass: 'fa-solid fa-rotate-left',
+        lucideSvg: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>'
+      }
+    ],
+    [
+      'gavel',
+      {
+        name: 'gavel',
+        faClass: 'fa-solid fa-gavel',
+        lucideSvg: '<path d="m14 13-7.5 7.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 0 1 0-3L11 10"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>'
+      }
+    ],
+    [
+      'flag',
+      {
+        name: 'flag',
+        faClass: 'fa-solid fa-flag',
+        lucideSvg: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>'
+      }
+    ],
+    [
+      'shield',
+      {
+        name: 'shield',
+        faClass: 'fa-solid fa-shield',
+        lucideSvg: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+      }
+    ],
+    [
       'settings',
       {
         name: 'settings',

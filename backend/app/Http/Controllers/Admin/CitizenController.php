@@ -77,6 +77,133 @@ class CitizenController extends Controller
         return response()->json(['message' => 'Account reactivated.', 'user' => $user->fresh()]);
     }
 
+    public function issueStrike(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'reason'  => 'required|string|max:500',
+        ]);
+        $user = User::where('user_id', $request->user_id)->where('role', 'citizen')->first();
+        if (!$user) return response()->json(['message' => 'Citizen not found.'], 404);
+
+        $user->increment('false_alarm_strikes');
+        $strikes = $user->false_alarm_strikes;
+        $reason  = $request->reason;
+
+        if ($strikes >= 3) {
+            $user->update([
+                'account_status' => 'banned',
+                'ban_reason'     => "Automatically suspended after 3 false alarm strikes. (Reason: {$reason})",
+                'banned_at'      => now(),
+            ]);
+            $user->tokens()->delete();
+
+            $this->notifications->notifyUser(
+                $user->user_id,
+                'Account Suspended (3 False Alarm Strikes)',
+                "Your account has been suspended due to repeated false alarm reports. Stated reason: {$reason}",
+                ['type' => 'suspended']
+            );
+
+            if (!empty($user->email)) {
+                try {
+                    Mail::to($user->email)->send(new \App\Mail\FalseAlarmStrikeMail(
+                        $user->first_name,
+                        $user->email,
+                        $strikes,
+                        3,
+                        $reason,
+                        'banned'
+                    ));
+                } catch (\Throwable $e) {
+                    Log::error('CitizenController: failed to send FalseAlarmStrikeMail on suspension.', [
+                        'user_id' => $user->user_id,
+                        'error'   => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            broadcast(new UserVerified('suspended', $user->user_id));
+
+            return response()->json([
+                'message'             => 'Citizen received Strike 3 and account has been suspended.',
+                'false_alarm_strikes' => $strikes,
+                'account_status'     => 'banned',
+                'user'               => $user->fresh(),
+            ]);
+        }
+
+        $remaining = 3 - $strikes;
+        $this->notifications->notifyUser(
+            $user->user_id,
+            "False Alarm Strike {$strikes} of 3",
+            "A false alarm strike was recorded on your account. Reason: {$reason}. {$remaining} more strike(s) will result in automatic suspension.",
+            ['type' => 'false_alarm_strike']
+        );
+
+        if (!empty($user->email)) {
+            try {
+                Mail::to($user->email)->send(new \App\Mail\FalseAlarmStrikeMail(
+                    $user->first_name,
+                    $user->email,
+                    $strikes,
+                    3,
+                    $reason,
+                    'active'
+                ));
+            } catch (\Throwable $e) {
+                Log::error('CitizenController: failed to send FalseAlarmStrikeMail on strike.', [
+                    'user_id' => $user->user_id,
+                    'error'   => $e->getMessage(),
+                ]);
+            }
+        }
+
+        broadcast(new UserVerified('updated', $user->user_id));
+
+        return response()->json([
+            'message'             => "Strike {$strikes} of 3 recorded. {$remaining} more will result in automatic suspension.",
+            'false_alarm_strikes' => $strikes,
+            'account_status'     => $user->account_status,
+            'user'               => $user->fresh(),
+        ]);
+    }
+
+    public function resetStrikes(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'reason'  => 'nullable|string|max:500',
+        ]);
+        $user = User::where('user_id', $request->user_id)->where('role', 'citizen')->first();
+        if (!$user) return response()->json(['message' => 'Citizen not found.'], 404);
+
+        $wasBanned = $user->account_status === 'banned';
+        $user->false_alarm_strikes = 0;
+        if ($wasBanned) {
+            $user->account_status = 'active';
+            $user->ban_reason     = null;
+            $user->banned_at      = null;
+        }
+        $user->save();
+
+        $this->notifications->notifyUser(
+            $user->user_id,
+            'False Alarm Strikes Cleared',
+            'Your false alarm strikes have been reset to 0 by MDRRMO administration.',
+            ['type' => 'strikes_cleared']
+        );
+
+        broadcast(new UserVerified('reinstated', $user->user_id));
+
+        return response()->json([
+            'message'             => 'False alarm strikes reset to 0. Account record cleared.',
+            'false_alarm_strikes' => 0,
+            'account_status'     => $user->account_status,
+            'user'               => $user->fresh(),
+        ]);
+    }
+
     public function getPendingVerifications()
     {
         return response()->json(

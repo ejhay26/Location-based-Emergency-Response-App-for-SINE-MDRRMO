@@ -85,6 +85,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/citizens',               [CitizenController::class, 'getCitizens']);
         Route::post('/suspend-citizen',       [CitizenController::class, 'suspendCitizen']);
         Route::post('/reactivate-citizen',    [CitizenController::class, 'reactivateCitizen']);
+        Route::post('/issue-strike',          [CitizenController::class, 'issueStrike']);
+        Route::post('/reset-strikes',         [CitizenController::class, 'resetStrikes']);
         Route::get('/feedback',               [FeedbackController::class, 'index']);
         Route::post('/feedback/clear',        [FeedbackController::class, 'clear']);
         Route::get('/feedback/export',        [FeedbackController::class, 'export']);
