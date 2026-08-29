@@ -57,13 +57,6 @@ export class HelpPanel {
           subtext: 'All incoming emergency calls and hazard reports appear in this list. Click any card to view photos, medical info, and assign responder units.',
           waitForInteraction: false,
         },
-        {
-          id: 'desktop-incident-focus',
-          panel: 'active',
-          callout: 'Step 5: Focus Pin & Victim Details',
-          subtext: 'Selecting an incident centers the map directly on the GPS pin, highlights the location, and opens the citizen contact, barangay, and triage card.',
-          waitForInteraction: false,
-        },
       ]
     },
     {
@@ -239,7 +232,7 @@ export class HelpPanel {
   getStepCount(proc: ProcedureGuide): number {
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
     if (isMobile) {
-      if (proc.id === 'incident-map') return 8;
+      if (proc.id === 'incident-map') return 7;
       if (proc.id === 'account-management') return 11;
       if (proc.id === 'broadcast') return 8;
       if (proc.id === 'archive') return 3;
@@ -308,13 +301,6 @@ export class HelpPanel {
           panel: 'active',
           callout: 'Step 7: Incoming Alerts Queue',
           subtext: 'All incoming emergency calls appear in this list. Tapping an alert automatically centers the map on the citizen GPS pin.',
-          waitForInteraction: false,
-        },
-        {
-          id: 'mobile-incident-focus',
-          panel: 'active',
-          callout: 'Step 8: Focus Pin & Victim Details',
-          subtext: 'The map centers directly on the incident GPS pin, highlighting the location and displaying the citizen contact, barangay, and triage info.',
           waitForInteraction: false,
         },
       ];

@@ -20,7 +20,3 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-# rustls-tls instead of the default native-tls: avoids depending on the
-# system OpenSSL/schannel setup on the build machine, which is one less
-# thing to have installed correctly before a build works.
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }

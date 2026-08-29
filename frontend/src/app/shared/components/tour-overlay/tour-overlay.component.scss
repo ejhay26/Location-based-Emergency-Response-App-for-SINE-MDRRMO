@@ -9,13 +9,7 @@
   position: fixed;
   inset: 0;
   z-index: 98000;
-  background: rgba(0, 0, 0, 0.6);
-  /* A bit more blur than a first pass at "less blur" — plain text with no
-     card behind it needs the backdrop softened to stay legible over busy
-     photos/colors, otherwise readability suffers more than the old card
-     ever did. */
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.65);
   pointer-events: all; /* blocks taps everywhere EXCEPT the clipped-out hole */
   animation: tourFadeIn 0.18s ease;
 }
@@ -62,7 +56,7 @@
   top: calc(14px + env(safe-area-inset-top, 0px));
   right: 14px;
   z-index: 99999;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.6);
   border: 1.5px solid rgba(255, 255, 255, 0.45);
   color: white;
   font-size: 13px;
@@ -73,8 +67,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   animation: tourFadeIn 0.18s ease;
   transition: transform 0.12s;
 }
@@ -92,12 +84,10 @@
   text-align: left;
   padding: 16px 20px;
   border-radius: 18px;
-  background: var(--ion-card-background, rgba(28, 28, 30, 0.95));
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: var(--ion-card-background, #1c1c1e);
   color: var(--ion-text-color, #ffffff);
   border: 1px solid var(--ion-color-step-200, rgba(255, 255, 255, 0.16));
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
   transition: top 0.35s cubic-bezier(0.16, 1, 0.3, 1), left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   animation: textPop 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);

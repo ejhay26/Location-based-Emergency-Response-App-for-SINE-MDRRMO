@@ -366,14 +366,6 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         if (isMobile) {
           this.mobileSheetState = 'half';
         }
-      } else if (id === 'mobile-incident-focus' || id === 'desktop-incident-focus') {
-        this.isMobileFilterOpen = false;
-        if (isMobile) {
-          this.mobileSheetState = 'peek';
-        }
-        // Smoothly fly to the first available incident (real or demo fallback) and pop open its triage details card
-        const target = this.unifiedActiveItems.length > 0 ? this.unifiedActiveItems[0] : this.DEMO_INCIDENT;
-        this.selectIncidentCard(target.data, target.type);
       } else if (id === 'mobile-filter-btn' || id === 'dispatch-map' || id.startsWith('mobile-tab-')) {
         this.isMobileFilterOpen = false;
         if (this.isAutoOpenedByTour && this.mobileSheetState === 'half') {
@@ -634,15 +626,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   initMap() {
     if (this.map) return;
     this.map = L.map('dispatch-map', { minZoom: 12, zoomControl: false }).setView([15.3014, 120.9274], 13);
-    // Under Tauri, tiles are requested through the `osmtile://` custom
-    // protocol (registered in src-tauri/src/lib.rs) instead of hitting
-    // OpenStreetMap's CDN directly from the webview — that strips
-    // the problematic Referer header. Other shells (browser, Capacitor)
-    // keep requesting the tiles directly.
-    const osmTileUrl = isTauri()
-      ? 'osmtile://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    this.streetLayer    = L.tileLayer(osmTileUrl, { maxZoom: 19, attribution: '© OpenStreetMap contributors', crossOrigin: true });
+    const osmTileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    this.streetLayer    = L.tileLayer(osmTileUrl, { maxZoom: 19, attribution: '© OpenStreetMap contributors' });
     this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri' });
 
     if (this.mapStyle === 'street') {
