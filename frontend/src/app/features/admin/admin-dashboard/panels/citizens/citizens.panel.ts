@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
-  IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
+  IonButton, IonModal, IonContent
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -23,10 +23,9 @@ import { AppIconComponent } from '../../../../../shared/components/app-icon/app-
   selector: 'app-citizens-panel',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, IonButton, IonModal, IonHeader, IonToolbar,
-    IonTitle, IonButtons, IonContent, ProxyImageDirective, UtcDatePipe,
-    DateRangeFilterComponent, FilterSummaryBarComponent, ListEnterDirective,
-    AppIconComponent
+    CommonModule, FormsModule, IonButton, IonModal, IonContent,
+    ProxyImageDirective, UtcDatePipe, DateRangeFilterComponent,
+    FilterSummaryBarComponent, ListEnterDirective, AppIconComponent
   ],
   templateUrl: './citizens.panel.html',
 })
