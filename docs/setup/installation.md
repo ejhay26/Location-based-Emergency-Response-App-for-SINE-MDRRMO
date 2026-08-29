@@ -14,10 +14,10 @@ Before starting, ensure you have the following software installed:
 |---|---|---|
 | **PHP** | 8.4+ | Backend runtime (with `pdo_mysql`, `mbstring`, `curl`, `zip`, `intl`, `xml`, `gd`, `bcmath`, `exif`) |
 | **Composer** | 2.x | PHP dependency manager |
-| **Node.js** | 20.x or 22.x LTS | JavaScript runtime for Angular/Ionic and Electron |
+| **Node.js** | 20.x or 22.x LTS | JavaScript runtime for Angular/Ionic |
+| **Rust & Cargo** | 1.80+ (Optional) | Required only if compiling Tauri v2 desktop packages (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`) |
 | **MariaDB / MySQL** | 10.6+ / 8.0+ | Relational database server |
 | **Ionic CLI** | 8.x+ | Command-line interface for frontend (`npm install -g @ionic/cli`) |
-| **Docker & Compose** | Optional | For containerized local development with Reverb & MinIO |
 
 ---
 
@@ -70,7 +70,7 @@ Generate the unique application key:
 php artisan key:generate
 ```
 
-Configure your `backend/.env` with your database credentials, PhilSMS API token, and Mail password (see [Environment Variables](./environment.md)):
+Configure your `backend/.env` with your database credentials:
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -83,10 +83,9 @@ BROADCAST_CONNECTION=reverb
 FILESYSTEM_DISK=public
 ```
 
-# Run migrations and seed all required reference data (Barangays, Incident Types, Responders, Vehicles, Admin/Dispatcher):
-php artisan migrate --seed
-
-# Create the public storage symlink for uploaded files:
+Run migrations and create the storage symlink:
+```bash
+php artisan migrate
 php artisan storage:link
 ```
 
@@ -107,14 +106,10 @@ php artisan reverb:start --host=0.0.0.0 --port=6001
 Open a **third terminal** and navigate to `frontend/`:
 ```bash
 cd frontend
-```
-
-Install npm dependencies:
-```bash
 npm install
 ```
 
-Verify `frontend/src/environments/environment.ts` points to your local backend and Reverb server:
+Verify `frontend/src/environments/environment.ts` points to your local backend:
 ```typescript
 export const environment = {
   production: false,
@@ -130,30 +125,32 @@ export const environment = {
 
 ### 4. Running the Applications
 
-#### A. Citizen Mobile App (Web Simulator / Browser Preview)
+#### A. Web & Mobile Simulator
 ```bash
 ionic serve --port=8100
 ```
-- Opens at: `http://localhost:8100` (Use Browser DevTools Device Mode: iPhone 14 or Pixel 7 for optimal mobile preview).
+- Opens at `http://localhost:8100`.
+- Use Browser DevTools Device Mode (e.g., iPhone 15 or Pixel 8) to test the Citizen interface and the Mobile Admin Dashboard.
 
-#### B. Admin & Dispatcher Command Center (Electron Desktop App)
+#### B. Native Desktop Command Center (Tauri v2)
 ```bash
-npm run start:desktop
+npm run start:desktop:tauri
 ```
-- Launches the native Electron dashboard with borderless titlebar, multi-panel incident map, and desktop notifications.
+- Launches the lightweight native desktop application with custom window controls and OS audio alerts.
+- To produce an installation bundle: `npm run build:tauri:win`
 
 #### C. Native Android Build (Capacitor)
 ```bash
 npx cap sync android
 npx cap open android
 ```
-- Opens the project in **Android Studio** for building APK / running on an Android device/emulator.
+- Opens the project in **Android Studio** for building APK / running on an Android device.
 
 ---
 
 ## Method B: Containerized Docker / Podman Setup
 
-For an instant, fully containerized environment running Nginx, PHP 8.4-FPM, and Laravel Reverb:
+For a containerized environment running Nginx, PHP 8.4-FPM, and Laravel Reverb:
 
 ```bash
 cd backend
@@ -162,15 +159,3 @@ docker compose up -d --build
 
 - **App & API**: `http://localhost:8080`
 - **Reverb WebSocket**: `http://localhost:6001` (proxied via `http://localhost:8080/app/`)
-- Run migrations if needed: `docker compose exec app php artisan migrate --force`
-
----
-
-## Verifying the Setup
-
-| Service | Address | Expected Status |
-|---|---|---|
-| **Backend Health Check** | `http://localhost:8000/api/health` | `{"status":"ok","timestamp":"..."}` |
-| **Reverb WebSocket Server** | `ws://localhost:6001` | Connection accepted |
-| **Citizen App (Ionic)** | `http://localhost:8100` | Citizen UI loaded |
-| **Admin Dashboard** | Electron App Window | Command Center active |

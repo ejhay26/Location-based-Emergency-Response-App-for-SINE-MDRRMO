@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Common issues, error codes, and step-by-step solutions when developing, running, or deploying the SINE MDRRMO Emergency Response App.
+Common issues, error codes, and step-by-step solutions when developing, running, or deploying the SINE MDRRMO Emergency Response App (Version 0.73.0).
 
 ---
 
@@ -86,36 +86,6 @@ Common issues, error codes, and step-by-step solutions when developing, running,
 
 </details>
 
-<details>
-<summary><b>1.6 Database Corruption, Accidental Data Deletion & Disaster Recovery</b></summary>
-
-**Symptoms:** Data corruption, lost tables, or need to restore to a previous point in time.
-
-**Solutions:**
-1. List available compressed snapshots:
-   ```bash
-   backup list
-   ```
-2. Inspect table counts of a snapshot without restoring:
-   ```bash
-   backup desc <filename>
-   ```
-3. Safely restore with live diff preview and automated pre-restore safety shield:
-   ```bash
-   backup restore <filename>
-   ```
-4. Scan storage and logs for unbacked registrations during the gap:
-   ```bash
-   backup salvage <filename>
-   ```
-5. Dispatch polite recovery notice SMS/emails to affected citizens:
-   ```bash
-   backup notify <filename>
-   ```
-   *(See the full [Disaster Recovery Guide](../architecture/disaster-recovery.md) for complete details).*
-
-</details>
-
 ---
 
 ## 2. Frontend & Mobile Issues (Ionic / Angular / Capacitor)
@@ -132,13 +102,13 @@ Common issues, error codes, and step-by-step solutions when developing, running,
 </details>
 
 <details>
-<summary><b>2.2 Leaflet Map Blank / Disappears on Tab Switch</b></summary>
+<summary><b>2.2 Leaflet Map Blank / Tile Disappearance</b></summary>
 
-**Symptoms:** Map renders gray tiles or disappears after switching between tabs.
+**Symptoms:** Map renders gray tiles or disappears after switching views or resizing.
 
 **Solutions:**
-- Always use `[hidden]="activeTab !== 'map'"` instead of `*ngIf="activeTab === 'map'"` on the Leaflet map container. `*ngIf` destroys and recreates the DOM container, which corrupts Leaflet's tile coordinate calculations.
-- Call `map.invalidateSize()` whenever the container changes size or tab visibility toggles.
+- Always call `map.invalidateSize()` after container dimensions change or tab visibility toggles.
+- Custom cached tile layers (`CachedTileLayer`) use browser Cache API (`mdrrmo-tile-cache-v1`) with CORS-compliant fetch requests to prevent tile dropping during flaky network conditions.
 
 </details>
 
@@ -167,26 +137,30 @@ Common issues, error codes, and step-by-step solutions when developing, running,
 
 ---
 
-## 3. Desktop App Issues (Electron)
+## 3. Desktop App Issues (Tauri v2)
 
 <details>
-<summary><b>3.1 OpenStreetMap Tiles Blocked in Electron</b></summary>
+<summary><b>3.1 Tauri Compilation & Rust Prerequisites</b></summary>
 
-**Symptoms:** Map shows broken image icons or 403 Forbidden errors for OpenStreetMap tiles.
+**Symptoms:** `npm run build:tauri:win` fails with `cargo not found` or `tauri-cli` missing.
 
 **Solutions:**
-- OpenStreetMap tile servers block the `file://` referer sent by Electron by default.
-- `frontend/main.js` includes `registerOsmFix()`, which strips the `Referer` header and attaches a standard browser `User-Agent`. Ensure `registerOsmFix()` runs inside `app.whenReady()`.
+1. Install Rust via [rustup.rs](https://rustup.rs):
+   ```bash
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+2. Ensure C++ Build Tools are installed on Windows (via Microsoft Visual Studio C++ Build Tools or Build Tools for Visual Studio).
+3. Test dev mode with `npm run start:desktop:tauri`.
 
 </details>
 
 <details>
-<summary><b>3.2 Window Minimize / Maximize / Close Buttons Not Responding</b></summary>
+<summary><b>3.2 Window Controls & Titlebar Handling</b></summary>
 
-**Symptoms:** Top titlebar control buttons do not work on desktop.
+**Symptoms:** Frameless window controls do not respond to minimize/maximize/close.
 
 **Solutions:**
-- Because Electron runs with `frame: false` for a modern borderless look, window controls communicate via IPC (`ipcRenderer.send('window:minimize')`, etc.).
-- Ensure `nodeIntegration: true` and `contextIsolation: false` are configured in `webPreferences` in `frontend/main.js`.
+- Window controls communicate directly via Tauri's `@tauri-apps/api/window` APIs (`getCurrentWindow().minimize()`, etc.).
+- In development/browser previews, titlebar controls gracefully fallback with dummy handlers or remain hidden.
 
 </details>

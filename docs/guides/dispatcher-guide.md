@@ -1,12 +1,12 @@
 # Dispatcher User Guide
 
-How to monitor emergencies, review incoming alerts, dispatch responder teams, and broadcast public advisories using the SINE MDRRMO Operations Dashboard.
+How to monitor emergencies, review incoming alerts, dispatch responder teams, and broadcast public advisories using the SINE MDRRMO Operations Dashboard on Desktop and Mobile.
 
 ---
 
 ## 1. Launching & Logging In
 
-1. Open the **SINE MDRRMO Operations Dashboard** on your workstation or mobile browser.
+1. Open the **SINE MDRRMO Operations Dashboard** on your desktop workstation (Tauri Desktop App) or mobile device.
 2. Sign in using the dispatcher credentials provided by your Administrator.
 3. Upon login, the application connects to **Laravel Reverb WebSockets** for live incident streaming and real-time updates.
 
@@ -14,13 +14,8 @@ How to monitor emergencies, review incoming alerts, dispatch responder teams, an
 
 ## 2. Dispatcher Navigation Overview
 
-Dispatchers have access to primary operational panels:
-- **Incident Map:** Live interactive map tracking active SOS emergencies and public road hazards.
-- **Public Hazards:** Direct overview of active road blockages, fallen trees, and flooded streets.
-- **Log Archive:** Searchable historical record of resolved incidents and false alarm moderation.
-- **Analytics:** Statistical incident trends, charts, and barangay volume breakdown.
-- **Alert Broadcast:** Town-wide and barangay-specific emergency announcement composer with media attachments.
-- **Help & Procedures:** Step-by-step interactive walkthroughs for all primary dashboard functions.
+- **Desktop CAD Layout:** Full multi-panel workspace featuring an interactive map with resizable active queues, quick filter strips, and sidebar access.
+- **Mobile Dispatch Layout:** Optimized bottom navigation bar (`Incident Map`, `Alert Broadcast`, `Menu`) with an interactive slide-up bottom sheet for managing calls in the field.
 
 ---
 
@@ -57,10 +52,10 @@ Status becomes "Resolved" & moved to Log Archive
 
 ## 4. Managing Public Road Hazards
 
-Hazard reports (e.g. fallen trees, downed electrical wires, flooded streets) appear as orange markers on the Incident Map:
+Hazard reports (e.g. fallen trees, downed electrical wires, flooded streets) appear as yellow/orange markers on the Incident Map:
 1. Click the hazard marker or list item to inspect photo proof and citizen description.
 2. Coordinate with DPWH or municipal maintenance teams to clear the obstruction.
-3. Tap **Resolve** once cleared to remove the marker from the active monitoring map.
+3. Tap **Resolve** once cleared to remove the marker from active monitoring.
 
 ---
 
@@ -99,15 +94,18 @@ Dispatchers can transmit critical public safety announcements directly to citize
 4. **Select Audience:**
    - Leave on **All Barangays** for a municipal-wide broadcast.
    - Or select specific **Barangays** (e.g. *Tabon*, *Pulo*) for localized alerts.
-5. **Attach Media:** Optionally attach up to **4 images or weather tracking charts**.
+5. **Attach Media & Drag-and-Drop:** Drag or select up to **4 photos or MP4 videos** for instant visual preview.
 6. **Delivery Mode:**
    - **Post Immediately:** Sends the push notification right away.
-   - **Schedule for Later:** Pick a future date and time for automated release. The system prevents picking past dates.
-7. **Active Announcements:** Currently running broadcasts appear below the composer. Click **Stop** when the advisory has ended.
+   - **Schedule for Later:** Pick a future date and time for automated release with past-time guards.
+7. **Active & Scheduled Announcements:** Monitor live broadcasts and scheduled queues directly below the composer.
 
 ---
 
-## 8. Desktop Notifications & Mobile Responsive View
+## 8. Interactive Operations Walkthroughs (Help & Procedures)
 
-- **Sound & Desktop Alerts:** When running the dashboard, audio cues and notifications sound for incoming SOS calls even when minimized.
-- **Mobile Support:** On tablets and mobile phones, dispatchers can use the slide-out navigation drawer while keeping full access to the live map and incident queue.
+Dispatchers can launch spotlight guided tours from the **Help** panel:
+- **Incident Map Tour:** Step-by-step guidance on live map controls, filters, queue browsing, and pin focus.
+- **Alert Broadcast Tour:** Walkthrough of headline writing, media attachments, barangay targeting, and scheduling.
+- **Archive Tour:** Guide on searching historical reports, false alarm tagging, and PDF export.
+- **Adaptive Mobile Steps:** Walkthrough automatically adjusts to highlight mobile sheets and drawer elements when opened on a smartphone.

@@ -68,36 +68,47 @@ When an SOS is transmitted, this medical record is attached automatically to the
 ## 8. Barangay-Targeted Rich Media Broadcast Alerts
 
 - **Granular Audience Targeting:** Dispatchers can broadcast alerts either **Town-wide** (all residents) or scoped to one or more specific **Barangays**.
-- **Rich Media & Titles:** Broadcasts support titles and up to **4 attached images or videos** (e.g., typhoon tracking maps, evacuation center directions).
+- **Rich Media & Drag-and-Drop Composer:** Desktop composer supports drag-and-drop file uploads and up to **4 attached images or MP4 videos** with thumbnail previews.
 - **Immediate & Scheduled Delivery:** Dispatchers can send broadcasts immediately or schedule them for a future release date and time, protected by automated past-time guards.
-- **Active Announcements Management:** Operators can monitor all active alerts, view how long they have been broadcast, and stop them with one click.
+- **Active, Scheduled & Archived Management:** Operators can monitor live running alerts, inspect queued scheduled announcements, and review historical broadcasts.
 - **Client-Side Filtering:** Citizens only receive push notifications and UI banners that apply to their home barangay or the entire municipality.
 
 ---
 
-## 9. Desktop Notifications for Dispatchers (Electron)
+## 9. Native Desktop Command Center (Tauri v2)
 
-- **Continuous Background Awareness:** Built specifically for the Electron desktop dashboard, `DesktopNotificationsService` emits native OS notifications with audio cues whenever a new emergency or hazard is logged, even if the dispatcher is currently reviewing Analytics or the Log Archive.
+- **Rust-Powered Native Architecture:** Packaged via **Tauri v2** for Windows, macOS, and Linux with a 10–15 MB distribution size and ultra-low RAM footprint (~30–50 MB).
+- **Custom Frameless Titlebar:** Theme-aware window minimize, maximize, and close controls integrated seamlessly with the application header.
+- **Continuous Background Awareness:** Native OS desktop notifications and audio cues whenever a new emergency or hazard is logged.
 
 ---
 
-## 10. Advanced Search & Unified Date-Range Filtering
+## 10. Mobile-Responsive Admin & Dispatcher Interface
 
-All administrative panels (Citizens, Dispatchers, Verifications, Log Archive, and Analytics) share two modular components:
-1. **`DateRangeFilterComponent`:** A unified calendar popover supporting Single Day, Multi-Day, and Custom Date Range filtering with responsive sizing that prevents day/number crushing.
+- **Dedicated Mobile Navigation Bar:** Bottom navigation bar featuring 1-tap switching between **Incident Map**, **Alert Broadcast**, and **Mobile Admin Menu**.
+- **Interactive Draggable Bottom Sheet:** Incident queue operates with a mobile-native draggable handle supporting `peek`, `half`, and `expanded` heights.
+- **Touch-Friendly Filter Card:** Floating mobile filter overlay with alert type pills (All, SOS, Hazards), calendar date range pickers, and multi-select barangay chips.
+- **Mobile Admin Drawer Menu:** Off-canvas drawer granting access to Personnel, ID Verifications, Citizens, Analytics, Log Archive, and Settings.
+
+---
+
+## 11. Interactive Guided Tour & Tutorial System
+
+- **Viewport-Adaptive Tour Engine:** Tour steps dynamically adapt between desktop and mobile layouts (e.g., highlighting mobile bottom sheets and drawer buttons).
+- **Interactive Focus & Triage Card Previews:** Tour steps automatically center the map (`flyTo`), pulse markers, and trigger triage popup cards.
+- **Mock Demo Data Fallbacks:** In empty or offline testing environments, demo incident cards and broadcast records appear during walkthroughs to provide a complete training experience.
+
+---
+
+## 12. Advanced Search & Unified Date-Range Filtering
+
+All administrative panels share two modular components:
+1. **`DateRangeFilterComponent`:** A unified calendar popover supporting Single Day, Multi-Day, and Custom Date Range filtering.
 2. **`FilterSummaryBarComponent`:** A persistent active-filter chip bar indicating current query parameters with one-click reset capabilities.
 
 ---
 
-## 11. Multi-Channel OTP & Android SMS Retriever
+## 13. Multi-Channel OTP & Android SMS Retriever
 
 - **Multi-Channel Delivery:** Citizens can receive authentication codes via **Email** or **PhilSMS**.
 - **One-Tap Android Auto-Fill:** On Android devices, the native SMS User Consent API (`@capawesome/capacitor-android-sms-retriever`) reads the 6-digit code without requiring full SMS reading permissions.
-
----
-
-## 12. Interactive Guided Tour & Tutorial System
-
-- **First-Run Onboarding Tour:** A multi-step animated overlay (`TourOverlayComponent`) highlighting primary app actions for first-time users.
-- **Help & Operations Guides:** Interactive procedural walkthroughs on the Admin and Dispatcher dashboards that spotlight live controls, animate seamlessly, and auto-manage navigation across desktop and mobile drawer views.
-- **Citizen Help Center:** A dedicated Help tab containing emergency hotlines (Globe and Smart with direct-dial links), interactive chapter tutorials, FAQs, and a direct feedback portal.
