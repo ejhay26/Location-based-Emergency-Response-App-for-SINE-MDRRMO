@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 27, 2026 at 07:42 AM
+-- Generation Time: Aug 29, 2026 at 01:14 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.5.7
 
@@ -59,6 +59,7 @@ CREATE TABLE `broadcasts` (
   `message` text DEFAULT NULL,
   `media_files` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
+  `scheduled_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -66,25 +67,25 @@ CREATE TABLE `broadcasts` (
 -- Dumping data for table `broadcasts`
 --
 
-INSERT INTO `broadcasts` (`broadcast_id`, `title`, `message`, `media_files`, `is_active`, `created_at`) VALUES
-(1, NULL, 'Evacuate now', NULL, 0, '2026-05-09 21:21:36'),
-(2, NULL, 'Flooding in Tabon', NULL, 0, '2026-07-19 19:14:48'),
-(3, NULL, 'Broken Roads in Pulo', NULL, 0, '2026-07-30 00:33:40'),
-(4, NULL, 'test', NULL, 0, '2026-08-02 06:33:00'),
-(5, NULL, 'test', NULL, 0, '2026-08-02 06:34:00'),
-(6, NULL, 'test', NULL, 0, '2026-08-02 06:34:20'),
-(7, NULL, 'test', NULL, 0, '2026-08-02 06:35:03'),
-(8, NULL, 'alert', NULL, 0, '2026-08-02 06:48:27'),
-(9, NULL, 'test', NULL, 0, '2026-08-02 17:13:15'),
-(10, NULL, 'Flooding', NULL, 1, '2026-08-02 17:43:57'),
-(11, NULL, 'testing', NULL, 0, '2026-08-19 18:05:03'),
-(12, NULL, 'test', NULL, 0, '2026-08-19 18:11:48'),
-(13, NULL, 'test', NULL, 0, '2026-08-19 18:12:36'),
-(14, NULL, 'test', NULL, 0, '2026-08-20 06:02:36'),
-(15, NULL, 'description', NULL, 1, '2026-08-21 17:30:11'),
-(16, NULL, 'description', NULL, 0, '2026-08-21 17:41:20'),
-(17, 'this is title', 'descriptive message', '[\"http:\\/\\/localhost:8080\\/storage\\/reports\\/broadcasts\\/4\\/broadcast_4_20260822024006_6a890c0694aab.jpg\"]', 1, '2026-08-21 18:40:06'),
-(18, 'test', 'test', '[\"http:\\/\\/localhost:8080\\/storage\\/reports\\/broadcasts\\/4\\/broadcast_4_20260822094651_6a89700b3e7fb.jpg\"]', 1, '2026-08-22 01:46:51');
+INSERT INTO `broadcasts` (`broadcast_id`, `title`, `message`, `media_files`, `is_active`, `scheduled_at`, `created_at`) VALUES
+(1, NULL, 'Evacuate now', NULL, 0, NULL, '2026-05-09 21:21:36'),
+(2, NULL, 'Flooding in Tabon', NULL, 0, NULL, '2026-07-19 19:14:48'),
+(3, NULL, 'Broken Roads in Pulo', NULL, 0, NULL, '2026-07-30 00:33:40'),
+(4, NULL, 'test', NULL, 0, NULL, '2026-08-02 06:33:00'),
+(5, NULL, 'test', NULL, 0, NULL, '2026-08-02 06:34:00'),
+(6, NULL, 'test', NULL, 0, NULL, '2026-08-02 06:34:20'),
+(7, NULL, 'test', NULL, 0, NULL, '2026-08-02 06:35:03'),
+(8, NULL, 'alert', NULL, 0, NULL, '2026-08-02 06:48:27'),
+(9, NULL, 'test', NULL, 0, NULL, '2026-08-02 17:13:15'),
+(10, NULL, 'Flooding', NULL, 1, NULL, '2026-08-02 17:43:57'),
+(11, NULL, 'testing', NULL, 0, NULL, '2026-08-19 18:05:03'),
+(12, NULL, 'test', NULL, 0, NULL, '2026-08-19 18:11:48'),
+(13, NULL, 'test', NULL, 0, NULL, '2026-08-19 18:12:36'),
+(14, NULL, 'test', NULL, 0, NULL, '2026-08-20 06:02:36'),
+(15, NULL, 'description', NULL, 1, NULL, '2026-08-21 17:30:11'),
+(16, NULL, 'description', NULL, 0, NULL, '2026-08-21 17:41:20'),
+(17, 'this is title', 'descriptive message', '[\"http:\\/\\/localhost:8080\\/storage\\/reports\\/broadcasts\\/4\\/broadcast_4_20260822024006_6a890c0694aab.jpg\"]', 1, NULL, '2026-08-21 18:40:06'),
+(18, 'test', 'test', '[\"http:\\/\\/localhost:8080\\/storage\\/reports\\/broadcasts\\/4\\/broadcast_4_20260822094651_6a89700b3e7fb.jpg\"]', 1, NULL, '2026-08-22 01:46:51');
 
 -- --------------------------------------------------------
 
@@ -273,7 +274,13 @@ CREATE TABLE `feedback` (
   `user_id` int(11) NOT NULL,
   `message` text NOT NULL,
   `category` varchar(50) DEFAULT 'general',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `rating` tinyint(3) UNSIGNED DEFAULT 5,
+  `status` varchar(20) NOT NULL DEFAULT 'active',
+  `is_forwarded` tinyint(1) NOT NULL DEFAULT 0,
+  `forwarded_at` timestamp NULL DEFAULT NULL,
+  `device_info` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`device_info`)),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
