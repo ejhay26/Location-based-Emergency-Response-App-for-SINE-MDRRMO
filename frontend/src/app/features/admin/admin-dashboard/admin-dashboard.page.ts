@@ -13,6 +13,7 @@ import { DesktopNotificationsService } from '../../../core/services/desktop-noti
 import { AdminUiService } from './admin-ui.service';
 
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
+import { isTauri } from '../../../shared/utils/platform.util';
 
 import { IncidentMapPanel } from './panels/incident-map/incident-map.panel';
 import { AnalyticsPanel } from './panels/analytics/analytics.panel';
@@ -53,7 +54,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   lastActiveDesktopView: ViewMode = 'active';
   navDirection: 'forward' | 'back' = 'forward';
   isSidebarCollapsed = false;
-  isElectron = false;
+  isDesktop = false;
   isMoreSheetOpen = false;
   activeIncidentsCount = 0;
   pendingVerificationsCount = 0;
@@ -176,9 +177,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
         }
       }
     });
-    this.tourSub.add(stepSub);
-
-    this.isElectron = (window as unknown as { process?: { versions?: { electron?: string } } }).process?.versions?.electron != null || /electron/i.test(navigator.userAgent);
+    this.isDesktop = isTauri();
     
     // Restore saved sidebar width if present
     const savedWidth = localStorage.getItem('admin_sidebar_width');

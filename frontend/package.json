@@ -1,39 +1,11 @@
 {
   "name": "mdrrmo-emergency-response-app",
-  "main": "main.js",
   "version": "0.73.0",
   "author": {
     "name": "MDRRMO-SINE",
     "email": "ejcp2005@gmail.com"
   },
   "homepage": "https://ionicframework.com/",
-  "build": {
-    "appId": "ph.gov.sine.mdrrmo.emergencyresponse",
-    "productName": "MDRRMO EMERGENCY RESPONSE APP",
-    "directories": {
-      "output": "dist"
-    },
-    "win": {
-      "target": [
-        "portable"
-      ],
-      "icon": "src/assets/icon/icon.ico"
-    },
-    "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "icon": "src/assets/icon/icon.png",
-      "category": "Utility"
-    },
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "icon": "src/assets/icon/icon.png"
-    }
-  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host 0.0.0.0 --port 8100",
@@ -41,10 +13,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
-    "start:desktop": "electron .",
-    "build:linux": "ionic build --prod && electron-builder --linux",
-    "build:mac": "ionic build --prod && electron-builder --mac",
-    "build:win": "ionic build --prod && electron-builder --win",
+    "start:desktop": "tauri dev",
+    "build:desktop": "tauri build --no-bundle",
     "build:mobile": "ionic build --prod && npx cap sync",
     "build:android": "ionic build --prod && npx cap sync android",
     "build:ios": "ionic build --prod && npx cap sync ios",
@@ -106,8 +76,6 @@
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
     "@tauri-apps/cli": "^2",
-    "electron": "^42.3.3",
-    "electron-builder": "^26.15.0",
     "eslint": "^9.16.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsdoc": "^48.2.1",

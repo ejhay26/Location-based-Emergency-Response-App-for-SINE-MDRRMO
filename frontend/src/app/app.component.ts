@@ -3,7 +3,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent } from './shared/components/index';
-import { isTauri, isElectron } from './shared/utils/platform.util';
+import { isTauri } from './shared/utils/platform.util';
 import { UserSettingsService } from './core/services/user-settings';
 import { LocationService } from './core/services/location';
 import { DeepLinkService } from './core/services/deep-link';
@@ -25,7 +25,7 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.isDesktop = isElectron() || isTauri();
+    this.isDesktop = isTauri();
 
     // Disable default browser context menu on production desktop builds
     if (this.isDesktop && !isDevMode()) {
@@ -39,19 +39,7 @@ export class AppComponent implements OnInit {
     if (user) {
       this.settings.applyToDom();
       this.locationSvc.start();
-    } else {
-      // Clean cold start (Login page): red header -> white window controls
-      this.settings.syncElectronTitleBar(true);
     }
-
-    // Sync window controls whenever navigating between routes
-    this.router.events.pipe(
-      filter((e): e is NavigationEnd => e instanceof NavigationEnd)
-    ).subscribe((event: NavigationEnd) => {
-      const url = event.urlAfterRedirects || event.url || '';
-      const isRedHeader = !url.startsWith('/admin');
-      this.settings.syncElectronTitleBar(isRedHeader);
-    });
 
     // Listens for widget/external-launch deep links (native only, no-op
     // elsewhere). Must be registered once at root so it's live regardless

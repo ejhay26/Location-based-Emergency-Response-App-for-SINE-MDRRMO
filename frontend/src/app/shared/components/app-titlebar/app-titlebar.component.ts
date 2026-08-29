@@ -3,14 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
-import { isTauri, isElectron } from '../../utils/platform.util';
-
-/** Minimal shape of Electron's ipcRenderer that this component uses. */
-interface ElectronIpcRenderer {
-  send(channel: string, ...args: unknown[]): void;
-  on(channel: string, listener: (...args: unknown[]) => void): void;
-  removeListener(channel: string, listener: (...args: unknown[]) => void): void;
-}
+import { isTauri } from '../../utils/platform.util';
 
 /** Minimal shape of the Tauri v2 window handle that this component uses. */
 interface TauriWindowHandle {
@@ -70,29 +63,14 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
   isRedHeader = false;
 
   private sub?: Subscription;
-  private ipc: ElectronIpcRenderer | null = null;
-
-  constructor(private router: Router) {}
-
-  // Tauri's window handle and unlisten function are resolved once via a
-  // dynamic import of `@tauri-apps/api/window` — dynamic, not a static
-  // top-level import, so this module has zero effect when running under
-  // Electron/Capacitor/browser (where the package may not even be bundled
-  // for that target).
   private tauriWindow: TauriWindowHandle | null = null;
   private tauriUnlistenResize: (() => void) | null = null;
 
-  private readonly handleWindowState = (...args: unknown[]): void => {
-    const state = args[0] as { maximized?: boolean } | undefined;
-    this.isMaximized = !!state?.maximized;
-  };
+  constructor(private router: Router) {}
 
   async ngOnInit(): Promise<void> {
     if (isTauri()) {
       await this.initTauriWindowControls();
-    } else if (isElectron()) {
-      this.ipc = this.resolveIpcRenderer();
-      this.ipc?.on('window:state', this.handleWindowState);
     }
 
     this.updateHeaderState(this.router.url);
@@ -105,7 +83,6 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
-    this.ipc?.removeListener('window:state', this.handleWindowState);
     this.tauriUnlistenResize?.();
   }
 
@@ -118,39 +95,19 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
   minimize(event?: MouseEvent): void {
     event?.stopPropagation();
     event?.preventDefault();
-    if (this.tauriWindow) { void this.tauriWindow.minimize(); return; }
-    const ipc = this.ipc || this.resolveIpcRenderer();
-    ipc?.send('window:minimize');
+    if (this.tauriWindow) { void this.tauriWindow.minimize(); }
   }
 
   toggleMaximize(event?: MouseEvent): void {
     event?.stopPropagation();
     event?.preventDefault();
-    if (this.tauriWindow) { void this.tauriWindow.toggleMaximize(); return; }
-    const ipc = this.ipc || this.resolveIpcRenderer();
-    ipc?.send('window:maximize-toggle');
+    if (this.tauriWindow) { void this.tauriWindow.toggleMaximize(); }
   }
 
   close(event?: MouseEvent): void {
     event?.stopPropagation();
     event?.preventDefault();
-    if (this.tauriWindow) { void this.tauriWindow.close(); return; }
-    const ipc = this.ipc || this.resolveIpcRenderer();
-    ipc?.send('window:close');
-  }
-
-  /** Returns null outside the Electron desktop shell. */
-  private resolveIpcRenderer(): ElectronIpcRenderer | null {
-    try {
-      const electronRequire = (window as unknown as { require?: (mod: string) => any }).require;
-      if (typeof electronRequire === 'function') {
-        const electron = electronRequire('electron');
-        return electron?.ipcRenderer || electron || null;
-      }
-    } catch {
-      return null;
-    }
-    return null;
+    if (this.tauriWindow) { void this.tauriWindow.close(); }
   }
 
   /** Resolves the Tauri window handle and wires maximize-state sync via onResized. */

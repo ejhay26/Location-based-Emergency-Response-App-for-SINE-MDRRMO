@@ -1,44 +1,44 @@
 /* ===========================================================================
-   ELECTRON DESKTOP SHELL, TITLEBAR DRAG REGIONS & OFFSETS
+   NATIVE TAURI DESKTOP SHELL, TITLEBAR DRAG REGIONS & OFFSETS
    =========================================================================== */
 
 /* =========================================
-   ELECTRON DESKTOP: CUSTOM TITLEBAR & DRAG REGION
+   TAURI DESKTOP: CUSTOM TITLEBAR & DRAG REGION
    Only the dedicated top drag area (.app-titlebar__drag) is draggable.
    All buttons, headers, sidebars, and panels remain standard interactive DOM elements.
    ========================================= */
-ion-app.electron-app app-titlebar .app-titlebar__drag {
+ion-app.desktop-app app-titlebar .app-titlebar__drag {
   -webkit-app-region: drag !important;
 }
 
-ion-app.electron-app app-titlebar .app-titlebar__controls,
-ion-app.electron-app app-titlebar .app-titlebar__btn,
-ion-app.electron-app app-titlebar button,
-ion-app.electron-app app-titlebar i {
+ion-app.desktop-app app-titlebar .app-titlebar__controls,
+ion-app.desktop-app app-titlebar .app-titlebar__btn,
+ion-app.desktop-app app-titlebar button,
+ion-app.desktop-app app-titlebar i {
   -webkit-app-region: no-drag !important;
   pointer-events: auto !important;
 }
 
-/* On desktop shells (Electron & Tauri), push page headers down by 32px
+/* On desktop shells (Tauri), push page headers down by 32px
    so the titlebar drag region (0-32px) never overlaps header buttons (e.g. Cancel / Back) */
-ion-app.electron-app ion-header {
+ion-app.desktop-app ion-header {
   padding-top: 32px !important;
   background: var(--ion-toolbar-background, var(--ion-background-color, #ffffff));
 }
 
-ion-app.electron-app ion-header:has(ion-toolbar[color="danger"]) {
+ion-app.desktop-app ion-header:has(ion-toolbar[color="danger"]) {
   background: var(--ion-color-danger, #dc2626) !important;
 }
 
-ion-app.electron-app ion-header ion-toolbar:first-of-type {
+ion-app.desktop-app ion-header ion-toolbar:first-of-type {
   padding-top: 0 !important;
 }
 
 /* Ensure all header action buttons, back buttons, and controls are fully interactive and above drag overlay */
-ion-app.electron-app ion-header ion-buttons,
-ion-app.electron-app ion-header ion-button,
-ion-app.electron-app ion-header button,
-ion-app.electron-app ion-header ion-back-button {
+ion-app.desktop-app ion-header ion-buttons,
+ion-app.desktop-app ion-header ion-button,
+ion-app.desktop-app ion-header button,
+ion-app.desktop-app ion-header ion-back-button {
   -webkit-app-region: no-drag !important;
   pointer-events: auto !important;
   position: relative;
@@ -46,29 +46,29 @@ ion-app.electron-app ion-header ion-back-button {
 }
 
 /* Reserve space on the right for normal start-aligned titles */
-ion-app.electron-app ion-toolbar ion-title {
+ion-app.desktop-app ion-toolbar ion-title {
   padding-right: env(titlebar-area-width, 140px);
 }
 
 /* For centered titles (login, auth, modals), balance left and right padding */
-ion-app.electron-app ion-toolbar ion-title.ion-text-center,
-ion-app.electron-app ion-toolbar ion-title[style*="text-align: center"],
-ion-app.electron-app ion-toolbar ion-title[style*="text-align:center"] {
+ion-app.desktop-app ion-toolbar ion-title.ion-text-center,
+ion-app.desktop-app ion-toolbar ion-title[style*="text-align: center"],
+ion-app.desktop-app ion-toolbar ion-title[style*="text-align:center"] {
   padding-left: 140px !important;
   padding-right: 140px !important;
   text-align: center !important;
 }
 
-/* Admin Dashboard Electron Top Spacing & Window Controls Clearance */
-ion-app.electron-app .admin-main-viewport {
+/* Admin Dashboard Tauri Desktop Top Spacing & Window Controls Clearance */
+ion-app.desktop-app .admin-main-viewport {
   padding: 38px 24px 18px 24px !important;
 }
-ion-app.electron-app .admin-sidebar {
+ion-app.desktop-app .admin-sidebar {
   padding-top: 24px !important;
 }
 
-/* Electron Font Crispness & Subpixel Antialiasing (Windows ClearType Support) */
-ion-app.electron-app {
+/* Desktop Font Crispness & Subpixel Antialiasing (Windows ClearType Support) */
+ion-app.desktop-app {
   -webkit-font-smoothing: subpixel-antialiased !important;
   -moz-osx-font-smoothing: auto !important;
   text-rendering: optimizeLegibility !important;

@@ -10,7 +10,7 @@ export class PushNotificationsService {
   constructor(private api: ApiService, private broadcastRefresh: BroadcastRefreshService) {}
 
   async registerPush(userId: number): Promise<void> {
-    if (!Capacitor.isNativePlatform()) return; // skip on web/Electron
+    if (!Capacitor.isNativePlatform()) return; // skip on web/desktop
 
     const permission = await PushNotifications.requestPermissions();
     if (permission.receive !== 'granted') return;

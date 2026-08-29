@@ -23,7 +23,7 @@ export class DeepLinkService {
     private modalCtrl: ModalController,
   ) {}
 
-  /** Call once, from AppComponent.ngOnInit(). No-op on web/Electron. */
+  /** Call once, from AppComponent.ngOnInit(). No-op on web/desktop. */
   init(): void {
     if (!Capacitor.isNativePlatform()) return;
 

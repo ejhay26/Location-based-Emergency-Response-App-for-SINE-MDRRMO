@@ -1,30 +1,12 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api';
+import { isTauri } from '../../shared/utils/platform.util';
 
 const POLL_INTERVAL_MS = 5000; // matches IncidentMapPanel's existing active-emergencies poll cadence
 
 /**
- * DesktopNotificationsService — Stage 5 admin alert, polling-based (per
- * explicit direction: keep polling, Electron stays portable, no Reverb/
- * broadcasting package). Fires a native desktop notification when a NEW
- * active SOS or hazard report appears, so a dispatcher/admin using the
- * Electron build notices even while a different sidebar panel is open —
- * IncidentMapPanel's own 5s poll only refreshes its own view and is not
- * mounted while another panel (Analytics, Log Archive, etc.) is active.
- *
- * Deliberately independent of IncidentMapPanel's poll: that one drives map
- * markers/lists and only runs while the panel is actually in the DOM. This
- * one runs for the lifetime of the dashboard shell regardless of which
- * panel the admin is currently viewing.
- *
- * Electron-only by design — `Notification` is technically available in any
- * Chromium-based browser too, but a browser tab prompts the user for
- * permission and can be silently denied/ignored, which would make this
- * service's behavior depend on something outside the app's control. The
- * Electron desktop build is the one target this was actually scoped for
- * (see Stage 5 in the handoff doc); skip entirely elsewhere rather than
- * risk a permission-prompt popup on the citizen mobile app or an admin
- * accessing the dashboard from a plain browser tab.
+ * DesktopNotificationsService — Stage 5 admin alert, polling-based.
+ * Fires a native desktop notification when a NEW active SOS or hazard report appears.
  */
 @Injectable({ providedIn: 'root' })
 export class DesktopNotificationsService {
@@ -32,26 +14,13 @@ export class DesktopNotificationsService {
   /** ids currently known "active" (Pending/Dispatched, or active hazards) — pruned every poll so this never grows unbounded as reports resolve/get cancelled. */
   private seenEmergencyIds = new Set<number>();
   private seenHazardIds = new Set<number>();
-  /**
-   * Counts poll() invocations. The very first call (=== 1) is deliberately
-   * request-only (seeds the seen-sets, notifies nothing) so opening the
-   * dashboard never fires a burst of notifications for everything already
-   * active. Decided synchronously at call time and captured per-call via a
-   * local, NOT read from instance state inside the async response handlers
-   * — both this poll's own two HTTP calls are in flight concurrently, so an
-   * instance-level "am I still the first poll" flag would already have
-   * flipped true by the time either response actually arrives.
-   */
   private pollCount = 0;
   private running = false;
 
   constructor(private api: ApiService) {}
 
-  private get isElectron(): boolean {
-    // nodeIntegration is enabled in main.js, so this is a reliable, synchronous
-    // check with no async permission/detection dance needed.
-    const proc = (window as any).process;
-    return typeof proc === 'object' && !!proc?.versions?.electron;
+  private get isDesktop(): boolean {
+    return isTauri();
   }
 
   private get notificationsSupported(): boolean {
@@ -61,7 +30,7 @@ export class DesktopNotificationsService {
   /** Idempotent — safe to call every time the dashboard shell mounts (e.g. after a logout/login cycle) without stacking duplicate intervals. */
   async start(): Promise<void> {
     if (this.running) return;
-    if (!this.isElectron || !this.notificationsSupported) return;
+    if (!this.isDesktop || !this.notificationsSupported) return;
 
     try {
       if (Notification.permission === 'default') {

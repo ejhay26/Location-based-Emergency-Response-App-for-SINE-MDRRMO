@@ -27,7 +27,7 @@ import { Capacitor } from '@capacitor/core';
  *   `autocomplete="one-time-code"` (already set on every OTP input in this
  *   app). `listen()` is a deliberate no-op on iOS.
  *
- * - Web/desktop (Electron admin, `ionic serve`): no-op. Neither mechanism
+ * - Web/desktop (Tauri desktop, `ionic serve`): no-op. Neither mechanism
  *   applies outside a real Android device.
  */
 @Injectable({ providedIn: 'root' })
@@ -50,7 +50,7 @@ export class OtpAutofillService {
     this.cancelled = false;
     // Dynamic import: this plugin has no web implementation, and importing
     // it eagerly at module load would pull native-only code into every
-    // build target (Electron admin, browser dev server) that never runs
+    // build target (Tauri desktop, browser dev server) that never runs
     // on Android. Loaded only when actually about to be used.
     import('@capawesome/capacitor-android-sms-retriever')
       .then(({ AndroidSmsRetriever }) => AndroidSmsRetriever.retrieveSms())
