@@ -8,15 +8,17 @@ use App\Services\BarangayResolver;
 use App\Traits\MediaHandling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\Hazard;
+use App\Services\NotificationService;
 
 /** Citizen-reported hazards (non-emergency): submit, resolve, list active. */
 class HazardController extends Controller
 {
     use MediaHandling;
 
-    public function __construct(private readonly BarangayResolver $barangayResolver)
-    {
+    public function __construct(
+        private readonly BarangayResolver $barangayResolver,
+        private readonly NotificationService $notificationService
+    ) {
     }
 
     public function submitHazard(Request $request)
@@ -51,6 +53,13 @@ class HazardController extends Controller
         ]);
 
         broadcast(new HazardUpdated('submitted', $hazard->hazard_id))->toOthers();
+
+        // Push notification directly to admins & dispatchers on mobile
+        $this->notificationService->notifyAdminsAndDispatchers(
+            '⚠️ Public Hazard Reported',
+            'New public road hazard reported in San Isidro.',
+            ['type' => 'hazard', 'hazard_id' => (string) $hazard->hazard_id]
+        );
 
         return response()->json(['message' => 'Hazard reported successfully!']);
     }

@@ -8,15 +8,17 @@ use App\Services\BarangayResolver;
 use App\Traits\MediaHandling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\EmergencyRequest;
+use App\Services\NotificationService;
 
 /** Citizen-facing SOS lifecycle: submit, list own, cancel; and admin listing (active/archived). */
 class SosController extends Controller
 {
     use MediaHandling;
 
-    public function __construct(private readonly BarangayResolver $barangayResolver)
-    {
+    public function __construct(
+        private readonly BarangayResolver $barangayResolver,
+        private readonly NotificationService $notificationService
+    ) {
     }
 
     public function submitSos(Request $request)
@@ -62,6 +64,13 @@ class SosController extends Controller
         ]);
 
         broadcast(new EmergencyUpdated('submitted', $created->request_id))->toOthers();
+
+        // Push notification directly to admins & dispatchers on mobile
+        $this->notificationService->notifyAdminsAndDispatchers(
+            '🚨 Emergency SOS Received',
+            'New emergency request pending response in San Isidro.',
+            ['type' => 'emergency', 'request_id' => (string) $created->request_id]
+        );
 
         return response()->json(['message' => 'Emergency SOS sent!', 'request_id' => $created->request_id], 201);
     }

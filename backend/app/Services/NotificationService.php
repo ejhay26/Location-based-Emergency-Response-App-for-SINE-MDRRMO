@@ -58,4 +58,29 @@ class NotificationService
             $this->push->send($tokens, $title, $body, $data);
         }
     }
+
+    /**
+     * Sends push notifications specifically to active Admins & Dispatchers
+     * when a new emergency SOS or public hazard is submitted. Respects each
+     * officer's `notif_emergency_alerts` setting toggle.
+     */
+    public function notifyAdminsAndDispatchers(string $title, string $body, array $data = []): void
+    {
+        $tokens = DeviceToken::query()
+            ->join('users', 'device_tokens.user_id', '=', 'users.user_id')
+            ->leftJoin('user_settings', function ($join) {
+                $join->on('users.user_id', '=', 'user_settings.user_id')
+                    ->where('user_settings.key', '=', 'notif_emergency_alerts');
+            })
+            ->whereIn('users.role', ['admin', 'dispatcher'])
+            ->where(function ($q) {
+                $q->whereNull('user_settings.value')
+                  ->orWhere('user_settings.value', '!=', 'false');
+            })
+            ->get(['device_tokens.token', 'device_tokens.platform'])->toArray();
+
+        if (!empty($tokens)) {
+            $this->push->send($tokens, $title, $body, $data);
+        }
+    }
 }
