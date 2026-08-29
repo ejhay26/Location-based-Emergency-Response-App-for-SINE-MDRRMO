@@ -801,6 +801,38 @@ export class IconRegistryService {
         faClass: 'fa-solid fa-layer-group',
         lucideSvg: '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-8.58 3.91a2 2 0 0 1-1.66 0L2 12.5"/><path d="m22 17.5-8.58 3.91a2 2 0 0 1-1.66 0L2 17.5"/>'
       }
+    ],
+    [
+      'download',
+      {
+        name: 'download',
+        faClass: 'fa-solid fa-download',
+        lucideSvg: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>'
+      }
+    ],
+    [
+      'file-text',
+      {
+        name: 'file-text',
+        faClass: 'fa-solid fa-file-lines',
+        lucideSvg: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>'
+      }
+    ],
+    [
+      'file-spreadsheet',
+      {
+        name: 'file-spreadsheet',
+        faClass: 'fa-solid fa-file-excel',
+        lucideSvg: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2"/><path d="M14 13h2"/><path d="M8 17h2"/><path d="M14 17h2"/>'
+      }
+    ],
+    [
+      'code',
+      {
+        name: 'code',
+        faClass: 'fa-solid fa-code',
+        lucideSvg: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>'
+      }
     ]
   ]);
 
@@ -905,6 +937,12 @@ export class IconRegistryService {
       'file-contract': 'file-pdf',
       'pen-to-square': 'pen',
       'trash-can': 'trash',
+      'delete': 'trash',
+      'chat': 'message-square',
+      'file-excel': 'file-spreadsheet',
+      'file-csv': 'file-spreadsheet',
+      'csv': 'file-spreadsheet',
+      'excel': 'file-spreadsheet',
       'layer-group': 'layers',
       'box-archive': 'history',
       'comment-dots': 'message-square',

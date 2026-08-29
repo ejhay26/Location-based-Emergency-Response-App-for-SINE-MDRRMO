@@ -87,9 +87,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/reactivate-citizen',    [CitizenController::class, 'reactivateCitizen']);
         Route::post('/issue-strike',          [CitizenController::class, 'issueStrike']);
         Route::post('/reset-strikes',         [CitizenController::class, 'resetStrikes']);
-        Route::get('/feedback',               [FeedbackController::class, 'index']);
-        Route::post('/feedback/clear',        [FeedbackController::class, 'clear']);
-        Route::get('/feedback/export',        [FeedbackController::class, 'export']);
+        Route::get('/feedback',                   [FeedbackController::class, 'index']);
+        Route::post('/feedback/clear',            [FeedbackController::class, 'clear']);
+        Route::get('/feedback/export',            [FeedbackController::class, 'export']);
+        Route::post('/feedback/{id}/forward-bug', [FeedbackController::class, 'forwardBug']);
+        Route::post('/feedback/{id}/archive',     [FeedbackController::class, 'archiveItem']);
+        Route::post('/feedback/{id}/restore',     [FeedbackController::class, 'restoreItem']);
+        Route::post('/feedback/purge',            [FeedbackController::class, 'purgeTrash']);
     });
 
     // Dispatcher-operational actions (admin tokens include the 'dispatcher'

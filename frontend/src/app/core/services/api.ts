@@ -156,4 +156,11 @@ export class ApiService {
   getFeedback(): Observable<any>                  { return this.http.get(`${this.url}/feedback`, this.opts(true)); }
   clearFeedback(): Observable<any>                { return this.http.post(`${this.url}/feedback/clear`, {}, this.opts(true)); }
   exportFeedbackUrl(): string                     { return `${this.url}/feedback/export`; }
+  forwardFeedbackBug(id: number, data?: { admin_notes?: string }): Observable<any> {
+    return this.http.post(`${this.url}/feedback/${id}/forward-bug`, data || {}, this.opts(true));
+  }
+  archiveFeedback(id: number): Observable<any>    { return this.http.post(`${this.url}/feedback/${id}/archive`, {}, this.opts(true)); }
+  restoreFeedback(id: number): Observable<any>    { return this.http.post(`${this.url}/feedback/${id}/restore`, {}, this.opts(true)); }
+  purgeFeedbackTrash(): Observable<any>           { return this.http.post(`${this.url}/feedback/purge`, {}, this.opts(true)); }
 }
+

@@ -1,47 +1,244 @@
-<div style="width:100%;">
-  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+<div style="width:100%; display: flex; flex-direction: column; gap: 18px;">
+  
+  <!-- ── HEADER & TOP ACTIONS ── -->
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
     <div>
-      <h2 style="margin: 0; font-weight: 800; font-size: 22px; color: var(--ion-text-color);">Citizen Feedback</h2>
-      <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--ion-color-medium); font-weight: 600;">{{ feedbackList.length }} submission{{ feedbackList.length === 1 ? '' : 's' }}</p>
+      <h2 style="margin: 0; font-weight: 800; font-size: 22px; color: var(--ion-text-color); letter-spacing: -0.3px;">Citizen Feedback</h2>
+      <p style="margin: 3px 0 0 0; font-size: 13px; color: var(--ion-color-medium); font-weight: 600;">
+        {{ countAll }} active submission{{ countAll === 1 ? '' : 's' }} &bull; {{ countTrash }} in trash archive
+      </p>
     </div>
+    
     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-      <button (click)="exportCsv()" [disabled]="feedbackList.length === 0" title="Export feedback to a CSV spreadsheet" style="padding: 9px 16px; border-radius: 10px; border: none; background: var(--ion-color-danger); color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(235,68,90,0.3); transition: opacity 0.15s;" [style.opacity]="feedbackList.length === 0 ? 0.5 : 1">
-        <app-icon name="file-text" [size]="14" color="#ffffff"></app-icon> Export CSV
+      <!-- Export CSV Button (Save As Picker) -->
+      <button (click)="exportCsv()" [disabled]="filteredList.length === 0" title="Export feedback to a CSV spreadsheet" style="padding: 9px 16px; border-radius: 10px; border: none; background: var(--ion-color-danger, #eb445a); color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(235,68,90,0.3); transition: opacity 0.15s;" [style.opacity]="filteredList.length === 0 ? 0.5 : 1">
+        <app-icon name="file-spreadsheet" [size]="15" color="#ffffff"></app-icon>
+        Export CSV
       </button>
-      <button (click)="exportJson()" [disabled]="feedbackList.length === 0" title="Export raw structured feedback in JSON format for developers" style="padding: 9px 16px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); background: var(--ion-card-background, #fff); color: var(--ion-text-color); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: var(--card-shadow, 0 1px 4px rgba(0,0,0,0.04)); transition: opacity 0.15s;" [style.opacity]="feedbackList.length === 0 ? 0.5 : 1">
-        <app-icon name="code" [size]="14" color="var(--ion-color-danger)"></app-icon> Export JSON
+
+      <!-- Clear / Move to Trash Button (when on active tabs) -->
+      <button *ngIf="activeFilter !== 'trash'" (click)="clearAllFeedback()" [disabled]="activeList.length === 0" title="Move active feedback to Trash Archive" style="padding: 9px 16px; border-radius: 10px; border: 1.5px solid rgba(235,68,90,0.35); background: rgba(235,68,90,0.06); color: var(--ion-color-danger, #eb445a); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: opacity 0.15s;" [style.opacity]="activeList.length === 0 ? 0.5 : 1">
+        <app-icon name="trash" [size]="14" color="var(--ion-color-danger, #eb445a)"></app-icon>
+        Move All to Trash
       </button>
-      <button (click)="clearAllFeedback()" [disabled]="feedbackList.length === 0" style="padding: 9px 16px; border-radius: 10px; border: 1.5px solid rgba(235,68,90,0.4); background: rgba(235,68,90,0.08); color: var(--ion-color-danger); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: opacity 0.15s;" [style.opacity]="feedbackList.length === 0 ? 0.5 : 1">
-        <app-icon name="trash" [size]="14" color="var(--ion-color-danger)"></app-icon> Clear All
+
+      <!-- Empty Trash Permanently Button (when on Trash tab) -->
+      <button *ngIf="activeFilter === 'trash'" (click)="purgeTrash()" [disabled]="trashList.length === 0" title="Permanently delete all archived feedback" style="padding: 9px 16px; border-radius: 10px; border: none; background: #b71c1c; color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(183,28,28,0.35); transition: opacity 0.15s;" [style.opacity]="trashList.length === 0 ? 0.5 : 1">
+        <app-icon name="trash" [size]="14" color="#ffffff"></app-icon>
+        Empty Trash Permanently
       </button>
     </div>
   </div>
 
-  <div *ngIf="feedbackList.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 18px; border: 2px dashed var(--ion-color-step-200, #ddd); box-shadow: var(--card-shadow);">
-    <div style="width: 72px; height: 72px; border-radius: 20px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-      <app-icon name="chat" [size]="36" color="var(--ion-color-medium)"></app-icon>
+  <!-- ── 5-STAR SATISFACTION & KPI OVERVIEW CARDS ── -->
+  <div *ngIf="countAll > 0" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+    
+    <!-- Overall Satisfaction Score -->
+    <div style="background: var(--ion-card-background, #ffffff); border-radius: 16px; padding: 16px 18px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08))); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); display: flex; align-items: center; gap: 14px;">
+      <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(255,196,9,0.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <span style="font-size: 24px; color: #ffc409;">★</span>
+      </div>
+      <div>
+        <div style="display: flex; align-items: baseline; gap: 4px;">
+          <span style="font-size: 22px; font-weight: 800; color: var(--ion-text-color);">{{ averageRating }}</span>
+          <span style="font-size: 13px; font-weight: 700; color: var(--ion-color-medium);">/ 5.0</span>
+        </div>
+        <p style="margin: 1px 0 0 0; font-size: 11.5px; font-weight: 700; color: var(--ion-color-medium);">Average Satisfaction Score</p>
+      </div>
     </div>
-    <h4 style="font-weight: 800; margin: 0 0 6px; color: var(--ion-text-color); font-size: 18px;">No Feedback Yet</h4>
-    <p style="margin: 0; color: var(--ion-color-medium); font-size: 13.5px;">Feedback submitted by citizens will appear here.</p>
+
+    <!-- Positive Sentiment Ratio -->
+    <div style="background: var(--ion-card-background, #ffffff); border-radius: 16px; padding: 16px 18px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08))); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); display: flex; align-items: center; gap: 14px;">
+      <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(45,211,111,0.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <app-icon name="shield-check" [size]="22" color="#2dd36f"></app-icon>
+      </div>
+      <div>
+        <div style="display: flex; align-items: baseline; gap: 4px;">
+          <span style="font-size: 22px; font-weight: 800; color: #2dd36f;">{{ positivePercent }}%</span>
+        </div>
+        <p style="margin: 1px 0 0 0; font-size: 11.5px; font-weight: 700; color: var(--ion-color-medium);">Positive Ratings (4–5 Stars)</p>
+      </div>
+    </div>
+
+    <!-- Bug & System Issues Logged -->
+    <div style="background: var(--ion-card-background, #ffffff); border-radius: 16px; padding: 16px 18px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08))); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); display: flex; align-items: center; gap: 14px;">
+      <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(235,68,90,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <app-icon name="alert-triangle" [size]="20" color="#eb445a"></app-icon>
+      </div>
+      <div>
+        <div style="display: flex; align-items: baseline; gap: 4px;">
+          <span style="font-size: 22px; font-weight: 800; color: var(--ion-text-color);">{{ countBugs }}</span>
+          <span style="font-size: 12px; font-weight: 600; color: var(--ion-color-medium);">({{ countSuggestions }} suggestions)</span>
+        </div>
+        <p style="margin: 1px 0 0 0; font-size: 11.5px; font-weight: 700; color: var(--ion-color-medium);">Technical Issues Logged</p>
+      </div>
+    </div>
+
   </div>
 
+  <!-- ── CATEGORY & STATUS FILTER PILLS ── -->
+  <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;">
+    
+    <!-- All Active -->
+    <button type="button" (click)="activeFilter = 'all'" style="padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid;"
+      [style.background]="activeFilter === 'all' ? 'var(--ion-color-danger, #eb445a)' : 'var(--ion-card-background, #ffffff)'"
+      [style.color]="activeFilter === 'all' ? '#ffffff' : 'var(--ion-text-color)'"
+      [style.border-color]="activeFilter === 'all' ? 'var(--ion-color-danger, #eb445a)' : 'var(--ion-color-step-200, rgba(0,0,0,0.12))'">
+      All ({{ countAll }})
+    </button>
+
+    <!-- Suggestions -->
+    <button type="button" (click)="activeFilter = 'suggestion'" style="padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid;"
+      [style.background]="activeFilter === 'suggestion' ? '#2dd36f' : 'var(--ion-card-background, #ffffff)'"
+      [style.color]="activeFilter === 'suggestion' ? '#ffffff' : 'var(--ion-text-color)'"
+      [style.border-color]="activeFilter === 'suggestion' ? '#2dd36f' : 'var(--ion-color-step-200, rgba(0,0,0,0.12))'">
+      💡 Suggestions ({{ countSuggestions }})
+    </button>
+
+    <!-- Bug Reports -->
+    <button type="button" (click)="activeFilter = 'bug'" style="padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid;"
+      [style.background]="activeFilter === 'bug' ? '#eb445a' : 'var(--ion-card-background, #ffffff)'"
+      [style.color]="activeFilter === 'bug' ? '#ffffff' : 'var(--ion-text-color)'"
+      [style.border-color]="activeFilter === 'bug' ? '#eb445a' : 'var(--ion-color-step-200, rgba(0,0,0,0.12))'">
+      🐛 Bug Reports ({{ countBugs }})
+    </button>
+
+    <!-- High Ratings (4-5 Stars) -->
+    <button type="button" (click)="activeFilter = 'high_rating'" style="padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid;"
+      [style.background]="activeFilter === 'high_rating' ? '#ffc409' : 'var(--ion-card-background, #ffffff)'"
+      [style.color]="activeFilter === 'high_rating' ? '#000000' : 'var(--ion-text-color)'"
+      [style.border-color]="activeFilter === 'high_rating' ? '#ffc409' : 'var(--ion-color-step-200, rgba(0,0,0,0.12))'">
+      ★ High Ratings ({{ countHighRatings }})
+    </button>
+
+    <!-- Low Ratings (1-3 Stars) -->
+    <button type="button" (click)="activeFilter = 'low_rating'" style="padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid;"
+      [style.background]="activeFilter === 'low_rating' ? '#d99000' : 'var(--ion-card-background, #ffffff)'"
+      [style.color]="activeFilter === 'low_rating' ? '#ffffff' : 'var(--ion-text-color)'"
+      [style.border-color]="activeFilter === 'low_rating' ? '#d99000' : 'var(--ion-color-step-200, rgba(0,0,0,0.12))'">
+      ⚠ Low Ratings ({{ countLowRatings }})
+    </button>
+
+    <!-- Trash / Archived -->
+    <button type="button" (click)="activeFilter = 'trash'" style="padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 1px solid;"
+      [style.background]="activeFilter === 'trash' ? '#64748b' : 'var(--ion-card-background, #ffffff)'"
+      [style.color]="activeFilter === 'trash' ? '#ffffff' : 'var(--ion-text-color)'"
+      [style.border-color]="activeFilter === 'trash' ? '#64748b' : 'var(--ion-color-step-200, rgba(0,0,0,0.12))'">
+      <app-icon name="trash" [size]="12" [color]="activeFilter === 'trash' ? '#ffffff' : 'var(--ion-color-medium)'"></app-icon>
+      Trash ({{ countTrash }})
+    </button>
+
+  </div>
+
+  <!-- ── EMPTY STATE ── -->
+  <div *ngIf="filteredList.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #ffffff); border-radius: 18px; border: 2px dashed var(--ion-color-step-200, #ddd); box-shadow: var(--card-shadow);">
+    <div style="width: 68px; height: 68px; border-radius: 20px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+      <app-icon [name]="activeFilter === 'trash' ? 'trash' : 'message-square'" [size]="32" color="var(--ion-color-medium)"></app-icon>
+    </div>
+    <h4 style="font-weight: 800; margin: 0 0 4px; color: var(--ion-text-color); font-size: 17px;">
+      {{ activeFilter === 'trash' ? 'Trash Archive is Empty' : 'No Feedback in this View' }}
+    </h4>
+    <p style="margin: 0; color: var(--ion-color-medium); font-size: 13px;">
+      {{ activeFilter === 'trash' ? 'Deleted feedback will appear here for temporary recovery.' : 'New submissions from citizens will appear automatically.' }}
+    </p>
+  </div>
+
+  <!-- ── FEEDBACK CARDS LIST ── -->
   <div style="display: flex; flex-direction: column; gap: 12px;">
-    <div *ngFor="let fb of feedbackList; let i = index; trackBy: trackByFeedbackId" [appAnnouncementEnter]="i" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 18px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
+    <div *ngFor="let fb of filteredList; let i = index; trackBy: trackByFeedbackId" [appAnnouncementEnter]="i" style="background: var(--ion-card-background, #ffffff); border-radius: 16px; padding: 18px 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07))); color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); transition: border-color 0.15s ease;">
+      
+      <!-- Card Header -->
       <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 14px; flex-shrink: 0;">{{ (fb.full_name || '?')[0] }}</div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <!-- User Avatar Initial -->
+          <div style="width: 42px; height: 42px; border-radius: 13px; background: var(--ion-color-danger, #eb445a); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 15px; flex-shrink: 0; box-shadow: 0 3px 10px rgba(235,68,90,0.25);">
+            {{ (fb.full_name || '?')[0] }}
+          </div>
           <div>
-            <p style="margin: 0; font-weight: 800; font-size: 15px; color: var(--ion-text-color);">{{ fb.full_name }}</p>
-            <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--ion-color-medium); font-weight: 500;">&#64;{{ fb.username }} · {{ fb.created_at | utcDate:'medium' }}</p>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-weight: 800; font-size: 15px; color: var(--ion-text-color);">{{ fb.full_name || 'Citizen' }}</span>
+              <span style="font-size: 12px; color: var(--ion-color-medium); font-weight: 600;">&#64;{{ fb.username }}</span>
+            </div>
+            <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--ion-color-medium); font-weight: 500;">
+              {{ fb.email }} &bull; {{ fb.created_at | utcDate:'medium' }}
+            </p>
           </div>
         </div>
-        <span style="border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 800; flex-shrink: 0;" [style.background]="categoryColor(fb.category) + '18'" [style.color]="categoryColor(fb.category)" [style.border]="'1px solid ' + categoryColor(fb.category) + '50'">{{ categoryLabel(fb.category) }}</span>
+
+        <!-- Badges (Category & Forwarded) -->
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+          <span *ngIf="fb.is_forwarded" style="border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 800; background: rgba(56,128,255,0.12); color: #3880ff; border: 1px solid rgba(56,128,255,0.3); display: inline-flex; align-items: center; gap: 4px;">
+            <app-icon name="send" [size]="10" color="#3880ff"></app-icon>
+            Forwarded to Devs
+          </span>
+          <span style="border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 800; flex-shrink: 0;" [style.background]="categoryColor(fb.category) + '18'" [style.color]="categoryColor(fb.category)" [style.border]="'1px solid ' + categoryColor(fb.category) + '50'">
+            {{ categoryLabel(fb.category) }}
+          </span>
+        </div>
       </div>
-      <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: var(--ion-text-color);">{{ fb.message }}</p>
-      <div *ngIf="fb.rating" style="display: flex; gap: 3px; align-items: center;">
-        <span *ngFor="let s of [1,2,3,4,5]" [style.color]="s <= fb.rating ? '#ffc409' : 'var(--ion-color-step-300, #ddd)'" style="font-size: 15px;">★</span>
-        <span style="margin-left: 6px; font-size: 12px; color: var(--ion-color-medium); font-weight: 700;">({{ fb.rating }}/5)</span>
+
+      <!-- 5-Star Rating Row -->
+      <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">
+        <div style="display: flex; gap: 2px;">
+          <span *ngFor="let s of [1,2,3,4,5]" [style.color]="s <= (fb.rating || 5) ? '#ffc409' : 'var(--ion-color-step-300, #d1d5db)'" style="font-size: 16px;">★</span>
+        </div>
+        <span style="font-size: 12px; font-weight: 800; color: var(--ion-color-medium); margin-left: 2px;">
+          ({{ fb.rating || 5 }}/5 Stars)
+        </span>
       </div>
+
+      <!-- Message Content -->
+      <p style="margin: 0 0 14px 0; font-size: 14px; line-height: 1.55; color: var(--ion-text-color); white-space: pre-wrap;">{{ fb.message }}</p>
+
+      <!-- Bottom Card Action Footer -->
+      <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06)); padding-top: 10px; flex-wrap: wrap; gap: 8px;">
+        
+        <!-- Device Info Diagnostics Badge if recorded -->
+        <div *ngIf="fb.device_info" style="font-size: 11px; color: var(--ion-color-medium); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+          <app-icon name="smartphone" [size]="12" color="var(--ion-color-medium)"></app-icon>
+          <span>{{ fb.device_info.os || fb.device_info.platform || 'Device' }} &bull; {{ fb.device_info.browser || 'App' }}</span>
+        </div>
+        <div *ngIf="!fb.device_info"></div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          
+          <!-- When Active: Forward Bug to Technical Support Button -->
+          <button *ngIf="fb.status !== 'archived'"
+                  type="button"
+                  (click)="forwardBugToDev(fb)"
+                  [disabled]="isForwardingBug[fb.id]"
+                  [title]="fb.is_forwarded ? 'Already forwarded to ejcp2005@gmail.com' : 'Forward this bug report to developer technical support (ejcp2005@gmail.com)'"
+                  style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid rgba(56,128,255,0.35); background: rgba(56,128,255,0.08); color: #3880ff; transition: all 0.15s ease;">
+            <app-icon name="send" [size]="12" color="#3880ff"></app-icon>
+            {{ fb.is_forwarded ? 'Re-send to Devs' : 'Forward to Dev Team' }}
+          </button>
+
+          <!-- When Active: Move to Trash Button -->
+          <button *ngIf="fb.status !== 'archived'"
+                  type="button"
+                  (click)="archiveFeedback(fb)"
+                  title="Move to Trash Archive"
+                  style="display: inline-flex; align-items: center; gap: 5px; padding: 6px 11px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); background: transparent; color: var(--ion-color-medium); transition: all 0.15s ease;">
+            <app-icon name="trash" [size]="12" color="var(--ion-color-medium)"></app-icon>
+            Trash
+          </button>
+
+          <!-- When In Trash: Restore Button -->
+          <button *ngIf="fb.status === 'archived'"
+                  type="button"
+                  (click)="restoreFeedback(fb)"
+                  title="Restore this feedback item to active list"
+                  style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid rgba(45,211,111,0.35); background: rgba(45,211,111,0.1); color: #2dd36f; transition: all 0.15s ease;">
+            <app-icon name="rotate-ccw" [size]="12" color="#2dd36f"></app-icon>
+            Restore
+          </button>
+
+        </div>
+      </div>
+
     </div>
   </div>
+
 </div>
+
