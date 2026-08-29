@@ -1,7 +1,7 @@
 {
   "name": "mdrrmo-emergency-response-app",
   "main": "main.js",
-  "version": "0.72.0",
+  "version": "0.73.0",
   "author": {
     "name": "MDRRMO-SINE",
     "email": "ejcp2005@gmail.com"
@@ -50,7 +50,7 @@
     "build:ios": "ionic build --prod && npx cap sync ios",
     "tauri": "tauri",
     "start:desktop:tauri": "tauri dev",
-    "build:tauri:win": "tauri build"
+    "build:tauri:win": "tauri build --no-bundle"
   },
   "private": true,
   "dependencies": {
