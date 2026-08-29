@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, isDevMode } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
@@ -26,6 +26,11 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.isDesktop = isElectron() || isTauri();
+
+    // Disable default browser context menu on production desktop builds
+    if (this.isDesktop && !isDevMode()) {
+      document.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
 
     // Only apply persisted DOM settings (dark mode, reduce animations) when
     // the user is already logged in. This prevents dark mode from leaking

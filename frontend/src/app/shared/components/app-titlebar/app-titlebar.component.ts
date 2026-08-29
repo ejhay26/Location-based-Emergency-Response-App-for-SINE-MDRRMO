@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -69,9 +69,10 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
   isMaximized = false;
   isRedHeader = false;
 
-  private router = inject(Router);
   private sub?: Subscription;
   private ipc: ElectronIpcRenderer | null = null;
+
+  constructor(private router: Router) {}
 
   // Tauri's window handle and unlisten function are resolved once via a
   // dynamic import of `@tauri-apps/api/window` — dynamic, not a static

@@ -32,6 +32,7 @@ import { IconRegistryService, IconPackType } from '../../../core/services/icon-r
       align-items: center;
       justify-content: center;
       vertical-align: middle;
+      pointer-events: none;
     }
   `]
 })

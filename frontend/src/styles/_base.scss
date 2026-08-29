@@ -5,7 +5,6 @@
 /* DESKTOP / ELECTRON: DISABLE ACCIDENTAL TEXT SELECTION & IMAGE DRAG */
 *, *::before, *::after {
   -webkit-user-drag: none;
-  user-drag: none;
 }
 
 body, ion-app {
@@ -15,7 +14,6 @@ body, ion-app {
 
 img, svg, button, ion-button, a {
   -webkit-user-drag: none;
-  user-drag: none;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -221,4 +219,94 @@ ion-content .inset-group:nth-of-type(n+5),
 .enter-stagger-5 {
   animation-delay: 0.22s;
 }
+
+/* ===========================================================================
+   TELEGRAM-STYLE CIRCULAR EXPANDING / RETRACTING DARK MODE TRANSITION
+   =========================================================================== */
+::view-transition-group(root),
+::view-transition-image-pair(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none !important;
+  animation-name: none !important;
+  animation-duration: 0s !important;
+  mix-blend-mode: normal !important;
+  display: block !important;
+}
+
+/* Declarative clip-path reveal — driven entirely by CSS custom properties
+   set on <html> (--reveal-x/-y/-r) right before startViewTransition() is
+   called. This replaces an earlier imperative `element.animate()` version:
+   that approach had a real gap between `transition.ready` resolving and the
+   JS `.animate()` call actually taking effect, during which the topmost
+   (z-index 999999) pseudo-element painted fully UNCLIPPED for a frame or
+   two — invisible on the to-light direction (old frame was already dark),
+   but a jarring solid-black flash on to-dark (screen was light a moment
+   before). A plain CSS @keyframes animation has its 0% state applied as
+   part of normal style resolution — same guarantee as any other CSS
+   animation — so there is no JS-timing gap for that first frame to leak
+   through. */
+@keyframes sine-theme-reveal-out {
+  from { clip-path: circle(0px at var(--reveal-x, 50%) var(--reveal-y, 50%)); }
+  to   { clip-path: circle(var(--reveal-r, 150%) at var(--reveal-x, 50%) var(--reveal-y, 50%)); }
+}
+@keyframes sine-theme-reveal-in {
+  from { clip-path: circle(var(--reveal-r, 150%) at var(--reveal-x, 50%) var(--reveal-y, 50%)); }
+  to   { clip-path: circle(0px at var(--reveal-x, 50%) var(--reveal-y, 50%)); }
+}
+
+html[data-theme-anim="to-dark"]::view-transition-new(root) {
+  animation: sine-theme-reveal-out var(--reveal-duration, 1000ms) var(--reveal-easing, cubic-bezier(0.16, 1, 0.3, 1)) forwards !important;
+}
+html[data-theme-anim="to-light"]::view-transition-old(root) {
+  animation: sine-theme-reveal-in var(--reveal-duration, 1000ms) var(--reveal-easing, cubic-bezier(0.16, 1, 0.3, 1)) forwards !important;
+}
+
+/* Stacking:
+   - When going TO-DARK: new dark view is on top, expanding outward.
+   - When going TO-LIGHT: old dark view is on top, retracting inward into the toggle. */
+html[data-theme-anim="to-dark"]::view-transition-old(root) {
+  z-index: 1 !important;
+}
+html[data-theme-anim="to-dark"]::view-transition-new(root) {
+  z-index: 999999 !important;
+}
+
+html[data-theme-anim="to-light"]::view-transition-old(root) {
+  z-index: 999999 !important;
+}
+html[data-theme-anim="to-light"]::view-transition-new(root) {
+  z-index: 1 !important;
+}
+
+/* Fallback default stacking */
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* Prevent CSS transition fighting during circular reveal */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: none !important;
+}
+
+/* Keep the Dark Mode toggle switch itself OUT of the root reveal sweep.
+   Giving it its own view-transition-name pulls it into its own transition
+   group — the browser paints named groups on top of ::view-transition-
+   group(root) by default, so the switch stays fully visible/undisturbed
+   throughout the circle animation instead of being swept over along with
+   the rest of the page. Only ever applied to the single dark-mode row
+   (see settings.page.html) — view-transition-name must be unique per
+   element captured at once, so this must never be reused on more than one
+   simultaneously-rendered element. */
+.theme-toggle-live {
+  view-transition-name: theme-toggle-live;
+}
+
+
 

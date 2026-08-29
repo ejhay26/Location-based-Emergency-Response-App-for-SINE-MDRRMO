@@ -30,7 +30,7 @@ export const routes: Routes = [
   // ── Admin / Dispatcher ──────────────────────────────────────────────────
   {
     path: 'admin-dashboard',
-    loadComponent: () => import('./features/admin/index').then(m => m.AdminDashboardPage),
+    loadComponent: () => import('./features/admin/admin-dashboard/admin-dashboard.page').then(m => m.AdminDashboardPage),
     canActivate: [AuthGuard],
     data: { roles: ['admin', 'dispatcher'] },
   },
@@ -38,15 +38,15 @@ export const routes: Routes = [
   // ── Citizen tabs ─────────────────────────────────────────────────────────
   {
     path: 'tabs',
-    loadComponent: () => import('./features/citizen/index').then(m => m.TabsPage),
+    loadComponent: () => import('./features/citizen/tabs/tabs.page').then(m => m.TabsPage),
     canActivate: [AuthGuard],
     data: { roles: ['citizen'] },
     children: [
-      { path: 'home',     loadComponent: () => import('./features/citizen/index').then(m => m.HomePage) },
-      { path: 'history',  loadComponent: () => import('./features/citizen/index').then(m => m.HistoryPage) },
-      { path: 'profile',  loadComponent: () => import('./features/citizen/index').then(m => m.ProfilePage) },
-      { path: 'settings', loadComponent: () => import('./features/citizen/index').then(m => m.SettingsPage) },
-      { path: 'help',     loadComponent: () => import('./features/citizen/index').then(m => m.HelpPage) },
+      { path: 'home',     loadComponent: () => import('./features/citizen/home/home.page').then(m => m.HomePage) },
+      { path: 'history',  loadComponent: () => import('./features/citizen/history/history.page').then(m => m.HistoryPage) },
+      { path: 'profile',  loadComponent: () => import('./features/citizen/profile/profile.page').then(m => m.ProfilePage) },
+      { path: 'settings', loadComponent: () => import('./features/citizen/settings/settings.page').then(m => m.SettingsPage) },
+      { path: 'help',     loadComponent: () => import('./features/citizen/help/help.page').then(m => m.HelpPage) },
       { path: '', redirectTo: 'home', pathMatch: 'full' },
     ],
   },
@@ -58,7 +58,7 @@ export const routes: Routes = [
   },
   {
     path: 'report',
-    loadComponent: () => import('./features/citizen/index').then(m => m.ReportPage),
+    loadComponent: () => import('./features/citizen/report/report.page').then(m => m.ReportPage),
     canActivate: [AuthGuard],
     data: { roles: ['citizen'] },
   },

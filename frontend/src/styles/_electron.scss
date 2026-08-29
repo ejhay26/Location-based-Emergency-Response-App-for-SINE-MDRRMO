@@ -19,6 +19,32 @@ ion-app.electron-app app-titlebar i {
   pointer-events: auto !important;
 }
 
+/* On desktop shells (Electron & Tauri), push page headers down by 32px
+   so the titlebar drag region (0-32px) never overlaps header buttons (e.g. Cancel / Back) */
+ion-app.electron-app ion-header {
+  padding-top: 32px !important;
+  background: var(--ion-toolbar-background, var(--ion-background-color, #ffffff));
+}
+
+ion-app.electron-app ion-header:has(ion-toolbar[color="danger"]) {
+  background: var(--ion-color-danger, #dc2626) !important;
+}
+
+ion-app.electron-app ion-header ion-toolbar:first-of-type {
+  padding-top: 0 !important;
+}
+
+/* Ensure all header action buttons, back buttons, and controls are fully interactive and above drag overlay */
+ion-app.electron-app ion-header ion-buttons,
+ion-app.electron-app ion-header ion-button,
+ion-app.electron-app ion-header button,
+ion-app.electron-app ion-header ion-back-button {
+  -webkit-app-region: no-drag !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1000000;
+}
+
 /* Reserve space on the right for normal start-aligned titles */
 ion-app.electron-app ion-toolbar ion-title {
   padding-right: env(titlebar-area-width, 140px);
