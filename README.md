@@ -1,7 +1,7 @@
 # Location-Based Emergency Response App — SINE MDRRMO
 
 ![License](https://img.shields.io/badge/license-Proprietary-red)
-![Version](https://img.shields.io/badge/version-v0.73.0-blue)
+![Version](https://img.shields.io/badge/version-v0.75.0-blue)
 ![Laravel](https://img.shields.io/badge/backend-Laravel%2013-FF2D20?logo=laravel&logoColor=white)
 ![PHP](https://img.shields.io/badge/php-8.4-777BB4?logo=php&logoColor=white)
 ![Angular](https://img.shields.io/badge/frontend-Angular%2020%20%2F%20Ionic%208-DD0031?logo=angular&logoColor=white)
