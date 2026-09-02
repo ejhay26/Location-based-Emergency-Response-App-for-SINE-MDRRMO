@@ -18,26 +18,21 @@ import { TourService } from '../../../../../core/services/tour';
 
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 
-/**
- * VerificationsPanel — refreshes its queue in real-time via the Echo
- * `users` channel (UserVerified event). When one admin approves or rejects
- * an application, all other admin sessions update immediately without
- * polling. No fallback poll needed — this panel is admin-only and always
- * foreground; a missed event is recovered by the user's next interaction.
- */
 @Component({
   selector: 'app-verifications-panel',
   standalone: true,
   imports: [
     CommonModule, FormsModule, IonButton, ProxyImageDirective,
-    DateRangeFilterComponent, FilterSummaryBarComponent, RevealAnimateDirective, ListEnterDirective,
+    DateRangeFilterComponent, FilterSummaryBarComponent,
     AppIconComponent, UtcDatePipe
   ],
   templateUrl: './verifications.panel.html',
+  styleUrl: './verifications.panel.scss',
 })
 export class VerificationsPanel implements OnInit, OnDestroy {
 
   pendingVerifications: any[] = [];
+  selectedUserId: number | null = null;
 
   verificationSearch = '';
   verificationBarangayFilter: number | 'all' = 'all';
@@ -110,6 +105,23 @@ export class VerificationsPanel implements OnInit, OnDestroy {
 
   get filteredVerifications(): any[] {
     return this.pendingVerifications.filter(u => this.matchesVerificationFilter(u));
+  }
+
+  get selectedUser(): any | null {
+    const list = this.filteredVerifications;
+    if (!list.length) return null;
+    const found = list.find(u => u.user_id === this.selectedUserId);
+    return found || list[0];
+  }
+
+  selectUser(user: any): void {
+    this.selectedUserId = user.user_id;
+  }
+
+  getUserInitials(user: any): string {
+    const f = user?.first_name ? user.first_name.charAt(0) : '';
+    const l = user?.last_name ? user.last_name.charAt(0) : '';
+    return (f + l).toUpperCase() || 'U';
   }
 
   matchesVerificationFilter(u: any): boolean {

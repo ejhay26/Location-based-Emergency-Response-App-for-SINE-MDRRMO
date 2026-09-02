@@ -8,7 +8,8 @@ import {
 import { ApiService } from '../../../core/services/api';
 import { TourService, TourChapter } from '../../../core/services/tour';
 import { RevealAnimateDirective } from '../../../shared/directives/reveal-animate.directive';
-
+import { PressFeedbackDirective } from '../../../shared/directives/press-feedback.directive';
+import { ImpactFeedbackDirective } from '../../../shared/directives/impact-feedback.directive';
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
 interface FaqItem { q: string; a: string; open: boolean; }
@@ -17,12 +18,43 @@ interface TourChapterCard { chapter: TourChapter; icon: string; color: string; t
 @Component({
   selector: 'app-help',
   templateUrl: './help.page.html',
+  styleUrl: './help.page.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, RevealAnimateDirective, AppIconComponent],
+  imports: [
+    CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent,
+    RevealAnimateDirective, PressFeedbackDirective, ImpactFeedbackDirective, AppIconComponent
+  ],
 })
 export class HelpPage implements OnInit {
-  feedback = { message: '', category: 'general' };
+  feedback = { rating: 5, category: 'general', message: '' };
   isSubmitting = false;
+
+  categories = [
+    { v: 'general', label: 'General' },
+    { v: 'bug', label: 'Bug' },
+    { v: 'suggestion', label: 'Idea' },
+    { v: 'other', label: 'Other' },
+  ];
+
+  get categoryIndex(): number {
+    const idx = this.categories.findIndex(c => c.v === this.feedback.category);
+    return idx >= 0 ? idx : 0;
+  }
+
+  get ratingLabel(): string {
+    switch (this.feedback.rating) {
+      case 5: return '5 Stars — Excellent';
+      case 4: return '4 Stars — Good';
+      case 3: return '3 Stars — Average';
+      case 2: return '2 Stars — Needs Improvement';
+      case 1: return '1 Star — Poor';
+      default: return '5 Stars — Excellent';
+    }
+  }
+
+  setRating(stars: number) {
+    this.feedback.rating = stars;
+  }
 
   chapters: TourChapterCard[] = [
     { chapter: 'home',      icon: 'home',          color: '#ff3b30', title: 'Home Screen',    description: 'Learn about the SOS button, hazard reporting, and broadcast alerts.' },
@@ -70,9 +102,21 @@ export class HelpPage implements OnInit {
     if (!userStr) { this.showToast('You must be logged in to send feedback.', 'danger'); return; }
     const user = JSON.parse(userStr);
     this.isSubmitting = true;
-    this.api.submitFeedback({ user_id: user.user_id, message: this.feedback.message.trim(), category: this.feedback.category }).subscribe({
-      next: () => { this.isSubmitting = false; this.feedback = { message: '', category: 'general' }; this.showToast('Thank you for your feedback!', 'success'); },
-      error: () => { this.isSubmitting = false; this.showToast('Failed to send. Please try again.', 'danger'); }
+    this.api.submitFeedback({
+      user_id: user.user_id,
+      rating: this.feedback.rating,
+      message: this.feedback.message.trim(),
+      category: this.feedback.category
+    }).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.feedback = { rating: 5, category: 'general', message: '' };
+        this.showToast('Thank you for your feedback!', 'success');
+      },
+      error: () => {
+        this.isSubmitting = false;
+        this.showToast('Failed to send. Please try again.', 'danger');
+      }
     });
   }
 

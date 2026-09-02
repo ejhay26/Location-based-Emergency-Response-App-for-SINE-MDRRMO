@@ -1,171 +1,290 @@
-<div style="width:100%;">
-  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
-    <div>
-      <h2 style="margin: 0; font-weight: 800; font-size: 22px; color: var(--ion-text-color);">ID Verifications</h2>
-      <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--ion-color-medium); font-weight: 600;">{{ filteredVerifications.length }} of {{ pendingVerifications.length }} shown</p>
+<div class="verifications-container">
+
+  <!-- ── Header & Filters ── -->
+  <div class="verifications-header">
+    <div class="title-group">
+      <h2>ID Verifications</h2>
+      <p>{{ filteredVerifications.length }} of {{ pendingVerifications.length }} pending review</p>
     </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-      <div style="position: relative;">
-        <app-icon name="search" [size]="14" color="var(--ion-color-medium)" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"></app-icon>
-        <input id="verificationSearch" name="verificationSearch" [(ngModel)]="verificationSearch" placeholder="Search name, email…" style="padding: 9px 14px 9px 34px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); min-width: 220px; font-weight: 500;" />
+
+    <div class="filters-group">
+      <div class="search-box">
+        <app-icon name="search" [size]="14" color="var(--ion-color-medium)" class="search-icon"></app-icon>
+        <input id="verificationSearch" name="verificationSearch" [(ngModel)]="verificationSearch" placeholder="Search name, username, email…" />
       </div>
-      <select id="verificationBarangayFilter" name="verificationBarangayFilter" [ngModel]="verificationBarangayFilter" (ngModelChange)="verificationBarangayFilter = $event === 'all' ? 'all' : +$event"
-        style="padding: 9px 12px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); font-weight: 600;">
+
+      <select id="verificationBarangayFilter" name="verificationBarangayFilter" [ngModel]="verificationBarangayFilter" (ngModelChange)="verificationBarangayFilter = $event === 'all' ? 'all' : +$event">
         <option value="all">All Barangays</option>
         <option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</option>
       </select>
-      <select id="verificationIdTypeFilter" name="verificationIdTypeFilter" [(ngModel)]="verificationIdTypeFilter"
-        style="padding: 9px 12px; border-radius: 11px; border: 1px solid var(--ion-color-step-200, #ccc); font-size: 13px; background: var(--ion-card-background, white); color: var(--ion-text-color); font-weight: 600;">
+
+      <select id="verificationIdTypeFilter" name="verificationIdTypeFilter" [(ngModel)]="verificationIdTypeFilter">
         <option value="all">All ID Types</option>
         <option *ngFor="let t of verificationIdTypes" [value]="t">{{ t }}</option>
       </select>
+
       <app-date-range-filter [value]="verificationDateFilter" (valueChange)="verificationDateFilter = $event"></app-date-range-filter>
     </div>
   </div>
 
   <app-filter-summary-bar [chips]="activeFilterChips" (clearAll)="clearAllFilters()"></app-filter-summary-bar>
 
-  <div *ngIf="pendingVerifications.length === 0" style="background: var(--ion-card-background, white); border-radius: 18px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); color: var(--ion-text-color); padding: 52px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%; box-shadow: var(--card-shadow);">
-    <div style="width: 72px; height: 72px; border-radius: 20px; background: rgba(45,211,111,0.12); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+  <!-- ── Empty State: All Done ── -->
+  <div *ngIf="pendingVerifications.length === 0" class="empty-queue-card">
+    <div class="icon-bubble">
       <app-icon name="shield-check" [size]="36" color="#2dd36f"></app-icon>
     </div>
-    <h4 style="font-weight: 800; margin: 0; font-size: 18px;">Verification Queue Empty</h4>
-    <p style="color: var(--ion-color-medium); margin: 6px 0 0 0; font-size: 13.5px;">All citizen accounts are verified and up to date.</p>
+    <h4>Verification Queue Empty</h4>
+    <p>All citizen accounts are verified and up to date.</p>
   </div>
 
+  <!-- ── Empty State: Filter Mismatch ── -->
   <div *ngIf="pendingVerifications.length > 0 && filteredVerifications.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
     <p>No pending verifications match the current filters.</p>
   </div>
 
-  <div *ngFor="let user of pendingVerifications; let i = index; trackBy: trackByUserId"
-       [attr.id]="i === 0 ? 'verification-card-first' : null"
-       [appRevealAnimate]="matchesVerificationFilter(user)"
-       [appAnnouncementEnter]="i"
-       style="background: var(--ion-card-background, #fff); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08))); border-radius: 16px; margin-bottom: 20px; overflow: hidden; box-shadow: var(--card-shadow, 0 4px 16px rgba(0,0,0,0.04));">
-    <div style="padding: 20px; color: var(--ion-text-color);">
-      <!-- Header -->
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06)); padding-bottom: 14px;">
-        <div>
-          <h4 style="font-weight: 800; font-size: 18px; margin: 0 0 4px 0; color: var(--ion-color-danger); display: flex; align-items: center; gap: 8px;">
-            <app-icon name="user" [size]="18" color="var(--ion-color-danger)"></app-icon>
-            <span>{{ user.first_name }} {{ user.last_name }}</span>
-          </h4>
-          <span style="font-size: 13px; color: var(--ion-color-medium); font-weight: 500;">Username: <strong>@{{ user.username }}</strong></span>
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       DESKTOP VIEW (>= 992px): Split Master List + Detail Inspector
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="filteredVerifications.length > 0" class="desktop-split-layout">
+
+    <!-- Master Queue List (Left Pane) -->
+    <div class="queue-master-pane">
+      <div class="master-header">
+        <span>Pending Queue ({{ filteredVerifications.length }})</span>
+        <span>Select to Review</span>
+      </div>
+
+      <div class="master-scroll-list">
+        <div *ngFor="let user of filteredVerifications; let i = index; trackBy: trackByUserId"
+             class="master-item"
+             [class.is-selected]="selectedUser?.user_id === user.user_id"
+             (click)="selectUser(user)">
+          <div class="avatar-circle">
+            {{ getUserInitials(user) }}
+          </div>
+          <div class="item-body">
+            <p class="item-name">{{ user.first_name }} {{ user.last_name }}</p>
+            <p class="item-meta">
+              <span>{{ ui.getBarangayName(user.barangay_id) }}</span>
+              <span>•</span>
+              <span>@{{ user.username }}</span>
+            </p>
+          </div>
+          <span class="item-badge">{{ user.valid_id_type }}</span>
         </div>
-        <div style="background: rgba(235, 68, 90, 0.08); padding: 5px 12px; border-radius: 10px; border: 1px solid rgba(235, 68, 90, 0.2); display: flex; align-items: center; gap: 6px;">
-          <app-icon name="id-card" [size]="14" color="var(--ion-color-danger)"></app-icon>
-          <span style="font-size: 12px; font-weight: 800; color: var(--ion-color-danger);">{{ user.valid_id_type }}</span>
+      </div>
+    </div>
+
+    <!-- Detail Inspector (Right Pane) -->
+    <div *ngIf="selectedUser"
+         id="verification-card-first"
+         class="detail-inspector-pane">
+
+      <!-- Top Row: Name, Username & Sticky Action Buttons -->
+      <div class="inspector-top-row">
+        <div class="user-heading">
+          <h3>
+            <app-icon name="user" [size]="20" color="var(--ion-color-danger)"></app-icon>
+            <span>{{ selectedUser.first_name }} {{ selectedUser.last_name }}</span>
+          </h3>
+          <div class="username-tag">Username: <strong>@{{ selectedUser.username }}</strong></div>
+        </div>
+
+        <div id="verify-actions-group" class="actions-group">
+          <ion-button id="verify-reject-btn"
+                      color="danger"
+                      fill="outline"
+                      (click)="rejectCitizen(selectedUser.user_id)"
+                      title="Deny verification request"
+                      style="font-weight: 700; height: 42px; min-width: 110px; --border-radius: 12px; margin: 0;">
+            <app-icon name="user-xmark" [size]="15" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon> Deny
+          </ion-button>
+          <ion-button id="verify-approve-btn"
+                      color="success"
+                      (click)="approveCitizen(selectedUser.user_id)"
+                      title="Approve citizen account and dispatch welcome email"
+                      style="font-weight: 700; height: 42px; min-width: 140px; --border-radius: 12px; --box-shadow: 0 3px 12px rgba(45,211,111,0.28); margin: 0;">
+            <app-icon name="user-check" [size]="15" color="#ffffff" style="margin-right: 6px;"></app-icon> Approve Citizen
+          </ion-button>
         </div>
       </div>
 
-      <!-- Citizen Details Grid -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: var(--ion-color-step-50, #f8f9fa); padding: 16px; border-radius: 12px; margin-bottom: 18px; border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.04));">
-        <div style="display: flex; align-items: center; gap: 8px;">
+      <!-- Applicant Details Grid -->
+      <div class="details-grid">
+        <div class="detail-cell">
           <app-icon name="phone" [size]="14" color="var(--ion-color-medium)"></app-icon>
-          <span style="font-size: 13px;"><strong>Phone:</strong> {{ user.phone }}</span>
+          <span><strong>Phone:</strong> {{ selectedUser.phone }}</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="detail-cell">
           <app-icon name="mail" [size]="14" color="var(--ion-color-medium)"></app-icon>
-          <span style="font-size: 13px;"><strong>Email:</strong> {{ user.email }}</span>
+          <span><strong>Email:</strong> {{ selectedUser.email }}</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="detail-cell">
           <app-icon name="map-pin" [size]="14" color="var(--ion-color-medium)"></app-icon>
-          <span style="font-size: 13px;"><strong>Barangay:</strong> {{ ui.getBarangayName(user.barangay_id) }}</span>
+          <span><strong>Barangay:</strong> {{ ui.getBarangayName(selectedUser.barangay_id) }}</span>
         </div>
-        <div *ngIf="user.birthdate" style="display: flex; align-items: center; gap: 8px;">
+        <div *ngIf="selectedUser.birthdate" class="detail-cell">
           <app-icon name="calendar" [size]="14" color="var(--ion-color-medium)"></app-icon>
-          <span style="font-size: 13px;"><strong>Birthdate:</strong> {{ user.birthdate | utcDate:'mediumDate' }}</span>
+          <span><strong>Birthdate:</strong> {{ selectedUser.birthdate | utcDate:'mediumDate' }}</span>
         </div>
       </div>
 
-      <!-- Submitted ID Credentials Card with 1-Tap Copy -->
-      <div *ngIf="user.valid_id_number || user.valid_id_type"
-           style="background: var(--ion-color-step-50, #f8f9fa); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px;">
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--ion-color-medium); display: flex; align-items: center; gap: 6px;">
+      <!-- Submitted ID Number & Expiry Strip -->
+      <div *ngIf="selectedUser.valid_id_number || selectedUser.valid_id_type" class="id-credentials-strip">
+        <div>
+          <div class="id-eyebrow">
             <app-icon name="id-card" [size]="13" color="var(--ion-color-danger)"></app-icon>
-            <span>Submitted ID Credentials</span>
-            <span *ngIf="user.valid_id_expiry" style="font-weight: 700; text-transform: none; padding: 2px 8px; border-radius: 8px; background: rgba(56, 128, 255, 0.1); color: #3880ff; font-size: 11px;">
-              Expires: {{ user.valid_id_expiry }}
+            <span>Submitted ID: {{ selectedUser.valid_id_type }}</span>
+            <span *ngIf="selectedUser.valid_id_expiry" style="font-weight: 700; text-transform: none; padding: 2px 8px; border-radius: 8px; background: rgba(56, 128, 255, 0.1); color: #3880ff; font-size: 11px; margin-left: 6px;">
+              Expires: {{ selectedUser.valid_id_expiry }}
             </span>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 10px; margin-top: 2px;">
-            <span style="font-family: monospace; font-size: 16px; font-weight: 800; letter-spacing: 0.8px; color: var(--ion-text-color);">
-              {{ user.valid_id_number || 'No ID Number recorded' }}
-            </span>
-
-            <button *ngIf="user.valid_id_number" type="button" (click)="copyIdNumber(user)"
-              [style.background]="copiedIdMap[user.user_id] ? 'rgba(45, 211, 111, 0.15)' : 'var(--ion-card-background, #fff)'"
-              [style.color]="copiedIdMap[user.user_id] ? '#2dd36f' : 'var(--ion-color-danger)'"
-              style="display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--ion-color-step-200, #ccc); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
-              <app-icon [name]="copiedIdMap[user.user_id] ? 'check' : 'copy'" [size]="13" [color]="copiedIdMap[user.user_id] ? '#2dd36f' : 'var(--ion-color-danger)'"></app-icon>
-              <span>{{ copiedIdMap[user.user_id] ? 'Copied' : 'Copy' }}</span>
+          <div class="id-num-row">
+            <span class="id-number">{{ selectedUser.valid_id_number || 'No ID Number recorded' }}</span>
+            <button *ngIf="selectedUser.valid_id_number"
+                    type="button"
+                    (click)="copyIdNumber(selectedUser)"
+                    [style.background]="copiedIdMap[selectedUser.user_id] ? 'rgba(45, 211, 111, 0.15)' : 'var(--ion-card-background, #fff)'"
+                    [style.color]="copiedIdMap[selectedUser.user_id] ? '#2dd36f' : 'var(--ion-color-danger)'"
+                    style="display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--ion-color-step-200, #ccc); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
+              <app-icon [name]="copiedIdMap[selectedUser.user_id] ? 'check' : 'copy'" [size]="13" [color]="copiedIdMap[selectedUser.user_id] ? '#2dd36f' : 'var(--ion-color-danger)'"></app-icon>
+              <span>{{ copiedIdMap[selectedUser.user_id] ? 'Copied' : 'Copy' }}</span>
             </button>
           </div>
 
-          <!-- Optional extra detail (e.g. Profession) -->
-          <div *ngIf="user.valid_id_details?.profession" style="font-size: 12px; color: var(--ion-color-medium); margin-top: 2px;">
-            <strong>Profession:</strong> {{ user.valid_id_details.profession }}
+          <div *ngIf="selectedUser.valid_id_details?.profession" style="font-size: 12px; color: var(--ion-color-medium); margin-top: 3px;">
+            <strong>Profession:</strong> {{ selectedUser.valid_id_details.profession }}
           </div>
         </div>
       </div>
 
       <!-- 3 Verification Photos Grid -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px;">
+      <div class="photos-grid">
         <!-- Front ID -->
-        <div style="border-radius: 12px; overflow: hidden; border: 1px solid var(--ion-color-step-200, #ccc); background: #111; display: flex; flex-direction: column; cursor: pointer; position: relative;"
-             title="Click to zoom Front ID in full-screen lightbox"
-             (click)="ui.openLightbox(user.valid_id_proof, false)">
-          <div style="background: rgba(0,0,0,0.7); color: white; padding: 6px 12px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; position: absolute; top: 0; left: 0; right: 0; z-index: 2;">
-            <span>ID (Front)</span>
+        <div class="photo-card"
+             title="Click to zoom Front ID"
+             (click)="ui.openLightbox(selectedUser.valid_id_proof, false)">
+          <div class="photo-badge">
+            <span>Front ID</span>
             <app-icon name="search" [size]="12" color="#ffffff"></app-icon>
           </div>
-          <div style="height: 180px; display: flex; align-items: center; justify-content: center; padding-top: 24px;">
-            <img [proxySrc]="user.valid_id_proof" style="max-height: 150px; max-width: 100%; object-fit: contain;" />
+          <div class="photo-img-wrap">
+            <img [proxySrc]="selectedUser.valid_id_proof" alt="Front ID Proof" />
           </div>
         </div>
 
         <!-- Back ID -->
-        <div style="border-radius: 12px; overflow: hidden; border: 1px solid var(--ion-color-step-200, #ccc); background: #111; display: flex; flex-direction: column; cursor: pointer; position: relative;"
-             title="Click to zoom Back ID in full-screen lightbox"
-             (click)="ui.openLightbox(user.valid_id_proof_back || user.valid_id_proof, false)">
-          <div style="background: rgba(0,0,0,0.7); color: white; padding: 6px 12px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; position: absolute; top: 0; left: 0; right: 0; z-index: 2;">
-            <span>ID (Back)</span>
+        <div class="photo-card"
+             title="Click to zoom Back ID"
+             (click)="ui.openLightbox(selectedUser.valid_id_proof_back || selectedUser.valid_id_proof, false)">
+          <div class="photo-badge">
+            <span>Back ID</span>
             <app-icon name="search" [size]="12" color="#ffffff"></app-icon>
           </div>
-          <div style="height: 180px; display: flex; align-items: center; justify-content: center; padding-top: 24px;">
-            <img *ngIf="user.valid_id_proof_back" [proxySrc]="user.valid_id_proof_back" style="max-height: 150px; max-width: 100%; object-fit: contain;" />
-            <span *ngIf="!user.valid_id_proof_back" style="color: gray; font-size: 12px; font-weight: 600;">Not provided (Legacy)</span>
+          <div class="photo-img-wrap">
+            <img *ngIf="selectedUser.valid_id_proof_back" [proxySrc]="selectedUser.valid_id_proof_back" alt="Back ID Proof" />
+            <span *ngIf="!selectedUser.valid_id_proof_back" class="not-provided">Not provided</span>
           </div>
         </div>
 
         <!-- Selfie with ID -->
-        <div style="border-radius: 12px; overflow: hidden; border: 1px solid var(--ion-color-step-200, #ccc); background: #111; display: flex; flex-direction: column; cursor: pointer; position: relative;"
-             title="Click to zoom Selfie in full-screen lightbox"
-             (click)="ui.openLightbox(user.selfie_with_id_proof, false)">
-          <div style="background: rgba(0,0,0,0.7); color: white; padding: 6px 12px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; position: absolute; top: 0; left: 0; right: 0; z-index: 2;">
+        <div class="photo-card"
+             title="Click to zoom Selfie"
+             (click)="ui.openLightbox(selectedUser.selfie_with_id_proof, false)">
+          <div class="photo-badge">
             <span>Selfie with ID</span>
             <app-icon name="search" [size]="12" color="#ffffff"></app-icon>
           </div>
-          <div style="height: 180px; display: flex; align-items: center; justify-content: center; padding-top: 24px;">
-            <img [proxySrc]="user.selfie_with_id_proof" style="max-height: 150px; max-width: 100%; object-fit: contain;" />
+          <div class="photo-img-wrap">
+            <img [proxySrc]="selectedUser.selfie_with_id_proof" alt="Selfie with ID Proof" />
           </div>
         </div>
       </div>
 
-      <!-- Action Buttons Row -->
-      <div style="display: flex; justify-content: flex-end; border-top: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06)); padding-top: 16px;">
-        <div [attr.id]="i === 0 ? 'verify-actions-group' : null" style="display: inline-flex; align-items: center; gap: 12px; border-radius: 14px;">
-          <ion-button [attr.id]="i === 0 ? 'verify-reject-btn' : null" color="danger" fill="outline" (click)="rejectCitizen(user.user_id)" title="Deny verification request" style="font-weight: 700; height: 44px; min-width: 130px; --border-radius: 12px; margin: 0;">
-            <app-icon name="user-xmark" [size]="15" color="var(--ion-color-danger)" style="margin-right: 8px;"></app-icon> Deny
-          </ion-button>
-          <ion-button [attr.id]="i === 0 ? 'verify-approve-btn' : null" color="success" (click)="approveCitizen(user.user_id)" title="Approve citizen account and dispatch welcome email" style="font-weight: 700; height: 44px; min-width: 150px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(45,211,111,0.3); margin: 0;">
-            <app-icon name="user-check" [size]="15" color="#ffffff" style="margin-right: 8px;"></app-icon> Approve Citizen
-          </ion-button>
-        </div>
-      </div>
     </div>
   </div>
-</div>
 
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       MOBILE VIEW (< 992px): Compact Inset Cards
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="filteredVerifications.length > 0" class="mobile-cards-layout">
+    <div *ngFor="let user of filteredVerifications; let i = index; trackBy: trackByUserId"
+         [attr.id]="i === 0 ? 'verification-card-first' : null"
+         class="mobile-applicant-card">
+
+      <!-- Card Top -->
+      <div class="card-top">
+        <div>
+          <h4>
+            <app-icon name="user" [size]="16" color="var(--ion-color-danger)"></app-icon>
+            <span>{{ user.first_name }} {{ user.last_name }}</span>
+          </h4>
+          <div class="mobile-username">@{{ user.username }}</div>
+        </div>
+        <span style="font-size: 11px; font-weight: 800; color: var(--ion-color-danger); background: rgba(211, 47, 47, 0.08); border: 1px solid rgba(211, 47, 47, 0.2); padding: 4px 8px; border-radius: 8px;">
+          {{ user.valid_id_type }}
+        </span>
+      </div>
+
+      <!-- Mobile Details Grid -->
+      <div class="mobile-details-grid">
+        <div><strong>Phone:</strong> {{ user.phone }}</div>
+        <div><strong>Barangay:</strong> {{ ui.getBarangayName(user.barangay_id) }}</div>
+        <div style="grid-column: span 2;"><strong>Email:</strong> {{ user.email }}</div>
+      </div>
+
+      <!-- Mobile ID Strip -->
+      <div *ngIf="user.valid_id_number" class="mobile-id-strip">
+        <span class="id-text">{{ user.valid_id_number }}</span>
+        <button type="button"
+                (click)="copyIdNumber(user)"
+                [style.background]="copiedIdMap[user.user_id] ? 'rgba(45, 211, 111, 0.15)' : 'var(--ion-card-background, #fff)'"
+                [style.color]="copiedIdMap[user.user_id] ? '#2dd36f' : 'var(--ion-color-danger)'"
+                style="display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--ion-color-step-200, #ccc); border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+          <app-icon [name]="copiedIdMap[user.user_id] ? 'check' : 'copy'" [size]="12" [color]="copiedIdMap[user.user_id] ? '#2dd36f' : 'var(--ion-color-danger)'"></app-icon>
+          <span>{{ copiedIdMap[user.user_id] ? 'Copied' : 'Copy' }}</span>
+        </button>
+      </div>
+
+      <!-- Mobile Photos Grid -->
+      <div class="mobile-photos-grid">
+        <div class="mobile-photo-item" (click)="ui.openLightbox(user.valid_id_proof, false)">
+          <span class="thumb-tag">Front</span>
+          <img [proxySrc]="user.valid_id_proof" alt="Front ID" />
+        </div>
+        <div class="mobile-photo-item" (click)="ui.openLightbox(user.valid_id_proof_back || user.valid_id_proof, false)">
+          <span class="thumb-tag">Back</span>
+          <img *ngIf="user.valid_id_proof_back" [proxySrc]="user.valid_id_proof_back" alt="Back ID" />
+          <span *ngIf="!user.valid_id_proof_back" class="not-provided-sm">None</span>
+        </div>
+        <div class="mobile-photo-item" (click)="ui.openLightbox(user.selfie_with_id_proof, false)">
+          <span class="thumb-tag">Selfie</span>
+          <img [proxySrc]="user.selfie_with_id_proof" alt="Selfie" />
+        </div>
+      </div>
+
+      <!-- Mobile Actions -->
+      <div [attr.id]="i === 0 ? 'verify-actions-group' : null" class="mobile-card-actions">
+        <ion-button [attr.id]="i === 0 ? 'verify-reject-btn' : null"
+                    color="danger"
+                    fill="outline"
+                    size="small"
+                    (click)="rejectCitizen(user.user_id)"
+                    style="font-weight: 700; --border-radius: 10px; margin: 0;">
+          <app-icon name="user-xmark" [size]="14" color="var(--ion-color-danger)" style="margin-right: 4px;"></app-icon> Deny
+        </ion-button>
+        <ion-button [attr.id]="i === 0 ? 'verify-approve-btn' : null"
+                    color="success"
+                    size="small"
+                    (click)="approveCitizen(user.user_id)"
+                    style="font-weight: 700; --border-radius: 10px; --box-shadow: 0 2px 8px rgba(45,211,111,0.25); margin: 0;">
+          <app-icon name="user-check" [size]="14" color="#ffffff" style="margin-right: 4px;"></app-icon> Approve
+        </ion-button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

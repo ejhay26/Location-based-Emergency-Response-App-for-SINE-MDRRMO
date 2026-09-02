@@ -5,35 +5,45 @@
          (click)="onTap()"
          class="sos-pill"
          [class.sos-pill--offline]="pill.state === 'offline'"
+         [class.sos-pill--pending]="pill.state === 'pending'"
          [class.sos-pill--dispatched]="pill.state === 'dispatched'"
          role="button"
          tabindex="0">
 
+      <!-- Left State Beacon / Icon Badge -->
       <div class="sos-pill__icon-wrap">
-        <app-icon [name]="pill.icon" [size]="18" [color]="pill.state === 'dispatched' ? '#3880ff' : (pill.state === 'offline' ? '#e0ac00' : 'var(--ion-color-danger)')"></app-icon>
+        <span class="sos-pill__pulse" *ngIf="pill.state === 'pending' || pill.state === 'dispatched'"></span>
+        <app-icon [name]="pill.icon" [size]="18" [color]="pill.state === 'dispatched' ? '#10b981' : (pill.state === 'offline' ? '#f59e0b' : '#d32f2f')"></app-icon>
       </div>
 
+      <!-- Center Title & Status Description -->
       <div class="sos-pill__body">
-        <p class="sos-pill__label">{{ pill.label }}</p>
+        <div class="sos-pill__header-row">
+          <span class="sos-pill__live-indicator" *ngIf="pill.state === 'dispatched'">DISPATCHED</span>
+          <span class="sos-pill__pending-indicator" *ngIf="pill.state === 'pending'">PENDING</span>
+          <p class="sos-pill__label">{{ pill.label }}</p>
+        </div>
         <p class="sos-pill__sublabel">{{ pill.sublabel }}</p>
       </div>
 
+      <!-- Right Action & Timestamp -->
       <div class="sos-pill__right">
         <span *ngIf="pill.timeAgo" class="sos-pill__time">{{ pill.timeAgo }}</span>
 
-        <!-- Cancel button — only on cancellable pills (Pending + offline queue) -->
+        <!-- Cancel button — Apple capsule style -->
         <button *ngIf="pill.cancellable"
+                type="button"
                 class="sos-pill__cancel-action-btn"
                 (touchstart)="$event.stopPropagation()"
                 (touchend)="$event.stopPropagation()"
                 (mousedown)="$event.stopPropagation()"
                 (click)="onCancel($event, pill)"
                 aria-label="Cancel this SOS report">
-          <app-icon name="close" [size]="12"></app-icon>
+          <app-icon name="close" [size]="11" color="var(--ion-color-danger, #d32f2f)"></app-icon>
           <span>Cancel</span>
         </button>
 
-        <!-- Chevron only on non-cancellable pills (Dispatched) — tap goes to History -->
+        <!-- Chevron for dispatched (tappable) -->
         <app-icon *ngIf="!pill.cancellable" name="chevron-right" [size]="14" class="sos-pill__chevron"></app-icon>
       </div>
     </div>

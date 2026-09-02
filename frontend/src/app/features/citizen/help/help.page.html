@@ -64,11 +64,20 @@
       <app-icon name="graduation-cap" [size]="14" color="var(--ion-color-danger)"></app-icon>Interactive Tutorial
     </p>
     <p style="font-size:13px;color:var(--ion-color-medium);margin:0 4px 14px;">New here? Or need a refresher? Tap any section below to start an interactive walkthrough.</p>
-    <button (click)="startFullTour()" style="width:100%;border:none;border-radius:18px;padding:16px 20px;cursor:pointer;background:linear-gradient(135deg,#c62828,#eb445a);display:flex;align-items:center;gap:14px;margin-bottom:12px;box-shadow:0 4px 18px rgba(211,47,47,0.35);">
-      <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+    <button (click)="startFullTour()"
+            appPressFeedback
+            appImpactFeedback
+            [impactColor]="'rgba(255,255,255,0.3)'"
+            style="width:100%;border:1px solid rgba(255,255,255,0.22);border-radius:18px;padding:16px 20px;cursor:pointer;background:linear-gradient(180deg, #d32f2f 0%, #b71c1c 100%);display:flex;align-items:center;gap:14px;margin-bottom:12px;box-shadow:0 4px 16px rgba(211,47,47,0.35);text-align:left;transition:transform 0.12s ease;">
+      <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
         <app-icon name="play" [size]="18" color="#ffffff"></app-icon>
       </div>
-      <div style="text-align:left;"><p style="margin:0;font-size:11px;color:rgba(255,255,255,0.8);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Full Walkthrough</p><p style="margin:2px 0 0;font-size:16px;font-weight:800;color:white;">Start Complete Tour</p><p style="margin:3px 0 0;font-size:12px;color:rgba(255,255,255,0.75);">Covers every feature from start to finish</p></div>
+      <div style="flex:1;min-width:0;">
+        <p style="margin:0;font-size:10.5px;color:rgba(255,255,255,0.85);font-weight:800;text-transform:uppercase;letter-spacing:0.8px;">Full Walkthrough</p>
+        <p style="margin:2px 0 0;font-size:17px;font-weight:800;color:white;line-height:1.2;">Start Complete Tour</p>
+        <p style="margin:3px 0 0;font-size:12px;font-weight:500;color:rgba(255,255,255,0.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Covers every feature from start to finish</p>
+      </div>
+      <app-icon name="chevron-right" [size]="16" color="rgba(255,255,255,0.75)" style="margin-left:auto;flex-shrink:0;"></app-icon>
     </button>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
       <button *ngFor="let ch of chapters" (click)="startChapter(ch)" style="border:none;border-radius:18px;padding:16px 14px;cursor:pointer;text-align:left;background:var(--ion-card-background,white);border:var(--card-border,1px solid rgba(0,0,0,0.08));box-shadow:var(--card-shadow);transition:transform 0.15s ease;">
@@ -100,18 +109,73 @@
       <app-icon name="message-square" [size]="14" color="var(--ion-color-danger)"></app-icon>Send Feedback
     </p>
     <p style="font-size:13px;color:var(--ion-color-medium);margin:0 4px 14px;">Found a bug? Have a suggestion? We read every message.</p>
-    <div style="background:var(--ion-card-background,white);border-radius:18px;padding:16px;border:var(--card-border,1px solid rgba(0,0,0,0.08));box-shadow:var(--card-shadow);">
-      <div style="margin-bottom:12px;">
-        <p style="font-size:12px;font-weight:700;color:var(--ion-color-medium);margin:0 0 6px;text-transform:uppercase;letter-spacing:0.5px;">Category</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button *ngFor="let cat of [{v:'general',label:'General'},{v:'bug',label:'🐛 Bug'},{v:'suggestion',label:'💡 Suggestion'},{v:'other',label:'Other'}]" (click)="feedback.category = cat.v" [style.background]="feedback.category === cat.v ? 'var(--ion-color-danger)' : 'var(--ion-color-step-100,rgba(0,0,0,0.06))'" [style.color]="feedback.category === cat.v ? 'white' : 'var(--ion-text-color)'" style="border:none;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">{{ cat.label }}</button>
+    <div class="feedback-card" style="background:var(--ion-card-background, #ffffff);border-radius:20px;padding:20px;border:var(--card-border, 1px solid rgba(0,0,0,0.08));box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:16px;">
+      
+      <!-- Category Segmented Control with Smooth Sliding Thumb (Apple iOS Style) -->
+      <div>
+        <label style="display:block;font-size:11.5px;font-weight:700;color:var(--ion-color-medium);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.6px;">Topic</label>
+        <div class="ios-segmented-control">
+          <!-- Animated Sliding Indicator Track & Thumb -->
+          <div class="ios-segmented-thumb-track"
+               [style.transform]="'translateX(' + (categoryIndex * 100) + '%)'">
+            <div class="ios-segmented-thumb"></div>
+          </div>
+          
+          <button *ngFor="let cat of categories; let i = index"
+                  type="button"
+                  (click)="feedback.category = cat.v"
+                  class="ios-segmented-btn"
+                  [class.active]="feedback.category === cat.v">
+            <span>{{ cat.label }}</span>
+          </button>
         </div>
       </div>
-      <textarea [(ngModel)]="feedback.message" placeholder="Tell us what you think…" rows="4" style="width:100%;border:1.5px solid var(--ion-color-step-150,#ddd);border-radius:14px;padding:12px;font-size:14px;resize:none;background:var(--ion-background-color,#f2f2f7);color:var(--ion-text-color);font-family:inherit;box-sizing:border-box;"></textarea>
-      <p style="font-size:11px;color:var(--ion-color-medium);margin:4px 0 14px;text-align:right;">{{ feedback.message.length }}/2000</p>
-      <button (click)="submitFeedback()" [disabled]="isSubmitting" [style.opacity]="isSubmitting ? '0.6' : '1'" style="width:100%;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;color:white;background:var(--ion-color-danger);box-shadow:0 4px 16px rgba(211,47,47,0.3);display:flex;align-items:center;justify-content:center;gap:8px;">
-        <app-icon name="mail" [size]="16" color="#ffffff"></app-icon>{{ isSubmitting ? 'Sending…' : 'Send Feedback' }}
+
+      <!-- Inset Message Textarea -->
+      <div>
+        <label style="display:block;font-size:11.5px;font-weight:700;color:var(--ion-color-medium);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.6px;">Message</label>
+        <div style="position:relative;">
+          <textarea [(ngModel)]="feedback.message"
+                    placeholder="Tell us what you think or describe an issue…"
+                    rows="4"
+                    maxlength="2000"
+                    style="width:100%;border:1px solid var(--ion-color-step-150, rgba(0,0,0,0.1));border-radius:14px;padding:12px 14px;font-size:14px;resize:none;background:var(--ion-color-step-50, rgba(0,0,0,0.03));color:var(--ion-text-color);font-family:inherit;box-sizing:border-box;outline:none;line-height:1.45;transition:border-color 0.15s ease;">
+          </textarea>
+          <span style="display:block;font-size:11px;color:var(--ion-color-medium);margin-top:4px;text-align:right;">{{ feedback.message.length }}/2000</span>
+        </div>
+      </div>
+
+      <!-- 5-Star Rating Section (Placed at the bottom of textarea, centered full-width) -->
+      <div style="background:var(--ion-color-step-50, rgba(0,0,0,0.03));border:1px solid var(--ion-color-step-100, rgba(0,0,0,0.06));border-radius:16px;padding:14px 16px;text-align:center;">
+        <p style="margin:0 0 8px 0;font-size:12px;font-weight:700;color:var(--ion-color-medium);text-transform:uppercase;letter-spacing:0.6px;">How is your experience?</p>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px;">
+          <button *ngFor="let star of [1,2,3,4,5]"
+                  type="button"
+                  appPressFeedback
+                  appImpactFeedback
+                  [impactColor]="'rgba(245,158,11,0.3)'"
+                  (click)="setRating(star)"
+                  style="background:transparent;border:none;cursor:pointer;padding:4px 6px;font-size:32px;line-height:1;transition:transform 0.15s cubic-bezier(0.16,1,0.3,1);color:var(--ion-color-step-300, #d1d5db);"
+                  [style.color]="star <= feedback.rating ? '#ffc409' : 'var(--ion-color-step-300, #d1d5db)'"
+                  [style.transform]="star <= feedback.rating ? 'scale(1.08)' : 'scale(1)'"
+                  [attr.aria-label]="star + ' Star' + (star > 1 ? 's' : '')">
+            ★
+          </button>
+        </div>
+        <p style="margin:0;font-size:12.5px;font-weight:800;color:#f59e0b;">{{ ratingLabel }}</p>
+      </div>
+
+      <!-- Submit Action Button -->
+      <button type="button"
+              appPressFeedback
+              (click)="submitFeedback()"
+              [disabled]="isSubmitting"
+              [style.opacity]="isSubmitting ? '0.6' : '1'"
+              style="width:100%;height:48px;border:none;border-radius:14px;font-size:14.5px;font-weight:800;cursor:pointer;color:white;background:var(--ion-color-danger, #d32f2f);box-shadow:0 4px 16px rgba(211,47,47,0.3);display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s ease;">
+        <app-icon name="send" [size]="15" color="#ffffff"></app-icon>
+        <span>{{ isSubmitting ? 'Sending…' : 'Send Feedback' }}</span>
       </button>
+
     </div>
   </div>
   <div style="height:16px;"></div>

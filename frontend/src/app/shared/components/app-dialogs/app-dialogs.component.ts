@@ -10,30 +10,46 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
   standalone: true,
   imports: [CommonModule, ProxyImageDirective, AppIconComponent],
   template: `
-    <!-- Confirm Dialog -->
-    <div *ngIf="dialog.confirmDialog().open" class="c-overlay" style="z-index: 99999;">
+    <!-- Confirm Dialog (Apple iOS UIAlertController Style) -->
+    <div *ngIf="dialog.confirmDialog().open" class="c-overlay" [class.c-overlay-closing]="dialog.closingConfirm()" style="z-index: 99999;">
       <div class="c-overlay-bg" (click)="dialog.closeConfirm()"></div>
-      <div class="c-panel" style="width: min(380px, 92vw); border-radius: 24px; overflow: hidden; border: var(--card-border, 1px solid rgba(0,0,0,0.1)); box-shadow: 0 24px 64px rgba(0,0,0,0.35);">
-        <div style="padding: 28px 24px 22px; text-align: center;">
-          <div style="width: 58px; height: 58px; border-radius: 18px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;" [style.background]="dialog.confirmDialog().iconColor + '18'">
-            <app-icon [name]="dialog.confirmDialog().icon" [size]="28" [color]="dialog.confirmDialog().iconColor"></app-icon>
+      <div class="c-panel" [class.c-panel-closing]="dialog.closingConfirm()" style="width: min(340px, 88vw); border-radius: 20px; overflow: hidden; border: var(--card-border, 1px solid rgba(0,0,0,0.1)); box-shadow: 0 20px 60px rgba(0,0,0,0.4); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); background: var(--ion-card-background, #ffffff);">
+        <div style="padding: 24px 20px 20px; text-align: center;">
+          <div *ngIf="dialog.confirmDialog().icon" style="width: 50px; height: 50px; border-radius: 16px; margin: 0 auto 14px; display: flex; align-items: center; justify-content: center;" [style.background]="dialog.confirmDialog().iconColor + '18'">
+            <app-icon [name]="dialog.confirmDialog().icon" [size]="24" [color]="dialog.confirmDialog().iconColor"></app-icon>
           </div>
-          <h3 style="margin: 0 0 8px 0; font-weight: 800; font-size: 18px; color: var(--ion-text-color); letter-spacing: -0.2px;">{{ dialog.confirmDialog().title }}</h3>
-          <p [style.margin]="dialog.confirmDialog().details?.length ? '0 0 14px 0' : '0 0 24px 0'" style="font-size: 13.5px; color: var(--ion-color-medium, #8e8e93); line-height: 1.5;">{{ dialog.confirmDialog().message }}</p>
-          <div *ngIf="dialog.confirmDialog().details?.length" style="text-align: left; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06)); border-radius: 16px; padding: 4px 14px; margin-bottom: 20px;">
-            <div *ngFor="let d of dialog.confirmDialog().details; let isLast = last" style="display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: var(--inset-divider, 1px solid rgba(0,0,0,0.06));" [style.border-bottom]="isLast ? 'none' : ''">
+          <h3 style="margin: 0 0 6px 0; font-weight: 800; font-size: 17px; color: var(--ion-text-color); letter-spacing: -0.2px;">{{ dialog.confirmDialog().title }}</h3>
+          <p [style.margin]="dialog.confirmDialog().details?.length ? '0 0 14px 0' : '0'" style="font-size: 13px; color: var(--ion-color-medium, #8e8e93); line-height: 1.45;">{{ dialog.confirmDialog().message }}</p>
+          
+          <!-- Optional Details summary -->
+          <div *ngIf="dialog.confirmDialog().details?.length" style="text-align: left; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06)); border-radius: 14px; padding: 4px 12px; margin-top: 14px; margin-bottom: 4px;">
+            <div *ngFor="let d of dialog.confirmDialog().details; let isLast = last" style="display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: var(--inset-divider, 1px solid rgba(0,0,0,0.06));" [style.border-bottom]="isLast ? 'none' : ''">
               <app-icon *ngIf="d.icon" [name]="d.icon" [size]="14" color="var(--ion-color-danger)" style="width: 16px; flex-shrink: 0;"></app-icon>
-              <span style="font-size: 12px; font-weight: 700; color: var(--ion-color-medium); flex-shrink: 0;">{{ d.label }}</span>
-              <span style="font-size: 13px; font-weight: 600; color: var(--ion-text-color); text-align: right; flex: 1; overflow-wrap: anywhere;">{{ d.value }}</span>
+              <span style="font-size: 11.5px; font-weight: 700; color: var(--ion-color-medium); flex-shrink: 0;">{{ d.label }}</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--ion-text-color); text-align: right; flex: 1; overflow-wrap: anywhere;">{{ d.value }}</span>
             </div>
           </div>
-          <div style="display: flex; gap: 10px;">
-            <button (click)="dialog.closeConfirm()" [disabled]="dialog.confirmLoading()" [style.opacity]="dialog.confirmLoading() ? 0.5 : 1" [style.cursor]="dialog.confirmLoading() ? 'not-allowed' : 'pointer'" style="flex: 1; padding: 13px; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); border: none; border-radius: 14px; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color); transition: background 0.15s;">{{ dialog.confirmDialog().cancelLabel }}</button>
-            <button (click)="dialog.runConfirm()" [disabled]="dialog.confirmLoading()" style="flex: 1; padding: 13px; border: none; border-radius: 14px; font-size: 14.5px; font-weight: 800; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(211,47,47,0.3);" [style.background]="dialog.confirmDialog().confirmColor" [style.cursor]="dialog.confirmLoading() ? 'not-allowed' : 'pointer'">
-              <ng-container *ngIf="!dialog.confirmLoading()">{{ dialog.confirmDialog().confirmLabel }}</ng-container>
-              <span *ngIf="dialog.confirmLoading()" class="dot-loader dot-loader-white"><span></span><span></span><span></span></span>
-            </button>
-          </div>
+        </div>
+
+        <!-- Apple iOS 2-Button Hairline Split Grid -->
+        <div style="display: flex; border-top: var(--inset-divider, 1px solid rgba(0,0,0,0.1));">
+          <button type="button"
+                  (click)="dialog.closeConfirm()"
+                  [disabled]="dialog.confirmLoading()"
+                  [style.opacity]="dialog.confirmLoading() ? 0.5 : 1"
+                  [style.cursor]="dialog.confirmLoading() ? 'not-allowed' : 'pointer'"
+                  style="flex: 1; height: 48px; background: transparent; border: none; border-right: var(--inset-divider, 1px solid rgba(0,0,0,0.1)); font-size: 15px; font-weight: 600; color: var(--ion-color-medium, #8e8e93); cursor: pointer; transition: background-color 0.15s ease;">
+            {{ dialog.confirmDialog().cancelLabel }}
+          </button>
+          <button type="button"
+                  (click)="dialog.runConfirm()"
+                  [disabled]="dialog.confirmLoading()"
+                  [style.color]="dialog.confirmDialog().confirmColor || 'var(--ion-color-danger)'"
+                  [style.cursor]="dialog.confirmLoading() ? 'not-allowed' : 'pointer'"
+                  style="flex: 1; height: 48px; background: transparent; border: none; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.15s ease;">
+            <ng-container *ngIf="!dialog.confirmLoading()">{{ dialog.confirmDialog().confirmLabel }}</ng-container>
+            <span *ngIf="dialog.confirmLoading()" class="dot-loader"><span></span><span></span><span></span></span>
+          </button>
         </div>
       </div>
     </div>

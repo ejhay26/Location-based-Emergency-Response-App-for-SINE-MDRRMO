@@ -1,15 +1,18 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar [color]="reportType === 'hazard' ? 'warning' : 'danger'">
+  <ion-toolbar [color]="reportType === 'hazard' ? undefined : 'danger'"
+               [style.--background]="reportType === 'hazard' ? 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)' : 'var(--ion-color-danger, #d32f2f)'"
+               style="color: #ffffff;">
     <ion-buttons slot="start">
-      <ion-button (click)="close()" style="color: white; font-weight: 500; font-size: 16px; display: flex; align-items: center; gap: 4px; --padding-start: 4px;">
-        <app-icon name="chevron-left" [size]="20" color="#ffffff"></app-icon>Back
+      <ion-button (click)="close()" style="--color: #ffffff; color: #ffffff; font-weight: 700; font-size: 16px; --padding-start: 4px;">
+        <app-icon name="chevron-left" [size]="20" color="#ffffff" style="margin-right: 2px;"></app-icon>
+        <span style="color: #ffffff;">Back</span>
       </ion-button>
     </ion-buttons>
-    <ion-title style="color: white; font-weight: bold;">{{ reportType === 'hazard' ? 'Report Hazard' : 'Send Emergency SOS' }}</ion-title>
+    <ion-title style="color: #ffffff; font-weight: 800; font-size: 17px;">{{ reportType === 'hazard' ? 'Report Hazard' : 'Send Emergency SOS' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding" style="--padding-bottom: 88px;">
+<ion-content class="ion-padding" style="--padding-bottom: 96px;">
   <form #reportFormEl [formGroup]="reportForm" (ngSubmit)="submitReport()">
     <app-report-type-selector
       [reportType]="reportType"
@@ -57,11 +60,23 @@
   </form>
 </ion-content>
 
-<div *ngIf="!reportMapCmp?.mapExpanded" style="position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:16px;right:16px;z-index:8000;background:transparent;">
-  <ion-button id="tour-submit-button" appPressFeedback [class.tour-highlight]="tour.targetId() === 'tour-submit-button'" [class.btn-muted]="!isFormReady && !isSubmitting" [class.btn-loading]="isSubmitting" (click)="submitReport()" expand="block" [color]="reportType === 'hazard' ? 'warning' : 'danger'" size="large" style="font-weight:800;height:54px;--border-radius:18px;--box-shadow:0 8px 28px rgba(0,0,0,0.25);margin:0;">
+<!-- Docked Bottom Glass Action Bar (Apple HIG Layout) -->
+<div *ngIf="!reportMapCmp?.mapExpanded"
+     style="position:fixed;bottom:0;left:0;right:0;z-index:8000;padding:12px 16px calc(14px + env(safe-area-inset-bottom, 0px));background:var(--ion-background-color, #ffffff);border-top:var(--inset-divider, 1px solid rgba(0,0,0,0.08));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 -4px 20px rgba(0,0,0,0.05);">
+  <ion-button id="tour-submit-button"
+              appPressFeedback
+              [class.tour-highlight]="tour.targetId() === 'tour-submit-button'"
+              [disabled]="!isFormReady || isSubmitting"
+              (click)="submitReport()"
+              expand="block"
+              [color]="reportType === 'hazard' ? undefined : 'danger'"
+              [style.--background]="reportType === 'hazard' ? (!isFormReady ? 'var(--ion-color-step-300, #94a3b8)' : 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)') : undefined"
+              [style.--box-shadow]="reportType === 'hazard' && isFormReady ? '0 4px 16px rgba(217, 119, 6, 0.32)' : '0 4px 16px rgba(0,0,0,0.18)'"
+              size="large"
+              style="font-weight:800;height:52px;--border-radius:16px;margin:0;">
     <ng-container *ngIf="!isSubmitting">
       <app-icon [name]="reportType === 'hazard' ? 'hazard' : 'alert'" [size]="20" color="#ffffff" style="margin-right:8px;"></app-icon>
-      {{ reportType === 'hazard' ? 'Submit Hazard Report' : 'Send Emergency SOS' }}
+      <span style="color: #ffffff;">{{ reportType === 'hazard' ? 'Submit Hazard Report' : 'Send Emergency SOS' }}</span>
     </ng-container>
     <span *ngIf="isSubmitting" class="dot-loader dot-loader-white"><span></span><span></span><span></span></span>
   </ion-button>

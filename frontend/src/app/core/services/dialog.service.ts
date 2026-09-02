@@ -97,6 +97,8 @@ export class DialogService {
     });
   }
 
+  closingConfirm = signal(false);
+
   /**
    * Tapping Confirm. If the config carries an `onConfirm` async action, the
    * dialog stays open with the Confirm button showing a spinner until it
@@ -113,17 +115,23 @@ export class DialogService {
         this.confirmLoading.set(false);
       }
     }
+    this.closingConfirm.set(true);
+    await new Promise(r => setTimeout(r, 160));
     this.confirmDialog.update(d => ({ ...d, open: false }));
+    this.closingConfirm.set(false);
     this.resolver?.(true);
     this.resolver = null;
   }
 
-  closeConfirm() {
+  async closeConfirm() {
     // Ignore Cancel/backdrop taps while an onConfirm action is in flight —
     // there's no safe way to "cancel" a logout request that's already been
     // sent to the server.
     if (this.confirmLoading()) return;
+    this.closingConfirm.set(true);
+    await new Promise(r => setTimeout(r, 160));
     this.confirmDialog.update(d => ({ ...d, open: false }));
+    this.closingConfirm.set(false);
     this.resolver?.(false);
     this.resolver = null;
   }
