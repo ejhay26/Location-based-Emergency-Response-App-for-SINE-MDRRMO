@@ -1,3 +1,4 @@
 frontend/android/app/google-services.json
 frontend/android/app/release/output-metadata.json
 frontend/android/app/release/baselineProfiles/*
+.agents/
