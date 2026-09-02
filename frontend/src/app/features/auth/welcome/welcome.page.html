@@ -7,8 +7,8 @@
     position: relative;
   ">
 
-    <!-- Top Floating Progress Pill -->
-    <div style="position: absolute; top: 16px; left: 0; right: 0; z-index: 10; display: flex; justify-content: center; pointer-events: none;">
+    <!-- Top Floating Progress Pill (Safe Area Inset Aware) -->
+    <div style="position: absolute; top: max(16px, calc(env(safe-area-inset-top, 0px) + 12px)); left: 0; right: 0; z-index: 10; display: flex; justify-content: center; pointer-events: none;">
       <div style="background: var(--ion-card-background, #ffffff); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding: 6px 14px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 6px;">
         <span style="font-size: 11.5px; font-weight: 800; color: var(--ion-color-danger); text-transform: uppercase; letter-spacing: 0.8px;">{{ currentSlide + 1 }} of {{ TOTAL_SLIDES }}</span>
       </div>
@@ -21,7 +21,7 @@
     " [style.transform]="'translateX(-' + (currentSlide * 33.3333) + '%)'">
 
       <!-- SLIDE 1: Welcome -->
-      <div style="width: 33.3333%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 68px 24px 120px 24px; text-align: center; overflow-y: auto; box-sizing: border-box;">
+      <div style="width: 33.3333%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: max(68px, calc(env(safe-area-inset-top, 0px) + 56px)) 24px calc(110px + env(safe-area-inset-bottom, 0px)) 24px; text-align: center; overflow-y: auto; box-sizing: border-box;">
         <div style="width: 96px; height: 96px; background: rgba(235,68,90,0.1); border-radius: 28px; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; box-shadow: 0 8px 24px rgba(235,68,90,0.14); border: 2px solid rgba(235,68,90,0.2);">
           <img src="assets/icon/logo.jpg" style="width: 68px; height: 68px; object-fit: contain; border-radius: 16px;" alt="MDRRMO Logo" />
         </div>
@@ -43,7 +43,7 @@
       </div>
 
       <!-- SLIDE 2: All Permissions -->
-      <div style="width: 33.3333%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 68px 20px 130px 20px; text-align: center; overflow-y: auto; box-sizing: border-box;">
+      <div style="width: 33.3333%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: max(68px, calc(env(safe-area-inset-top, 0px) + 56px)) 20px calc(110px + env(safe-area-inset-bottom, 0px)) 20px; text-align: center; overflow-y: auto; box-sizing: border-box;">
         <div style="width: 72px; height: 72px; background: rgba(235,68,90,0.12); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; flex-shrink: 0;">
           <app-icon name="shield-check" [size]="32" color="var(--ion-color-danger)"></app-icon>
         </div>
@@ -113,7 +113,7 @@
       </div>
 
       <!-- SLIDE 3: Get Started -->
-      <div style="width: 33.3333%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 68px 24px 120px 24px; text-align: center; overflow-y: auto; box-sizing: border-box;">
+      <div style="width: 33.3333%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: max(68px, calc(env(safe-area-inset-top, 0px) + 56px)) 24px calc(110px + env(safe-area-inset-bottom, 0px)) 24px; text-align: center; overflow-y: auto; box-sizing: border-box;">
         <div style="width: 90px; height: 90px; background: rgba(235,68,90,0.1); border-radius: 28px; display: flex; align-items: center; justify-content: center; margin-bottom: 22px; box-shadow: 0 8px 24px rgba(235,68,90,0.12); border: 2px solid rgba(235,68,90,0.2);">
           <img src="assets/icon/logo.jpg" style="width: 64px; height: 64px; object-fit: contain; border-radius: 16px;" alt="MDRRMO Logo" />
         </div>
@@ -134,7 +134,7 @@
     <!-- Fixed Bottom Glass Navigation Dock -->
     <div style="
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-      padding: 12px 20px 24px 20px;
+      padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px)) 20px;
       background: var(--ion-card-background, #ffffff);
       border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));
       backdrop-filter: blur(20px);
