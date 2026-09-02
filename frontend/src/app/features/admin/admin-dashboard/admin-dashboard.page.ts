@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { MenuController } from '@ionic/angular';
 import { IonContent } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
-import { of, Subscription } from 'rxjs';
+import { of, Subscription, interval, forkJoin } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api';
+import { EchoService } from '../../../core/services/echo.service';
 import { UserSettingsService } from '../../../core/services/user-settings';
 import { TourService } from '../../../core/services/tour';
 import { PushNotificationsService } from '../../../core/services/push-notifications';
@@ -153,10 +154,15 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   private tourSub?: Subscription;
+  private echoEmergencySub?: Subscription;
+  private echoHazardSub?: Subscription;
+  private echoUserSub?: Subscription;
+  private countsPollSub?: Subscription;
 
   constructor(
     private router: Router,
     public  api: ApiService,
+    private echo: EchoService,
     private menuCtrl: MenuController,
     private userSettings: UserSettingsService,
     private tour: TourService,
@@ -190,18 +196,67 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
 
     // Apply dark mode from the settings service (same source as mobile pages).
     this.userSettings.applyToDom();
-    // Stage 5 — desktop alert on new SOS/hazard reports. Dashboard-wide (not
-    // tied to whichever sidebar panel is mounted); no-ops itself outside
-    // Electron (see DesktopNotificationsService.isElectron).
+    // Desktop alert on new SOS/hazard reports
     this.desktopNotifications.start();
     window.addEventListener('resize', this.boundWindowResize);
+
+    // ── Laravel Reverb Real-Time Dynamic Indicators ──
+    this.echo.connect();
+
+    this.echoEmergencySub = this.echo.onEmergencyUpdated.subscribe(() => {
+      this.refreshActiveIncidentsCount();
+    });
+
+    this.echoHazardSub = this.echo.onHazardUpdated.subscribe(() => {
+      this.refreshActiveIncidentsCount();
+    });
+
+    this.echoUserSub = this.echo.onUserVerified.subscribe(() => {
+      this.refreshPendingVerificationsCount();
+    });
+
+    // Initial load of counts
+    this.refreshAllCounts();
+
+    // 30s background safety-net polling to reconcile state
+    this.countsPollSub = interval(30000).subscribe(() => {
+      this.refreshAllCounts();
+    });
   }
 
   ngOnDestroy() {
     this.tourSub?.unsubscribe();
+    this.echoEmergencySub?.unsubscribe();
+    this.echoHazardSub?.unsubscribe();
+    this.echoUserSub?.unsubscribe();
+    this.countsPollSub?.unsubscribe();
     this.desktopNotifications.stop();
     this.stopResizeListeners();
     window.removeEventListener('resize', this.boundWindowResize);
+  }
+
+  refreshAllCounts(): void {
+    this.refreshActiveIncidentsCount();
+    this.refreshPendingVerificationsCount();
+  }
+
+  refreshActiveIncidentsCount(): void {
+    forkJoin({
+      emergencies: this.api.getActiveEmergencies().pipe(catchError(() => of([]))),
+      hazards: this.api.getActiveHazards().pipe(catchError(() => of([])))
+    }).subscribe(({ emergencies, hazards }) => {
+      const eCount = Array.isArray(emergencies) ? emergencies.length : 0;
+      const hCount = Array.isArray(hazards) ? hazards.length : 0;
+      this.activeIncidentsCount = eCount + hCount;
+    });
+  }
+
+  refreshPendingVerificationsCount(): void {
+    this.api.getPendingVerifications().pipe(
+      catchError(() => of([]))
+    ).subscribe((res: any) => {
+      this.pendingVerificationsCount = Array.isArray(res) ? res.length : 0;
+    });
   }
 
   onMouseDownResize(event: MouseEvent) {
@@ -247,6 +302,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   ionViewWillEnter() {
     this.currentRole = localStorage.getItem('role');
     this.menuCtrl.enable(false);
+    this.refreshAllCounts();
     const userStr = localStorage.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);

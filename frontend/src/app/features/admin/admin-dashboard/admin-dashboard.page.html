@@ -62,8 +62,18 @@
               </div>
               <div class="sidebar-section-items">
                 <button id="nav-btn-active" (click)="selectViewMode('active')" title="Live Incident & Hazard Map" class="menu-capsule-link" [class.active]="viewMode === 'active'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
-                  <app-icon name="map" [size]="18" [color]="viewMode === 'active' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
-                  <span *ngIf="!isSidebarCollapsed">Incident Map</span>
+                  <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
+                    <app-icon name="map" [size]="18" [color]="viewMode === 'active' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
+                    <!-- Collapsed Icon Corner Badge -->
+                    <span *ngIf="isSidebarCollapsed && activeIncidentsCount > 0" class="sidebar-icon-badge sidebar-icon-badge--danger">
+                      {{ activeIncidentsCount > 99 ? '99+' : activeIncidentsCount }}
+                    </span>
+                  </div>
+                  <span *ngIf="!isSidebarCollapsed" class="sidebar-label">Incident Map</span>
+                  <!-- Expanded Right Pill Badge -->
+                  <span *ngIf="!isSidebarCollapsed && activeIncidentsCount > 0" class="sidebar-pill-badge sidebar-pill-badge--danger">
+                    {{ activeIncidentsCount > 99 ? '99+' : activeIncidentsCount }}
+                  </span>
                 </button>
               </div>
             </div>
@@ -76,12 +86,16 @@
               </div>
               <div class="sidebar-section-items">
                 <button id="nav-btn-archive" (click)="selectViewMode('archive')" title="Historical Emergency Incident Logs" class="menu-capsule-link" [class.active]="viewMode === 'archive'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
-                  <app-icon name="history" [size]="18" [color]="viewMode === 'archive' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
-                  <span *ngIf="!isSidebarCollapsed">Log Archive</span>
+                  <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
+                    <app-icon name="history" [size]="18" [color]="viewMode === 'archive' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
+                  </div>
+                  <span *ngIf="!isSidebarCollapsed" class="sidebar-label">Log Archive</span>
                 </button>
                 <button id="nav-btn-analytics" (click)="selectViewMode('analytics')" title="Statistical Incident Reports & Response Times" class="menu-capsule-link" [class.active]="viewMode === 'analytics'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
-                  <app-icon name="chart-pie" [size]="18" [color]="viewMode === 'analytics' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
-                  <span *ngIf="!isSidebarCollapsed">Analytics</span>
+                  <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
+                    <app-icon name="chart-pie" [size]="18" [color]="viewMode === 'analytics' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
+                  </div>
+                  <span *ngIf="!isSidebarCollapsed" class="sidebar-label">Analytics</span>
                 </button>
               </div>
             </div>
@@ -94,12 +108,16 @@
               </div>
               <div class="sidebar-section-items">
                 <button id="nav-btn-broadcast" (click)="selectViewMode('broadcast')" title="Send Emergency Public Advisories & Push Alerts" class="menu-capsule-link" [class.active]="viewMode === 'broadcast'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
-                  <app-icon name="siren" [size]="18" [color]="viewMode === 'broadcast' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
-                  <span *ngIf="!isSidebarCollapsed">Alert Broadcast</span>
+                  <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
+                    <app-icon name="siren" [size]="18" [color]="viewMode === 'broadcast' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
+                  </div>
+                  <span *ngIf="!isSidebarCollapsed" class="sidebar-label">Alert Broadcast</span>
                 </button>
                 <button *ngIf="currentRole === 'admin'" id="nav-btn-feedback" (click)="selectViewMode('feedback')" title="Citizen Incident Reviews & Response Ratings" class="menu-capsule-link" [class.active]="viewMode === 'feedback'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
-                  <app-icon name="message-square" [size]="18" [color]="viewMode === 'feedback' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
-                  <span *ngIf="!isSidebarCollapsed">Feedback</span>
+                  <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
+                    <app-icon name="message-square" [size]="18" [color]="viewMode === 'feedback' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
+                  </div>
+                  <span *ngIf="!isSidebarCollapsed" class="sidebar-label">Feedback</span>
                 </button>
               </div>
             </div>
@@ -112,16 +130,30 @@
               </div>
               <div class="sidebar-section-items">
                 <button id="nav-btn-verifications" (click)="selectViewMode('verifications')" title="Citizen ID & KYC Verification Queue" class="menu-capsule-link" [class.active]="viewMode === 'verifications'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
-                  <app-icon name="id-card" [size]="18" [color]="viewMode === 'verifications' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
-                  <span *ngIf="!isSidebarCollapsed">ID Verifications</span>
+                  <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
+                    <app-icon name="id-card" [size]="18" [color]="viewMode === 'verifications' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
+                    <!-- Collapsed Icon Corner Badge -->
+                    <span *ngIf="isSidebarCollapsed && pendingVerificationsCount > 0" class="sidebar-icon-badge sidebar-icon-badge--warning">
+                      {{ pendingVerificationsCount > 99 ? '99+' : pendingVerificationsCount }}
+                    </span>
+                  </div>
+                  <span *ngIf="!isSidebarCollapsed" class="sidebar-label">ID Verifications</span>
+                  <!-- Expanded Right Pill Badge -->
+                  <span *ngIf="!isSidebarCollapsed && pendingVerificationsCount > 0" class="sidebar-pill-badge sidebar-pill-badge--warning">
+                    {{ pendingVerificationsCount > 99 ? '99+' : pendingVerificationsCount }}
+                  </span>
                 </button>
                 <button id="nav-btn-dispatchers" (click)="selectViewMode('dispatchers')" title="Manage Dispatcher & Responder Staff Accounts" class="menu-capsule-link" [class.active]="viewMode === 'dispatchers'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
-                  <app-icon name="user-gear" [size]="18" [color]="viewMode === 'dispatchers' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
-                  <span *ngIf="!isSidebarCollapsed">Dispatchers</span>
+                  <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
+                    <app-icon name="user-gear" [size]="18" [color]="viewMode === 'dispatchers' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
+                  </div>
+                  <span *ngIf="!isSidebarCollapsed" class="sidebar-label">Dispatchers</span>
                 </button>
                 <button id="nav-btn-citizens" (click)="selectViewMode('citizens')" title="Registered Citizen Accounts & Moderation" class="menu-capsule-link" [class.active]="viewMode === 'citizens'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
-                  <app-icon name="users" [size]="18" [color]="viewMode === 'citizens' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
-                  <span *ngIf="!isSidebarCollapsed">Citizens</span>
+                  <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
+                    <app-icon name="users" [size]="18" [color]="viewMode === 'citizens' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
+                  </div>
+                  <span *ngIf="!isSidebarCollapsed" class="sidebar-label">Citizens</span>
                 </button>
               </div>
             </div>
