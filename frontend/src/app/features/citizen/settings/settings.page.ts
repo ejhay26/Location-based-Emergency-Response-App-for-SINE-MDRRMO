@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -86,6 +86,7 @@ export class SettingsPage implements OnInit {
     public tour: TourService,
     private widgetPin: WidgetPinService,
     private dialog: DialogService,
+    private elRef: ElementRef<HTMLElement>,
   ) {}
 
   ngOnInit() {
@@ -101,7 +102,11 @@ export class SettingsPage implements OnInit {
     const isChecked = event?.detail?.checked !== undefined ? event.detail.checked : !setting.value;
     setting.value = isChecked;
     if (setting.key === 'dark_mode') {
-      this.settings.toggleDarkMode(isChecked, event);
+      // Scoped to THIS component instance's own DOM subtree — see
+      // toggleDarkMode()'s doc comment for why this must never be a global
+      // document.querySelector.
+      const toggleEl = this.elRef.nativeElement.querySelector('.theme-toggle-live') as HTMLElement | null;
+      this.settings.toggleDarkMode(isChecked, event, toggleEl ?? undefined);
     } else {
       this.settings.setBool(setting.key, isChecked);
       if (setting.key === 'reduce_animations') document.documentElement.classList.toggle('reduce-animations', isChecked);

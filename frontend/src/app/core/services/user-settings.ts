@@ -98,10 +98,16 @@ export class UserSettingsService {
    */
   private queuedThemeRequest: { isDark: boolean; x: number; y: number } | null = null;
 
-  /** Resolves click/touch/target coordinates from a toggle event, defaulting to viewport center. */
-  private resolveThemeOrigin(event?: MouseEvent | TouchEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any }): { x: number; y: number } {
+  /** Resolves click/touch/target coordinates from a toggle event, defaulting to viewport center. `originEl`, when supplied, is used FIRST and takes priority over the event entirely — see toggleDarkMode()'s doc comment for why callers should always pass it. */
+  private resolveThemeOrigin(event?: MouseEvent | TouchEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any }, originEl?: HTMLElement): { x: number; y: number } {
     let x = window.innerWidth / 2;
     let y = window.innerHeight / 2;
+    if (originEl && typeof originEl.getBoundingClientRect === 'function') {
+      const rect = originEl.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      }
+    }
     if (event) {
       if (typeof (event as any).clientX === 'number' && (event as any).clientX > 0) {
         x = (event as any).clientX;
@@ -116,16 +122,18 @@ export class UserSettingsService {
           if (rect.width > 0 && rect.height > 0) {
             x = rect.left + rect.width / 2;
             y = rect.top + rect.height / 2;
-          } else {
-            const toggle = document.querySelector('.theme-toggle-live');
-            if (toggle) {
-              const tRect = toggle.getBoundingClientRect();
-              if (tRect.width > 0 && tRect.height > 0) {
-                x = tRect.left + tRect.width / 2;
-                y = tRect.top + tRect.height / 2;
-              }
-            }
           }
+          // Deliberately no document.querySelector('.theme-toggle-live')
+          // fallback here anymore — that was a GLOBAL, document-wide lookup,
+          // unsafe the moment more than one page instance carrying that class
+          // exists in the DOM at once (which this app's IonicRouteStrategy,
+          // configured in main.ts, allows: old routed pages are kept alive
+          // rather than destroyed, so a Settings page visited earlier in the
+          // same warm app process can leave its own .theme-toggle-live behind
+          // for a later document.querySelector to wrongly match instead of
+          // the current page's toggle). Callers now pass their own
+          // ElementRef-scoped element via originEl instead, which can never
+          // collide with another instance — see toggleDarkMode().
         }
       }
     }
@@ -140,9 +148,17 @@ export class UserSettingsService {
    * Spam-proof by LOCKING rather than interrupting: while a reveal is
    * playing, further calls are queued (latest wins) instead of restarting
    * the animation — see queuedThemeRequest above.
+   *
+   * `originEl` should be the toggle element itself, resolved by the CALLER
+   * via its own injected ElementRef (e.g. `this.elRef.nativeElement.querySelector('.theme-toggle-live')`)
+   * — never a global `document.querySelector`. Passing it explicitly is what
+   * keeps this correct even when Ionic's route-reuse strategy (see main.ts)
+   * has kept an older, off-screen instance of the same page (and therefore
+   * the same CSS class) alive elsewhere in the document; the event object
+   * alone can't be trusted to disambiguate between them.
    */
-  async toggleDarkMode(isDark: boolean, event?: MouseEvent | TouchEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any }): Promise<void> {
-    const { x, y } = this.resolveThemeOrigin(event);
+  async toggleDarkMode(isDark: boolean, event?: MouseEvent | TouchEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any }, originEl?: HTMLElement): Promise<void> {
+    const { x, y } = this.resolveThemeOrigin(event, originEl);
 
     if (this.isThemeTransitioning) {
       this.queuedThemeRequest = { isDark, x, y };

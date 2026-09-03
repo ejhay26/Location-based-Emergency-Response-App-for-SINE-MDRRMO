@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -54,7 +54,8 @@ export class SettingsPanel implements OnInit {
     private ui: AdminUiService,
     private api: ApiService,
     private desktopNotifications: DesktopNotificationsService,
-    private router: Router
+    private router: Router,
+    private elRef: ElementRef<HTMLElement>,
   ) {}
 
   ngOnInit(): void {
@@ -80,7 +81,11 @@ export class SettingsPanel implements OnInit {
     const isChecked = event?.detail?.checked !== undefined ? event.detail.checked : !setting.value;
     setting.value = isChecked;
     if (setting.key === 'dark_mode') {
-      this.settings.toggleDarkMode(isChecked, event);
+      // Scoped to THIS component instance's own DOM subtree — see
+      // UserSettingsService.toggleDarkMode()'s doc comment for why this must
+      // never be a global document.querySelector.
+      const toggleEl = this.elRef.nativeElement.querySelector('.theme-toggle-live') as HTMLElement | null;
+      this.settings.toggleDarkMode(isChecked, event, toggleEl ?? undefined);
     } else {
       this.settings.setBool(setting.key, isChecked);
       if (setting.key === 'reduce_animations') {
