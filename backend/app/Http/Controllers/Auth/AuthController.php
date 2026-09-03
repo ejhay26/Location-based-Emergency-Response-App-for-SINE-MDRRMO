@@ -221,6 +221,12 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        // Normalize empty string or whitespace-only inputs to null before validation
+        if ($request->has('valid_id_expiry')) {
+            $rawExpiry = trim((string) $request->input('valid_id_expiry'));
+            $request->merge(['valid_id_expiry' => $rawExpiry !== '' ? $rawExpiry : null]);
+        }
+
         $request->validate([
             'first_name'     => 'required|string',
             'last_name'      => 'required|string',
@@ -344,11 +350,15 @@ class AuthController extends Controller
                 'setup_completed' => false,
             ]);
 
+            $typesWithExpiry = ["Driver's License", 'Philippine Passport', 'Postal ID', 'PRC License'];
+            $hasExpiry = in_array($request->valid_id_type, $typesWithExpiry, true);
+            $finalExpiry = ($hasExpiry && !empty($request->valid_id_expiry)) ? $request->valid_id_expiry : null;
+
             UserVerification::create([
                 'user_id'              => $user->user_id,
                 'valid_id_type'        => $request->valid_id_type,
                 'valid_id_number'      => $request->valid_id_number,
-                'valid_id_expiry'      => $request->valid_id_expiry,
+                'valid_id_expiry'      => $finalExpiry,
                 'valid_id_details'     => is_array($request->valid_id_details) ? $request->valid_id_details : (json_decode($request->valid_id_details ?? '', true) ?? null),
                 'valid_id_proof'       => $idUrl,
                 'valid_id_proof_back'  => $idBackUrl,
@@ -360,7 +370,9 @@ class AuthController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Registration Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(['message' => 'Registration failed: ' . $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Registration could not be completed. Please try again in a few moments.'
+            ], 500);
         }
 
         $channel = $request->input('otp_channel', 'email');

@@ -95,7 +95,7 @@ export class RegisterPage implements OnDestroy {
       const dayStr = String(this.expiryDay).padStart(2, '0');
       this.userData.valid_id_expiry = `${this.expiryYear}-${this.expiryMonth}-${dayStr}`;
     } else {
-      this.userData.valid_id_expiry = '';
+      this.userData.valid_id_expiry = null;
     }
   }
 
@@ -156,7 +156,7 @@ export class RegisterPage implements OnDestroy {
     valid_id_image_back: '',
     valid_id_type: '',
     valid_id_number: '',
-    valid_id_expiry: '',
+    valid_id_expiry: null as string | null,
     valid_id_details: null as any,
     selfie_with_id_image: '',
     otp_channel: 'email' as 'email' | 'sms'
@@ -164,7 +164,7 @@ export class RegisterPage implements OnDestroy {
 
   onIdTypeChange(): void {
     this.userData.valid_id_number = '';
-    this.userData.valid_id_expiry = '';
+    this.userData.valid_id_expiry = null;
     this.userData.valid_id_details = null;
     this.idProfession = '';
     this.expiryMonth = '';
@@ -321,7 +321,16 @@ export class RegisterPage implements OnDestroy {
   submitRegistration(): void {
     if (this.isRegistering) return;
     this.isRegistering = true;
-    this.api.register(this.userData).subscribe({
+
+    const typesWithExpiry = ["Driver's License", 'Philippine Passport', 'Postal ID', 'PRC License'];
+    const hasExpiry = typesWithExpiry.includes(this.userData.valid_id_type);
+    const payload = {
+      ...this.userData,
+      valid_id_expiry: hasExpiry && this.userData.valid_id_expiry?.trim() ? this.userData.valid_id_expiry.trim() : null,
+      valid_id_number: this.userData.valid_id_number?.trim() || '',
+    };
+
+    this.api.register(payload).subscribe({
       next: () => {
         this.isRegistering = false;
         const isSms = this.userData.otp_channel === 'sms';

@@ -31,6 +31,15 @@ class UserVerification extends Model
         'reviewed_at'      => 'datetime',
     ];
 
+    /**
+     * Ensure any empty string or whitespace passed for valid_id_expiry
+     * is converted to NULL before reaching MySQL's strict DATE column.
+     */
+    public function setValidIdExpiryAttribute($value): void
+    {
+        $this->attributes['valid_id_expiry'] = (!empty($value) && trim((string) $value) !== '') ? trim($value) : null;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
