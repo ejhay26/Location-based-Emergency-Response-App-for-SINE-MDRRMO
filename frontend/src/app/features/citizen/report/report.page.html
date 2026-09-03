@@ -30,7 +30,7 @@
         (mediaFilesChange)="mediaFiles = $event">
       </app-report-media>
 
-      <div id="tour-map-area" [class.tour-highlight]="tour.targetId() === 'tour-map-area'">
+      <div id="tour-location-card" [class.tour-highlight]="tour.targetId() === 'tour-location-card' || tour.targetId() === 'tour-map-area'">
         <app-report-map
           [reportType]="reportType"
           [submitLabel]="reportType === 'hazard' ? 'Submit Hazard Report' : 'Send Emergency SOS'"

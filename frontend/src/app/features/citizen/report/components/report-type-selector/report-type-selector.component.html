@@ -11,7 +11,7 @@
 
 <div *ngIf="reportType === 'hazard'">
   <p style="font-weight:bold;font-size:14px;margin:0 0 10px 0;color:var(--ion-text-color);">What type of hazard?</p>
-  <div id="tour-hazard-grid" [class.tour-highlight]="tour.targetId() === 'tour-hazard-grid'" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;">
+  <div id="tour-hazard-grid" [class.tour-highlight]="tour.targetId() === 'tour-hazard-grid' || tour.targetId() === 'tour-incident-grid'" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px;">
     <div *ngFor="let cat of hazardCategories" (click)="selectHazard(cat)" [style.border]="selectedHazardId===cat.id?'3px solid #ffc409':'2px solid var(--ion-color-step-100, rgba(0,0,0,0.08))'" [style.background]="selectedHazardId===cat.id?'#ffc40920':'var(--ion-card-background,white)'" style="border-radius:18px;padding:20px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:all 0.2s;">
       <app-icon [name]="cat.icon" [size]="32" [color]="cat.color" style="margin-bottom:8px;"></app-icon>
       <div style="font-weight:bold;font-size:13px;color:var(--ion-text-color);">{{ cat.name }}</div>

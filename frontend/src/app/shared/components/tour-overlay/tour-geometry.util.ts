@@ -91,6 +91,18 @@ export class TourGeometryUtil {
       if (altEl && altEl.offsetParent !== null) return altEl;
     }
 
+    // 2c. Incident / Hazard category grid alias
+    if (cleanId === 'tour-incident-grid' || cleanId === 'tour-hazard-grid') {
+      const gridEl = document.getElementById('tour-incident-grid') || document.getElementById('tour-hazard-grid');
+      if (gridEl && gridEl.offsetParent !== null) return gridEl;
+    }
+
+    // 2d. Map area / location card alias
+    if (cleanId === 'tour-location-card' || cleanId === 'tour-map-area') {
+      const mapEl = document.getElementById('tour-location-card') || document.getElementById('tour-map-area');
+      if (mapEl && mapEl.offsetParent !== null) return mapEl;
+    }
+
     // 2c. Mobile panel aliases
     if (isMobile) {
       if (cleanId === 'admin-map-toolbar' || cleanId === 'cad-map-toolbar') {
