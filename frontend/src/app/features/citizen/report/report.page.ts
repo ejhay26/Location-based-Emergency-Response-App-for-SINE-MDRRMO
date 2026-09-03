@@ -12,6 +12,7 @@ import { NetworkService } from '../../../core/services/network';
 import { OfflineQueueService } from '../../../core/services/offline-queue';
 import { DialogService } from '../../../core/services/dialog.service';
 import { TourService } from '../../../core/services/tour';
+import { LocationService } from '../../../core/services/location';
 import { PressFeedbackDirective } from '../../../shared/directives/press-feedback.directive';
 import { ReportTypeSelectorComponent } from './components/report-type-selector/report-type-selector.component';
 import type { ConfirmDialogDetail } from '../../../core/services/dialog.service';
@@ -41,6 +42,17 @@ export class ReportPage implements OnDestroy {
   private offlineQueue = inject(OfflineQueueService);
   private modalCtrl    = inject(ModalController);
   public  tour        = inject(TourService);
+  /**
+   * Perf: continuous high-accuracy GPS tracking (LocationService.start())
+   * is now scoped to exactly the lifetime of this page/modal being open,
+   * instead of running for the whole logged-in session (see
+   * app.component.ts, where the old always-on start() call was removed).
+   * The report map is the ONLY consumer of LocationService.cachedPosition/
+   * the live watch in the whole app — Home, History, Profile, Settings etc.
+   * never read it — so there's no reason GPS should be actively polling
+   * while the citizen is just browsing elsewhere.
+   */
+  private locationSvc  = inject(LocationService);
 
   @ViewChild(ReportMapComponent) reportMapCmp?: ReportMapComponent;
   @ViewChild(ReportTypeSelectorComponent) typeSelectorCmp?: ReportTypeSelectorComponent;
@@ -82,6 +94,7 @@ export class ReportPage implements OnDestroy {
   constructor() {}
 
   ionViewDidEnter() {
+    this.locationSvc.start();
     this.reportMapCmp?.tryInit();
     setTimeout(() => this.reportMapCmp?.tryInit(), 150);
     setTimeout(() => this.reportMapCmp?.tryInit(), 400);
@@ -89,10 +102,12 @@ export class ReportPage implements OnDestroy {
 
   ionViewWillLeave() {
     this.reportMapCmp?.cleanup();
+    this.locationSvc.stop();
   }
 
   ngOnDestroy() {
     this.reportMapCmp?.cleanup();
+    this.locationSvc.stop();
   }
 
   onCoordsChanged(coords: ReportCoords | null) {

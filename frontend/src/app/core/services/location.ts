@@ -15,7 +15,45 @@ export class LocationService implements OnDestroy {
 
   constructor(private userSettings: UserSettingsService) {}
 
-  async start(): Promise<void> {
+  /**
+   * Seed initial position fix into cache on app boot or login without
+   * starting a persistent, battery-draining GPS watcher.
+   */
+  async seedPosition(): Promise<void> {
+    if (!this.userSettings.getBool('location_auto_fetch')) return;
+
+    try {
+      const perm = await Geolocation.requestPermissions()
+        .catch(() => ({ location: 'denied' as const }));
+      if (perm.location === 'denied') return;
+
+      const pos = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+      }).catch(async () => {
+        return await Geolocation.getCurrentPosition({
+          enableHighAccuracy: false,
+          timeout: 6000,
+        }).catch(() => null);
+      });
+
+      if (pos?.coords) {
+        this.cachedPosition = {
+          lat:       pos.coords.latitude,
+          lng:       pos.coords.longitude,
+          accuracy:  pos.coords.accuracy,
+          timestamp: pos.timestamp,
+        };
+        this.positionSubject.next(this.cachedPosition);
+      }
+    } catch { /* GPS unavailable */ }
+  }
+
+  /**
+   * Start continuous high-accuracy live tracking.
+   * Scoped to active map/report views (e.g. ReportMapComponent).
+   */
+  async startLiveTracking(): Promise<void> {
     if (this.watchId) return;
     if (!this.userSettings.getBool('location_auto_fetch')) return;
 
@@ -24,25 +62,6 @@ export class LocationService implements OnDestroy {
         .catch(() => ({ location: 'denied' as const }));
       if (perm.location === 'denied') return;
 
-      // Seed the cache immediately with a one-shot fix so the report page
-      // has a position on the very first open, before watchPosition fires.
-      try {
-        const initial = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: true,
-          timeout: 10000,
-        });
-        this.cachedPosition = {
-          lat:       initial.coords.latitude,
-          lng:       initial.coords.longitude,
-          accuracy:  initial.coords.accuracy,
-          timestamp: initial.timestamp,
-        };
-        this.positionSubject.next(this.cachedPosition);
-      } catch {
-        // GPS cold start failed — watch will populate cache when it can.
-      }
-
-      // Start continuous watch to keep cache fresh.
       this.watchId = await Geolocation.watchPosition(
         { enableHighAccuracy: true, timeout: 15000 },
         (pos, err) => {
@@ -59,15 +78,34 @@ export class LocationService implements OnDestroy {
     } catch { /* GPS unavailable */ }
   }
 
-  stop(): void {
+  /**
+   * Stop continuous high-accuracy live tracking when leaving map/report views.
+   * Preserves the last cached position for future fast lookups.
+   */
+  async stopLiveTracking(): Promise<void> {
     if (this.watchId) {
-      Geolocation.clearWatch({ id: this.watchId }).catch(() => {});
+      await Geolocation.clearWatch({ id: this.watchId }).catch(() => {});
       this.watchId = null;
     }
+  }
+
+  /** Default start method: seeds initial position fix on app start/login. */
+  async start(): Promise<void> {
+    await this.seedPosition();
+  }
+
+  /** Fully stop tracking and clear cache. */
+  stop(): void {
+    this.stopLiveTracking();
     this.cachedPosition = null;
   }
 
-  async restart(): Promise<void> { this.stop(); await this.start(); }
+  async restart(): Promise<void> {
+    this.stop();
+    await this.seedPosition();
+  }
 
-  ngOnDestroy() { this.stop(); }
+  ngOnDestroy() {
+    this.stop();
+  }
 }

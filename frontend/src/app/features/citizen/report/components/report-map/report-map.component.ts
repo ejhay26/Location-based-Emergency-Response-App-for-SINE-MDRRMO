@@ -176,6 +176,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   /** Called by the parent page's ionViewDidEnter or whenever the map container becomes visible. */
   tryInit() {
     if (!this.mapCanvasRef?.nativeElement) return;
+    this.locationSvc.startLiveTracking();
     if (!this.map) {
       this.mapStyle = this.userSettings.get('map_default_style') as 'street' | 'satellite';
       this.initMap();
@@ -189,6 +190,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
 
   /** Called by the parent page's ionViewWillLeave / ngOnDestroy. */
   cleanup() {
+    this.locationSvc.stopLiveTracking();
     this.locationSub?.unsubscribe();
     this.locationSub = undefined;
     this.resizeObserver?.disconnect();
