@@ -221,28 +221,56 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        // Normalize empty string or whitespace-only inputs to null before validation
+        // Prevent empty strings or whitespace-only values from causing SQL validation/type errors
+        $normalizedData = [];
         if ($request->has('valid_id_expiry')) {
             $rawExpiry = trim((string) $request->input('valid_id_expiry'));
-            $request->merge(['valid_id_expiry' => $rawExpiry !== '' ? $rawExpiry : null]);
+            $normalizedData['valid_id_expiry'] = $rawExpiry !== '' ? $rawExpiry : null;
+        }
+        if ($request->has('valid_id_number')) {
+            $rawNumber = trim((string) $request->input('valid_id_number'));
+            $normalizedData['valid_id_number'] = $rawNumber !== '' ? $rawNumber : null;
+        }
+        if ($request->has('email')) {
+            $normalizedData['email'] = strtolower(trim((string) $request->input('email')));
+        }
+        if ($request->has('username')) {
+            $normalizedData['username'] = strtolower(trim((string) $request->input('username')));
+        }
+        if ($request->has('first_name')) {
+            $normalizedData['first_name'] = trim((string) $request->input('first_name'));
+        }
+        if ($request->has('last_name')) {
+            $normalizedData['last_name'] = trim((string) $request->input('last_name'));
+        }
+        if ($request->has('phone')) {
+            $normalizedData['phone'] = trim((string) $request->input('phone'));
+        }
+        if ($request->has('birthdate')) {
+            $rawBirthdate = trim((string) $request->input('birthdate'));
+            $normalizedData['birthdate'] = $rawBirthdate !== '' ? $rawBirthdate : null;
+        }
+        if (!empty($normalizedData)) {
+            $request->merge($normalizedData);
         }
 
         $request->validate([
-            'first_name'     => 'required|string',
-            'last_name'      => 'required|string',
-            'phone'          => 'required|string',
-            'birthdate'      => 'required|date|before_or_equal:today',
-            'username'       => 'required|string|min:3|max:20',
-            'email'          => 'required|email',
-            'password'       => CommonRules::strongPassword(),
-            'barangay_id'    => 'required|integer',
+            'first_name'          => 'required|string|max:100',
+            'last_name'           => 'required|string|max:100',
+            'phone'               => 'required|string|max:20',
+            'birthdate'           => 'required|date|after:1900-01-01|before_or_equal:today',
+            'username'            => 'required|string|min:3|max:20|regex:/^[a-zA-Z0-9_]+$/',
+            'email'               => 'required|email|max:100',
+            'password'            => CommonRules::strongPassword(),
+            'barangay_id'         => 'required|integer|exists:barangays,barangay_id',
             'valid_id_image'      => 'required|string',
             'valid_id_image_back' => 'required|string',
-            'valid_id_type'  => 'required|string',
-            'valid_id_number' => 'nullable|string|max:100',
-            'valid_id_expiry' => 'nullable|date',
-            'valid_id_details' => 'nullable',
-            'selfie_with_id_image' => 'required|string',
+            'valid_id_type'       => 'required|string|max:50',
+            'valid_id_number'     => 'nullable|string|max:100',
+            'valid_id_expiry'     => 'nullable|date',
+            'valid_id_details'    => 'nullable',
+            'selfie_with_id_image'=> 'required|string',
+            'otp_channel'         => 'nullable|in:email,sms',
         ]);
 
         $normalizedPhone = PhoneNumber::normalize($request->phone);
@@ -354,12 +382,19 @@ class AuthController extends Controller
             $hasExpiry = in_array($request->valid_id_type, $typesWithExpiry, true);
             $finalExpiry = ($hasExpiry && !empty($request->valid_id_expiry)) ? $request->valid_id_expiry : null;
 
+            $finalDetails = null;
+            if ($request->valid_id_type === 'PRC License' && !empty($request->valid_id_details)) {
+                $finalDetails = is_array($request->valid_id_details)
+                    ? $request->valid_id_details
+                    : (json_decode($request->valid_id_details ?? '', true) ?? null);
+            }
+
             UserVerification::create([
                 'user_id'              => $user->user_id,
                 'valid_id_type'        => $request->valid_id_type,
-                'valid_id_number'      => $request->valid_id_number,
+                'valid_id_number'      => !empty($request->valid_id_number) ? trim($request->valid_id_number) : null,
                 'valid_id_expiry'      => $finalExpiry,
-                'valid_id_details'     => is_array($request->valid_id_details) ? $request->valid_id_details : (json_decode($request->valid_id_details ?? '', true) ?? null),
+                'valid_id_details'     => $finalDetails,
                 'valid_id_proof'       => $idUrl,
                 'valid_id_proof_back'  => $idBackUrl,
                 'selfie_with_id_proof' => $selfieUrl,

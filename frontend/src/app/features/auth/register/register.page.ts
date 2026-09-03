@@ -326,8 +326,18 @@ export class RegisterPage implements OnDestroy {
     const hasExpiry = typesWithExpiry.includes(this.userData.valid_id_type);
     const payload = {
       ...this.userData,
+      first_name: this.userData.first_name?.trim() || '',
+      last_name: this.userData.last_name?.trim() || '',
+      username: this.userData.username?.trim().toLowerCase() || '',
+      email: this.userData.email?.trim().toLowerCase() || '',
+      phone: this.userData.phone?.trim() || '',
+      birthdate: this.userData.birthdate?.trim() || '',
+      barangay_id: Number(this.userData.barangay_id),
+      valid_id_type: this.userData.valid_id_type?.trim() || '',
+      valid_id_number: this.userData.valid_id_number?.trim() || null,
       valid_id_expiry: hasExpiry && this.userData.valid_id_expiry?.trim() ? this.userData.valid_id_expiry.trim() : null,
-      valid_id_number: this.userData.valid_id_number?.trim() || '',
+      valid_id_details: (this.userData.valid_id_type === 'PRC License' && this.idProfession.trim()) ? { profession: this.idProfession.trim() } : null,
+      otp_channel: this.userData.otp_channel === 'sms' ? 'sms' : 'email',
     };
 
     this.api.register(payload).subscribe({

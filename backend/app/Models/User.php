@@ -23,6 +23,21 @@ class User extends Authenticatable
 
     protected $hidden = ['password'];
 
+    public function setEmailAttribute($value): void
+    {
+        $this->attributes['email'] = (!empty($value) && trim((string) $value) !== '') ? strtolower(trim((string) $value)) : null;
+    }
+
+    public function setBanReasonAttribute($value): void
+    {
+        $this->attributes['ban_reason'] = (!empty($value) && trim((string) $value) !== '') ? trim($value) : null;
+    }
+
+    public function setBannedAtAttribute($value): void
+    {
+        $this->attributes['banned_at'] = (!empty($value) && trim((string) $value) !== '') ? trim($value) : null;
+    }
+
     protected $with = ['profile'];
 
     protected $appends = [
