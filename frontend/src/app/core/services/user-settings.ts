@@ -113,8 +113,19 @@ export class UserSettingsService {
         const targetEl = (event as any).target || (event as any).currentTarget;
         if (targetEl && typeof targetEl.getBoundingClientRect === 'function') {
           const rect = targetEl.getBoundingClientRect();
-          x = rect.left + rect.width / 2;
-          y = rect.top + rect.height / 2;
+          if (rect.width > 0 && rect.height > 0) {
+            x = rect.left + rect.width / 2;
+            y = rect.top + rect.height / 2;
+          } else {
+            const toggle = document.querySelector('.theme-toggle-live');
+            if (toggle) {
+              const tRect = toggle.getBoundingClientRect();
+              if (tRect.width > 0 && tRect.height > 0) {
+                x = tRect.left + tRect.width / 2;
+                y = tRect.top + tRect.height / 2;
+              }
+            }
+          }
         }
       }
     }

@@ -98,13 +98,15 @@ export class SettingsPage implements OnInit {
   }
 
   onToggle(setting: SettingToggle, event?: any) {
+    const isChecked = event?.detail?.checked !== undefined ? event.detail.checked : !setting.value;
+    setting.value = isChecked;
     if (setting.key === 'dark_mode') {
-      this.settings.toggleDarkMode(setting.value, event);
+      this.settings.toggleDarkMode(isChecked, event);
     } else {
-      this.settings.setBool(setting.key, setting.value);
-      if (setting.key === 'reduce_animations') document.documentElement.classList.toggle('reduce-animations', setting.value);
+      this.settings.setBool(setting.key, isChecked);
+      if (setting.key === 'reduce_animations') document.documentElement.classList.toggle('reduce-animations', isChecked);
       if (setting.key === 'location_auto_fetch') {
-        if (setting.value) this.locationSvc.restart(); else this.locationSvc.stop();
+        if (isChecked) this.locationSvc.restart(); else this.locationSvc.stop();
       }
     }
   }
