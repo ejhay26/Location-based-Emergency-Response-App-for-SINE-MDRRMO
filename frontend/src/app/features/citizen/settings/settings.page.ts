@@ -98,15 +98,35 @@ export class SettingsPage implements OnInit {
     this.widgetPin.isAvailable().then(v => this.widgetAvailable = v);
   }
 
+  private lastToggleOrigin: { x: number; y: number } | null = null;
+
+  onTogglePointer(e: any): void {
+    const clientX = e?.clientX ?? e?.touches?.[0]?.clientX ?? e?.changedTouches?.[0]?.clientX;
+    const clientY = e?.clientY ?? e?.touches?.[0]?.clientY ?? e?.changedTouches?.[0]?.clientY;
+    if (typeof clientX === 'number' && typeof clientY === 'number' && clientX > 0 && clientY > 0) {
+      this.lastToggleOrigin = { x: Math.round(clientX), y: Math.round(clientY) };
+    }
+  }
+
   onToggle(setting: SettingToggle, event?: any) {
     const isChecked = event?.detail?.checked !== undefined ? event.detail.checked : !setting.value;
     setting.value = isChecked;
     if (setting.key === 'dark_mode') {
-      // Scoped to THIS component instance's own DOM subtree — see
-      // toggleDarkMode()'s doc comment for why this must never be a global
-      // document.querySelector.
       const toggleEl = this.elRef.nativeElement.querySelector('.theme-toggle-live') as HTMLElement | null;
-      this.settings.toggleDarkMode(isChecked, event, toggleEl ?? undefined);
+      let originCoords = this.lastToggleOrigin;
+      this.lastToggleOrigin = null;
+
+      if (!originCoords && toggleEl && typeof toggleEl.getBoundingClientRect === 'function') {
+        const rect = toggleEl.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          originCoords = {
+            x: Math.round(rect.left + rect.width / 2),
+            y: Math.round(rect.top + rect.height / 2),
+          };
+        }
+      }
+
+      this.settings.toggleDarkMode(isChecked, event, originCoords ?? toggleEl ?? undefined);
     } else {
       this.settings.setBool(setting.key, isChecked);
       if (setting.key === 'reduce_animations') document.documentElement.classList.toggle('reduce-animations', isChecked);

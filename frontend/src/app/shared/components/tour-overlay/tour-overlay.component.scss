@@ -12,6 +12,8 @@
   background: rgba(0, 0, 0, 0.65);
   pointer-events: all; /* blocks taps everywhere EXCEPT the clipped-out hole */
   animation: tourFadeIn 0.18s ease;
+  transform: translateZ(0);
+  will-change: clip-path;
 }
 
 /* Precise spotlight ring, traced from the exact same measured shape as the
@@ -27,6 +29,8 @@
   height: 100%;
   z-index: 98600;
   pointer-events: none;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .tour-ring {

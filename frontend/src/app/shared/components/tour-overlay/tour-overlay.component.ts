@@ -179,13 +179,23 @@ export class TourOverlayComponent implements OnInit, OnDestroy {
 
     // Subsequent steps — spring animate
     this.positionText(targetHole);
+    const dimEl = document.querySelector('.tour-dim') as HTMLElement | null;
+    const ringPathEl = document.querySelector('.tour-ring') as SVGPathElement | null;
+
     this.spring.animateTo(
       this.hole,
       el,
       (interpolated) => {
         this.hole = interpolated;
-        this.renderCurrentHole();
-        this.cdr.detectChanges();
+        const hp = TourGeometryUtil.buildHoleShapePath(interpolated);
+        if (dimEl) {
+          const clip = `path(evenodd, "M0,0H${this.vw}V${this.vh}H0Z${hp}")`;
+          dimEl.style.clipPath = clip;
+          (dimEl.style as any).webkitClipPath = clip;
+        }
+        if (ringPathEl) {
+          ringPathEl.setAttribute('d', hp);
+        }
       },
       (finalHole) => {
         this.hole = { ...finalHole };

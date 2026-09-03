@@ -16,8 +16,12 @@
           <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
           <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
         </ion-label>
-        <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:8px;">{{ s.value ? 'ON' : 'OFF' }}</span>
-        <ion-toggle mode="ios" slot="end" color="danger" [class.theme-toggle-live]="s.key === 'dark_mode'" [checked]="s.value" (ionChange)="onToggle(s, $event)"></ion-toggle>
+        <ion-toggle mode="ios" slot="end" color="danger"
+          [class.theme-toggle-live]="s.key === 'dark_mode'"
+          [checked]="s.value"
+          (pointerdown)="s.key === 'dark_mode' ? onTogglePointer($event) : null"
+          (touchstart)="s.key === 'dark_mode' ? onTogglePointer($event) : null"
+          (ionChange)="onToggle(s, $event)"></ion-toggle>
       </ion-item>
     </div>
 

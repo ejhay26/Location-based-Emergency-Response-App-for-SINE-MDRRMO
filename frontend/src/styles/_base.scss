@@ -256,10 +256,12 @@ ion-content .inset-group:nth-of-type(n+5),
 }
 
 html[data-theme-anim="to-dark"]::view-transition-new(root) {
-  animation: sine-theme-reveal-out var(--reveal-duration, 1000ms) var(--reveal-easing, cubic-bezier(0.16, 1, 0.3, 1)) forwards !important;
+  animation: sine-theme-reveal-out var(--reveal-duration, 400ms) var(--reveal-easing, cubic-bezier(0.2, 0.9, 0.3, 1)) forwards !important;
+  will-change: clip-path;
 }
 html[data-theme-anim="to-light"]::view-transition-old(root) {
-  animation: sine-theme-reveal-in var(--reveal-duration, 1000ms) var(--reveal-easing, cubic-bezier(0.16, 1, 0.3, 1)) forwards !important;
+  animation: sine-theme-reveal-in var(--reveal-duration, 400ms) var(--reveal-easing, cubic-bezier(0.2, 0.9, 0.3, 1)) forwards !important;
+  will-change: clip-path;
 }
 
 /* Stacking:
@@ -293,19 +295,6 @@ html.theme-transitioning *,
 html.theme-transitioning *::before,
 html.theme-transitioning *::after {
   transition: none !important;
-}
-
-/* Keep the Dark Mode toggle switch itself OUT of the root reveal sweep.
-   Giving it its own view-transition-name pulls it into its own transition
-   group — the browser paints named groups on top of ::view-transition-
-   group(root) by default, so the switch stays fully visible/undisturbed
-   throughout the circle animation instead of being swept over along with
-   the rest of the page. Only ever applied to the single dark-mode row
-   (see settings.page.html) — view-transition-name must be unique per
-   element captured at once, so this must never be reused on more than one
-   simultaneously-rendered element. */
-.theme-toggle-live {
-  view-transition-name: theme-toggle-live;
 }
 
 

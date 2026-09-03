@@ -68,12 +68,12 @@
       </div>
 
       <!-- Barangay preview -->
-      <div *ngIf="resolvedBarangayName" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:16px;z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.68);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.25);">
+      <div *ngIf="resolvedBarangayName" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:16px;z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(28,28,30,0.92);border:1px solid rgba(255,255,255,0.15);color:white;font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.35);">
         <app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon>{{ resolvedBarangayName }}
       </div>
 
       <!-- Drag hint -->
-      <div *ngIf="showMapHint" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.68);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;">
+      <div *ngIf="showMapHint" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(28,28,30,0.92);border:1px solid rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.35);">
         <span>Drag map to position pin</span>
       </div>
 
@@ -83,13 +83,13 @@
 
     <!-- Compress (Exit Fullscreen) Button -->
     <button type="button" (click)="onFullscreenBtnClick($event)" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
-      style="position:absolute;top:max(12px,calc(env(safe-area-inset-top,12px) + 6px));right:14px;z-index:1002;width:44px;height:44px;border-radius:14px;border:none;background:rgba(0,0,0,0.65);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.3);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto !important;transition:transform 0.15s ease;">
+      style="position:absolute;top:max(12px,calc(env(safe-area-inset-top,12px) + 6px));right:14px;z-index:1002;width:44px;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(28,28,30,0.92);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.35);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto !important;transition:transform 0.15s ease;">
       <app-icon name="compress" [size]="18" color="#ffffff"></app-icon>
     </button>
 
     <!-- Use My Location Floating Pill -->
     <button type="button" (click)="getCurrentLocation()"
-      style="position:absolute;bottom:calc(88px + env(safe-area-inset-bottom,0px));right:16px;z-index:1002;background:var(--ion-card-background,#fff);color:var(--ion-text-color);border:var(--card-border, 1px solid rgba(0,0,0,0.1));box-shadow:0 4px 18px rgba(0,0,0,0.2);backdrop-filter:blur(12px);border-radius:24px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.15s ease;">
+      style="position:absolute;bottom:calc(88px + env(safe-area-inset-bottom,0px));right:16px;z-index:1002;background:var(--ion-card-background,#fff);color:var(--ion-text-color);border:var(--card-border, 1px solid rgba(0,0,0,0.1));box-shadow:0 4px 18px rgba(0,0,0,0.25);border-radius:24px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.15s ease;">
       <app-icon name="map-pin" [size]="15" color="var(--ion-color-danger)"></app-icon>
       <span>Use My Location</span>
     </button>

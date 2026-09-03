@@ -98,45 +98,68 @@ export class UserSettingsService {
    */
   private queuedThemeRequest: { isDark: boolean; x: number; y: number } | null = null;
 
-  /** Resolves click/touch/target coordinates from a toggle event, defaulting to viewport center. `originEl`, when supplied, is used FIRST and takes priority over the event entirely — see toggleDarkMode()'s doc comment for why callers should always pass it. */
-  private resolveThemeOrigin(event?: MouseEvent | TouchEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any }, originEl?: HTMLElement): { x: number; y: number } {
-    let x = window.innerWidth / 2;
-    let y = window.innerHeight / 2;
+  /** Resolves click/touch/target coordinates from a toggle event, defaulting to viewport center. Callers can pass explicit { x, y } coordinates directly, or an HTMLElement origin. */
+  private resolveThemeOrigin(
+    event?: MouseEvent | TouchEvent | PointerEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any },
+    origin?: HTMLElement | { x: number; y: number }
+  ): { x: number; y: number } {
+    const vw = window.innerWidth || 360;
+    const vh = window.innerHeight || 640;
+    let x = Math.round(vw / 2);
+    let y = Math.round(vh / 2);
+
+    // 1. Direct explicit coordinates take highest precedence
+    if (origin && typeof (origin as any).x === 'number' && typeof (origin as any).y === 'number') {
+      const ox = (origin as any).x;
+      const oy = (origin as any).y;
+      if (ox >= 0 && ox <= vw && oy >= 0 && oy <= vh) {
+        return { x: Math.round(ox), y: Math.round(oy) };
+      }
+    }
+
+    // 2. Direct physical pointer / touch coordinates from the user's gesture
+    if (event) {
+      const clientX = (event as any).clientX ??
+        (event as TouchEvent).touches?.[0]?.clientX ??
+        (event as TouchEvent).changedTouches?.[0]?.clientX;
+      const clientY = (event as any).clientY ??
+        (event as TouchEvent).touches?.[0]?.clientY ??
+        (event as TouchEvent).changedTouches?.[0]?.clientY;
+
+      if (typeof clientX === 'number' && typeof clientY === 'number' && clientX > 0 && clientY > 0) {
+        return {
+          x: Math.max(0, Math.min(vw, Math.round(clientX))),
+          y: Math.max(0, Math.min(vh, Math.round(clientY))),
+        };
+      }
+    }
+
+    // 3. Element bounding rect relative to the active viewport
+    const originEl = (origin instanceof HTMLElement) ? origin : null;
     if (originEl && typeof originEl.getBoundingClientRect === 'function') {
       const rect = originEl.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0) {
-        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        return {
+          x: Math.max(0, Math.min(vw, Math.round(rect.left + rect.width / 2))),
+          y: Math.max(0, Math.min(vh, Math.round(rect.top + rect.height / 2))),
+        };
       }
     }
+
+    // 4. Target element on the event itself
     if (event) {
-      if (typeof (event as any).clientX === 'number' && (event as any).clientX > 0) {
-        x = (event as any).clientX;
-        y = (event as any).clientY ?? y;
-      } else if ((event as TouchEvent).touches?.[0]) {
-        x = (event as TouchEvent).touches[0].clientX;
-        y = (event as TouchEvent).touches[0].clientY;
-      } else {
-        const targetEl = (event as any).target || (event as any).currentTarget;
-        if (targetEl && typeof targetEl.getBoundingClientRect === 'function') {
-          const rect = targetEl.getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) {
-            x = rect.left + rect.width / 2;
-            y = rect.top + rect.height / 2;
-          }
-          // Deliberately no document.querySelector('.theme-toggle-live')
-          // fallback here anymore — that was a GLOBAL, document-wide lookup,
-          // unsafe the moment more than one page instance carrying that class
-          // exists in the DOM at once (which this app's IonicRouteStrategy,
-          // configured in main.ts, allows: old routed pages are kept alive
-          // rather than destroyed, so a Settings page visited earlier in the
-          // same warm app process can leave its own .theme-toggle-live behind
-          // for a later document.querySelector to wrongly match instead of
-          // the current page's toggle). Callers now pass their own
-          // ElementRef-scoped element via originEl instead, which can never
-          // collide with another instance — see toggleDarkMode().
+      const targetEl = (event as any).target || (event as any).currentTarget;
+      if (targetEl && typeof targetEl.getBoundingClientRect === 'function') {
+        const rect = targetEl.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          return {
+            x: Math.max(0, Math.min(vw, Math.round(rect.left + rect.width / 2))),
+            y: Math.max(0, Math.min(vh, Math.round(rect.top + rect.height / 2))),
+          };
         }
       }
     }
+
     return { x, y };
   }
 
@@ -148,28 +171,26 @@ export class UserSettingsService {
    * Spam-proof by LOCKING rather than interrupting: while a reveal is
    * playing, further calls are queued (latest wins) instead of restarting
    * the animation — see queuedThemeRequest above.
-   *
-   * `originEl` should be the toggle element itself, resolved by the CALLER
-   * via its own injected ElementRef (e.g. `this.elRef.nativeElement.querySelector('.theme-toggle-live')`)
-   * — never a global `document.querySelector`. Passing it explicitly is what
-   * keeps this correct even when Ionic's route-reuse strategy (see main.ts)
-   * has kept an older, off-screen instance of the same page (and therefore
-   * the same CSS class) alive elsewhere in the document; the event object
-   * alone can't be trusted to disambiguate between them.
    */
-  async toggleDarkMode(isDark: boolean, event?: MouseEvent | TouchEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any }, originEl?: HTMLElement): Promise<void> {
-    const { x, y } = this.resolveThemeOrigin(event, originEl);
+  async toggleDarkMode(
+    isDark: boolean,
+    event?: MouseEvent | TouchEvent | PointerEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any },
+    origin?: HTMLElement | { x: number; y: number }
+  ): Promise<void> {
+    const { x, y } = this.resolveThemeOrigin(event, origin);
 
     if (this.isThemeTransitioning) {
-      this.queuedThemeRequest = { isDark, x, y };
+      // Only queue if the requested state differs from the state actively being transitioned to
+      if (isDark !== this.getBool('dark_mode')) {
+        this.queuedThemeRequest = { isDark, x, y };
+      }
       return;
     }
 
     await this.runThemeReveal(isDark, x, y);
 
-    // Replay exactly one follow-up transition if spam-tapping queued a
-    // different end-state while the circle above was playing.
-    while (this.queuedThemeRequest && this.queuedThemeRequest.isDark !== this.getBool('dark_mode')) {
+    // Replay at most one follow-up transition if rapid tapping requested a different end-state
+    if (this.queuedThemeRequest && this.queuedThemeRequest.isDark !== this.getBool('dark_mode')) {
       const next = this.queuedThemeRequest;
       this.queuedThemeRequest = null;
       await this.runThemeReveal(next.isDark, next.x, next.y);
@@ -198,9 +219,7 @@ export class UserSettingsService {
 
       // Custom properties the declarative @keyframes in _base.scss read —
       // set BEFORE startViewTransition() so the very first frame the
-      // pseudo-elements can paint already has the correct clip-path origin
-      // and radius baked in via normal CSS style resolution (no JS-timing
-      // gap the way an imperative element.animate() call had).
+      // pseudo-elements paint already has the correct clip-path origin and radius.
       const root = document.documentElement;
       root.style.setProperty('--reveal-x', `${x}px`);
       root.style.setProperty('--reveal-y', `${y}px`);
@@ -215,15 +234,15 @@ export class UserSettingsService {
       });
 
       try {
-        // transition.finished waits for the whole pseudo-element tree to
-        // settle, including the declarative CSS animation targeting it —
-        // no separate Animation object to track/cancel anymore.
         await transition.finished;
       } catch {
         document.documentElement.classList.toggle('ion-palette-dark', isDark);
       } finally {
         root.classList.remove('theme-transitioning');
         root.removeAttribute('data-theme-anim');
+        root.style.removeProperty('--reveal-x');
+        root.style.removeProperty('--reveal-y');
+        root.style.removeProperty('--reveal-r');
       }
     } finally {
       this.isThemeTransitioning = false;

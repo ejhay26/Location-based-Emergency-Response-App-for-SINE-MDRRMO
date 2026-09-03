@@ -24,6 +24,7 @@ export class TourSpringAnimator {
     this._isMorphing = true;
 
     const from = { ...currentHole };
+    const to = TourGeometryUtil.computeHole(targetEl);
     const startTime = performance.now();
     const durationMs = 380;
     const zeta = 0.78;
@@ -41,15 +42,13 @@ export class TourSpringAnimator {
         progress = 1 - decay * oscillation;
       }
 
-      const currentTarget = TourGeometryUtil.computeHole(targetEl);
-
       const interpolated: Hole = {
-        top:      from.top    + (currentTarget.top    - from.top)    * progress,
-        left:     from.left   + (currentTarget.left   - from.left)   * progress,
-        width:    from.width  + (currentTarget.width  - from.width)  * progress,
-        height:   from.height + (currentTarget.height - from.height) * progress,
-        radius:   from.radius + (currentTarget.radius - from.radius) * progress,
-        isCircle: progress > 0.5 ? currentTarget.isCircle : from.isCircle,
+        top:      from.top    + (to.top    - from.top)    * progress,
+        left:     from.left   + (to.left   - from.left)   * progress,
+        width:    from.width  + (to.width  - from.width)  * progress,
+        height:   from.height + (to.height - from.height) * progress,
+        radius:   from.radius + (to.radius - from.radius) * progress,
+        isCircle: progress > 0.5 ? to.isCircle : from.isCircle,
       };
 
       onFrame(interpolated);
@@ -57,10 +56,9 @@ export class TourSpringAnimator {
       if (elapsed * 1000 < durationMs) {
         this.animFrameId = requestAnimationFrame(tick);
       } else {
-        const finalTarget = TourGeometryUtil.computeHole(targetEl);
         this._isMorphing = false;
         this.animFrameId = null;
-        onDone(finalTarget);
+        onDone(to);
       }
     };
 

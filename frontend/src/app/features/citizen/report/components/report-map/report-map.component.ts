@@ -359,9 +359,6 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       this.renderer.appendChild(slotEl, mapEl);
       if (this.map) {
         this.map.invalidateSize();
-        setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 60);
-        setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 200);
-        setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 400);
       }
     }
 
@@ -417,10 +414,11 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     const bottomPct = Math.max(0, Math.min(100, ((window.innerHeight - rect.bottom) / window.innerHeight) * 100));
     const closedClip = `inset(${topPct}% 0% ${bottomPct}% 0%)`;
     const openClip   = 'inset(0% 0% 0% 0%)';
-    const durationSec = direction === 'in' ? 0.34 : 0.28;
+    const durationSec = direction === 'in' ? 0.30 : 0.25;
 
     node.style.willChange = 'clip-path';
     node.style.transform = 'translateZ(0)';
+    node.style.contain = 'paint';
 
     if (direction === 'in') {
       node.style.clipPath = closedClip;
@@ -431,6 +429,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     const safetyTimer = setTimeout(() => {
       node.style.willChange = '';
       node.style.transform = '';
+      node.style.contain = '';
       if (direction === 'in') {
         node.style.clipPath = '';
         if (this.map) this.map.invalidateSize();
@@ -441,12 +440,13 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       requestAnimationFrame(() => {
         const target = direction === 'in' ? { clipPath: openClip } : { clipPath: closedClip };
         try {
-          this.overlayAnimControls = animate(node, target, { duration: durationSec, ease: [0.16, 1, 0.3, 1] });
+          this.overlayAnimControls = animate(node, target, { duration: durationSec, ease: [0.2, 0.9, 0.3, 1] });
           this.overlayAnimControls.finished
             .then(() => {
               clearTimeout(safetyTimer);
               node.style.willChange = '';
               node.style.transform = '';
+              node.style.contain = '';
               if (direction === 'in') {
                 node.style.clipPath = '';
                 if (this.map) this.map.invalidateSize();
@@ -457,6 +457,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
               clearTimeout(safetyTimer);
               node.style.willChange = '';
               node.style.transform = '';
+              node.style.contain = '';
               if (direction === 'in') {
                 node.style.clipPath = '';
                 if (this.map) this.map.invalidateSize();
@@ -467,6 +468,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
           clearTimeout(safetyTimer);
           node.style.willChange = '';
           node.style.transform = '';
+          node.style.contain = '';
           if (direction === 'in') {
             node.style.clipPath = '';
             if (this.map) this.map.invalidateSize();
