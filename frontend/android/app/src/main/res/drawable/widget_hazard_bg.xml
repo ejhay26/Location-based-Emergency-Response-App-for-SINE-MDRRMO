@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Report Hazard widget background — a rounded rectangle matching
-  home.page.html's hazard button (border-radius:20px, gold gradient).
-  Changed from oval to rectangle so the widget renders as a proper
-  rectangular card rather than an ugly stretched ellipse.
+  Report Hazard widget background — rounded rectangle matching
+  home.page.scss's .hazard-action-card:
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%)
+  border-radius: 18dp
+  Angle 270 represents top-to-bottom in Android gradient coordinates.
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <corners android:radius="20dp" />
+    <corners android:radius="18dp" />
     <gradient
         android:type="linear"
-        android:angle="135"
-        android:startColor="#B8860B"
-        android:endColor="#FFC409" />
+        android:angle="270"
+        android:startColor="#F59E0B"
+        android:endColor="#D97706" />
 </shape>

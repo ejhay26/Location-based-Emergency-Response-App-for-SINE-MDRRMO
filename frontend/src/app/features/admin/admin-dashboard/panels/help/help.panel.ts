@@ -369,14 +369,14 @@ export class HelpPanel {
           interactionHint: 'Tap ID Verifications',
         },
         {
-          id: 'verification-card-first',
+          id: 'mobile-verification-card-first',
           panel: 'verifications',
           callout: 'Step 7: Inspect Submitted IDs',
           subtext: 'Review the resident’s uploaded government ID, front/back photos, and selfie verification.',
           waitForInteraction: false,
         },
         {
-          id: 'verify-actions-group',
+          id: 'mobile-verify-actions-group',
           panel: 'verifications',
           callout: 'Step 8: Approve or Deny',
           subtext: 'Tap Approve to grant verified citizen status, or Deny if credentials do not match.',

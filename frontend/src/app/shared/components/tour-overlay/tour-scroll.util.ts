@@ -25,11 +25,11 @@ export class TourScrollUtil {
   }
 
   /**
-   * Check if an element is fully visible within the viewport.
+   * Check if an element is fully visible and comfortably within the viewport (not jammed against edges).
    */
-  static isInView(el: HTMLElement): boolean {
+  static isInView(el: HTMLElement, margin = 50): boolean {
     const r = el.getBoundingClientRect();
-    return r.top >= 0 && r.bottom <= window.innerHeight &&
+    return r.top >= margin && r.bottom <= (window.innerHeight - margin) &&
            r.left >= 0 && r.right <= window.innerWidth;
   }
 
@@ -47,10 +47,10 @@ export class TourScrollUtil {
 
       const parentRect = scrollParent.getBoundingClientRect();
       const elRect = el.getBoundingClientRect();
-      const desiredTop = parentRect.top + parentRect.height * 0.28;
+      const desiredTop = parentRect.top + parentRect.height * 0.38;
       const delta = elRect.top - desiredTop;
 
-      if (Math.abs(delta) <= 28) {
+      if (Math.abs(delta) <= 24) {
         resolve();
         return;
       }

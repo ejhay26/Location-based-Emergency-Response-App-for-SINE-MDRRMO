@@ -81,29 +81,51 @@ export class TourGeometryUtil {
       }
     }
 
-    // 2. Direct ID match
-    let el = document.getElementById(cleanId) || (document.querySelector(id) as HTMLElement | null);
-    if (el && el.offsetParent !== null) return el;
+    // 1b. Mobile-specific element ID prefix check (e.g. mobile-verify-actions-group)
+    if (isMobile && !cleanId.startsWith('mobile-')) {
+      const mobileSpecific = document.getElementById(`mobile-${cleanId}`);
+      if (mobileSpecific && (mobileSpecific.offsetParent !== null || mobileSpecific.getBoundingClientRect().width > 0)) {
+        return mobileSpecific;
+      }
+    }
 
-    // 2b. Announcement section alias
+    // 2. Direct ID / selector match across all candidates (finds visible element when responsive desktop & mobile elements both exist in DOM)
+    const candidates = Array.from(document.querySelectorAll<HTMLElement>(`#${cleanId}, [id="${cleanId}"]`));
+    for (const candidate of candidates) {
+      if (candidate.offsetParent !== null) return candidate;
+      const r = candidate.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) return candidate;
+    }
+
+    // 2b. Selector match if id contains CSS selector characters (.class, [attr], spaces)
+    if (id.startsWith('.') || id.includes('[') || id.includes(' ')) {
+      const selCandidates = Array.from(document.querySelectorAll<HTMLElement>(id));
+      for (const candidate of selCandidates) {
+        if (candidate.offsetParent !== null) return candidate;
+        const r = candidate.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) return candidate;
+      }
+    }
+
+    // 2c. Announcement section alias
     if (cleanId === 'tour-announcement-card' || cleanId === 'tour-announcement-pane') {
       const altEl = document.getElementById('tour-announcement-card') || document.getElementById('tour-announcement-pane');
       if (altEl && altEl.offsetParent !== null) return altEl;
     }
 
-    // 2c. Incident / Hazard category grid alias
+    // 2d. Incident / Hazard category grid alias
     if (cleanId === 'tour-incident-grid' || cleanId === 'tour-hazard-grid') {
       const gridEl = document.getElementById('tour-incident-grid') || document.getElementById('tour-hazard-grid');
       if (gridEl && gridEl.offsetParent !== null) return gridEl;
     }
 
-    // 2d. Map area / location card alias
+    // 2e. Map area / location card alias
     if (cleanId === 'tour-location-card' || cleanId === 'tour-map-area') {
       const mapEl = document.getElementById('tour-location-card') || document.getElementById('tour-map-area');
       if (mapEl && mapEl.offsetParent !== null) return mapEl;
     }
 
-    // 2c. Mobile panel aliases
+    // 2f. Mobile panel aliases
     if (isMobile) {
       if (cleanId === 'admin-map-toolbar' || cleanId === 'cad-map-toolbar') {
         const filterBtn = document.getElementById('mobile-filter-btn');
@@ -124,7 +146,12 @@ export class TourGeometryUtil {
       if (mobileAlt && mobileAlt.offsetParent !== null) return mobileAlt;
     }
 
-    return el;
+    // If candidates were found in DOM but none are visible yet, return null so waitForElement will poll
+    if (candidates.length > 0) {
+      return null;
+    }
+
+    return null;
   }
 
   /** Adapts tour callout text and interaction hints for mobile vs desktop */

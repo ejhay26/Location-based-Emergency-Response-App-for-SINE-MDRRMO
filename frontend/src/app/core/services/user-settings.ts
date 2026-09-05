@@ -212,17 +212,16 @@ export class UserSettingsService {
         return;
       }
 
-      const endRadius = Math.hypot(
-        Math.max(x, window.innerWidth - x),
-        Math.max(y, window.innerHeight - y)
-      );
+      const vw = window.innerWidth || 360;
+      const vh = window.innerHeight || 640;
+      const endRadius = Math.ceil(Math.hypot(vw / 2, vh));
 
       // Custom properties the declarative @keyframes in _base.scss read —
       // set BEFORE startViewTransition() so the very first frame the
-      // pseudo-elements paint already has the correct clip-path origin and radius.
+      // pseudo-elements paint already has the correct clip-path radius.
       const root = document.documentElement;
-      root.style.setProperty('--reveal-x', `${x}px`);
-      root.style.setProperty('--reveal-y', `${y}px`);
+      root.style.setProperty('--reveal-x', '50%');
+      root.style.setProperty('--reveal-y', '0px');
       root.style.setProperty('--reveal-r', `${endRadius}px`);
 
       const animMode = isDark ? 'to-dark' : 'to-light';

@@ -211,7 +211,7 @@
        ══════════════════════════════════════════════════════════════════════════ -->
   <div *ngIf="filteredVerifications.length > 0" class="mobile-cards-layout">
     <div *ngFor="let user of filteredVerifications; let i = index; trackBy: trackByUserId"
-         [attr.id]="i === 0 ? 'verification-card-first' : null"
+         [attr.id]="i === 0 ? 'mobile-verification-card-first' : null"
          class="mobile-applicant-card">
 
       <!-- Card Top -->
@@ -266,8 +266,8 @@
       </div>
 
       <!-- Mobile Actions -->
-      <div [attr.id]="i === 0 ? 'verify-actions-group' : null" class="mobile-card-actions">
-        <ion-button [attr.id]="i === 0 ? 'verify-reject-btn' : null"
+      <div [attr.id]="i === 0 ? 'mobile-verify-actions-group' : null" class="mobile-card-actions">
+        <ion-button [attr.id]="i === 0 ? 'mobile-verify-reject-btn' : null"
                     color="danger"
                     fill="outline"
                     size="small"
@@ -275,7 +275,7 @@
                     style="font-weight: 700; --border-radius: 10px; margin: 0;">
           <app-icon name="user-xmark" [size]="14" color="var(--ion-color-danger)" style="margin-right: 4px;"></app-icon> Deny
         </ion-button>
-        <ion-button [attr.id]="i === 0 ? 'verify-approve-btn' : null"
+        <ion-button [attr.id]="i === 0 ? 'mobile-verify-approve-btn' : null"
                     color="success"
                     size="small"
                     (click)="approveCitizen(user.user_id)"

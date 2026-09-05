@@ -247,20 +247,20 @@ ion-content .inset-group:nth-of-type(n+5),
    animation — so there is no JS-timing gap for that first frame to leak
    through. */
 @keyframes sine-theme-reveal-out {
-  from { clip-path: circle(0px at var(--reveal-x, 50%) var(--reveal-y, 50%)); }
-  to   { clip-path: circle(var(--reveal-r, 150%) at var(--reveal-x, 50%) var(--reveal-y, 50%)); }
+  from { clip-path: circle(0px at 50% 0px); }
+  to   { clip-path: circle(var(--reveal-r, 150vmax) at 50% 0px); }
 }
 @keyframes sine-theme-reveal-in {
-  from { clip-path: circle(var(--reveal-r, 150%) at var(--reveal-x, 50%) var(--reveal-y, 50%)); }
-  to   { clip-path: circle(0px at var(--reveal-x, 50%) var(--reveal-y, 50%)); }
+  from { clip-path: circle(var(--reveal-r, 150vmax) at 50% 0px); }
+  to   { clip-path: circle(0px at 50% 0px); }
 }
 
 html[data-theme-anim="to-dark"]::view-transition-new(root) {
-  animation: sine-theme-reveal-out var(--reveal-duration, 400ms) var(--reveal-easing, cubic-bezier(0.2, 0.9, 0.3, 1)) forwards !important;
+  animation: sine-theme-reveal-out var(--reveal-duration, 650ms) var(--reveal-easing, cubic-bezier(0.22, 1, 0.36, 1)) forwards !important;
   will-change: clip-path;
 }
 html[data-theme-anim="to-light"]::view-transition-old(root) {
-  animation: sine-theme-reveal-in var(--reveal-duration, 400ms) var(--reveal-easing, cubic-bezier(0.2, 0.9, 0.3, 1)) forwards !important;
+  animation: sine-theme-reveal-in var(--reveal-duration, 650ms) var(--reveal-easing, cubic-bezier(0.22, 1, 0.36, 1)) forwards !important;
   will-change: clip-path;
 }
 
