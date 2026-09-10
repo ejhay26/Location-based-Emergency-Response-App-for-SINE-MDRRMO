@@ -2,3 +2,16 @@ frontend/android/app/google-services.json
 frontend/android/app/release/output-metadata.json
 frontend/android/app/release/baselineProfiles/*
 .agents/
+
+# Build & Release Bundles
+frontend/release/
+release/
+*.app/
+*.dmg
+*.exe
+*.deb
+*.AppImage
+
+# macOS
+.DS_Store
+

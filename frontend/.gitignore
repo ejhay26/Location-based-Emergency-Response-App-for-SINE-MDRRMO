@@ -68,6 +68,9 @@ testem.log
 # Tauri
 /src-tauri/target
 /src-tauri/gen
+/release
+*.app/
+*.dmg
 
 # System files
 .DS_Store
