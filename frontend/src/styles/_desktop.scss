@@ -60,10 +60,10 @@ ion-app.desktop-app ion-toolbar ion-title[style*="text-align:center"] {
 }
 
 /* Admin Dashboard Tauri Desktop Top Spacing & Window Controls Clearance */
-ion-app.desktop-app .admin-main-viewport {
-  padding: 38px 24px 18px 24px !important;
+ion-app.desktop-app:not(.mac-desktop) .admin-main-viewport {
+  padding: 34px 20px 18px 20px !important;
 }
-ion-app.desktop-app .admin-sidebar {
+ion-app.desktop-app:not(.mac-desktop) .admin-sidebar {
   padding-top: 24px !important;
 }
 
@@ -73,3 +73,34 @@ ion-app.desktop-app {
   -moz-osx-font-smoothing: auto !important;
   text-rendering: optimizeLegibility !important;
 }
+
+/* =========================================
+   macOS NATIVE TRAFFIC LIGHT CONTROLS & SPACING
+   On macOS, native traffic lights are on the top-left (78px wide).
+   ========================================= */
+ion-app.desktop-app.mac-desktop ion-toolbar ion-title {
+  padding-left: 80px !important;
+  padding-right: 20px !important;
+}
+
+ion-app.desktop-app.mac-desktop ion-toolbar ion-title.ion-text-center,
+ion-app.desktop-app.mac-desktop ion-toolbar ion-title[style*="text-align: center"],
+ion-app.desktop-app.mac-desktop ion-toolbar ion-title[style*="text-align:center"] {
+  padding-left: 80px !important;
+  padding-right: 80px !important;
+  text-align: center !important;
+}
+
+ion-app.desktop-app.mac-desktop .admin-sidebar {
+  padding-top: 42px !important;
+}
+
+ion-app.desktop-app.mac-desktop .admin-main-viewport {
+  padding: 42px 20px 18px 20px !important;
+}
+
+ion-app.desktop-app.mac-desktop {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
