@@ -1,143 +1,167 @@
-<!-- ── TOP COMMAND TOOLBAR (DESKTOP) ── -->
-<div id="admin-map-toolbar" class="map-top-toolbar">
-  <!-- Top Row: Alert Source (SHOW) on Left, DATE Presets on Far Right -->
-  <div class="map-toolbar-top-row">
-    <!-- 0. Alert Source Filter Pills (All / SOS / Hazards) -->
-    <div class="filter-group">
-      <span class="filter-group-label">Show:</span>
-      <button
-        type="button"
-        (click)="setAlertSourceFilter('all')"
-        title="Show all emergency SOS and public hazard reports"
-        [style.background]="alertSourceFilter === 'all' ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-        [style.color]="alertSourceFilter === 'all' ? 'white' : 'var(--ion-text-color)'"
-        [style.border-color]="alertSourceFilter === 'all' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-        class="filter-pill-btn">
-        <app-icon name="layers" [size]="12" [color]="alertSourceFilter === 'all' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
-        <span>All ({{ activeRequests.length + activeHazards.length }})</span>
-      </button>
+<!-- ── UNIFIED 44px macOS TOOLBAR (APPLE HIG) ── -->
+<div id="admin-map-toolbar" class="map-top-toolbar" (click)="$event.stopPropagation()">
+  <!-- 0. Alert Source Scope (Apple Segmented Style) -->
+  <div class="apple-segmented-control" role="group" aria-label="Incident Alert Scope">
+    <button
+      type="button"
+      (click)="setAlertSourceFilter('all')"
+      title="Show all emergency SOS calls and public hazards"
+      [class.active]="alertSourceFilter === 'all'"
+      class="segmented-pill-btn">
+      <app-icon name="layers" [size]="13"></app-icon>
+      <span>All ({{ activeRequests.length + activeHazards.length }})</span>
+    </button>
 
-      <button
-        type="button"
-        (click)="setAlertSourceFilter('emergency')"
-        title="Filter by Emergency SOS Calls"
-        [style.background]="alertSourceFilter === 'emergency' ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-        [style.color]="alertSourceFilter === 'emergency' ? 'white' : 'var(--ion-text-color)'"
-        [style.border-color]="alertSourceFilter === 'emergency' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-        class="filter-pill-btn">
-        <app-icon name="siren" [size]="12" [color]="alertSourceFilter === 'emergency' ? '#ffffff' : '#eb445a'"></app-icon>
-        <span>Emergency SOS ({{ activeRequests.length }})</span>
-      </button>
+    <button
+      type="button"
+      (click)="setAlertSourceFilter('emergency')"
+      title="Filter by Emergency SOS Calls"
+      [class.active]="alertSourceFilter === 'emergency'"
+      class="segmented-pill-btn segmented-pill-emergency">
+      <app-icon name="siren" [size]="13"></app-icon>
+      <span>Emergency SOS ({{ activeRequests.length }})</span>
+    </button>
 
-      <button
-        type="button"
-        (click)="setAlertSourceFilter('hazard')"
-        title="Filter by Public Road Hazards"
-        [style.background]="alertSourceFilter === 'hazard' ? '#ffc409' : 'var(--ion-card-background, white)'"
-        [style.color]="alertSourceFilter === 'hazard' ? '#000000' : 'var(--ion-text-color)'"
-        [style.border-color]="alertSourceFilter === 'hazard' ? '#ffc409' : 'var(--ion-color-step-200, #ccc)'"
-        class="filter-pill-btn">
-        <app-icon name="hazard" [size]="12" [color]="alertSourceFilter === 'hazard' ? '#000000' : '#ffc409'"></app-icon>
-        <span>Hazards ({{ activeHazards.length }})</span>
-      </button>
-    </div>
-
-    <!-- 1. Date Presets & Calendar (Pushed to Far Right, sits directly above Street | Satellite) -->
-    <div class="filter-group filter-group-date-right">
-      <span class="filter-group-label">Date:</span>
-      <button
-        *ngFor="let d of dateFilterOptions"
-        type="button"
-        (click)="setDateFilter(d.id)"
-        [title]="'Filter incidents from ' + d.label"
-        [style.background]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #3a3a3c)' : 'var(--ion-card-background, white)'"
-        [style.color]="!customCalendarFilter && dateFilter === d.id ? 'white' : 'var(--ion-text-color)'"
-        [style.border-color]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #3a3a3c)' : 'var(--ion-color-step-200, #ccc)'"
-        class="filter-pill-btn">
-        {{ d.label }}
-      </button>
-
-      <app-date-range-filter
-        [value]="customCalendarFilter"
-        (valueChange)="onCalendarFilterChange($event)">
-      </app-date-range-filter>
-    </div>
+    <button
+      type="button"
+      (click)="setAlertSourceFilter('hazard')"
+      title="Filter by Public Road Hazards"
+      [class.active]="alertSourceFilter === 'hazard'"
+      class="segmented-pill-btn segmented-pill-hazard">
+      <app-icon name="hazard" [size]="13"></app-icon>
+      <span>Hazards ({{ activeHazards.length }})</span>
+    </button>
   </div>
 
-  <!-- Bottom Row: Barangay & Type on Left, Street | Satellite Toggle on Right -->
-  <div class="map-toolbar-bottom-row">
-    <div class="map-filters-strip">
-      <!-- 2. Barangay Filter Pills -->
-      <div class="filter-group">
-        <span class="filter-group-label">Barangay:</span>
-        <button
-          type="button"
-          (click)="toggleBarangayFilter('all')"
-          title="Show all barangays"
-          [style.background]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-          [style.color]="isBarangaySelected('all') ? 'white' : 'var(--ion-text-color)'"
-          [style.border-color]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-          class="filter-pill-btn">
-          All
-        </button>
-        <button
-          *ngFor="let b of barangayOptions"
-          type="button"
-          (click)="toggleBarangayFilter(b.id)"
-          [title]="'Filter by Barangay ' + b.name"
-          [style.background]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-          [style.color]="isBarangaySelected(b.id) ? 'white' : 'var(--ion-text-color)'"
-          [style.border-color]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-          class="filter-pill-btn">
-          {{ b.name }}
-        </button>
-      </div>
+  <!-- Right: Apple Frosted Popover Filter Buttons -->
+  <div class="toolbar-filter-popovers">
 
-      <!-- 3. Type Filter Pills -->
-      <div class="filter-group">
-        <span class="filter-group-label">Type:</span>
-        <button
-          type="button"
-          (click)="toggleTypeFilter('all')"
-          title="Show all incident categories"
-          [style.background]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-          [style.color]="isTypeSelected('all') ? 'white' : 'var(--ion-text-color)'"
-          [style.border-color]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-          class="filter-pill-btn">
-          <app-icon name="layers" [size]="12" [color]="isTypeSelected('all') ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
-          <span>All Types</span>
-        </button>
+    <!-- 1. BARANGAY MULTI-SELECT POPOVER -->
+    <div class="popover-anchor">
+      <button
+        type="button"
+        class="mac-popover-btn"
+        [class.has-filter]="selectedBarangays.length > 0"
+        (click)="toggleBarangayMenu()"
+        title="Filter by Barangay (Multi-select)">
+        <app-icon name="map-pin" [size]="13" [color]="selectedBarangays.length > 0 ? 'var(--ion-color-danger, #eb445a)' : 'currentColor'"></app-icon>
+        <span class="btn-text">{{ barangayButtonLabel }}</span>
+        <span *ngIf="selectedBarangays.length > 0" class="mac-filter-clear-x" (click)="$event.stopPropagation(); toggleBarangayFilter('all')" title="Reset Barangays">✕</span>
+        <app-icon name="chevron-down" [size]="11" class="chevron-icon"></app-icon>
+      </button>
 
-        <button
-          *ngFor="let t of currentTypeOptions"
-          type="button"
-          (click)="toggleTypeFilter(t.id)"
-          [title]="'Filter by ' + t.label"
-          [style.background]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-          [style.color]="isTypeSelected(t.id) ? 'white' : 'var(--ion-text-color)'"
-          [style.border-color]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-          class="filter-pill-btn">
-          <app-icon [name]="t.icon" [size]="12" [color]="isTypeSelected(t.id) ? '#ffffff' : (t.color || 'var(--ion-color-danger)')"></app-icon>
-          <span>{{ t.label }}</span>
-        </button>
+      <!-- Frosted Popover Dropdown Menu -->
+      <div class="mac-frosted-menu" *ngIf="isBarangayMenuOpen" (click)="$event.stopPropagation()">
+        <div class="menu-search-box">
+          <app-icon name="search" [size]="12" color="var(--ion-color-medium)"></app-icon>
+          <input type="text" [(ngModel)]="barangaySearchQuery" placeholder="Search barangay..." />
+        </div>
+        <div class="menu-item reset-item" [class.selected]="selectedBarangays.length === 0" (click)="toggleBarangayFilter('all')">
+          <span class="checkbox-indicator">{{ selectedBarangays.length === 0 ? '✓' : '' }}</span>
+          <span class="item-label">All Barangays (Reset)</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-scroll-list">
+          <div *ngFor="let bgy of filteredBarangayOptions"
+               class="menu-item"
+               [class.selected]="isBarangaySelected(bgy.id)"
+               (click)="toggleBarangayFilter(bgy.id)">
+            <span class="checkbox-indicator">{{ isBarangaySelected(bgy.id) ? '✓' : '' }}</span>
+            <span class="item-label">{{ bgy.name }}</span>
+          </div>
+        </div>
+        <div class="menu-footer-hint">💡 Tip: Click multiple to combine</div>
       </div>
     </div>
 
-    <!-- 4. Map Style Segmented Control (Street | Satellite) -->
-    <ion-segment mode="ios" [value]="mapStyle" (ionChange)="toggleMapStyle($any($event.detail.value))" color="danger" class="map-style-segment">
-      <ion-segment-button value="street">
-        <div class="segment-pill-inner">
-          <app-icon name="map" [size]="13"></app-icon>
-          <ion-label>Street</ion-label>
+    <!-- 2. INCIDENT TYPE MULTI-SELECT POPOVER -->
+    <div class="popover-anchor">
+      <button
+        type="button"
+        class="mac-popover-btn"
+        [class.has-filter]="selectedTypes.length > 0"
+        (click)="toggleTypeMenu()"
+        title="Filter by Incident Type (Multi-select)">
+        <app-icon name="tag" [size]="13" [color]="selectedTypes.length > 0 ? 'var(--ion-color-danger, #eb445a)' : 'currentColor'"></app-icon>
+        <span class="btn-text">{{ typeButtonLabel }}</span>
+        <span *ngIf="selectedTypes.length > 0" class="mac-filter-clear-x" (click)="$event.stopPropagation(); toggleTypeFilter('all')" title="Reset Types">✕</span>
+        <app-icon name="chevron-down" [size]="11" class="chevron-icon"></app-icon>
+      </button>
+
+      <!-- Frosted Popover Dropdown Menu -->
+      <div class="mac-frosted-menu" *ngIf="isTypeMenuOpen" (click)="$event.stopPropagation()">
+        <div class="menu-item reset-item" [class.selected]="selectedTypes.length === 0" (click)="toggleTypeFilter('all')">
+          <span class="checkbox-indicator">{{ selectedTypes.length === 0 ? '✓' : '' }}</span>
+          <span class="item-label">All Types (Reset)</span>
         </div>
-      </ion-segment-button>
-      <ion-segment-button value="satellite">
-        <div class="segment-pill-inner">
-          <app-icon name="satellite" [size]="13"></app-icon>
-          <ion-label>Satellite</ion-label>
+        <div class="menu-divider"></div>
+        <div class="menu-scroll-list">
+          <div *ngFor="let opt of currentTypeOptions"
+               class="menu-item"
+               [class.selected]="isTypeSelected(opt.id)"
+               (click)="toggleTypeFilter(opt.id)">
+            <span class="checkbox-indicator">{{ isTypeSelected(opt.id) ? '✓' : '' }}</span>
+            <span class="type-color-dot" [style.background-color]="opt.color"></span>
+            <span class="item-label">{{ opt.label }}</span>
+          </div>
         </div>
-      </ion-segment-button>
-    </ion-segment>
+        <div class="menu-footer-hint">💡 Tip: Click multiple to combine</div>
+      </div>
+    </div>
+
+    <!-- 3. DATE FILTER POPOVER -->
+    <div class="popover-anchor">
+      <button
+        type="button"
+        class="mac-popover-btn"
+        [class.has-filter]="dateFilter !== 'all'"
+        (click)="toggleDateMenu()"
+        title="Filter by Date">
+        <app-icon name="calendar" [size]="13" [color]="dateFilter !== 'all' ? 'var(--ion-color-danger, #eb445a)' : 'currentColor'"></app-icon>
+        <span class="btn-text">{{ dateButtonLabel }}</span>
+        <span *ngIf="dateFilter !== 'all'" class="mac-filter-clear-x" (click)="$event.stopPropagation(); setDateFilter('all')" title="Reset Date">✕</span>
+        <app-icon name="chevron-down" [size]="11" class="chevron-icon"></app-icon>
+      </button>
+
+      <!-- Frosted Popover Dropdown Menu -->
+      <div class="mac-frosted-menu mac-frosted-menu--date" *ngIf="isDateMenuOpen" (click)="$event.stopPropagation()">
+        <div class="menu-item" [class.selected]="dateFilter === 'all'" (click)="setDateFilter('all'); closeAllMenus()">
+          <span class="checkbox-indicator">{{ dateFilter === 'all' ? '✓' : '' }}</span>
+          <span class="item-label">All Time</span>
+        </div>
+        <div class="menu-item" [class.selected]="dateFilter === 'today'" (click)="setDateFilter('today'); closeAllMenus()">
+          <span class="checkbox-indicator">{{ dateFilter === 'today' ? '✓' : '' }}</span>
+          <span class="item-label">Today</span>
+        </div>
+        <div class="menu-item" [class.selected]="dateFilter === '7days'" (click)="setDateFilter('7days'); closeAllMenus()">
+          <span class="checkbox-indicator">{{ dateFilter === '7days' ? '✓' : '' }}</span>
+          <span class="item-label">Last 7 Days</span>
+        </div>
+        <div class="menu-item" [class.selected]="dateFilter === '30days'" (click)="setDateFilter('30days'); closeAllMenus()">
+          <span class="checkbox-indicator">{{ dateFilter === '30days' ? '✓' : '' }}</span>
+          <span class="item-label">Last 30 Days</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-item custom-date-item">
+          <app-date-range-filter
+            [value]="customCalendarFilter"
+            (valueChange)="onCalendarFilterChange($event); closeAllMenus()">
+          </app-date-range-filter>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Quick Global Reset (if any filter active) -->
+    <button
+      *ngIf="selectedBarangays.length > 0 || selectedTypes.length > 0 || dateFilter !== 'all' || alertSourceFilter !== 'all'"
+      type="button"
+      class="mac-reset-all-btn"
+      (click)="resetAllFilters()"
+      title="Reset all filters to default">
+      <app-icon name="rotate-ccw" [size]="12"></app-icon>
+      <span>Reset All</span>
+    </button>
+
   </div>
 </div>
 
@@ -258,8 +282,31 @@
   <!-- Left / Main: Map Container -->
   <div id="cad-map-container" class="map-container-col">
     <ion-card class="map-card-wrapper">
-      <ion-card-content class="ion-no-padding" style="height:100%;flex:1;display:flex;">
+      <ion-card-content class="ion-no-padding" style="height:100%;flex:1;display:flex;position:relative;">
         <div id="dispatch-map" style="height:100%;width:100%;min-height:360px;background-color:#e5e5e5;flex:1;"></div>
+
+        <!-- Floating Map Style Pill Segment (Matching Mobile Admin Layout) -->
+        <div class="floating-map-style-capsule">
+          <div class="layer-seg-indicator" [class.is-satellite]="mapStyle === 'satellite'"></div>
+          <button
+            type="button"
+            class="layer-seg-btn"
+            [class.active]="mapStyle === 'street'"
+            (click)="toggleMapStyle('street')"
+            aria-label="Street Map View">
+            <app-icon name="map" [size]="12" [color]="mapStyle === 'street' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+            <span>Street</span>
+          </button>
+          <button
+            type="button"
+            class="layer-seg-btn"
+            [class.active]="mapStyle === 'satellite'"
+            (click)="toggleMapStyle('satellite')"
+            aria-label="Satellite Map View">
+            <app-icon name="satellite" [size]="12" [color]="mapStyle === 'satellite' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+            <span>Satellite</span>
+          </button>
+        </div>
       </ion-card-content>
     </ion-card>
   </div>
