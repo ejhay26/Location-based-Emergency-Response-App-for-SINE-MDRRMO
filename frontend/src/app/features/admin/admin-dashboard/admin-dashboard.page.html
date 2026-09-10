@@ -46,7 +46,7 @@
               <img src="assets/icon/logo.jpg" alt="MDRRMO San Isidro logo" style="width: 30px; height: 30px; border-radius: 8px; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.12);" />
               <h5 style="margin: 0; font-weight: 800; color: var(--ion-text-color); letter-spacing: 0.4px; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">MDRRMO SAN ISIDRO</h5>
             </div>
-            <button (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'" class="sidebar-toggle-btn">
+            <button *ngIf="!isDesktop" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'" class="sidebar-toggle-btn">
               <app-icon name="menu" [size]="20" color="var(--ion-text-color)"></app-icon>
             </button>
           </div>

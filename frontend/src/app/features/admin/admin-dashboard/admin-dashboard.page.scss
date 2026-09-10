@@ -6,7 +6,7 @@
 .admin-desktop-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   overflow: hidden;
 }
@@ -15,7 +15,7 @@
   display: flex;
   flex: 1;
   min-height: 0;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   overflow: hidden;
 }
@@ -508,6 +508,22 @@
 
   .admin-scroll-panel {
     padding: 8px 10px 18px !important;
+  }
+}
+
+/* On desktop Tauri apps, force desktop layout regardless of window width */
+:host-context(.desktop-app) {
+  .admin-mobile-header {
+    display: none !important;
+  }
+  .mobile-bottom-nav-wrapper {
+    display: none !important;
+  }
+  .admin-sidebar {
+    display: block !important;
+  }
+  .sidebar-resize-handle {
+    display: block !important;
   }
 }
 
