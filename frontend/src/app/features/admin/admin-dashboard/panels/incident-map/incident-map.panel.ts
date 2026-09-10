@@ -1,12 +1,11 @@
-import { Component, Input, OnChanges, AfterViewInit, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, AfterViewInit, OnDestroy, SimpleChanges, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subscription, interval, firstValueFrom } from 'rxjs';
 import {
   IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
-  IonSegment, IonSegmentButton, IonLabel
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
 } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
 import { ApiService } from '../../../../../core/services/api';
@@ -39,7 +38,6 @@ const FALLBACK_POLL_MS = 30_000;
     CommonModule, FormsModule,
     IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
-    IonSegment, IonSegmentButton, IonLabel,
     ProxyImageDirective, VideoThumbnailDirective,
     UtcDatePipe, DateRangeFilterComponent, AppIconComponent
   ],
@@ -88,9 +86,86 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   dateFilter = 'all';
   customCalendarFilter: DateFilterValue | null = null;
 
+  isBarangayMenuOpen = false;
+  isTypeMenuOpen = false;
+  isDateMenuOpen = false;
+  barangaySearchQuery = '';
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.closeAllMenus();
+  }
+
+  toggleBarangayMenu() {
+    this.isBarangayMenuOpen = !this.isBarangayMenuOpen;
+    if (this.isBarangayMenuOpen) {
+      this.isTypeMenuOpen = false;
+      this.isDateMenuOpen = false;
+    }
+  }
+
+  toggleTypeMenu() {
+    this.isTypeMenuOpen = !this.isTypeMenuOpen;
+    if (this.isTypeMenuOpen) {
+      this.isBarangayMenuOpen = false;
+      this.isDateMenuOpen = false;
+    }
+  }
+
+  toggleDateMenu() {
+    this.isDateMenuOpen = !this.isDateMenuOpen;
+    if (this.isDateMenuOpen) {
+      this.isBarangayMenuOpen = false;
+      this.isTypeMenuOpen = false;
+    }
+  }
+
+  closeAllMenus() {
+    this.isBarangayMenuOpen = false;
+    this.isTypeMenuOpen = false;
+    this.isDateMenuOpen = false;
+  }
+
+  get barangayButtonLabel(): string {
+    if (this.selectedBarangays.length === 0) return 'All Barangays';
+    if (this.selectedBarangays.length === 1) {
+      const bgy = this.barangayOptions.find(b => b.id === this.selectedBarangays[0]);
+      return bgy ? bgy.name : '1 Barangay';
+    }
+    return `${this.selectedBarangays.length} Barangays`;
+  }
+
+  get typeButtonLabel(): string {
+    if (this.selectedTypes.length === 0) return 'All Types';
+    if (this.selectedTypes.length === 1) {
+      const opt = this.currentTypeOptions.find(t => t.id === this.selectedTypes[0]);
+      return opt ? opt.label : this.selectedTypes[0];
+    }
+    return `${this.selectedTypes.length} Types`;
+  }
+
+  get dateButtonLabel(): string {
+    if (this.dateFilter === 'all') return 'All Time';
+    if (this.dateFilter === 'today') return 'Today';
+    if (this.dateFilter === '7days') return 'Last 7 Days';
+    if (this.dateFilter === '30days') return 'Last 30 Days';
+    if (this.dateFilter === 'custom' && this.customCalendarFilter?.dates.length) {
+      return this.customCalendarFilter.dates.length === 1 ? '1 Day Selected' : `${this.customCalendarFilter.dates.length} Days`;
+    }
+    return 'Date Filter';
+  }
+
+  get filteredBarangayOptions() {
+    if (!this.barangaySearchQuery.trim()) return this.barangayOptions;
+    const q = this.barangaySearchQuery.toLowerCase();
+    return this.barangayOptions.filter(b => b.name.toLowerCase().includes(q));
+  }
+
   private bgyGeoJson: any = null;
   private townBounds: any = null;
   private highlightBgyLayer: any = null;
+  private mapResizeObserver: ResizeObserver | null = null;
+  private resizeRafId: number | null = null;
 
   emergencyTypeOptions = [
     { id: 'Fire',    label: 'Fire',      icon: 'flame',        color: '#eb445a' },
@@ -383,6 +458,12 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.echoHazardSub?.unsubscribe();
     window.removeEventListener('mousemove', this.onSplitterMouseMove);
     window.removeEventListener('mouseup', this.onSplitterMouseUp);
+    if (this.resizeRafId !== null) {
+      cancelAnimationFrame(this.resizeRafId);
+      this.resizeRafId = null;
+    }
+    this.mapResizeObserver?.disconnect();
+    this.mapResizeObserver = null;
     if (this.map) {
       try {
         this.map.remove();
@@ -634,6 +715,22 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       this.streetLayer.addTo(this.map);
     } else {
       this.satelliteLayer.addTo(this.map);
+    }
+
+    const mapEl = document.getElementById('dispatch-map');
+    if (mapEl && typeof ResizeObserver !== 'undefined') {
+      this.mapResizeObserver = new ResizeObserver(() => {
+        if (this.resizeRafId !== null) {
+          cancelAnimationFrame(this.resizeRafId);
+        }
+        this.resizeRafId = requestAnimationFrame(() => {
+          this.resizeRafId = null;
+          if (this.map) {
+            this.map.invalidateSize({ pan: false });
+          }
+        });
+      });
+      this.mapResizeObserver.observe(mapEl);
     }
 
     this.map.on('popupopen',  (e: any) => { document.getElementById('dispatch-map')?.classList.add('map-has-selection');    if (e.popup._source?._icon) e.popup._source._icon.classList.add('selected-pin'); });
