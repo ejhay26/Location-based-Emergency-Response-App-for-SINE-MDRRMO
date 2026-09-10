@@ -3,7 +3,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent } from './shared/components/index';
-import { isTauri } from './shared/utils/platform.util';
+import { isTauri, isMacDesktop } from './shared/utils/platform.util';
 import { UserSettingsService } from './core/services/user-settings';
 import { LocationService } from './core/services/location';
 import { DeepLinkService } from './core/services/deep-link';
@@ -16,6 +16,7 @@ import { DeepLinkService } from './core/services/deep-link';
 })
 export class AppComponent implements OnInit {
   isDesktop = false;
+  isMac = false;
 
   constructor(
     private router: Router,
@@ -26,6 +27,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.isDesktop = isTauri();
+    this.isMac = isMacDesktop();
 
     // Disable default browser context menu on production desktop builds
     if (this.isDesktop && !isDevMode()) {
