@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
-import { isTauri } from '../../utils/platform.util';
+import { isTauri, isMacDesktop } from '../../utils/platform.util';
 
 /** Minimal shape of the Tauri v2 window handle that this component uses. */
 interface TauriWindowHandle {
@@ -20,9 +20,19 @@ interface TauriWindowHandle {
   imports: [CommonModule],
   styleUrl: './app-titlebar.component.scss',
   template: `
-    <div class="app-titlebar" [class.red-header]="isRedHeader">
-      <div class="app-titlebar__drag" data-tauri-drag-region></div>
-      <div class="app-titlebar__controls" (mousedown)="$event.stopPropagation()">
+    <div class="app-titlebar" [class.red-header]="isRedHeader" [class.is-mac]="isMac">
+      <!-- On macOS, clear space on the left for the native traffic light buttons -->
+      <div *ngIf="isMac" class="app-titlebar__mac-space"></div>
+
+      <!-- Drag region across the bar. Double click toggles native window zoom / maximize -->
+      <div
+        class="app-titlebar__drag"
+        data-tauri-drag-region
+        (dblclick)="onTitlebarDblClick($event)"
+      ></div>
+
+      <!-- Custom Windows/Linux control buttons (hidden on macOS where native traffic lights are used) -->
+      <div *ngIf="!isMac" class="app-titlebar__controls" (mousedown)="$event.stopPropagation()">
         <button
           type="button"
           class="app-titlebar__btn"
@@ -61,6 +71,7 @@ interface TauriWindowHandle {
 export class AppTitlebarComponent implements OnInit, OnDestroy {
   isMaximized = false;
   isRedHeader = false;
+  isMac = false;
 
   private sub?: Subscription;
   private tauriWindow: TauriWindowHandle | null = null;
@@ -69,6 +80,8 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
   constructor(private router: Router) {}
 
   async ngOnInit(): Promise<void> {
+    this.isMac = isMacDesktop();
+
     if (isTauri()) {
       await this.initTauriWindowControls();
     }
@@ -90,6 +103,18 @@ export class AppTitlebarComponent implements OnInit, OnDestroy {
     const isAuth = url.includes('/login') || url.includes('/register') || url.includes('/welcome');
     const isCitizen = url.includes('/tabs') || url.includes('/report');
     this.isRedHeader = isAuth || isCitizen;
+  }
+
+  onTitlebarDblClick(event?: MouseEvent): void {
+    // On macOS, AppKit handles title bar double-click natively when window decorations are active.
+    // Firing a manual toggle here races with the OS animation, bouncing the window back and forth.
+    if (this.isMac) return;
+
+    event?.stopPropagation();
+    event?.preventDefault();
+    if (this.tauriWindow) {
+      void this.tauriWindow.toggleMaximize();
+    }
   }
 
   minimize(event?: MouseEvent): void {
