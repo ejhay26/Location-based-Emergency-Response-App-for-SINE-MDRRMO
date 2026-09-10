@@ -1,0 +1,29 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "MDRRMO EMERGENCY RESPONSE APP",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 650,
+        "decorations": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": {
+          "x": 16,
+          "y": 14
+        },
+        "transparent": false,
+        "dragDropEnabled": false,
+        "devtools": false
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"]
+  }
+}
