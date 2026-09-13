@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v0.79.7)'
+        description: 'Release tag (e.g. v0.79.8)'
         required: false
-        default: 'v0.79.7'
+        default: 'v0.79.8'
 
 permissions:
   contents: write
@@ -184,7 +184,8 @@ jobs:
         run: |
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 --decode > frontend/android/release.keystore
-            echo "Keystore decoded successfully."
+            KEYSTORE_SIZE=$(wc -c < frontend/android/release.keystore)
+            echo "Keystore decoded successfully. Size: $KEYSTORE_SIZE bytes"
           else
             echo "Warning: KEYSTORE_BASE64 secret is empty. Release APK will be unsigned."
           fi
@@ -197,12 +198,10 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ -z "$KEYSTORE_PASSWORD" ]; then
-            echo "::warning::KEYSTORE_PASSWORD secret is not set!"
-          fi
-          if [ -z "$KEY_ALIAS" ]; then
-            echo "::warning::KEY_ALIAS secret is not set!"
-          fi
+          echo "Android signing configuration diagnostics:"
+          echo "KEYSTORE_PATH: $KEYSTORE_PATH (exists: $([ -f "$KEYSTORE_PATH" ] && echo 'yes' || echo 'no'))"
+          echo "KEYSTORE_PASSWORD: $([ -n "$KEYSTORE_PASSWORD" ] && echo 'PRESENT' || echo 'MISSING/EMPTY')"
+          echo "KEY_ALIAS: $([ -n "$KEY_ALIAS" ] && echo "$KEY_ALIAS" || echo 'EMPTY (will auto-detect from keystore)')"
           chmod +x gradlew
           ./gradlew assembleRelease --stacktrace
 

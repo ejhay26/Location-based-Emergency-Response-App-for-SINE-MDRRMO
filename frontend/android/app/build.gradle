@@ -13,8 +13,8 @@ android {
         applicationId "ph.gov.sine.mdrrmo.emergencyresponse"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 12
-        versionName "0.79.7"
+        versionCode 13
+        versionName "0.79.8"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -34,20 +34,38 @@ android {
             def kAlias = System.getenv("KEY_ALIAS") ?: localProps.getProperty("key.alias")
             def kPass = (System.getenv("KEY_PASSWORD") ?: localProps.getProperty("key.password")) ?: ksPass
 
-            if (ksPath && ksPass && kAlias) {
+            if (ksPath && ksPass) {
                 def ksFile = file(ksPath)
                 if (!ksFile.exists()) {
                     ksFile = rootProject.file(ksPath)
                 }
                 if (ksFile.exists()) {
-                    storeFile ksFile
-                    storePassword ksPass
-                    keyAlias kAlias
-                    keyPassword kPass
-                    println "Android Release Signing: Configured with alias '${kAlias}' from '${ksFile.name}'"
+                    def determinedAlias = kAlias
+                    try {
+                        def ks = java.security.KeyStore.getInstance(ksFile.name.endsWith(".jks") ? "JKS" : "PKCS12")
+                        ksFile.withInputStream { is -> ks.load(is, ksPass.toCharArray()) }
+                        def aliases = ks.aliases().toList()
+                        if (aliases.size() > 0) {
+                            if (!determinedAlias || !ks.containsAlias(determinedAlias)) {
+                                println "Android Signing: Requested alias '${determinedAlias}' not found. Automatically using available alias '${aliases[0]}'"
+                                determinedAlias = aliases[0]
+                            }
+                        }
+                    } catch (Exception e) {
+                        println "Android Signing: Keystore validation notice: ${e.message}"
+                        determinedAlias = null
+                    }
+
+                    if (determinedAlias) {
+                        storeFile ksFile
+                        storePassword ksPass
+                        keyAlias determinedAlias
+                        keyPassword kPass ?: ksPass
+                        println "Android Release Signing: Configured with alias '${determinedAlias}' from '${ksFile.name}'"
+                    }
                 }
             } else {
-                println "Android Release Signing: Keystore credentials not fully provided (path: ${ksPath ? 'yes' : 'no'}, password: ${ksPass ? 'yes' : 'no'}, alias: ${kAlias ? 'yes' : 'no'}). Will build unsigned."
+                println "Android Release Signing: Keystore credentials not fully provided (path: ${ksPath ? 'yes' : 'no'}, password: ${ksPass ? 'yes' : 'no'}). Will build unsigned."
             }
         }
     }
