@@ -1,9 +1,19 @@
+.otp-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
 .otp-box-row {
   display: flex;
   justify-content: center;
   gap: 8px;
   max-width: 100%;
   flex-wrap: nowrap;
+  position: relative;
 }
 
 .otp-box {
@@ -17,18 +27,107 @@
   background: var(--ion-card-background, #ffffff);
   color: var(--ion-text-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 
   &:focus {
     outline: none;
-    border-color: var(--ion-color-danger);
-    background: var(--ion-card-background, #ffffff);
+    border-color: var(--ion-color-danger, #d32f2f);
     box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2), 0 4px 14px rgba(211, 47, 47, 0.15);
     transform: translateY(-2px);
   }
 
+  &.has-digit {
+    border-color: var(--ion-color-danger, #d32f2f);
+    background: var(--ion-card-background, #ffffff);
+  }
+
   &:disabled {
-    opacity: 0.45;
+    opacity: 0.6;
+  }
+}
+
+/* Verifying Shimmer Pulse */
+.is-verifying .otp-box {
+  animation: otpVerifyingPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes otpVerifyingPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    border-color: var(--ion-color-danger, #d32f2f);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.97);
+    border-color: rgba(211, 47, 47, 0.4);
+  }
+}
+
+/* Success Cascade Styles */
+.is-success .otp-box {
+  border-color: #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.14) !important;
+  color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Error State */
+.is-error .otp-box {
+  border-color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.08) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Success Checkmark Overlay */
+.otp-success-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.otp-check-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.45);
+  animation: otpPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.otp-check-svg {
+  width: 30px;
+  height: 30px;
+  color: #ffffff;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: otpDrawCheck 0.3s 0.12s ease-out forwards;
+}
+
+@keyframes otpPopIn {
+  from {
+    transform: scale(0.2) rotate(-20deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes otpDrawCheck {
+  to {
+    stroke-dashoffset: 0;
   }
 }
 

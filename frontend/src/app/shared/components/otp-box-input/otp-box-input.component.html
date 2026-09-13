@@ -1,16 +1,28 @@
-<div class="otp-box-row">
-  <input
-    *ngFor="let i of boxIndexes"
-    #boxInput
-    class="otp-box"
-    type="tel"
-    inputmode="numeric"
-    autocomplete="one-time-code"
-    maxlength="1"
-    [attr.aria-label]="'Digit ' + (i + 1) + ' of 4'"
-    [value]="digits[i]"
-    [disabled]="disabled"
-    (input)="onInput(i, $any($event.target).value)"
-    (keydown)="onKeydown(i, $event)"
-    (paste)="onPaste($event)" />
+<div class="otp-wrapper" [class.is-verifying]="state === 'verifying'" [class.is-success]="state === 'success'" [class.is-error]="state === 'error'">
+  <div #rowContainer class="otp-box-row">
+    <input
+      *ngFor="let i of boxIndexes"
+      #boxInput
+      class="otp-box"
+      [class.has-digit]="digits[i] !== ''"
+      type="tel"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+      maxlength="1"
+      [attr.aria-label]="'Digit ' + (i + 1) + ' of 6'"
+      [value]="digits[i]"
+      [disabled]="disabled || state === 'success'"
+      (input)="onInput(i, $any($event.target).value)"
+      (keydown)="onKeydown(i, $event)"
+      (paste)="onPaste($event)" />
+  </div>
+
+  <!-- Animated Success checkmark overlay -->
+  <div *ngIf="state === 'success'" class="otp-success-overlay">
+    <div class="otp-check-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="otp-check-svg">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+  </div>
 </div>

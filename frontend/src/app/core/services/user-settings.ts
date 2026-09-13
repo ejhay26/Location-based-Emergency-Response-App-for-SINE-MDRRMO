@@ -198,7 +198,7 @@ export class UserSettingsService {
     this.queuedThemeRequest = null;
   }
 
-  private async runThemeReveal(isDark: boolean, x: number, y: number): Promise<void> {
+  private async runThemeReveal(isDark: boolean, _x: number, _y: number): Promise<void> {
     this.isThemeTransitioning = true;
     try {
       // 1. Immediately update setting state for 0ms reactive UI feedback
@@ -212,20 +212,7 @@ export class UserSettingsService {
         return;
       }
 
-      const vw = window.innerWidth || 360;
-      const vh = window.innerHeight || 640;
-      const endRadius = Math.ceil(Math.hypot(vw / 2, vh));
-
-      // Custom properties the declarative @keyframes in _base.scss read —
-      // set BEFORE startViewTransition() so the very first frame the
-      // pseudo-elements paint already has the correct clip-path radius.
       const root = document.documentElement;
-      root.style.setProperty('--reveal-x', '50%');
-      root.style.setProperty('--reveal-y', '0px');
-      root.style.setProperty('--reveal-r', `${endRadius}px`);
-
-      const animMode = isDark ? 'to-dark' : 'to-light';
-      root.setAttribute('data-theme-anim', animMode);
       root.classList.add('theme-transitioning');
 
       const transition = doc.startViewTransition(() => {
@@ -238,10 +225,6 @@ export class UserSettingsService {
         document.documentElement.classList.toggle('ion-palette-dark', isDark);
       } finally {
         root.classList.remove('theme-transitioning');
-        root.removeAttribute('data-theme-anim');
-        root.style.removeProperty('--reveal-x');
-        root.style.removeProperty('--reveal-y');
-        root.style.removeProperty('--reveal-r');
       }
     } finally {
       this.isThemeTransitioning = false;

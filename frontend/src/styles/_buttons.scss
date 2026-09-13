@@ -33,6 +33,28 @@ ion-button.btn-loading::part(native) {
   transition:     background 0.2s;
 }
 
+ion-button.btn-success::part(native) {
+  background:     #10b981 !important;
+  box-shadow:     0 4px 18px rgba(16, 185, 129, 0.4) !important;
+  color:          #ffffff !important;
+  pointer-events: none;
+  transition:     background 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.btn-checkmark-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+  animation: btnCheckPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes btnCheckPop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 /* =========================================
    DOT LOADERS
    ========================================= */

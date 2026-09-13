@@ -814,8 +814,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     };
 
     this.filteredActiveRequests.forEach(req => {
-      const cfg        = iconConfig[req.incident_name] || defaultIcon;
-      const pulseClass = req.status === 'Pending' ? 'sos-pulse-ripple' : '';
+      const cfg = iconConfig[req.incident_name] || defaultIcon;
+      const isRecent = req.created_at
+        ? (Date.now() - new Date(req.created_at).getTime()) < 10 * 60 * 1000
+        : true;
+      const pulseClass = (req.status === 'Pending' && isRecent) ? 'sos-pulse-ripple' : '';
       const icon = L.divIcon({
         html: `<div class="custom-fa-marker-wrapper ${pulseClass}">
           <svg viewBox="0 0 30 42" class="vector-pin-shape" style="width:45px;height:60px;display:block;">

@@ -1,20 +1,16 @@
-import { Component, ElementRef, EventEmitter, Input, Output, QueryList, ViewChildren } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { animate } from 'motion';
 
 /**
- * OtpBoxInputComponent — 6 separate numeric digit boxes instead of one
- * text field, per the OTP design. Used identically across registration,
- * login-OTP, and password-reset OTP entry.
+ * OtpBoxInputComponent — 6 separate numeric digit boxes with interactive
+ * micro-animations powered by Motion.
  *
- * - Auto-advances focus to the next box on digit entry, and back on
- *   Backspace when the current box is already empty.
- * - Pasting a 6-digit code (e.g. from a notification/clipboard) fills all
- *   six boxes at once from a single paste into any box.
- * - `inputmode="numeric"` + `type="tel"` opens the numeric keypad only on
- *   mobile, never the full alphanumeric keyboard.
- * - Emits the joined 6-digit string on every change via `codeChange`
- *   (works with `[(code)]` two-way binding) and fires `completed` once,
- *   exactly when the 6th digit is entered, so callers can auto-submit.
+ * - Spring scale bounce on each digit typed.
+ * - Auto-advances focus while keeping mobile keyboard open.
+ * - Supports states: 'idle' | 'verifying' | 'success' | 'error'.
+ * - 'success': staggered emerald cascade + SVG checkmark overlay.
+ * - 'error': physics-based horizontal shake + red border flash.
  */
 @Component({
   selector: 'app-otp-box-input',
@@ -25,6 +21,8 @@ import { CommonModule } from '@angular/common';
 })
 export class OtpBoxInputComponent {
   @Input() disabled = false;
+  @Input() state: 'idle' | 'verifying' | 'success' | 'error' = 'idle';
+
   @Input()
   get code(): string { return this._code; }
   set code(value: string) {
@@ -34,6 +32,7 @@ export class OtpBoxInputComponent {
   @Output() codeChange = new EventEmitter<string>();
   @Output() completed = new EventEmitter<string>();
 
+  @ViewChild('rowContainer') rowContainer?: ElementRef<HTMLDivElement>;
   @ViewChildren('boxInput') boxInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
   private _code = '';
@@ -50,7 +49,10 @@ export class OtpBoxInputComponent {
     this._code = joined;
     this.codeChange.emit(joined);
     if (joined.length === 6 && this.digits.every(d => d !== '')) {
+      this.state = 'verifying';
       this.completed.emit(joined);
+    } else if (this.state === 'error') {
+      this.state = 'idle';
     }
   }
 
@@ -61,15 +63,27 @@ export class OtpBoxInputComponent {
       return;
     }
     this.digits[index] = digitsOnly;
+
+    // Trigger Motion micro-bounce on the entered digit
+    if (digitsOnly) {
+      const boxEl = this.boxInputs.get(index)?.nativeElement;
+      if (boxEl) {
+        animate(boxEl as any, { scale: [1, 1.08, 1] }, { duration: 0.18, ease: [0.16, 1, 0.3, 1] });
+      }
+    }
+
     this.emitCurrent();
     if (digitsOnly && index < 5) {
-      this.boxInputs.get(index + 1)?.nativeElement.focus();
+      // Auto-advance without hiding the keyboard
+      const nextInput = this.boxInputs.get(index + 1)?.nativeElement;
+      nextInput?.focus();
     }
   }
 
   onKeydown(index: number, event: KeyboardEvent): void {
     if (event.key === 'Backspace' && !this.digits[index] && index > 0) {
-      this.boxInputs.get(index - 1)?.nativeElement.focus();
+      const prevInput = this.boxInputs.get(index - 1)?.nativeElement;
+      prevInput?.focus();
     }
   }
 
@@ -81,21 +95,65 @@ export class OtpBoxInputComponent {
     this.fillFrom(0, digitsOnly);
   }
 
-  /**
-   * Shared by onPaste (always starts at box 0) and onInput's autofill path
-   * (starts at whichever box received the multi-character value). Fills
-   * boxes left-to-right from startIndex, stopping at the last box (index 5)
-   * regardless of how many extra characters were supplied.
-   */
   private fillFrom(startIndex: number, digitsOnly: string): void {
     const chars = digitsOnly.split('');
     for (let i = startIndex; i < 6 && (i - startIndex) < chars.length; i++) {
       this.digits[i] = chars[i - startIndex];
+      const boxEl = this.boxInputs.get(i)?.nativeElement;
+      if (boxEl) {
+        animate(boxEl as any, { scale: [1, 1.08, 1] }, { duration: 0.2, delay: (i - startIndex) * 0.03 });
+      }
     }
     this.emitCurrent();
     const lastFilled = Math.min(startIndex + chars.length, 6) - 1;
     if (lastFilled >= 0) {
       this.boxInputs.get(Math.min(lastFilled, 5))?.nativeElement.focus();
     }
+  }
+
+  /**
+   * Triggers the emerald cascade animation when verification succeeds.
+   */
+  async triggerSuccess(): Promise<void> {
+    this.state = 'success';
+    if (this.boxInputs) {
+      this.boxInputs.forEach((box, idx) => {
+        animate(
+          box.nativeElement as any,
+          { scale: [1, 1.1, 1] },
+          { duration: 0.35, delay: idx * 0.035, ease: [0.16, 1, 0.3, 1] }
+        );
+      });
+    }
+  }
+
+  /**
+   * Triggers a horizontal physics-based shake and keeps the keyboard open.
+   */
+  async triggerError(): Promise<void> {
+    this.state = 'error';
+    if (this.rowContainer) {
+      await animate(
+        this.rowContainer.nativeElement as any,
+        { x: [0, -7, 7, -5, 5, -2, 2, 0] },
+        { duration: 0.42, ease: 'easeInOut' }
+      );
+    }
+    // Keep focus and select digit so user can immediately re-enter
+    const lastInput = this.boxInputs.get(Math.max(0, this.digits.findIndex(d => !d) - 1))?.nativeElement
+      || this.boxInputs.last?.nativeElement;
+    lastInput?.focus();
+    lastInput?.select();
+  }
+
+  /**
+   * Resets all boxes back to idle.
+   */
+  reset(): void {
+    this.digits = ['', '', '', '', '', ''];
+    this._code = '';
+    this.state = 'idle';
+    this.codeChange.emit('');
+    this.boxInputs.first?.nativeElement.focus();
   }
 }

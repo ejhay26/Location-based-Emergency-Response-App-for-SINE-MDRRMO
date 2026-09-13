@@ -108,3 +108,19 @@ ion-app.desktop-app.mac-desktop {
   -moz-osx-font-smoothing: grayscale !important;
 }
 
+/* =========================================
+   SELECTIVE DESKTOP DEPTH & INTERACTION
+   Elevate only key actionable summary cards on desktop hover
+   ========================================= */
+@media (hover: hover) and (pointer: fine) {
+  .stat-card:hover,
+  .metric-card:hover,
+  .admin-summary-card:hover,
+  .incident-row:hover,
+  .actionable-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  }
+}
+

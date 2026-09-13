@@ -141,15 +141,10 @@ html.reduce-animations *::after {
 }
 
 /* =========================================
-   SMOOTH DARK MODE TRANSITION
+   FALLBACK SMOOTH DARK MODE (NON-VIEW-TRANSITION)
    ========================================= */
-ion-app, ion-content, ion-toolbar, ion-card, ion-item, ion-list, ion-menu {
-  --transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
-  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border 0.3s ease-in-out !important;
-}
-
-ion-label, ion-title, ion-input, ion-textarea, ion-select {
-  transition: color 0.3s ease-in-out !important;
+html:not(.theme-transitioning) body {
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* =========================================
@@ -221,80 +216,50 @@ ion-content .inset-group:nth-of-type(n+5),
 }
 
 /* ===========================================================================
-   TELEGRAM-STYLE CIRCULAR EXPANDING / RETRACTING DARK MODE TRANSITION
+   SYNCHRONIZED DARK/LIGHT MODE CROSS-DISSOLVE (UNIFIED CROSS-PLATFORM)
    =========================================================================== */
-::view-transition-group(root),
-::view-transition-image-pair(root),
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none !important;
-  animation-name: none !important;
-  animation-duration: 0s !important;
-  mix-blend-mode: normal !important;
-  display: block !important;
-}
-
-/* Declarative clip-path reveal — driven entirely by CSS custom properties
-   set on <html> (--reveal-x/-y/-r) right before startViewTransition() is
-   called. This replaces an earlier imperative `element.animate()` version:
-   that approach had a real gap between `transition.ready` resolving and the
-   JS `.animate()` call actually taking effect, during which the topmost
-   (z-index 999999) pseudo-element painted fully UNCLIPPED for a frame or
-   two — invisible on the to-light direction (old frame was already dark),
-   but a jarring solid-black flash on to-dark (screen was light a moment
-   before). A plain CSS @keyframes animation has its 0% state applied as
-   part of normal style resolution — same guarantee as any other CSS
-   animation — so there is no JS-timing gap for that first frame to leak
-   through. */
-@keyframes sine-theme-reveal-out {
-  from { clip-path: circle(0px at 50% 0px); }
-  to   { clip-path: circle(var(--reveal-r, 150vmax) at 50% 0px); }
-}
-@keyframes sine-theme-reveal-in {
-  from { clip-path: circle(var(--reveal-r, 150vmax) at 50% 0px); }
-  to   { clip-path: circle(0px at 50% 0px); }
-}
-
-html[data-theme-anim="to-dark"]::view-transition-new(root) {
-  animation: sine-theme-reveal-out var(--reveal-duration, 650ms) var(--reveal-easing, cubic-bezier(0.22, 1, 0.36, 1)) forwards !important;
-  will-change: clip-path;
-}
-html[data-theme-anim="to-light"]::view-transition-old(root) {
-  animation: sine-theme-reveal-in var(--reveal-duration, 650ms) var(--reveal-easing, cubic-bezier(0.22, 1, 0.36, 1)) forwards !important;
-  will-change: clip-path;
-}
-
-/* Stacking:
-   - When going TO-DARK: new dark view is on top, expanding outward.
-   - When going TO-LIGHT: old dark view is on top, retracting inward into the toggle. */
-html[data-theme-anim="to-dark"]::view-transition-old(root) {
-  z-index: 1 !important;
-}
-html[data-theme-anim="to-dark"]::view-transition-new(root) {
-  z-index: 999999 !important;
-}
-
-html[data-theme-anim="to-light"]::view-transition-old(root) {
-  z-index: 999999 !important;
-}
-html[data-theme-anim="to-light"]::view-transition-new(root) {
-  z-index: 1 !important;
-}
-
-/* Fallback default stacking */
 ::view-transition-old(root) {
-  z-index: 1;
-}
-::view-transition-new(root) {
-  z-index: 2;
+  animation: sine-theme-fade-out 250ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+  mix-blend-mode: normal !important;
 }
 
-/* Prevent CSS transition fighting during circular reveal */
-html.theme-transitioning,
-html.theme-transitioning *,
-html.theme-transitioning *::before,
-html.theme-transitioning *::after {
-  transition: none !important;
+::view-transition-new(root) {
+  animation: sine-theme-fade-in 250ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+  mix-blend-mode: normal !important;
+}
+
+@keyframes sine-theme-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes sine-theme-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* =========================================
+   SKELETON SHIMMER LOADING UTILITY
+   ========================================= */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--ion-color-step-100, rgba(0, 0, 0, 0.05)) 25%,
+    var(--ion-color-step-200, rgba(0, 0, 0, 0.12)) 50%,
+    var(--ion-color-step-100, rgba(0, 0, 0, 0.05)) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite ease-in-out;
+  border-radius: var(--border-radius, 8px);
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 

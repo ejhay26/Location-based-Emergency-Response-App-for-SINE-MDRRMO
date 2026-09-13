@@ -97,11 +97,13 @@ html.ion-palette-dark .leaflet-popup-tip {
   content: ''; position: absolute; top: 8px; left: 8px; width: 28px; height: 28px;
   border-radius: 50%; background: rgba(235, 68, 90, 0.4);
   box-shadow: 0 0 18px rgba(235, 68, 90, 0.9);
-  animation: radarRipplePulse 1.6s infinite ease-out; z-index: 1;
+  animation: radarRipplePulse 2s 8 ease-out forwards; z-index: 1;
+  pointer-events: none;
 }
 @keyframes radarRipplePulse {
-  0% { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(3.5); opacity: 0; }
+  0% { transform: scale(0.5); opacity: 0.9; }
+  75% { opacity: 0.3; }
+  100% { transform: scale(3.2); opacity: 0; }
 }
 .accessible-popup-box { padding: 5px; min-width: 260px; }
 .leaflet-popup-content { margin: 12px 16px !important; line-height: 1.4; }
