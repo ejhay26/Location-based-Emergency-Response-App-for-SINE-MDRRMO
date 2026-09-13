@@ -15,3 +15,6 @@ release/
 # macOS
 .DS_Store
 
+# Keystore files
+*.keystore
+*.jks

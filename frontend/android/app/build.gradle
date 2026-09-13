@@ -13,8 +13,8 @@ android {
         applicationId "ph.gov.sine.mdrrmo.emergencyresponse"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 9
-        versionName "0.79.4"
+        versionCode 10
+        versionName "0.79.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -22,8 +22,33 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            Properties localProps = new Properties()
+            def localPropertiesFile = rootProject.file('local.properties')
+            if (localPropertiesFile.exists()) {
+                localProps.load(new FileInputStream(localPropertiesFile))
+            }
+            def ksPath = System.getenv("KEYSTORE_PATH") ?: localProps.getProperty("keystore.path")
+            if (ksPath) {
+                def ksFile = file(ksPath)
+                if (!ksFile.exists()) {
+                    ksFile = rootProject.file(ksPath)
+                }
+                if (ksFile.exists()) {
+                    storeFile ksFile
+                    storePassword System.getenv("KEYSTORE_PASSWORD") ?: localProps.getProperty("keystore.password")
+                    keyAlias System.getenv("KEY_ALIAS") ?: localProps.getProperty("key.alias")
+                    keyPassword System.getenv("KEY_PASSWORD") ?: localProps.getProperty("key.password")
+                }
+            }
+        }
+    }
     buildTypes {
         release {
+            if (signingConfigs.release.storeFile != null) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
