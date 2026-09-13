@@ -14,7 +14,8 @@ import { DesktopNotificationsService } from '../../../core/services/desktop-noti
 import { AdminUiService } from './admin-ui.service';
 
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
-import { isTauri } from '../../../shared/utils/platform.util';
+import { CustomTooltipDirective } from '../../../shared/directives/custom-tooltip.directive';
+import { isTauri, isMacDesktop } from '../../../shared/utils/platform.util';
 
 import { IncidentMapPanel } from './panels/incident-map/incident-map.panel';
 import { AnalyticsPanel } from './panels/analytics/analytics.panel';
@@ -45,7 +46,7 @@ type ViewMode =
     IncidentMapPanel, AnalyticsPanel, LogArchivePanel, BroadcastPanel,
     VerificationsPanel, DispatchersPanel, CitizensPanel, FeedbackPanel,
     SettingsPanel, HelpPanel, MobileMenuPanel, AppIconComponent,
-    MobileAdminNavComponent,
+    MobileAdminNavComponent, CustomTooltipDirective,
   ],
 })
 export class AdminDashboardPage implements OnInit, OnDestroy {
@@ -56,6 +57,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   navDirection: 'forward' | 'back' = 'forward';
   isSidebarCollapsed = false;
   isDesktop = false;
+  isMac = false;
   isMoreSheetOpen = false;
   activeIncidentsCount = 0;
   pendingVerificationsCount = 0;
@@ -184,6 +186,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       }
     });
     this.isDesktop = isTauri();
+    this.isMac = isMacDesktop();
     
     // Restore saved sidebar width if present
     const savedWidth = localStorage.getItem('admin_sidebar_width');
@@ -314,6 +317,9 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
     this.incidentMapPanel?.invalidateMapSize();
+    setTimeout(() => {
+      this.incidentMapPanel?.invalidateMapSize();
+    }, 180);
   }
 
   toggleDarkMode(event: any) {

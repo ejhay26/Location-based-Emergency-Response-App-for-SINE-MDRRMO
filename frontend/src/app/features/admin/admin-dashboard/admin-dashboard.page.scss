@@ -33,6 +33,67 @@
   flex-shrink: 0;
   overflow: hidden;
   box-sizing: border-box;
+
+  &.is-collapsed {
+    padding: 14px 8px;
+
+    .sidebar-brand-header {
+      border-bottom: none !important;
+      margin-bottom: 6px;
+      padding-bottom: 0;
+      min-height: 38px;
+    }
+
+    .menu-capsule-link {
+      padding: 10px 0;
+      justify-content: center;
+    }
+  }
+}
+
+.sidebar-brand-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  justify-content: space-between;
+
+  &.is-collapsed {
+    justify-content: center;
+    border-bottom: none !important;
+    padding-bottom: 0;
+    margin-bottom: 6px;
+  }
+}
+
+.brand-info {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.brand-logo-img {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.brand-title-text {
+  margin: 0;
+  font-weight: 800;
+  color: var(--ion-text-color);
+  letter-spacing: 0.4px;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-toggle-btn {
@@ -46,10 +107,88 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  color: var(--ion-color-step-600, #64748b);
 
   &:hover {
     background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
+    color: var(--ion-color-danger, #dc2626);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+/* ── Dynamic Brand Header in Compact Mode (Pop-off App Icon, Pop-up Toggle) ── */
+.compact-brand-trigger {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition: background 0.18s ease;
+
+  &:hover {
+    background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  .brand-logo-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transform: scale(1);
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.18s ease;
+    pointer-events: auto;
+  }
+
+  .compact-logo-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  }
+
+  .toggle-btn-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.18s ease;
+    pointer-events: none;
+  }
+
+  /* Pop-off app icon, Pop-up sidebar toggle with spring physics on hover */
+  &:hover {
+    .brand-logo-layer {
+      opacity: 0;
+      transform: scale(0.5);
+      pointer-events: none;
+    }
+
+    .toggle-btn-layer {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
   }
 }
 

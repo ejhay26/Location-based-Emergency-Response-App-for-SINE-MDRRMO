@@ -92,11 +92,15 @@ ion-app.desktop-app.mac-desktop ion-toolbar ion-title[style*="text-align:center"
 }
 
 ion-app.desktop-app.mac-desktop .admin-sidebar {
-  padding-top: 42px !important;
+  padding-top: 86px !important;
+
+  &.is-collapsed {
+    padding-top: 90px !important;
+  }
 }
 
 ion-app.desktop-app.mac-desktop .admin-main-viewport {
-  padding: 42px 20px 18px 20px !important;
+  padding: 52px 20px 18px 20px !important;
 }
 
 ion-app.desktop-app.mac-desktop {
