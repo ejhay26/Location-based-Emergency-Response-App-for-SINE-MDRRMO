@@ -20,6 +20,18 @@ if (!fs.existsSync(releaseDir)) {
 console.log(`[post-build-mac] Copying application to ${targetApp}...`);
 execSync(`rm -rf "${targetApp}" && cp -R "${sourceApp}" "${releaseDir}/"`);
 
+// 2b. If .dmg exists, copy to release/
+const sourceDmgDir = path.join(__dirname, '../src-tauri/target/release/bundle/dmg');
+if (fs.existsSync(sourceDmgDir)) {
+  const dmgFiles = fs.readdirSync(sourceDmgDir).filter(f => f.endsWith('.dmg'));
+  for (const dmg of dmgFiles) {
+    const srcDmg = path.join(sourceDmgDir, dmg);
+    const destDmg = path.join(releaseDir, dmg);
+    console.log(`[post-build-mac] Copying installer disk image to ${destDmg}...`);
+    fs.copyFileSync(srcDmg, destDmg);
+  }
+}
+
 // 3. Unhide extension in Finder so ".app" is explicitly visible
 try {
   execSync(`SetFile -a e "${targetApp}" 2>/dev/null || true`);
