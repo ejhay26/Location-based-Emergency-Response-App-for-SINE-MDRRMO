@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v0.79.8)'
+        description: 'Release tag (e.g. v0.79.9)'
         required: false
-        default: 'v0.79.8'
+        default: 'v0.79.9'
 
 permissions:
   contents: write
@@ -102,17 +102,16 @@ jobs:
           releaseBody: |
             ### What's Changed
             - **Heavy Metal Drop & Spring Dialog Animations**: Added weighted drop and damped metal spring bounce animations to alerts, confirmation popups, and modal dialogs.
-            - **Physics-Driven OTP Verification**: Micro-scale bounce on digit typing, in-flight verifying pulse, emerald cascade wave on 6th digit, and horizontal physics error shake.
+            - **Physics-Driven OTP Verification**: Micro-scale bounce on digit typing, in-flight verifying pulse, emerald cascade wave on 6th digit, animated SVG checkmark overlay, and horizontal physics error shake.
             - **Action Button Morph States**: Added emerald success state with animated checkmark for primary form submissions.
-            - **Seamless Cross-Dissolve Dark Mode**: Replaced circular clip-path expansion with a unified 250ms cross-dissolve transition across Android, iOS, Windows, macOS, and Linux.
+            - **Seamless Cross-Dissolve Dark Mode**: Replaced circular clip-path expansion with a unified 250ms cross-dissolve transition across Android, iOS, Windows, macOS, and Linux, eliminating visual tearing.
             - **Conditional Map Radar Pulse**: Restricted Leaflet radar ripple animations exclusively to fresh, pending incident reports (<10 minutes old) with an automatic 8-cycle cutoff to preserve GPU performance.
             - **Selective Desktop Depth**: Applied high-contrast hover lifts and shadow elevations exclusively to key admin metric cards and active incident rows on cursor-enabled devices.
             - **Shimmer Data Loading**: Added unified skeleton shimmer utility to replace static loading text with responsive placeholder states.
-            - **Admin Sidebar & Filters**: Dynamic compact hover sidebar with macOS traffic light clearance, fixed Barangay filter flickering, modernized segmented controls, and polished Date Range Filter.
-            - **Automated Signed Android Pipeline**: Enabled headless cloud signing directly within GitHub Actions using the production keystore.
+            - **Admin Sidebar & Filters**: Dynamic compact hover sidebar with macOS traffic light clearance, fixed Barangay filter flickering and enabled multi-select combinations, modernized segmented controls, and polished Date Range Filter.
 
             ### Application Bundles & Assets
-            - **Android**: Signed Release APK
+            - **Android**: Universal APK
             - **Windows (x64)**: NSIS Setup Installer & Standalone Portable executable
             - **macOS**: Universal DMG (Intel & Apple Silicon), Intel x64 DMG, Apple Silicon ARM64 DMG
             - **Linux**: x64 (.deb / .AppImage) & ARM64 (.deb / .AppImage)
@@ -178,6 +177,22 @@ jobs:
         working-directory: frontend
         run: npx cap sync android
 
+      - name: Restore Firebase Configuration
+        env:
+          GOOGLE_SERVICES_BASE64: ${{ secrets.GOOGLE_SERVICES_BASE64 || secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_BASE64" ]; then
+            if echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > frontend/android/app/google-services.json 2>/dev/null && [ -s frontend/android/app/google-services.json ]; then
+              echo "google-services.json successfully restored from Base64."
+            else
+              echo "$GOOGLE_SERVICES_BASE64" > frontend/android/app/google-services.json
+              echo "google-services.json successfully restored from raw JSON."
+            fi
+            echo "google-services.json size: $(wc -c < frontend/android/app/google-services.json) bytes"
+          else
+            echo "::warning::Neither GOOGLE_SERVICES_BASE64 nor GOOGLE_SERVICES_JSON secret is set!"
+          fi
+
       - name: Decode Android Keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -218,17 +233,16 @@ jobs:
             echo "Uploading signed Android release APK: $APK_NAME"
             RELEASE_NOTES="### What's Changed
             - **Heavy Metal Drop & Spring Dialog Animations**: Added weighted drop and damped metal spring bounce animations to alerts, confirmation popups, and modal dialogs.
-            - **Physics-Driven OTP Verification**: Micro-scale bounce on digit typing, in-flight verifying pulse, emerald cascade wave on 6th digit, and horizontal physics error shake.
+            - **Physics-Driven OTP Verification**: Micro-scale bounce on digit typing, in-flight verifying pulse, emerald cascade wave on 6th digit, animated SVG checkmark overlay, and horizontal physics error shake.
             - **Action Button Morph States**: Added emerald success state with animated checkmark for primary form submissions.
-            - **Seamless Cross-Dissolve Dark Mode**: Replaced circular clip-path expansion with a unified 250ms cross-dissolve transition across Android, iOS, Windows, macOS, and Linux.
+            - **Seamless Cross-Dissolve Dark Mode**: Replaced circular clip-path expansion with a unified 250ms cross-dissolve transition across Android, iOS, Windows, macOS, and Linux, eliminating visual tearing.
             - **Conditional Map Radar Pulse**: Restricted Leaflet radar ripple animations exclusively to fresh, pending incident reports (<10 minutes old) with an automatic 8-cycle cutoff to preserve GPU performance.
             - **Selective Desktop Depth**: Applied high-contrast hover lifts and shadow elevations exclusively to key admin metric cards and active incident rows on cursor-enabled devices.
             - **Shimmer Data Loading**: Added unified skeleton shimmer utility to replace static loading text with responsive placeholder states.
-            - **Admin Sidebar & Filters**: Dynamic compact hover sidebar with macOS traffic light clearance, fixed Barangay filter flickering, modernized segmented controls, and polished Date Range Filter.
-            - **Automated Signed Android Pipeline**: Enabled headless cloud signing directly within GitHub Actions using the production keystore.
+            - **Admin Sidebar & Filters**: Dynamic compact hover sidebar with macOS traffic light clearance, fixed Barangay filter flickering and enabled multi-select combinations, modernized segmented controls, and polished Date Range Filter.
 
             ### Application Bundles & Assets
-            - **Android**: Signed Release APK
+            - **Android**: Universal APK
             - **Windows (x64)**: NSIS Setup Installer & Standalone Portable executable
             - **macOS**: Universal DMG (Intel & Apple Silicon), Intel x64 DMG, Apple Silicon ARM64 DMG
             - **Linux**: x64 (.deb / .AppImage) & ARM64 (.deb / .AppImage)"

@@ -1,6 +1,6 @@
 [package]
 name = "mdrrmo-emergency-response-app"
-version = "0.79.8"
+version = "0.79.9"
 description = "MDRRMO Emergency Response App"
 authors = ["MDRRMO-SINE"]
 edition = "2021"
