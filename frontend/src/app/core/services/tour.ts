@@ -173,7 +173,7 @@ const STEPS: TourStep[] = [
   },
   {
     id: 'tour-help-feedback', page: '/tabs/help', chapters: ['all'],
-    callout: "You're all set! 🎉",
+    callout: 'Tour Complete',
     subtext: 'You now know how to use the MDRRMO Emergency App. Found a bug or have an idea? Send it to us right here.',
     waitForInteraction: false
   },
@@ -240,7 +240,7 @@ export class TourService {
 
   async promptStart() {
     const alert = await this.alertCtrl.create({
-      header: '👋 Welcome!',
+      header: 'Welcome to MDRRMO',
       message: "Would you like a quick walkthrough of the app? It takes about a minute and shows you everything you need to know.",
       buttons: [
         { text: 'Skip for now', role: 'cancel',  handler: () => this.markSeen() },
