@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v0.79.0)'
+        required: false
+        default: 'v0.79.0'
 
 permissions:
   contents: write
@@ -61,8 +66,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: './frontend'
-          tagName: ${{ github.ref_name }}
-          releaseName: 'MDRRMO Emergency Response App ${{ github.ref_name }}'
+          tagName: ${{ inputs.tag || github.ref_name }}
+          releaseName: 'MDRRMO Emergency Response App ${{ inputs.tag || github.ref_name }}'
           releaseBody: 'Automated release for Windows, macOS Universal, and Linux.'
           releaseDraft: true
           prerelease: false
