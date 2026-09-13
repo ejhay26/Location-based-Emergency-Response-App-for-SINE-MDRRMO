@@ -17,6 +17,7 @@ import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../..
 import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/flip-reflow.util';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../shared/components/filter-dropdown/filter-dropdown.component';
 
 const ARCHIVE_FILTER_LABELS: Record<string, string> = {
   resolved: 'Resolved', false_alarm: 'False Alarms', cancelled: 'Cancelled',
@@ -28,7 +29,7 @@ const ARCHIVE_FILTER_LABELS: Record<string, string> = {
   imports: [
     CommonModule, FormsModule, IonButton, IonBadge, ProxyImageDirective, VideoThumbnailDirective, UtcDatePipe,
     DateRangeFilterComponent, FilterSummaryBarComponent, RevealAnimateDirective, ListEnterDirective,
-    AppIconComponent
+    AppIconComponent, FilterDropdownComponent
   ],
   templateUrl: './log-archive.panel.html',
 })
@@ -40,9 +41,26 @@ export class LogArchivePanel implements OnInit {
   archiveSort: 'newest' | 'oldest' | 'type' = 'newest';
   archiveTypeFilter = 'all';
   archiveDateFilter: DateFilterValue | null = null;
-  /** Selected barangay_id, or 'all'. A null barangay_id (unresolved location) only matches 'all'. */
-  archiveBarangayFilter: number | 'all' = 'all';
+  archiveBarangayFilter: number[] = [];
   readonly barangayOptions = BARANGAYS;
+
+  get typeDropdownOptions() {
+    return [
+      { value: 'all', label: 'All Types' },
+      ...this.archiveIncidentTypes.map(t => ({ value: t, label: t }))
+    ];
+  }
+
+  readonly barangayDropdownOptions: FilterDropdownOption[] = [
+    { value: 'all', label: 'All Barangays (Reset)' },
+    ...BARANGAYS.map(b => ({ value: b.id, label: b.name }))
+  ];
+
+  readonly sortDropdownOptions = [
+    { value: 'newest', label: 'Newest First' },
+    { value: 'oldest', label: 'Oldest First' },
+    { value: 'type', label: 'By Type' }
+  ];
 
   /** FLIP sort-reorder (see onSortChange) needs a live handle on the list's DOM to measure card positions before/after a re-sort. */
   @ViewChild('archiveListContainer') archiveListContainer?: ElementRef<HTMLElement>;
@@ -81,7 +99,7 @@ export class LogArchivePanel implements OnInit {
     if (this.archiveFilter === 'false_alarm' && !r.is_false_alarm) return false;
     if (this.archiveFilter === 'cancelled'   && r.status !== 'Cancelled') return false;
     if (this.archiveTypeFilter !== 'all'     && r.incident_name !== this.archiveTypeFilter) return false;
-    if (this.archiveBarangayFilter !== 'all' && r.barangay_id !== this.archiveBarangayFilter) return false;
+    if (this.archiveBarangayFilter.length > 0 && !this.archiveBarangayFilter.some(id => Number(id) === Number(r.barangay_id))) return false;
     return matchesDateFilter(r.request_time, this.archiveDateFilter);
   }
 
@@ -124,10 +142,17 @@ export class LogArchivePanel implements OnInit {
   /** Chip labels for the active-filters summary bar; empty array hides the bar. */
   get activeFilterChips(): string[] {
     const chips: string[] = [];
-    if (this.archiveFilter !== 'all')     chips.push(ARCHIVE_FILTER_LABELS[this.archiveFilter]);
+    if (this.archiveFilter !== 'all') chips.push(ARCHIVE_FILTER_LABELS[this.archiveFilter]);
     if (this.archiveTypeFilter !== 'all') chips.push(this.archiveTypeFilter);
-    if (this.archiveBarangayFilter !== 'all') chips.push(this.barangayOptions.find(b => b.id === this.archiveBarangayFilter)?.name || '');
-    if (this.archiveDateFilter)           chips.push(formatDateFilterLabel(this.archiveDateFilter));
+    if (this.archiveBarangayFilter.length > 0) {
+      if (this.archiveBarangayFilter.length === 1) {
+        const b = this.barangayOptions.find(x => Number(x.id) === Number(this.archiveBarangayFilter[0]));
+        if (b) chips.push(b.name);
+      } else {
+        chips.push(`${this.archiveBarangayFilter.length} Barangays`);
+      }
+    }
+    if (this.archiveDateFilter) chips.push(formatDateFilterLabel(this.archiveDateFilter));
     return chips;
   }
 
@@ -287,7 +312,7 @@ export class LogArchivePanel implements OnInit {
   clearAllFilters(): void {
     this.archiveFilter = 'all';
     this.archiveTypeFilter = 'all';
-    this.archiveBarangayFilter = 'all';
+    this.archiveBarangayFilter = [];
     this.archiveDateFilter = null;
   }
 

@@ -16,6 +16,8 @@ import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../..
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 import { TourService } from '../../../../../core/services/tour';
 
+import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../shared/components/filter-dropdown/filter-dropdown.component';
+
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 
 @Component({
@@ -24,7 +26,7 @@ import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
   imports: [
     CommonModule, FormsModule, IonButton, ProxyImageDirective,
     DateRangeFilterComponent, FilterSummaryBarComponent,
-    AppIconComponent, UtcDatePipe
+    AppIconComponent, FilterDropdownComponent, UtcDatePipe
   ],
   templateUrl: './verifications.panel.html',
   styleUrl: './verifications.panel.scss',
@@ -35,11 +37,48 @@ export class VerificationsPanel implements OnInit, OnDestroy {
   selectedUserId: number | null = null;
 
   verificationSearch = '';
-  verificationBarangayFilter: number | 'all' = 'all';
+  verificationBarangayFilter: number[] = [];
   verificationIdTypeFilter = 'all';
   verificationDateFilter: DateFilterValue | null = null;
 
   readonly barangays = BARANGAYS;
+
+  readonly barangayDropdownOptions: FilterDropdownOption[] = [
+    { value: 'all', label: 'All Barangays (Reset)' },
+    ...BARANGAYS.map(b => ({ value: b.id, label: b.name }))
+  ];
+
+  readonly standardIdTypes: string[] = [
+    'Philippine National ID (PhilSys)',
+    "Driver's License",
+    'Philippine Passport',
+    'UMID / SSS ID',
+    'Postal ID',
+    'PRC License',
+    "Voter's ID",
+    'Senior Citizen ID',
+    'PWD ID',
+    'Barangay ID'
+  ];
+
+  get idTypeDropdownOptions(): FilterDropdownOption[] {
+    const combined = new Set<string>([
+      ...this.standardIdTypes,
+      ...this.pendingVerifications.map(u => u.valid_id_type).filter((t): t is string => !!t)
+    ]);
+    return [
+      { value: 'all', label: 'All ID Types' },
+      ...Array.from(combined).map(t => ({ value: t, label: t }))
+    ];
+  }
+
+  onBarangayFilterChange(val: number[]): void {
+    this.verificationBarangayFilter = val || [];
+  }
+
+  onIdTypeFilterChange(val: any): void {
+    this.verificationIdTypeFilter = val;
+  }
 
   private echoUserSub?: Subscription;
   private tourSub?: Subscription;
@@ -129,8 +168,11 @@ export class VerificationsPanel implements OnInit, OnDestroy {
     const matchSearch = !search ||
       `${u.first_name} ${u.last_name} ${u.username} ${u.email} ${u.phone}`
         .toLowerCase().includes(search);
-    const matchBarangay = this.verificationBarangayFilter === 'all' || u.barangay_id === this.verificationBarangayFilter;
-    const matchIdType = this.verificationIdTypeFilter === 'all' || u.valid_id_type === this.verificationIdTypeFilter;
+    const matchBarangay = this.verificationBarangayFilter.length === 0 ||
+      this.verificationBarangayFilter.some(id => Number(id) === Number(u.barangay_id));
+    const matchIdType = this.verificationIdTypeFilter === 'all' ||
+      u.valid_id_type === this.verificationIdTypeFilter ||
+      (this.verificationIdTypeFilter === 'Philippine National ID (PhilSys)' && u.valid_id_type?.includes('National ID'));
     const matchDate = matchesDateFilter(u.created_at, this.verificationDateFilter);
     return matchSearch && matchBarangay && matchIdType && matchDate;
   }
@@ -145,8 +187,15 @@ export class VerificationsPanel implements OnInit, OnDestroy {
 
   get activeFilterChips(): string[] {
     const chips: string[] = [];
-    if (this.verificationSearch.trim())            chips.push(`"${this.verificationSearch.trim()}"`);
-    if (this.verificationBarangayFilter !== 'all')  chips.push(this.barangays.find(b => b.id === this.verificationBarangayFilter)?.name ?? 'Unknown Barangay');
+    if (this.verificationSearch.trim()) chips.push(`"${this.verificationSearch.trim()}"`);
+    if (this.verificationBarangayFilter.length > 0) {
+      if (this.verificationBarangayFilter.length === 1) {
+        const b = this.barangays.find(x => Number(x.id) === Number(this.verificationBarangayFilter[0]));
+        if (b) chips.push(b.name);
+      } else {
+        chips.push(`${this.verificationBarangayFilter.length} Barangays`);
+      }
+    }
     if (this.verificationIdTypeFilter !== 'all')    chips.push(this.verificationIdTypeFilter);
     if (this.verificationDateFilter)                chips.push(formatDateFilterLabel(this.verificationDateFilter));
     return chips;
@@ -154,7 +203,7 @@ export class VerificationsPanel implements OnInit, OnDestroy {
 
   clearAllFilters(): void {
     this.verificationSearch = '';
-    this.verificationBarangayFilter = 'all';
+    this.verificationBarangayFilter = [];
     this.verificationIdTypeFilter = 'all';
     this.verificationDateFilter = null;
   }

@@ -13,15 +13,25 @@
         <input id="verificationSearch" name="verificationSearch" [(ngModel)]="verificationSearch" placeholder="Search name, username, email…" />
       </div>
 
-      <select id="verificationBarangayFilter" name="verificationBarangayFilter" [ngModel]="verificationBarangayFilter" (ngModelChange)="verificationBarangayFilter = $event === 'all' ? 'all' : +$event">
-        <option value="all">All Barangays</option>
-        <option *ngFor="let b of barangays" [value]="b.id">{{ b.name }}</option>
-      </select>
+      <app-filter-dropdown
+        icon="map-pin"
+        label="All Barangays"
+        pluralLabel="Barangays"
+        [multiple]="true"
+        [options]="barangayDropdownOptions"
+        [value]="verificationBarangayFilter"
+        (valueChange)="onBarangayFilterChange($event)"
+        [searchable]="true"
+        searchPlaceholder="Search barangay…">
+      </app-filter-dropdown>
 
-      <select id="verificationIdTypeFilter" name="verificationIdTypeFilter" [(ngModel)]="verificationIdTypeFilter">
-        <option value="all">All ID Types</option>
-        <option *ngFor="let t of verificationIdTypes" [value]="t">{{ t }}</option>
-      </select>
+      <app-filter-dropdown
+        icon="shield"
+        label="All ID Types"
+        [options]="idTypeDropdownOptions"
+        [value]="verificationIdTypeFilter"
+        (valueChange)="onIdTypeFilterChange($event)">
+      </app-filter-dropdown>
 
       <app-date-range-filter [value]="verificationDateFilter" (valueChange)="verificationDateFilter = $event"></app-date-range-filter>
     </div>

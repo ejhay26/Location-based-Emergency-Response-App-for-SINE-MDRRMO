@@ -92,7 +92,7 @@
       [style.background]="activeFilter === 'suggestion' ? '#2dd36f' : 'var(--ion-card-background, #ffffff)'"
       [style.color]="activeFilter === 'suggestion' ? '#ffffff' : 'var(--ion-text-color)'"
       [style.border-color]="activeFilter === 'suggestion' ? '#2dd36f' : 'var(--ion-color-step-200, rgba(0,0,0,0.12))'">
-      💡 Suggestions ({{ countSuggestions }})
+      Suggestions ({{ countSuggestions }})
     </button>
 
     <!-- Bug Reports -->
@@ -100,7 +100,7 @@
       [style.background]="activeFilter === 'bug' ? '#eb445a' : 'var(--ion-card-background, #ffffff)'"
       [style.color]="activeFilter === 'bug' ? '#ffffff' : 'var(--ion-text-color)'"
       [style.border-color]="activeFilter === 'bug' ? '#eb445a' : 'var(--ion-color-step-200, rgba(0,0,0,0.12))'">
-      🐛 Bug Reports ({{ countBugs }})
+      Bug Reports ({{ countBugs }})
     </button>
 
     <!-- High Ratings (4-5 Stars) -->
@@ -108,7 +108,7 @@
       [style.background]="activeFilter === 'high_rating' ? '#ffc409' : 'var(--ion-card-background, #ffffff)'"
       [style.color]="activeFilter === 'high_rating' ? '#000000' : 'var(--ion-text-color)'"
       [style.border-color]="activeFilter === 'high_rating' ? '#ffc409' : 'var(--ion-color-step-200, rgba(0,0,0,0.12))'">
-      ★ High Ratings ({{ countHighRatings }})
+      High Ratings ({{ countHighRatings }})
     </button>
 
     <!-- Low Ratings (1-3 Stars) -->
@@ -116,7 +116,7 @@
       [style.background]="activeFilter === 'low_rating' ? '#d99000' : 'var(--ion-card-background, #ffffff)'"
       [style.color]="activeFilter === 'low_rating' ? '#ffffff' : 'var(--ion-text-color)'"
       [style.border-color]="activeFilter === 'low_rating' ? '#d99000' : 'var(--ion-color-step-200, rgba(0,0,0,0.12))'">
-      ⚠ Low Ratings ({{ countLowRatings }})
+      Low Ratings ({{ countLowRatings }})
     </button>
 
     <!-- Trash / Archived -->

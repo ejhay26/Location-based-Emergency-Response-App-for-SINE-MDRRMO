@@ -1,0 +1,44 @@
+<div class="popover-anchor">
+  <button
+    type="button"
+    class="mac-popover-btn"
+    [class.has-filter]="hasFilter"
+    (click)="toggleMenu($event)"
+    [attr.aria-expanded]="isOpen"
+    [title]="currentLabel">
+    <app-icon *ngIf="icon" [name]="icon" [size]="13" [color]="hasFilter ? 'var(--ion-color-danger, #eb445a)' : 'currentColor'"></app-icon>
+    <span class="btn-text">{{ currentLabel }}</span>
+    <span *ngIf="showClear && hasFilter" class="mac-filter-clear-x" (click)="clear($event)" title="Reset">
+      <app-icon name="close" [size]="9" color="#ffffff"></app-icon>
+    </span>
+    <app-icon name="chevron-down" [size]="11" class="chevron-icon"></app-icon>
+  </button>
+
+  <div class="mac-frosted-menu" *ngIf="isOpen" (click)="$event.stopPropagation()">
+    <div class="menu-search-box" *ngIf="searchable">
+      <app-icon name="search" [size]="12" color="var(--ion-color-medium)"></app-icon>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        [placeholder]="searchPlaceholder"
+        (click)="$event.stopPropagation()" />
+    </div>
+
+    <div class="menu-scroll-list">
+      <div
+        *ngFor="let opt of filteredOptions; trackBy: trackByOption"
+        class="menu-item"
+        [class.selected]="isSelected(opt.value)"
+        [class.reset-item]="opt.value === 'all'"
+        (click)="selectOption(opt.value, $event)">
+        <span class="checkbox-indicator">{{ isSelected(opt.value) ? '✓' : '' }}</span>
+        <span class="item-label">{{ opt.label }}</span>
+      </div>
+      <div *ngIf="filteredOptions.length === 0" class="menu-empty">
+        No matches found
+      </div>
+    </div>
+
+    <div *ngIf="multiple" class="menu-footer-hint">Click multiple to combine</div>
+  </div>
+</div>

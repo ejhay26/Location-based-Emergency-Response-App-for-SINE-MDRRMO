@@ -18,6 +18,7 @@ import { FilterSummaryBarComponent } from '../../../../../shared/components/filt
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/flip-reflow.util';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../shared/components/filter-dropdown/filter-dropdown.component';
 
 @Component({
   selector: 'app-citizens-panel',
@@ -25,7 +26,8 @@ import { AppIconComponent } from '../../../../../shared/components/app-icon/app-
   imports: [
     CommonModule, FormsModule, IonButton, IonModal, IonContent,
     ProxyImageDirective, UtcDatePipe, DateRangeFilterComponent,
-    FilterSummaryBarComponent, ListEnterDirective, AppIconComponent
+    FilterSummaryBarComponent, ListEnterDirective, AppIconComponent,
+    FilterDropdownComponent
   ],
   templateUrl: './citizens.panel.html',
 })
@@ -34,8 +36,21 @@ export class CitizensPanel implements OnInit, OnDestroy {
   citizens: any[] = [];
   citizenSearch = '';
   citizenFilterStatus: 'all' | 'active' | 'suspended' | 'has_strikes' | 'clean' = 'all';
-  citizenBarangayFilter: number | 'all' = 'all';
+  citizenBarangayFilter: number[] = [];
   citizenDateFilter: DateFilterValue | null = null;
+
+  readonly statusDropdownOptions = [
+    { value: 'all', label: 'All Status' },
+    { value: 'active', label: 'Active Only' },
+    { value: 'suspended', label: 'Suspended / Banned' },
+    { value: 'has_strikes', label: 'Has Strikes (1-3)' },
+    { value: 'clean', label: 'Clean Record (0)' }
+  ];
+
+  readonly barangayDropdownOptions: FilterDropdownOption[] = [
+    { value: 'all', label: 'All Barangays (Reset)' },
+    ...BARANGAYS.map(b => ({ value: b.id, label: b.name }))
+  ];
 
   // Strike Management Modal
   isStrikeModalOpen = false;
@@ -51,6 +66,10 @@ export class CitizensPanel implements OnInit, OnDestroy {
     'Accidental Activation without Prompt Cancellation',
     'Other / Custom Reason'
   ];
+
+  get strikeReasonDropdownOptions() {
+    return this.STRIKE_PRESET_REASONS.map(r => ({ value: r, label: r }));
+  }
 
   readonly barangays = BARANGAYS;
 
@@ -94,7 +113,8 @@ export class CitizensPanel implements OnInit, OnDestroy {
       } else if (this.citizenFilterStatus === 'clean') {
         matchStatus = !c.false_alarm_strikes || c.false_alarm_strikes === 0;
       }
-      const matchBarangay = this.citizenBarangayFilter === 'all' || c.barangay_id === this.citizenBarangayFilter;
+      const matchBarangay = this.citizenBarangayFilter.length === 0 ||
+        this.citizenBarangayFilter.some(id => Number(id) === Number(c.barangay_id));
       const matchDate = matchesDateFilter(c.created_at, this.citizenDateFilter);
       return matchSearch && matchStatus && matchBarangay && matchDate;
     });
@@ -102,7 +122,7 @@ export class CitizensPanel implements OnInit, OnDestroy {
 
   get activeFilterChips(): string[] {
     const chips: string[] = [];
-    if (this.citizenSearch.trim())            chips.push(`"${this.citizenSearch.trim()}"`);
+    if (this.citizenSearch.trim()) chips.push(`"${this.citizenSearch.trim()}"`);
     if (this.citizenFilterStatus !== 'all') {
       const labels: Record<string, string> = {
         active: 'Active',
@@ -112,8 +132,15 @@ export class CitizensPanel implements OnInit, OnDestroy {
       };
       chips.push(labels[this.citizenFilterStatus] || this.citizenFilterStatus);
     }
-    if (this.citizenBarangayFilter !== 'all')  chips.push(this.barangays.find(b => b.id === this.citizenBarangayFilter)?.name ?? 'Unknown Barangay');
-    if (this.citizenDateFilter)                chips.push(formatDateFilterLabel(this.citizenDateFilter));
+    if (this.citizenBarangayFilter.length > 0) {
+      if (this.citizenBarangayFilter.length === 1) {
+        const b = this.barangays.find(x => Number(x.id) === Number(this.citizenBarangayFilter[0]));
+        if (b) chips.push(b.name);
+      } else {
+        chips.push(`${this.citizenBarangayFilter.length} Barangays`);
+      }
+    }
+    if (this.citizenDateFilter) chips.push(formatDateFilterLabel(this.citizenDateFilter));
     return chips;
   }
 
@@ -129,12 +156,12 @@ export class CitizensPanel implements OnInit, OnDestroy {
 
   onSearchChange(value: string):                    void { this.applyFilterChange(() => { this.citizenSearch = value; }); }
   onStatusFilterChange(value: 'all' | 'active' | 'suspended' | 'has_strikes' | 'clean'): void { this.applyFilterChange(() => { this.citizenFilterStatus = value; }); }
-  onBarangayFilterChange(value: number | 'all'):    void { this.applyFilterChange(() => { this.citizenBarangayFilter = value; }); }
+  onBarangayFilterChange(value: number[]):          void { this.applyFilterChange(() => { this.citizenBarangayFilter = value || []; }); }
   onDateFilterChange(value: DateFilterValue | null): void { this.applyFilterChange(() => { this.citizenDateFilter = value; }); }
   clearAllFilters(): void {
     this.applyFilterChange(() => {
       this.citizenSearch = ''; this.citizenFilterStatus = 'all';
-      this.citizenBarangayFilter = 'all'; this.citizenDateFilter = null;
+      this.citizenBarangayFilter = []; this.citizenDateFilter = null;
     });
   }
 

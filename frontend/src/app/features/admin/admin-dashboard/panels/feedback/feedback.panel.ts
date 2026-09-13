@@ -26,7 +26,7 @@ export class FeedbackPanel implements OnInit {
   isForwardingBug: Record<number, boolean> = {};
 
   private readonly categoryLabels: Record<string, string> = {
-    general: 'General', bug: '🐛 Bug Report', suggestion: '💡 Suggestion', other: 'Other'
+    general: 'General', bug: 'Bug Report', suggestion: 'Suggestion', other: 'Other'
   };
   private readonly categoryColors: Record<string, string> = {
     general: '#3880ff', bug: '#eb445a', suggestion: '#2dd36f', other: '#92949c'

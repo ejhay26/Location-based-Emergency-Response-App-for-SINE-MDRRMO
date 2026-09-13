@@ -19,6 +19,7 @@ import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../..
 import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/flip-reflow.util';
 import { formatPhoneLocalPart, formatPhoneDisplayPH } from '../../../../../shared/utils/phone.util';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../shared/components/filter-dropdown/filter-dropdown.component';
 
 interface DispatcherForm {
   first_name: string; last_name: string; phone: string;
@@ -33,7 +34,7 @@ interface DispatcherForm {
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
     ProxyImageDirective, DateRangeFilterComponent, FilterSummaryBarComponent, ListEnterDirective,
-    AppIconComponent
+    AppIconComponent, FilterDropdownComponent
   ],
   templateUrl: './dispatchers.panel.html',
 })
@@ -41,10 +42,15 @@ export class DispatchersPanel implements OnInit, OnDestroy {
 
   dispatchers: any[] = [];
   dispatcherSearch = '';
-  dispatcherBarangayFilter: number | 'all' = 'all';
+  dispatcherBarangayFilter: number[] = [];
   dispatcherDateFilter: DateFilterValue | null = null;
 
   readonly barangays = BARANGAYS;
+
+  readonly barangayDropdownOptions: FilterDropdownOption[] = [
+    { value: 'all', label: 'All Barangays (Reset)' },
+    ...BARANGAYS.map(b => ({ value: b.id, label: b.name }))
+  ];
 
   isDispatcherModalOpen = false;
   isSavingDispatcher = false;
@@ -88,7 +94,8 @@ export class DispatchersPanel implements OnInit, OnDestroy {
     return this.dispatchers.filter(d => {
       const matchSearch = !search ||
         `${d.first_name} ${d.last_name} ${d.username} ${d.email} ${d.phone}`.toLowerCase().includes(search);
-      const matchBarangay = this.dispatcherBarangayFilter === 'all' || d.barangay_id === this.dispatcherBarangayFilter;
+      const matchBarangay = this.dispatcherBarangayFilter.length === 0 ||
+        this.dispatcherBarangayFilter.some(id => Number(id) === Number(d.barangay_id));
       const matchDate = matchesDateFilter(d.created_at, this.dispatcherDateFilter);
       return matchSearch && matchBarangay && matchDate;
     });
@@ -96,9 +103,16 @@ export class DispatchersPanel implements OnInit, OnDestroy {
 
   get activeFilterChips(): string[] {
     const chips: string[] = [];
-    if (this.dispatcherSearch.trim())            chips.push(`"${this.dispatcherSearch.trim()}"`);
-    if (this.dispatcherBarangayFilter !== 'all')  chips.push(this.barangays.find(b => b.id === this.dispatcherBarangayFilter)?.name ?? 'Unknown Barangay');
-    if (this.dispatcherDateFilter)                chips.push(formatDateFilterLabel(this.dispatcherDateFilter));
+    if (this.dispatcherSearch.trim()) chips.push(`"${this.dispatcherSearch.trim()}"`);
+    if (this.dispatcherBarangayFilter.length > 0) {
+      if (this.dispatcherBarangayFilter.length === 1) {
+        const b = this.barangays.find(x => Number(x.id) === Number(this.dispatcherBarangayFilter[0]));
+        if (b) chips.push(b.name);
+      } else {
+        chips.push(`${this.dispatcherBarangayFilter.length} Barangays`);
+      }
+    }
+    if (this.dispatcherDateFilter) chips.push(formatDateFilterLabel(this.dispatcherDateFilter));
     return chips;
   }
 
@@ -120,11 +134,11 @@ export class DispatchersPanel implements OnInit, OnDestroy {
   }
 
   onSearchChange(value: string):                    void { this.applyFilterChange(() => { this.dispatcherSearch = value; }); }
-  onBarangayFilterChange(value: number | 'all'):    void { this.applyFilterChange(() => { this.dispatcherBarangayFilter = value; }); }
+  onBarangayFilterChange(value: number[]):          void { this.applyFilterChange(() => { this.dispatcherBarangayFilter = value || []; }); }
   onDateFilterChange(value: DateFilterValue | null): void { this.applyFilterChange(() => { this.dispatcherDateFilter = value; }); }
   clearAllFilters(): void {
     this.applyFilterChange(() => {
-      this.dispatcherSearch = ''; this.dispatcherBarangayFilter = 'all'; this.dispatcherDateFilter = null;
+      this.dispatcherSearch = ''; this.dispatcherBarangayFilter = []; this.dispatcherDateFilter = null;
     });
   }
 
