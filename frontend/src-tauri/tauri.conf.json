@@ -40,6 +40,12 @@
     ],
     "macOS": {
       "minimumSystemVersion": "10.13"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "both",
+        "displayLanguageSelector": false
+      }
     }
   }
 }

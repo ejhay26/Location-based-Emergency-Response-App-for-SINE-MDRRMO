@@ -22,14 +22,45 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest'
-            args: '--target universal-apple-darwin'
-          - platform: 'ubuntu-22.04'
-            args: ''
+          # Windows (NSIS setup installer + Portable executable)
           - platform: 'windows-latest'
+            name: 'Windows x64'
+            rust_targets: ''
             args: ''
 
+          # macOS Universal (Fat binary containing both Intel & Apple Silicon slices)
+          - platform: 'macos-latest'
+            name: 'macOS Universal'
+            rust_targets: 'x86_64-apple-darwin,aarch64-apple-darwin'
+            args: '--target universal-apple-darwin'
+
+          # macOS Intel (x64)
+          - platform: 'macos-latest'
+            name: 'macOS Intel x64'
+            rust_targets: 'x86_64-apple-darwin'
+            args: '--target x86_64-apple-darwin'
+
+          # macOS Apple Silicon (ARM64)
+          - platform: 'macos-latest'
+            name: 'macOS Apple Silicon ARM64'
+            rust_targets: 'aarch64-apple-darwin'
+            args: '--target aarch64-apple-darwin'
+
+          # Linux x64 (.deb & .AppImage)
+          - platform: 'ubuntu-22.04'
+            name: 'Linux x64'
+            rust_targets: ''
+            args: ''
+
+          # Linux ARM64 (.deb & .AppImage)
+          - platform: 'ubuntu-24.04-arm'
+            name: 'Linux ARM64'
+            rust_targets: ''
+            args: ''
+            experimental: true
+
     runs-on: ${{ matrix.platform }}
+    continue-on-error: ${{ matrix.experimental == true }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -44,10 +75,10 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'x86_64-apple-darwin,aarch64-apple-darwin' || '' }}
+          targets: ${{ matrix.rust_targets }}
 
       - name: Install Linux dependencies (Ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
+        if: startsWith(matrix.platform, 'ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
@@ -68,7 +99,24 @@ jobs:
           projectPath: './frontend'
           tagName: ${{ inputs.tag || github.ref_name }}
           releaseName: 'MDRRMO Emergency Response App ${{ inputs.tag || github.ref_name }}'
-          releaseBody: 'Automated release for Windows, macOS Universal, and Linux.'
+          releaseBody: 'Automated multi-platform release for Windows (Installer & Portable), macOS (Universal, Intel x64, Apple Silicon ARM64), and Linux (x64 & ARM64).'
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Upload Windows Portable Executable
+        if: matrix.platform == 'windows-latest'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TARGET_TAG="${{ inputs.tag || github.ref_name }}"
+          EXE_SRC="frontend/src-tauri/target/release/mdrrmo-emergency-response-app.exe"
+          PORTABLE_NAME="MDRRMO EMERGENCY RESPONSE APP_${TARGET_TAG}_x64-portable.exe"
+          if [ -f "$EXE_SRC" ]; then
+            cp "$EXE_SRC" "$PORTABLE_NAME"
+            echo "Uploading portable executable: $PORTABLE_NAME"
+            gh release upload "$TARGET_TAG" "$PORTABLE_NAME" --clobber
+          else
+            echo "Warning: $EXE_SRC not found, skipping portable upload."
+          fi
