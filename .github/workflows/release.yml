@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v0.79.6)'
+        description: 'Release tag (e.g. v0.79.7)'
         required: false
-        default: 'v0.79.6'
+        default: 'v0.79.7'
 
 permissions:
   contents: write
@@ -99,7 +99,23 @@ jobs:
           projectPath: './frontend'
           tagName: ${{ inputs.tag || github.ref_name }}
           releaseName: 'MDRRMO Emergency Response App ${{ inputs.tag || github.ref_name }}'
-          releaseBody: 'Automated multi-platform release for Android, Windows (Installer & Portable), macOS (Universal, Intel x64, Apple Silicon ARM64), and Linux (x64 & ARM64).'
+          releaseBody: |
+            ### What's Changed
+            - **Heavy Metal Drop & Spring Dialog Animations**: Added weighted drop and damped metal spring bounce animations to alerts, confirmation popups, and modal dialogs.
+            - **Physics-Driven OTP Verification**: Micro-scale bounce on digit typing, in-flight verifying pulse, emerald cascade wave on 6th digit, and horizontal physics error shake.
+            - **Action Button Morph States**: Added emerald success state with animated checkmark for primary form submissions.
+            - **Seamless Cross-Dissolve Dark Mode**: Replaced circular clip-path expansion with a unified 250ms cross-dissolve transition across Android, iOS, Windows, macOS, and Linux.
+            - **Conditional Map Radar Pulse**: Restricted Leaflet radar ripple animations exclusively to fresh, pending incident reports (<10 minutes old) with an automatic 8-cycle cutoff to preserve GPU performance.
+            - **Selective Desktop Depth**: Applied high-contrast hover lifts and shadow elevations exclusively to key admin metric cards and active incident rows on cursor-enabled devices.
+            - **Shimmer Data Loading**: Added unified skeleton shimmer utility to replace static loading text with responsive placeholder states.
+            - **Admin Sidebar & Filters**: Dynamic compact hover sidebar with macOS traffic light clearance, fixed Barangay filter flickering, modernized segmented controls, and polished Date Range Filter.
+            - **Automated Signed Android Pipeline**: Enabled headless cloud signing directly within GitHub Actions using the production keystore.
+
+            ### Application Bundles & Assets
+            - **Android**: Signed Release APK
+            - **Windows (x64)**: NSIS Setup Installer & Standalone Portable executable
+            - **macOS**: Universal DMG (Intel & Apple Silicon), Intel x64 DMG, Apple Silicon ARM64 DMG
+            - **Linux**: x64 (.deb / .AppImage) & ARM64 (.deb / .AppImage)
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
@@ -181,6 +197,12 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
+          if [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::warning::KEYSTORE_PASSWORD secret is not set!"
+          fi
+          if [ -z "$KEY_ALIAS" ]; then
+            echo "::warning::KEY_ALIAS secret is not set!"
+          fi
           chmod +x gradlew
           ./gradlew assembleRelease --stacktrace
 
@@ -195,10 +217,27 @@ jobs:
             APK_NAME="MDRRMO EMERGENCY RESPONSE APP_${TARGET_TAG}_android.apk"
             cp "$APK_SRC" "$APK_NAME"
             echo "Uploading signed Android release APK: $APK_NAME"
+            RELEASE_NOTES="### What's Changed
+            - **Heavy Metal Drop & Spring Dialog Animations**: Added weighted drop and damped metal spring bounce animations to alerts, confirmation popups, and modal dialogs.
+            - **Physics-Driven OTP Verification**: Micro-scale bounce on digit typing, in-flight verifying pulse, emerald cascade wave on 6th digit, and horizontal physics error shake.
+            - **Action Button Morph States**: Added emerald success state with animated checkmark for primary form submissions.
+            - **Seamless Cross-Dissolve Dark Mode**: Replaced circular clip-path expansion with a unified 250ms cross-dissolve transition across Android, iOS, Windows, macOS, and Linux.
+            - **Conditional Map Radar Pulse**: Restricted Leaflet radar ripple animations exclusively to fresh, pending incident reports (<10 minutes old) with an automatic 8-cycle cutoff to preserve GPU performance.
+            - **Selective Desktop Depth**: Applied high-contrast hover lifts and shadow elevations exclusively to key admin metric cards and active incident rows on cursor-enabled devices.
+            - **Shimmer Data Loading**: Added unified skeleton shimmer utility to replace static loading text with responsive placeholder states.
+            - **Admin Sidebar & Filters**: Dynamic compact hover sidebar with macOS traffic light clearance, fixed Barangay filter flickering, modernized segmented controls, and polished Date Range Filter.
+            - **Automated Signed Android Pipeline**: Enabled headless cloud signing directly within GitHub Actions using the production keystore.
+
+            ### Application Bundles & Assets
+            - **Android**: Signed Release APK
+            - **Windows (x64)**: NSIS Setup Installer & Standalone Portable executable
+            - **macOS**: Universal DMG (Intel & Apple Silicon), Intel x64 DMG, Apple Silicon ARM64 DMG
+            - **Linux**: x64 (.deb / .AppImage) & ARM64 (.deb / .AppImage)"
+
             if gh release view "$TARGET_TAG" >/dev/null 2>&1; then
               gh release upload "$TARGET_TAG" "$APK_NAME" --clobber
             else
-              gh release create "$TARGET_TAG" "$APK_NAME" --draft --title "MDRRMO Emergency Response App $TARGET_TAG" --notes "Automated multi-platform release."
+              gh release create "$TARGET_TAG" "$APK_NAME" --draft --title "MDRRMO Emergency Response App $TARGET_TAG" --notes "$RELEASE_NOTES"
             fi
           else
             echo "Error: Release APK not found in frontend/android/app/build/outputs/apk/release!"

@@ -13,8 +13,8 @@ android {
         applicationId "ph.gov.sine.mdrrmo.emergencyresponse"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 11
-        versionName "0.79.6"
+        versionCode 12
+        versionName "0.79.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -30,23 +30,30 @@ android {
                 localProps.load(new FileInputStream(localPropertiesFile))
             }
             def ksPath = System.getenv("KEYSTORE_PATH") ?: localProps.getProperty("keystore.path")
-            if (ksPath) {
+            def ksPass = System.getenv("KEYSTORE_PASSWORD") ?: localProps.getProperty("keystore.password")
+            def kAlias = System.getenv("KEY_ALIAS") ?: localProps.getProperty("key.alias")
+            def kPass = (System.getenv("KEY_PASSWORD") ?: localProps.getProperty("key.password")) ?: ksPass
+
+            if (ksPath && ksPass && kAlias) {
                 def ksFile = file(ksPath)
                 if (!ksFile.exists()) {
                     ksFile = rootProject.file(ksPath)
                 }
                 if (ksFile.exists()) {
                     storeFile ksFile
-                    storePassword System.getenv("KEYSTORE_PASSWORD") ?: localProps.getProperty("keystore.password")
-                    keyAlias System.getenv("KEY_ALIAS") ?: localProps.getProperty("key.alias")
-                    keyPassword System.getenv("KEY_PASSWORD") ?: localProps.getProperty("key.password")
+                    storePassword ksPass
+                    keyAlias kAlias
+                    keyPassword kPass
+                    println "Android Release Signing: Configured with alias '${kAlias}' from '${ksFile.name}'"
                 }
+            } else {
+                println "Android Release Signing: Keystore credentials not fully provided (path: ${ksPath ? 'yes' : 'no'}, password: ${ksPass ? 'yes' : 'no'}, alias: ${kAlias ? 'yes' : 'no'}). Will build unsigned."
             }
         }
     }
     buildTypes {
         release {
-            if (signingConfigs.release.storeFile != null) {
+            if (signingConfigs.release.storeFile != null && signingConfigs.release.storePassword != null) {
                 signingConfig signingConfigs.release
             }
             minifyEnabled true
