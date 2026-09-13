@@ -24,25 +24,28 @@
 
   <!-- ── Login ── -->
   <div *ngIf="viewMode === 'login'" style="max-width: 380px; margin: 0 auto;">
-    <form (ngSubmit)="login()">
+    <form (ngSubmit)="onFormSubmit($event)">
       <div class="inset-card" style="margin-bottom: 12px; text-align: left;">
         <ion-item lines="full">
           <app-icon name="user" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
-          <ion-input label="Email or Username" labelPlacement="stacked" type="text"
+          <ion-input #userInput label="Email or Username" labelPlacement="stacked" type="text"
                      name="login_user" autocomplete="off" placeholder="Enter your email or username"
-                     [(ngModel)]="credentials.login" required></ion-input>
+                     [(ngModel)]="credentials.login" required
+                     (keydown.enter)="onUserEnter($event)"></ion-input>
         </ion-item>
         <ion-item lines="none">
           <app-icon name="lock" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
-          <ion-input label="Password" labelPlacement="stacked" [type]="showPassword ? 'text' : 'password'"
+          <ion-input #passInput label="Password" labelPlacement="stacked" [type]="showPassword ? 'text' : 'password'"
                      name="login_pass" autocomplete="off" placeholder="Enter your password"
-                     [(ngModel)]="credentials.password" required></ion-input>
+                     [(ngModel)]="credentials.password" required
+                     (keydown.enter)="onPassEnter($event)"></ion-input>
           <ion-button slot="end" fill="clear" type="button" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
                       (click)="showPassword = !showPassword" style="--color: var(--ion-color-medium); margin: 0;">
             <app-icon [name]="showPassword ? 'eye-off' : 'eye'" [size]="18" color="var(--ion-color-medium)"></app-icon>
           </ion-button>
         </ion-item>
       </div>
+      <input type="submit" style="display:none;" />
 
       <div class="ion-text-right" style="margin-bottom: 12px;">
         <ion-button fill="clear" color="medium" size="small" type="button"

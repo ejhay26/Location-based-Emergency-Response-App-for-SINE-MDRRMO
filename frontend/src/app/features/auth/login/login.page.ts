@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuController } from '@ionic/angular/standalone';
@@ -32,6 +32,9 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
   ],
 })
 export class LoginPage {
+
+  @ViewChild('userInput') userInput?: IonInput;
+  @ViewChild('passInput') passInput?: IonInput;
 
   credentials = { login: '', password: '' };
   showPassword = false;
@@ -273,6 +276,55 @@ export class LoginPage {
     clearInterval(this.lockoutInterval);
     clearInterval(this.resendInterval);
     this.otpAutofill.stop();
+  }
+
+  onUserEnter(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (!this.credentials.password || !this.credentials.password.trim()) {
+      this.showToast('Please enter your password.', 'warning');
+      setTimeout(() => {
+        this.passInput?.setFocus();
+      }, 50);
+      return;
+    }
+    this.login();
+  }
+
+  onPassEnter(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (!this.credentials.login || !this.credentials.login.trim()) {
+      this.showToast('Please enter your email or username.', 'warning');
+      setTimeout(() => {
+        this.userInput?.setFocus();
+      }, 50);
+      return;
+    }
+    if (!this.credentials.password || !this.credentials.password.trim()) {
+      this.showToast('Please enter your password.', 'warning');
+      return;
+    }
+    this.login();
+  }
+
+  onFormSubmit(event?: Event): void {
+    event?.preventDefault();
+    if (!this.credentials.login || !this.credentials.login.trim()) {
+      this.showToast('Please enter your email or username.', 'warning');
+      setTimeout(() => {
+        this.userInput?.setFocus();
+      }, 50);
+      return;
+    }
+    if (!this.credentials.password || !this.credentials.password.trim()) {
+      this.showToast('Please enter your password.', 'warning');
+      setTimeout(() => {
+        this.passInput?.setFocus();
+      }, 50);
+      return;
+    }
+    this.login();
   }
 
   login() {
