@@ -747,6 +747,38 @@ export class IconRegistryService {
       }
     ],
     [
+      'image',
+      {
+        name: 'image',
+        faClass: 'fa-regular fa-image',
+        lucideSvg: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>'
+      }
+    ],
+    [
+      'tag',
+      {
+        name: 'tag',
+        faClass: 'fa-solid fa-tag',
+        lucideSvg: '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>'
+      }
+    ],
+    [
+      'arrow-up-down',
+      {
+        name: 'arrow-up-down',
+        faClass: 'fa-solid fa-arrow-down-up-across-line',
+        lucideSvg: '<path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/>'
+      }
+    ],
+    [
+      'heart',
+      {
+        name: 'heart',
+        faClass: 'fa-solid fa-heart',
+        lucideSvg: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>'
+      }
+    ],
+    [
       'filter',
       {
         name: 'filter',
@@ -776,6 +808,22 @@ export class IconRegistryService {
         name: 'menu',
         faClass: 'fa-solid fa-bars',
         lucideSvg: '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>'
+      }
+    ],
+    [
+      'sidebar-collapse',
+      {
+        name: 'sidebar-collapse',
+        faClass: 'fa-solid fa-chevron-left',
+        lucideSvg: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m7.5 9.5-2.5 2.5 2.5 2.5"/>'
+      }
+    ],
+    [
+      'sidebar-expand',
+      {
+        name: 'sidebar-expand',
+        faClass: 'fa-solid fa-chevron-right',
+        lucideSvg: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9.5 2.5 2.5-2.5 2.5"/>'
       }
     ],
     [
@@ -949,7 +997,16 @@ export class IconRegistryService {
       'announcement': 'broadcast',
       'tower-broadcast': 'broadcast',
       'bullhorn': 'megaphone',
-      'paper-plane': 'send'
+      'paper-plane': 'send',
+      'sidebar': 'sidebar-collapse',
+      'collapse-sidebar': 'sidebar-collapse',
+      'expand-sidebar': 'sidebar-expand',
+      'panel-left': 'sidebar-collapse',
+      'panel-left-close': 'sidebar-collapse',
+      'panel-left-open': 'sidebar-expand',
+      'alert-circle': 'circle-alert',
+      'x': 'close',
+      'sort': 'arrow-up-down'
     };
 
     const alias = aliases[normalized];

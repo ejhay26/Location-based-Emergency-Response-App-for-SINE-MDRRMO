@@ -19,11 +19,7 @@ import { IconRegistryService, IconPackType } from '../../../core/services/icon-r
   imports: [CommonModule],
   template: `
     <span class="app-icon-wrapper" [style.display]="'inline-flex'" [style.align-items]="'center'" [style.justify-content]="'center'" [style.width.px]="size" [style.height.px]="size">
-      <!-- 1. Lucide SVG Mode -->
-      <span *ngIf="iconPack === 'lucide' && lucideSvg" [innerHTML]="lucideSvg" class="app-icon-svg" style="display:inline-flex;line-height:0;"></span>
-
-      <!-- 2. FontAwesome Class Mode -->
-      <i *ngIf="iconPack === 'fontawesome' || !lucideSvg" [class]="faClass" [style.font-size.px]="size" [style.color]="color" style="line-height:1;"></i>
+      <span *ngIf="lucideSvg" [innerHTML]="lucideSvg" class="app-icon-svg" style="display:inline-flex;line-height:0;"></span>
     </span>
   `,
   styles: [`
