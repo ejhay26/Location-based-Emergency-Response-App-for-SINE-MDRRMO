@@ -7,7 +7,7 @@
     "frontendDist": "../www",
     "devUrl": "http://localhost:8100",
     "beforeDevCommand": "npm run start",
-    "beforeBuildCommand": "ionic build --prod"
+    "beforeBuildCommand": "npm run build"
   },
   "app": {
     "windows": [
