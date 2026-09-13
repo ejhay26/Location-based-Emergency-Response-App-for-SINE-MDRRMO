@@ -26,9 +26,9 @@ export class TourSpringAnimator {
     const from = { ...currentHole };
     const to = TourGeometryUtil.computeHole(targetEl);
     const startTime = performance.now();
-    const durationMs = 380;
-    const zeta = 0.78;
-    const omega = 15.0;
+    const durationMs = 750;
+    const zeta = 0.85;
+    const omega = 8.5;
     const omegaD = omega * Math.sqrt(1 - zeta * zeta);
 
     const tick = (now: number) => {

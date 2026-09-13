@@ -65,3 +65,183 @@ ion-button.btn-loading::part(native) {
 .menu-item-active i {
   color: var(--app-red) !important;
 }
+
+/* =========================================
+   APPLE HIG SEGMENTED CONTROLS
+   Unified across Incident Map, Log Archive, and Analytics
+   ========================================= */
+.apple-segmented-control {
+  display: inline-flex;
+  align-items: center;
+  background: var(--ion-color-step-100, rgba(118, 118, 128, 0.12));
+  padding: 3px;
+  border-radius: 11px;
+  gap: 3px;
+  border: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.06));
+  box-sizing: border-box;
+
+  .segmented-pill-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ion-color-step-700, #3a3a3c);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+    outline: none;
+
+    .count-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      background: rgba(0, 0, 0, 0.08);
+      color: inherit;
+    }
+
+    &:hover:not(.active) {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    &.active {
+      background: var(--ion-color-danger, #d32f2f);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(211, 47, 47, 0.28);
+      font-weight: 800;
+
+      .count-badge {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+      }
+    }
+
+    &.active.segmented-pill-hazard {
+      background: #eab308;
+      color: #000000;
+      box-shadow: 0 2px 6px rgba(234, 179, 8, 0.3);
+
+      .count-badge {
+        background: rgba(0, 0, 0, 0.18);
+        color: #000000;
+      }
+    }
+  }
+}
+
+:host-context(.ion-palette-dark) .apple-segmented-control,
+.ion-palette-dark .apple-segmented-control {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+
+  .segmented-pill-btn {
+    color: #e5e5ea;
+
+    .count-badge {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    &:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &.active {
+      background: var(--ion-color-danger, #eb445a);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(235, 68, 90, 0.45);
+
+      .count-badge {
+        background: rgba(255, 255, 255, 0.25);
+      }
+    }
+  }
+}
+
+/* =========================================
+   APPLE HIG FILTER / POPOVER BUTTON
+   Unified across Incident Map, Log Archive, Analytics, etc.
+   ========================================= */
+.mac-popover-btn {
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 11px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-text-color, #1c1c1e);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+  outline: none;
+  box-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.04));
+  box-sizing: border-box;
+
+  .btn-text {
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chevron-icon {
+    opacity: 0.55;
+    margin-left: 2px;
+  }
+
+  .mac-filter-clear-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--ion-color-danger, #d32f2f);
+    color: #ffffff;
+    font-size: 9px;
+    margin-left: 2px;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.85;
+      transform: scale(1.1);
+    }
+  }
+
+  &:hover {
+    background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
+    border-color: var(--ion-color-step-300, rgba(0, 0, 0, 0.2));
+  }
+
+  &.has-filter {
+    background: rgba(211, 47, 47, 0.08);
+    border-color: rgba(211, 47, 47, 0.35);
+    color: var(--ion-color-danger, #d32f2f);
+    font-weight: 700;
+  }
+}
+
+:host-context(.ion-palette-dark) .mac-popover-btn,
+.ion-palette-dark .mac-popover-btn {
+  background: var(--ion-card-background, rgba(255, 255, 255, 0.06));
+  border-color: var(--card-border, rgba(255, 255, 255, 0.14));
+  color: #f2f2f7;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &.has-filter {
+    background: rgba(235, 68, 90, 0.16);
+    border-color: rgba(235, 68, 90, 0.45);
+    color: #ff6b81;
+  }
+}

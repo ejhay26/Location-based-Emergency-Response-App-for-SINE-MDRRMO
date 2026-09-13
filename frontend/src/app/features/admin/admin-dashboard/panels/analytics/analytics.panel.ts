@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import {
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
   IonButton,
-  IonList, IonItem, IonLabel, IonPopover, IonBadge,
-  IonSegment, IonSegmentButton
+  IonList, IonItem, IonLabel, IonPopover, IonBadge
 } from '@ionic/angular/standalone';
 import Chart from 'chart.js/auto';
 import { ApiService } from '../../../../../core/services/api';
@@ -23,7 +22,6 @@ import { AppIconComponent } from '../../../../../shared/components/app-icon/app-
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
     IonButton,
     IonList, IonItem, IonLabel, IonPopover, IonBadge,
-    IonSegment, IonSegmentButton,
     UtcDatePipe, DateRangeFilterComponent, FilterSummaryBarComponent,
     AppIconComponent
   ],

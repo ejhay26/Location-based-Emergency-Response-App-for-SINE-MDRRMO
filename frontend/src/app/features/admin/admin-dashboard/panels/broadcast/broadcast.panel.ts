@@ -5,8 +5,7 @@ import { Subscription } from 'rxjs';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonItem, IonInput, IonButton,
-  IonSelect, IonSelectOption,
-  IonSegment, IonSegmentButton, IonLabel
+  IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -34,7 +33,6 @@ export interface BroadcastMediaItem {
     CommonModule, FormsModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonInput, IonButton,
     IonSelect, IonSelectOption,
-    IonSegment, IonSegmentButton, IonLabel,
     UtcDatePipe, ListEnterDirective, ProxyImageDirective, AppIconComponent
   ],
   templateUrl: './broadcast.panel.html',
@@ -212,10 +210,14 @@ export class BroadcastPanel implements OnInit, OnDestroy {
 
   deliveryMode: 'immediate' | 'scheduled' = 'immediate';
 
+  setDeliveryMode(mode: 'immediate' | 'scheduled'): void {
+    this.deliveryMode = mode;
+    this.setScheduledMode(mode === 'scheduled');
+  }
+
   onDeliveryModeChange(ev?: any): void {
     const val = ev?.detail?.value || this.deliveryMode;
-    this.deliveryMode = val;
-    this.setScheduledMode(val === 'scheduled');
+    this.setDeliveryMode(val);
   }
 
   setScheduledMode(enable: boolean): void {

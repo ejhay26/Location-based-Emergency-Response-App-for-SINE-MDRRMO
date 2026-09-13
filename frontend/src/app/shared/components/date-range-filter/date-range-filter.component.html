@@ -1,12 +1,20 @@
-<ion-button [id]="triggerId" [fill]="hasValue ? 'solid' : 'outline'" [color]="hasValue ? 'danger' : 'medium'" size="small"
-  style="font-weight:700;--border-radius:20px;height:32px;margin:0;white-space:nowrap;font-size:12px;--padding-start:12px;--padding-end:12px;display:inline-flex;align-items:center;gap:5px;">
-  <app-icon name="calendar" [size]="12" [color]="hasValue ? '#ffffff' : 'currentColor'"></app-icon>{{ displayLabel }}
-</ion-button>
+<button
+  type="button"
+  [id]="triggerId"
+  class="mac-popover-btn date-range-btn"
+  [class.has-filter]="hasValue"
+  [title]="displayLabel">
+  <app-icon name="calendar" [size]="13" [color]="hasValue ? 'var(--ion-color-danger, #eb445a)' : 'currentColor'"></app-icon>
+  <span class="btn-text">{{ displayLabel }}</span>
+  <span *ngIf="hasValue" class="mac-filter-clear-x" (click)="onClearTrigger($event)" title="Reset Date Filter">
+    <app-icon name="close" [size]="9" color="#ffffff"></app-icon>
+  </span>
+</button>
 
 <ion-popover [trigger]="triggerId" [dismissOnSelect]="false" side="bottom" alignment="center" (didPresent)="onOpen()"
-  style="--width: 360px; --min-width: 330px; --max-width: 95vw; --background: var(--ion-card-background, #1c1c1e); --border-radius: 20px; --box-shadow: 0 16px 40px rgba(0,0,0,0.65);">
+  style="--width: 360px; --min-width: 330px; --max-width: 95vw; --background: var(--ion-card-background, #1c1c1e); --border-radius: 16px; --box-shadow: 0 16px 40px rgba(0,0,0,0.45);">
   <ng-template>
-    <div style="padding: 14px 12px 12px; width: 100%; box-sizing: border-box; background: var(--ion-card-background, #ffffff); border: var(--card-border, 1px solid rgba(255,255,255,0.15)); border-radius: 20px;">
+    <div style="padding: 14px 12px 12px; width: 100%; box-sizing: border-box; background: var(--ion-card-background, #ffffff); border: var(--card-border, 1px solid rgba(255,255,255,0.15)); border-radius: 16px;">
       <ion-segment mode="ios" [value]="pendingMode" (ionChange)="onModeChange($event)" style="margin-bottom:12px;">
         <ion-segment-button value="single"><ion-label style="font-size:11px;font-weight:700;">One Day</ion-label></ion-segment-button>
         <ion-segment-button value="multiple"><ion-label style="font-size:11px;font-weight:700;">Several Days</ion-label></ion-segment-button>

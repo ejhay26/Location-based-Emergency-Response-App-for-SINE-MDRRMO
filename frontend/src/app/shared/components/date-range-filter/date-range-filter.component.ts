@@ -61,6 +61,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
   standalone: true,
   imports: [CommonModule, IonButton, IonPopover, IonDatetime, IonSegment, IonSegmentButton, IonLabel, AppIconComponent],
   templateUrl: './date-range-filter.component.html',
+  styleUrls: ['./date-range-filter.component.scss']
 })
 export class DateRangeFilterComponent {
 
@@ -230,6 +231,15 @@ export class DateRangeFilterComponent {
     this.clearPendingSelection();
     this.syncCalendarValue();
     this.resetCalendar();
+    this.valueChange.emit(null);
+  }
+
+  onClearTrigger(event: MouseEvent): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.value = null;
+    this.clearPendingSelection();
+    this.syncCalendarValue();
     this.valueChange.emit(null);
   }
 }

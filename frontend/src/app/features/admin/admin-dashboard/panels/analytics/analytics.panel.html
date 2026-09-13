@@ -4,38 +4,50 @@
   <div class="analytics-top-bar">
     
     <!-- Tab Switcher: Emergency vs Public Hazards -->
-    <ion-segment mode="ios" [value]="analyticsTab" (ionChange)="switchAnalyticsTab($any($event.detail.value))" color="danger" style="max-width: 320px; min-width: 240px;">
-      <ion-segment-button value="emergency">
-        <div style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:12px;">
-          <app-icon name="flame" [size]="13" [color]="analyticsTab === 'emergency' ? '#eb445a' : 'var(--ion-color-medium)'"></app-icon>
-          <ion-label>Emergency</ion-label>
-        </div>
-      </ion-segment-button>
-      <ion-segment-button value="hazard">
-        <div style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:12px;">
-          <app-icon name="hazard" [size]="13" [color]="analyticsTab === 'hazard' ? '#ffc409' : 'var(--ion-color-medium)'"></app-icon>
-          <ion-label>Hazards</ion-label>
-        </div>
-      </ion-segment-button>
-    </ion-segment>
-
-    <!-- Date Range Quick Filter Pills & Picker -->
-    <div class="analytics-range-pills">
-      <button *ngFor="let r of [{v:1,l:'Today'},{v:7,l:'7 Days'},{v:30,l:'30 Days'},{v:90,l:'3 Months'}]"
-        (click)="setChartRange(r.v)"
-        [style.background]="!analyticsDateFilter && chartRange === r.v ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
-        [style.color]="!analyticsDateFilter && chartRange === r.v ? 'white' : 'var(--ion-text-color)'"
-        [style.border-color]="!analyticsDateFilter && chartRange === r.v ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
-        class="range-pill-btn">{{ r.l }}</button>
-      
-      <app-date-range-filter [value]="analyticsDateFilter" (valueChange)="onAnalyticsDateFilterChange($event)"></app-date-range-filter>
+    <div class="apple-segmented-control" role="group" aria-label="Analytics Scope">
+      <button
+        type="button"
+        class="segmented-pill-btn"
+        [class.active]="analyticsTab === 'emergency'"
+        (click)="switchAnalyticsTab('emergency')">
+        <app-icon name="flame" [size]="13" [color]="analyticsTab === 'emergency' ? '#ffffff' : 'var(--ion-color-medium)'"></app-icon>
+        <span>Emergency</span>
+      </button>
+      <button
+        type="button"
+        class="segmented-pill-btn segmented-pill-hazard"
+        [class.active]="analyticsTab === 'hazard'"
+        (click)="switchAnalyticsTab('hazard')">
+        <app-icon name="hazard" [size]="13" [color]="analyticsTab === 'hazard' ? '#000000' : 'var(--ion-color-medium)'"></app-icon>
+        <span>Hazards</span>
+      </button>
     </div>
 
-    <!-- Toggle Chart Type (Bar / Line) -->
-    <ion-button fill="outline" color="danger" size="small" (click)="toggleChartType()" style="font-weight:700;--border-radius:10px;height:34px;margin:0;">
-      <app-icon [name]="trendChartType === 'bar' ? 'chart-pie' : 'sliders'" [size]="14" color="var(--ion-color-danger)" style="margin-right:6px;"></app-icon>
-      {{ trendChartType === 'bar' ? 'Line View' : 'Bar View' }}
-    </ion-button>
+    <!-- Date Range Quick Filter Pills & Picker & Chart Type -->
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <div class="apple-segmented-control" role="group" aria-label="Chart Date Range">
+        <button
+          *ngFor="let r of [{v:1,l:'Today'},{v:7,l:'7 Days'},{v:30,l:'30 Days'},{v:90,l:'3 Months'}]"
+          type="button"
+          class="segmented-pill-btn"
+          [class.active]="!analyticsDateFilter && chartRange === r.v"
+          (click)="setChartRange(r.v)">
+          {{ r.l }}
+        </button>
+      </div>
+
+      <app-date-range-filter [value]="analyticsDateFilter" (valueChange)="onAnalyticsDateFilterChange($event)"></app-date-range-filter>
+
+      <!-- Toggle Chart Type (Bar / Line) -->
+      <button
+        type="button"
+        class="mac-popover-btn"
+        (click)="toggleChartType()"
+        title="Toggle between Bar and Line chart views">
+        <app-icon [name]="trendChartType === 'bar' ? 'chart-pie' : 'sliders'" [size]="13" color="var(--ion-color-danger)"></app-icon>
+        <span class="btn-text">{{ trendChartType === 'bar' ? 'Line View' : 'Bar View' }}</span>
+      </button>
+    </div>
 
   </div>
 

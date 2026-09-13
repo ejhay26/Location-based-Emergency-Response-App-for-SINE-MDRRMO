@@ -864,7 +864,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         className: 'leaflet-blank-div-icon', iconSize: [45,60], iconAnchor: [22.5,60], popupAnchor: [0,-52]
       });
       const popup = `<div class="accessible-popup-box">
-        <h2 style="color:#e0ac00;font-size:17px;font-weight:bold;margin:0 0 6px 0;border-bottom:2px solid #ffc40930;padding-bottom:4px;">⚠️ PUBLIC HAZARD LOG</h2>
+        <h2 style="color:#e0ac00;font-size:17px;font-weight:bold;margin:0 0 6px 0;border-bottom:2px solid #ffc40930;padding-bottom:4px;">PUBLIC HAZARD LOG</h2>
         <p style="font-size:15px;margin:4px 0;line-height:1.4;background:var(--ion-color-light);padding:8px;border-radius:6px;border:1px solid #ffc40940;">"${haz.description}"</p>
         <p style="font-size:12px;color:gray;margin:6px 0 0 0;">Reported by: ${haz.first_name} ${haz.last_name}</p>
         <p style="font-size:12px;color:gray;margin:2px 0 0 0;"><b>Barangay:</b> ${haz.barangay_name || 'Unresolved'}</p></div>`;

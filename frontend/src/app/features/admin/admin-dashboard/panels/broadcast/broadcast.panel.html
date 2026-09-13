@@ -121,20 +121,26 @@
         <label style="font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.6px; display: block; margin-bottom: 6px;">
           Delivery Mode
         </label>
-        <ion-segment [(ngModel)]="deliveryMode" (ionChange)="onDeliveryModeChange($event)" class="map-style-segment" style="width: 100%; max-width: 100%; --background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06)); border-radius: 12px; height: 42px;">
-          <ion-segment-button value="immediate">
-            <div class="segment-pill-inner" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 12.5px;">
-              <app-icon name="send" [size]="14"></app-icon>
-              <ion-label>Post Immediately</ion-label>
-            </div>
-          </ion-segment-button>
-          <ion-segment-button value="scheduled">
-            <div class="segment-pill-inner" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 12.5px;">
-              <app-icon name="calendar-clock" [size]="14"></app-icon>
-              <ion-label>Schedule for Later</ion-label>
-            </div>
-          </ion-segment-button>
-        </ion-segment>
+        <div class="apple-segmented-control" role="group" aria-label="Delivery Mode" style="width: 100%; display: flex;">
+          <button
+            type="button"
+            class="segmented-pill-btn"
+            style="flex: 1; height: 36px; padding: 0 14px; font-size: 12.5px; justify-content: center;"
+            [class.active]="deliveryMode === 'immediate'"
+            (click)="setDeliveryMode('immediate')">
+            <app-icon name="send" [size]="14"></app-icon>
+            <span>Post Immediately</span>
+          </button>
+          <button
+            type="button"
+            class="segmented-pill-btn"
+            style="flex: 1; height: 36px; padding: 0 14px; font-size: 12.5px; justify-content: center;"
+            [class.active]="deliveryMode === 'scheduled'"
+            (click)="setDeliveryMode('scheduled')">
+            <app-icon name="calendar-clock" [size]="14"></app-icon>
+            <span>Schedule for Later</span>
+          </button>
+        </div>
       </div>
 
       <!-- Aesthetic Popover Date & Time Selector -->
