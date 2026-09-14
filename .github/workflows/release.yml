@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v0.80.0)'
+        description: 'Release tag (e.g. v0.80.1)'
         required: false
-        default: 'v0.80.0'
+        default: 'v0.80.1'
 
 permissions:
   contents: write
@@ -110,21 +110,20 @@ jobs:
             - **Shimmer Data Loading**: Added unified skeleton shimmer utility to replace static loading text with responsive placeholder states.
             - **Admin Sidebar & Filters**: Dynamic compact hover sidebar with macOS traffic light clearance, fixed Barangay filter flickering and enabled multi-select combinations, modernized segmented controls, and polished Date Range Filter.
 
-            ### 📥 Choose the Right Download for Your Device
+            ### Direct Application Downloads
 
-            | Platform | Asset File Pattern | Architecture / Compatibility | Recommended For |
-            |:---|:---|:---|:---|
-            | 📱 **Android** | `*_android.apk` | Android 7.0+ (Universal ARM/x86) | Citizen & Responder mobile app. Sideload and install directly. |
-            | 🪟 **Windows (Setup)** | `*setup.exe` / `*.msi` | 64-bit Windows 10 / 11 | Standard desktop installer with Start Menu shortcuts and uninstaller. |
-            | 🪟 **Windows (Portable)** | `*_x64-portable.exe` | 64-bit Windows 10 / 11 | Standalone executable — runs immediately without installation or admin rights. |
-            | 🍏 **macOS (Universal)** | `*_universal.dmg` | Apple Silicon (M1–M4) & Intel Macs | Universal binary compatible with all modern Mac computers. Drag to Applications. |
-            | 🍏 **macOS (Apple Silicon)** | `*_aarch64.dmg` | Apple Silicon only (M-series) | Optimized specifically for Apple Silicon M1, M2, M3, and M4 Macs. |
-            | 🍏 **macOS (Intel)** | `*_x64.dmg` | Intel-based Macs | Built for Intel-powered Mac computers. |
-            | 🐧 **Linux (.deb)** | `*_amd64.deb` | Ubuntu, Debian, Linux Mint (x86_64) | Install via `sudo dpkg -i <file>.deb` or Software Center. |
-            | 🐧 **Linux (.AppImage)** | `*_amd64.AppImage` | Any 64-bit Linux distribution | Standalone portable executable. Make executable (`chmod +x`) and run. |
-            | 🐧 **Linux ARM64** | `*_arm64.deb` / `.AppImage` | Raspberry Pi 4/5, ARM Linux distros | Dedicated ARM64 packages for 64-bit ARM Linux hardware. |
-
-            > 💡 **How to download**: Scroll down to the **Assets** section below and click the file that corresponds to your device above.
+            | Platform | Target Architecture | Direct Download Link | Format |
+            |:---:|:---|:---|:---:|
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg" width="20" height="20" alt="Android" /> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.1_android.apk) | `.apk` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_x64-setup.exe) | `.exe` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.1_x64-portable.exe) | `.exe` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_universal.dmg) | `.dmg` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_aarch64.dmg) | `.dmg` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_x64.dmg) | `.dmg` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_amd64.deb) | `.deb` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_amd64.AppImage) | `.AppImage` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_arm64.deb) | `.deb` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_aarch64.AppImage) | `.AppImage` |
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
@@ -137,7 +136,7 @@ jobs:
         run: |
           TARGET_TAG="${{ inputs.tag || github.ref_name }}"
           EXE_SRC="frontend/src-tauri/target/release/mdrrmo-emergency-response-app.exe"
-          PORTABLE_NAME="MDRRMO EMERGENCY RESPONSE APP_${TARGET_TAG}_x64-portable.exe"
+          PORTABLE_NAME="MDRRMO.EMERGENCY.RESPONSE.APP_${TARGET_TAG}_x64-portable.exe"
           if [ -f "$EXE_SRC" ]; then
             cp "$EXE_SRC" "$PORTABLE_NAME"
             echo "Uploading portable executable: $PORTABLE_NAME"
@@ -238,7 +237,7 @@ jobs:
           TARGET_TAG="${{ inputs.tag || github.ref_name }}"
           APK_SRC=$(find frontend/android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
           if [ -n "$APK_SRC" ] && [ -f "$APK_SRC" ]; then
-            APK_NAME="MDRRMO EMERGENCY RESPONSE APP_${TARGET_TAG}_android.apk"
+            APK_NAME="MDRRMO.EMERGENCY.RESPONSE.APP_${TARGET_TAG}_android.apk"
             cp "$APK_SRC" "$APK_NAME"
             echo "Uploading signed Android release APK: $APK_NAME"
             RELEASE_NOTES="### What's Changed
@@ -251,21 +250,20 @@ jobs:
             - **Shimmer Data Loading**: Added unified skeleton shimmer utility to replace static loading text with responsive placeholder states.
             - **Admin Sidebar & Filters**: Dynamic compact hover sidebar with macOS traffic light clearance, fixed Barangay filter flickering and enabled multi-select combinations, modernized segmented controls, and polished Date Range Filter.
 
-            ### 📥 Choose the Right Download for Your Device
+            ### Direct Application Downloads
 
-            | Platform | Asset File Pattern | Architecture / Compatibility | Recommended For |
-            |:---|:---|:---|:---|
-            | 📱 **Android** | \`*_android.apk\` | Android 7.0+ (Universal ARM/x86) | Citizen & Responder mobile app. Sideload and install directly. |
-            | 🪟 **Windows (Setup)** | \`*setup.exe\` / \`*.msi\` | 64-bit Windows 10 / 11 | Standard desktop installer with Start Menu shortcuts and uninstaller. |
-            | 🪟 **Windows (Portable)** | \`*_x64-portable.exe\` | 64-bit Windows 10 / 11 | Standalone executable — runs immediately without installation or admin rights. |
-            | 🍏 **macOS (Universal)** | \`*_universal.dmg\` | Apple Silicon (M1–M4) & Intel Macs | Universal binary compatible with all modern Mac computers. Drag to Applications. |
-            | 🍏 **macOS (Apple Silicon)** | \`*_aarch64.dmg\` | Apple Silicon only (M-series) | Optimized specifically for Apple Silicon M1, M2, M3, and M4 Macs. |
-            | 🍏 **macOS (Intel)** | \`*_x64.dmg\` | Intel-based Macs | Built for Intel-powered Mac computers. |
-            | 🐧 **Linux (.deb)** | \`*_amd64.deb\` | Ubuntu, Debian, Linux Mint (x86_64) | Install via \`sudo dpkg -i <file>.deb\` or Software Center. |
-            | 🐧 **Linux (.AppImage)** | \`*_amd64.AppImage\` | Any 64-bit Linux distribution | Standalone portable executable. Make executable (\`chmod +x\`) and run. |
-            | 🐧 **Linux ARM64** | \`*_arm64.deb\` / \`.AppImage\` | Raspberry Pi 4/5, ARM Linux distros | Dedicated ARM64 packages for 64-bit ARM Linux hardware. |
-
-            > 💡 **How to download**: Scroll down to the **Assets** section below and click the file that corresponds to your device above."
+            | Platform | Target Architecture | Direct Download Link | Format |
+            |:---:|:---|:---|:---:|
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg\" width=\"20\" height=\"20\" alt=\"Android\" /> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.1_android.apk) | \`.apk\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg\" width=\"20\" height=\"20\" alt=\"Windows\" /> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_x64-setup.exe) | \`.exe\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg\" width=\"20\" height=\"20\" alt=\"Windows\" /> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.1_x64-portable.exe) | \`.exe\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg\" width=\"20\" height=\"20\" alt=\"macOS\" /> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_universal.dmg) | \`.dmg\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg\" width=\"20\" height=\"20\" alt=\"macOS\" /> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_aarch64.dmg) | \`.dmg\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg\" width=\"20\" height=\"20\" alt=\"macOS\" /> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_x64.dmg) | \`.dmg\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_amd64.deb) | \`.deb\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_amd64.AppImage) | \`.AppImage\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_arm64.deb) | \`.deb\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_aarch64.AppImage) | \`.AppImage\` |"
 
             if gh release view "$TARGET_TAG" >/dev/null 2>&1; then
               gh release upload "$TARGET_TAG" "$APK_NAME" --clobber
