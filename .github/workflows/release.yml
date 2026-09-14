@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v0.79.9)'
+        description: 'Release tag (e.g. v0.80.0)'
         required: false
-        default: 'v0.79.9'
+        default: 'v0.80.0'
 
 permissions:
   contents: write
@@ -101,7 +101,7 @@ jobs:
           releaseName: 'MDRRMO Emergency Response App ${{ inputs.tag || github.ref_name }}'
           releaseBody: |
             ### What's Changed
-            - **Heavy Metal Drop & Spring Dialog Animations**: Added weighted drop and damped metal spring bounce animations to alerts, confirmation popups, and modal dialogs.
+            - **Rigid Metallic Dialog Pop Animation**: Re-engineered modal dialog, alert, and popup animations with rigid uniform-scale expansion (`0.88` to `1.028` overshoot to `1.0`), eliminating squash/stretch jelly distortion while locking aspect ratio.
             - **Physics-Driven OTP Verification**: Micro-scale bounce on digit typing, in-flight verifying pulse, emerald cascade wave on 6th digit, animated SVG checkmark overlay, and horizontal physics error shake.
             - **Action Button Morph States**: Added emerald success state with animated checkmark for primary form submissions.
             - **Seamless Cross-Dissolve Dark Mode**: Replaced circular clip-path expansion with a unified 250ms cross-dissolve transition across Android, iOS, Windows, macOS, and Linux, eliminating visual tearing.
@@ -110,11 +110,21 @@ jobs:
             - **Shimmer Data Loading**: Added unified skeleton shimmer utility to replace static loading text with responsive placeholder states.
             - **Admin Sidebar & Filters**: Dynamic compact hover sidebar with macOS traffic light clearance, fixed Barangay filter flickering and enabled multi-select combinations, modernized segmented controls, and polished Date Range Filter.
 
-            ### Application Bundles & Assets
-            - **Android**: Universal APK
-            - **Windows (x64)**: NSIS Setup Installer & Standalone Portable executable
-            - **macOS**: Universal DMG (Intel & Apple Silicon), Intel x64 DMG, Apple Silicon ARM64 DMG
-            - **Linux**: x64 (.deb / .AppImage) & ARM64 (.deb / .AppImage)
+            ### 📥 Choose the Right Download for Your Device
+
+            | Platform | Asset File Pattern | Architecture / Compatibility | Recommended For |
+            |:---|:---|:---|:---|
+            | 📱 **Android** | `*_android.apk` | Android 7.0+ (Universal ARM/x86) | Citizen & Responder mobile app. Sideload and install directly. |
+            | 🪟 **Windows (Setup)** | `*setup.exe` / `*.msi` | 64-bit Windows 10 / 11 | Standard desktop installer with Start Menu shortcuts and uninstaller. |
+            | 🪟 **Windows (Portable)** | `*_x64-portable.exe` | 64-bit Windows 10 / 11 | Standalone executable — runs immediately without installation or admin rights. |
+            | 🍏 **macOS (Universal)** | `*_universal.dmg` | Apple Silicon (M1–M4) & Intel Macs | Universal binary compatible with all modern Mac computers. Drag to Applications. |
+            | 🍏 **macOS (Apple Silicon)** | `*_aarch64.dmg` | Apple Silicon only (M-series) | Optimized specifically for Apple Silicon M1, M2, M3, and M4 Macs. |
+            | 🍏 **macOS (Intel)** | `*_x64.dmg` | Intel-based Macs | Built for Intel-powered Mac computers. |
+            | 🐧 **Linux (.deb)** | `*_amd64.deb` | Ubuntu, Debian, Linux Mint (x86_64) | Install via `sudo dpkg -i <file>.deb` or Software Center. |
+            | 🐧 **Linux (.AppImage)** | `*_amd64.AppImage` | Any 64-bit Linux distribution | Standalone portable executable. Make executable (`chmod +x`) and run. |
+            | 🐧 **Linux ARM64** | `*_arm64.deb` / `.AppImage` | Raspberry Pi 4/5, ARM Linux distros | Dedicated ARM64 packages for 64-bit ARM Linux hardware. |
+
+            > 💡 **How to download**: Scroll down to the **Assets** section below and click the file that corresponds to your device above.
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
@@ -232,7 +242,7 @@ jobs:
             cp "$APK_SRC" "$APK_NAME"
             echo "Uploading signed Android release APK: $APK_NAME"
             RELEASE_NOTES="### What's Changed
-            - **Heavy Metal Drop & Spring Dialog Animations**: Added weighted drop and damped metal spring bounce animations to alerts, confirmation popups, and modal dialogs.
+            - **Rigid Metallic Dialog Pop Animation**: Re-engineered modal dialog, alert, and popup animations with rigid uniform-scale expansion (\`0.88\` to \`1.028\` overshoot to \`1.0\`), eliminating squash/stretch jelly distortion while locking aspect ratio.
             - **Physics-Driven OTP Verification**: Micro-scale bounce on digit typing, in-flight verifying pulse, emerald cascade wave on 6th digit, animated SVG checkmark overlay, and horizontal physics error shake.
             - **Action Button Morph States**: Added emerald success state with animated checkmark for primary form submissions.
             - **Seamless Cross-Dissolve Dark Mode**: Replaced circular clip-path expansion with a unified 250ms cross-dissolve transition across Android, iOS, Windows, macOS, and Linux, eliminating visual tearing.
@@ -241,11 +251,21 @@ jobs:
             - **Shimmer Data Loading**: Added unified skeleton shimmer utility to replace static loading text with responsive placeholder states.
             - **Admin Sidebar & Filters**: Dynamic compact hover sidebar with macOS traffic light clearance, fixed Barangay filter flickering and enabled multi-select combinations, modernized segmented controls, and polished Date Range Filter.
 
-            ### Application Bundles & Assets
-            - **Android**: Universal APK
-            - **Windows (x64)**: NSIS Setup Installer & Standalone Portable executable
-            - **macOS**: Universal DMG (Intel & Apple Silicon), Intel x64 DMG, Apple Silicon ARM64 DMG
-            - **Linux**: x64 (.deb / .AppImage) & ARM64 (.deb / .AppImage)"
+            ### 📥 Choose the Right Download for Your Device
+
+            | Platform | Asset File Pattern | Architecture / Compatibility | Recommended For |
+            |:---|:---|:---|:---|
+            | 📱 **Android** | \`*_android.apk\` | Android 7.0+ (Universal ARM/x86) | Citizen & Responder mobile app. Sideload and install directly. |
+            | 🪟 **Windows (Setup)** | \`*setup.exe\` / \`*.msi\` | 64-bit Windows 10 / 11 | Standard desktop installer with Start Menu shortcuts and uninstaller. |
+            | 🪟 **Windows (Portable)** | \`*_x64-portable.exe\` | 64-bit Windows 10 / 11 | Standalone executable — runs immediately without installation or admin rights. |
+            | 🍏 **macOS (Universal)** | \`*_universal.dmg\` | Apple Silicon (M1–M4) & Intel Macs | Universal binary compatible with all modern Mac computers. Drag to Applications. |
+            | 🍏 **macOS (Apple Silicon)** | \`*_aarch64.dmg\` | Apple Silicon only (M-series) | Optimized specifically for Apple Silicon M1, M2, M3, and M4 Macs. |
+            | 🍏 **macOS (Intel)** | \`*_x64.dmg\` | Intel-based Macs | Built for Intel-powered Mac computers. |
+            | 🐧 **Linux (.deb)** | \`*_amd64.deb\` | Ubuntu, Debian, Linux Mint (x86_64) | Install via \`sudo dpkg -i <file>.deb\` or Software Center. |
+            | 🐧 **Linux (.AppImage)** | \`*_amd64.AppImage\` | Any 64-bit Linux distribution | Standalone portable executable. Make executable (\`chmod +x\`) and run. |
+            | 🐧 **Linux ARM64** | \`*_arm64.deb\` / \`.AppImage\` | Raspberry Pi 4/5, ARM Linux distros | Dedicated ARM64 packages for 64-bit ARM Linux hardware. |
+
+            > 💡 **How to download**: Scroll down to the **Assets** section below and click the file that corresponds to your device above."
 
             if gh release view "$TARGET_TAG" >/dev/null 2>&1; then
               gh release upload "$TARGET_TAG" "$APK_NAME" --clobber

@@ -24,47 +24,41 @@
   position: relative;
   background: var(--ion-card-background, #fff);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-  animation: heavyMetalDropIn 0.44s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+  animation: heavyMetalDropIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
 
   &.c-panel-closing {
-    animation: heavyMetalDropOut 0.18s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+    animation: heavyMetalDropOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards !important;
   }
 }
 
-/* Heavy Metal Drop & Damped Spring Rebound Keyframes */
+/* Rigid Metallic Scale-Pop Keyframes (Zero jiggle/distortion, strictly uniform aspect ratio) */
 @keyframes heavyMetalDropIn {
   0% {
     opacity: 0;
-    transform: translateY(-56px) scale(0.85);
+    transform: scale(0.88);
   }
-  38% {
+  60% {
     opacity: 1;
-    transform: translateY(8px) scale(1.035, 0.97);
+    transform: scale(1.028);
   }
-  56% {
-    transform: translateY(-5px) scale(0.985, 1.02);
-  }
-  74% {
-    transform: translateY(2.5px) scale(1.01, 0.995);
-  }
-  88% {
-    transform: translateY(-1px) scale(0.998, 1.002);
+  82% {
+    transform: scale(0.996);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1);
   }
 }
 
 @keyframes heavyMetalDropOut {
   0% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1);
   }
   100% {
     opacity: 0;
-    transform: translateY(16px) scale(0.92);
+    transform: scale(0.92);
   }
 }
 @keyframes cOverlayFadeIn {
@@ -102,7 +96,7 @@ ion-modal.strike-manager-modal {
     border-radius: 20px;
     overflow: hidden;
     background: var(--ion-card-background, #ffffff);
-    animation: heavyMetalDropIn 0.44s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards !important;
+    animation: heavyMetalDropIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
     will-change: transform, opacity;
   }
 
@@ -115,7 +109,7 @@ ion-modal.strike-manager-modal {
 /* Heavy Drop Utility Classes */
 .heavy-metal-dialog,
 .heavy-spring-modal {
-  animation: heavyMetalDropIn 0.44s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards !important;
+  animation: heavyMetalDropIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
   will-change: transform, opacity;
 }
 
@@ -149,7 +143,7 @@ ion-alert {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     overflow: hidden;
-    animation: heavyMetalDropIn 0.44s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards !important;
+    animation: heavyMetalDropIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
     will-change: transform, opacity;
   }
 

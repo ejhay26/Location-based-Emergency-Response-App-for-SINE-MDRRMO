@@ -187,11 +187,15 @@
     }
 
     &.is-selected {
-      background: rgba(211, 47, 47, 0.06);
-      border-left: 3.5px solid var(--ion-color-danger);
+      background: rgba(211, 47, 47, 0.08);
 
       .item-name {
         color: var(--ion-color-danger);
+        font-weight: 800;
+      }
+
+      .avatar-circle {
+        background: rgba(211, 47, 47, 0.16);
       }
     }
 
