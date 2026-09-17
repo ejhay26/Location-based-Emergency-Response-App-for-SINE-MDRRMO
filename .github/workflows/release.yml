@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v0.80.3)'
+        description: 'Release tag (e.g. v0.80.4)'
         required: false
-        default: 'v0.80.3'
+        default: 'v0.80.4'
 
 permissions:
   contents: write
@@ -101,6 +101,13 @@ jobs:
           releaseName: 'MDRRMO Emergency Response App ${{ inputs.tag || github.ref_name }}'
           releaseBody: |
             ### What's Changed
+            - **Android SDK Setup Resilience**: Configured explicit package installations (`platform-tools`, `platforms;android-36`, `platforms;android-35`, `build-tools;36.0.0`, `build-tools;35.0.0`) in GitHub Actions CI to eliminate obsolete `tools` package sdkmanager failures.
+            - **macOS Native Traffic Light Spacing**: Increased window control clearance (`x: 22, y: 20`), widened titlebar clearance space (96px), and added generous top padding to the admin sidebar and main viewport in Tauri macOS builds.
+            - **Collapsible Announcement Composer**: Added a collapsible layout with a quick toggle expand/collapse button (`"Create Broadcast"`), saving dashboard space on desktop and mobile while seamlessly preserving composer drafts across tab switches.
+            - **Interactive Guided Tour Engine Update**: Added Step 2 in the Alert Broadcast tutorial prompting operators to open the collapsible composer before customizing advisories, with reactive interaction detection and mobile-adapted steps.
+            - **Mobile Admin View & Filter Fixes**: Eliminated duplicate Satellite | Street view toggle on mobile admin view and perfected segmented filter control responsiveness.
+            - **Multi-Device Concurrent Session Management**: Maintained independent, concurrent session tokens for administrative and dispatcher accounts across native desktop workstations (Tauri) and mobile apps without premature session termination.
+            - **Standardized Citizen ID Verification Layout**: Polished ID verification cards strictly adhering to core app styling with 1-tap ID number copying and direct verification portal links.
             - **Rigid Metallic Dialog Pop Animation**: Re-engineered modal dialog, alert, and popup animations with rigid uniform-scale expansion (`0.88` to `1.028` overshoot to `1.0`), eliminating squash/stretch jelly distortion while locking aspect ratio.
             - **Physics-Driven OTP Verification**: Micro-scale bounce on digit typing, in-flight verifying pulse, emerald cascade wave on 6th digit, animated SVG checkmark overlay, and horizontal physics error shake.
             - **Action Button Morph States**: Added emerald success state with animated checkmark for primary form submissions.
@@ -114,16 +121,17 @@ jobs:
 
             | Platform | Target Architecture | Direct Download Link | Format |
             |:---:|:---|:---|:---:|
-            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg" width="20" height="20" alt="Android" /> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.1_android.apk) | `.apk` |
-            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_x64-setup.exe) | `.exe` |
-            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.1_x64-portable.exe) | `.exe` |
-            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_universal.dmg) | `.dmg` |
-            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_aarch64.dmg) | `.dmg` |
-            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_x64.dmg) | `.dmg` |
-            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_amd64.deb) | `.deb` |
-            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_amd64.AppImage) | `.AppImage` |
-            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_arm64.deb) | `.deb` |
-            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_aarch64.AppImage) | `.AppImage` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg" width="20" height="20" alt="Android" /> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.4_android.apk) | `.apk` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_x64-setup.exe) | `.exe` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.4_x64-portable.exe) | `.exe` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_universal.dmg) | `.dmg` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_aarch64.dmg) | `.dmg` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_x64.dmg) | `.dmg` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_amd64.deb) | `.deb` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_amd64.AppImage) | `.AppImage` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_arm64.deb) | `.deb` |
+            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_aarch64.AppImage) | `.AppImage` |
+
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
@@ -169,10 +177,18 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            platforms;android-36
+            platforms;android-35
+            build-tools;36.0.0
+            build-tools;35.0.0
 
       - name: Accept Android SDK licenses
         run: |
           yes | sdkmanager --licenses || true
+
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -241,6 +257,8 @@ jobs:
             cp "$APK_SRC" "$APK_NAME"
             echo "Uploading signed Android release APK: $APK_NAME"
             RELEASE_NOTES="### What's Changed
+            - **Android SDK Setup Resilience**: Configured explicit package installations (\`platform-tools\`, \`platforms;android-36\`, \`platforms;android-35\`, \`build-tools;36.0.0\`, \`build-tools;35.0.0\`) in GitHub Actions CI to eliminate obsolete \`tools\` package sdkmanager failures.
+            - **macOS Native Traffic Light Spacing**: Increased window control clearance (\`x: 22, y: 20\`), widened titlebar clearance space (96px), and added generous top padding to the admin sidebar and main viewport in Tauri macOS builds.
             - **Collapsible Announcement Composer**: Added a collapsible layout with a quick toggle expand/collapse button (\`\"Create Broadcast\"\`), saving dashboard space on desktop and mobile while seamlessly preserving composer drafts across tab switches.
             - **Interactive Guided Tour Engine Update**: Added Step 2 in the Alert Broadcast tutorial prompting operators to open the collapsible composer before customizing advisories, with reactive interaction detection and mobile-adapted steps.
             - **Mobile Admin View & Filter Fixes**: Eliminated duplicate Satellite | Street view toggle on mobile admin view and perfected segmented filter control responsiveness.
@@ -259,16 +277,16 @@ jobs:
 
             | Platform | Target Architecture | Direct Download Link | Format |
             |:---:|:---|:---|:---:|
-            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg\" width=\"20\" height=\"20\" alt=\"Android\" /> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.3_android.apk) | \`.apk\` |
-            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg\" width=\"20\" height=\"20\" alt=\"Windows\" /> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_x64-setup.exe) | \`.exe\` |
-            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg\" width=\"20\" height=\"20\" alt=\"Windows\" /> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.3_x64-portable.exe) | \`.exe\` |
-            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg\" width=\"20\" height=\"20\" alt=\"macOS\" /> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_universal.dmg) | \`.dmg\` |
-            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg\" width=\"20\" height=\"20\" alt=\"macOS\" /> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_aarch64.dmg) | \`.dmg\` |
-            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg\" width=\"20\" height=\"20\" alt=\"macOS\" /> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_x64.dmg) | \`.dmg\` |
-            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_amd64.deb) | \`.deb\` |
-            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_amd64.AppImage) | \`.AppImage\` |
-            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_arm64.deb) | \`.deb\` |
-            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_aarch64.AppImage) | \`.AppImage\` |"
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg\" width=\"20\" height=\"20\" alt=\"Android\" /> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.4_android.apk) | \`.apk\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg\" width=\"20\" height=\"20\" alt=\"Windows\" /> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_x64-setup.exe) | \`.exe\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg\" width=\"20\" height=\"20\" alt=\"Windows\" /> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.4_x64-portable.exe) | \`.exe\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg\" width=\"20\" height=\"20\" alt=\"macOS\" /> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_universal.dmg) | \`.dmg\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg\" width=\"20\" height=\"20\" alt=\"macOS\" /> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_aarch64.dmg) | \`.dmg\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg\" width=\"20\" height=\"20\" alt=\"macOS\" /> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_x64.dmg) | \`.dmg\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_amd64.deb) | \`.deb\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_amd64.AppImage) | \`.AppImage\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_arm64.deb) | \`.deb\` |
+            | <img src=\"https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg\" width=\"20\" height=\"20\" alt=\"Linux\" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.4_aarch64.AppImage) | \`.AppImage\` |"
 
             if gh release view "$TARGET_TAG" >/dev/null 2>&1; then
               gh release upload "$TARGET_TAG" "$APK_NAME" --clobber

@@ -76,31 +76,31 @@ ion-app.desktop-app {
 
 /* =========================================
    macOS NATIVE TRAFFIC LIGHT CONTROLS & SPACING
-   On macOS, native traffic lights are on the top-left (78px wide).
+   On macOS, native traffic lights are on the top-left (96px clearance).
    ========================================= */
 ion-app.desktop-app.mac-desktop ion-toolbar ion-title {
-  padding-left: 80px !important;
+  padding-left: 96px !important;
   padding-right: 20px !important;
 }
 
 ion-app.desktop-app.mac-desktop ion-toolbar ion-title.ion-text-center,
 ion-app.desktop-app.mac-desktop ion-toolbar ion-title[style*="text-align: center"],
 ion-app.desktop-app.mac-desktop ion-toolbar ion-title[style*="text-align:center"] {
-  padding-left: 80px !important;
-  padding-right: 80px !important;
+  padding-left: 96px !important;
+  padding-right: 96px !important;
   text-align: center !important;
 }
 
 ion-app.desktop-app.mac-desktop .admin-sidebar {
-  padding-top: 86px !important;
+  padding-top: 96px !important;
 
   &.is-collapsed {
-    padding-top: 90px !important;
+    padding-top: 100px !important;
   }
 }
 
 ion-app.desktop-app.mac-desktop .admin-main-viewport {
-  padding: 52px 20px 18px 20px !important;
+  padding: 56px 20px 18px 20px !important;
 }
 
 ion-app.desktop-app.mac-desktop {
