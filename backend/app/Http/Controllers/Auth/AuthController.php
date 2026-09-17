@@ -148,13 +148,19 @@ class AuthController extends Controller
             : User::where('email', $request->email)->first();
         if (!$user) return response()->json(['message' => 'Invalid or expired code.'], 400);
 
-        $user->tokens()->delete();
+        $deviceName = $request->input('device_name', 'app-token');
+        if ($deviceName !== 'app-token') {
+            $user->tokens()->where('name', $deviceName)->delete();
+        } else {
+            $tokenIds = $user->tokens()->latest()->take(5)->pluck('id');
+            $user->tokens()->whereNotIn('id', $tokenIds)->delete();
+        }
         $abilities = match ($user->role) {
             'admin'      => ['admin', 'dispatcher', 'citizen'],
             'dispatcher' => ['dispatcher'],
             default      => ['citizen'],
         };
-        $token = $user->createToken('app-token', $abilities)->plainTextToken;
+        $token = $user->createToken($deviceName, $abilities)->plainTextToken;
         return response()->json([
             'message' => 'Login successful',
             'token'   => $token,
@@ -195,7 +201,13 @@ class AuthController extends Controller
         }
 
         RateLimiter::clear($throttleKey);
-        $user->tokens()->delete();
+        $deviceName = $request->input('device_name', 'app-token');
+        if ($deviceName !== 'app-token') {
+            $user->tokens()->where('name', $deviceName)->delete();
+        } else {
+            $tokenIds = $user->tokens()->latest()->take(5)->pluck('id');
+            $user->tokens()->whereNotIn('id', $tokenIds)->delete();
+        }
 
         $abilities = match ($user->role) {
             'admin'      => ['admin', 'dispatcher', 'citizen'],
@@ -203,7 +215,7 @@ class AuthController extends Controller
             default      => ['citizen'],
         };
 
-        $token = $user->createToken('app-token', $abilities)->plainTextToken;
+        $token = $user->createToken($deviceName, $abilities)->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',

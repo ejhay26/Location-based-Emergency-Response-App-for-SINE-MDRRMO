@@ -54,6 +54,14 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   /** Options for the barangay filter dropdown — the 9 San Isidro barangays, same reference list used elsewhere (registration, admin broadcast targeting). */
   readonly barangayOptions = BARANGAYS;
+  mobileBarangaySearch = '';
+
+  get filteredMobileBarangays() {
+    const q = this.mobileBarangaySearch.trim().toLowerCase();
+    if (!q) return this.barangayOptions;
+    return this.barangayOptions.filter(b => b.name.toLowerCase().includes(q));
+  }
+
   /** Selected barangay_id, or 'all'. Filters both the plotted map markers and the right-hand list — a report with a null barangay_id (unresolved location) never matches a specific barangay filter. */
   barangayFilter: number | 'all' = 'all';
 
@@ -249,6 +257,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.selectedTypes = [];
     this.dateFilter = 'all';
     this.customCalendarFilter = null;
+    this.mobileBarangaySearch = '';
     this.highlightBarangays();
     this.plotMarkers();
   }

@@ -55,10 +55,54 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
 
-  // Collapsible section states
+  // Collapsible section states (Composer minimized by default to save screen space)
+  showComposer = false;
   showActiveSection = true;
   showScheduledSection = true;
   showArchivedSection = false;
+
+  toggleComposer(): void {
+    this.showComposer = !this.showComposer;
+    if (this.showComposer) {
+      this.saveComposerPreset();
+    }
+    if (this.tour.isActive()) {
+      this.tour.onInteraction();
+    }
+  }
+
+  saveComposerPreset(): void {
+    try {
+      const preset = {
+        title: this.broadcastForm.title,
+        message: this.broadcastForm.message,
+        selectedBarangayIds: this.selectedBarangayIds,
+        deliveryMode: this.deliveryMode,
+      };
+      localStorage.setItem('broadcast_composer_preset', JSON.stringify(preset));
+    } catch {}
+  }
+
+  loadComposerPreset(): void {
+    try {
+      const raw = localStorage.getItem('broadcast_composer_preset');
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p.title) this.broadcastForm.title = p.title;
+        if (p.message) this.broadcastForm.message = p.message;
+        if (Array.isArray(p.selectedBarangayIds)) this.selectedBarangayIds = p.selectedBarangayIds;
+        if (p.deliveryMode === 'scheduled' || p.deliveryMode === 'immediate') {
+          this.setDeliveryMode(p.deliveryMode);
+        }
+      }
+    } catch {}
+  }
+
+  clearComposerPreset(): void {
+    try {
+      localStorage.removeItem('broadcast_composer_preset');
+    } catch {}
+  }
 
   // Post Scheduling
   isScheduled = false;
@@ -133,16 +177,25 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.loadComposerPreset();
     this.fetchBroadcasts();
     this.echo.connect();
     this.echoBroadcastSub = this.echo.onBroadcastUpdated.subscribe(() => {
       this.fetchBroadcasts();
     });
 
-    this.tourSub = this.tour.stepChange$.subscribe(({ active }) => {
+    this.tourSub = this.tour.stepChange$.subscribe(({ id, active }) => {
       if (active) {
         this.showScheduledSection = true;
         this.showArchivedSection = true;
+        if (id && id !== 'broadcast-toggle-composer-btn' && (
+          id === 'broadcast-composer' ||
+          id === 'broadcast-barangay-selector' ||
+          id === 'broadcast-delivery-mode' ||
+          id === 'broadcast-submit-btn'
+        )) {
+          this.showComposer = true;
+        }
         if (this.activeBroadcasts.length === 0) {
           this.activeBroadcasts = [this.DEMO_ACTIVE_BROADCAST];
         }
@@ -177,12 +230,14 @@ export class BroadcastPanel implements OnInit, OnDestroy {
 
   selectTownWide(): void {
     this.selectedBarangayIds = [];
+    this.saveComposerPreset();
   }
 
   toggleBarangay(id: number): void {
     const idx = this.selectedBarangayIds.indexOf(id);
     if (idx === -1) this.selectedBarangayIds.push(id);
     else this.selectedBarangayIds.splice(idx, 1);
+    this.saveComposerPreset();
   }
 
   isBarangaySelected(id: number): boolean {
@@ -213,6 +268,7 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   setDeliveryMode(mode: 'immediate' | 'scheduled'): void {
     this.deliveryMode = mode;
     this.setScheduledMode(mode === 'scheduled');
+    this.saveComposerPreset();
   }
 
   onDeliveryModeChange(ev?: any): void {
@@ -495,6 +551,8 @@ export class BroadcastPanel implements OnInit, OnDestroy {
             this.schedYear             = '';
             this.schedMonth            = '';
             this.schedDay              = '';
+            this.clearComposerPreset();
+            this.showComposer          = false;
             this.fetchBroadcasts();
             resolve();
           },

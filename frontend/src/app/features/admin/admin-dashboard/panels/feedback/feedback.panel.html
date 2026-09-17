@@ -10,10 +10,10 @@
     </div>
     
     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-      <!-- Export CSV Button (Save As Picker) -->
-      <button (click)="exportCsv()" [disabled]="filteredList.length === 0" title="Export feedback to a CSV spreadsheet" style="padding: 9px 16px; border-radius: 10px; border: none; background: var(--ion-color-danger, #eb445a); color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(235,68,90,0.3); transition: opacity 0.15s;" [style.opacity]="filteredList.length === 0 ? 0.5 : 1">
-        <app-icon name="file-spreadsheet" [size]="15" color="#ffffff"></app-icon>
-        Export CSV
+      <!-- Export PDF Button (Official Printable / Save as PDF Report) -->
+      <button (click)="exportPdf()" [disabled]="filteredList.length === 0" title="Export feedback to an official PDF report" style="padding: 9px 16px; border-radius: 10px; border: none; background: var(--ion-color-danger, #eb445a); color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(235,68,90,0.3); transition: opacity 0.15s;" [style.opacity]="filteredList.length === 0 ? 0.5 : 1">
+        <app-icon name="file-pdf" [size]="15" color="#ffffff"></app-icon>
+        Export PDF
       </button>
 
       <!-- Clear / Move to Trash Button (when on active tabs) -->

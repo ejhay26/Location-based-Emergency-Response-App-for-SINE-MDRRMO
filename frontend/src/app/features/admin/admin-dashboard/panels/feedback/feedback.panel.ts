@@ -198,84 +198,192 @@ export class FeedbackPanel implements OnInit {
     });
   }
 
-  // ── Enhanced CSV Export (Save As Picker + Share / Mobile Support) ──────────
-  async exportCsv() {
+  // ── Official Certified PDF Export (Print / Save as PDF) ─────────────────
+  exportPdf(): void {
     const list = this.activeFilter === 'trash' ? this.trashList : this.filteredList;
     if (list.length === 0) {
       this.ui.showToast('No feedback submissions to export.', 'warning');
       return;
     }
 
-    const headers = ['ID', 'Date & Time', 'Citizen Name', 'Username', 'Email', 'Category', 'Rating (1-5)', 'Status', 'Message'];
-    const rows = list.map(fb => [
-      fb.id,
-      `"${new Date(fb.created_at).toLocaleString().replace(/"/g, '""')}"`,
-      `"${(fb.full_name || '').replace(/"/g, '""')}"`,
-      `"${(fb.username || '').replace(/"/g, '""')}"`,
-      `"${(fb.email || '').replace(/"/g, '""')}"`,
-      `"${(this.categoryLabel(fb.category) || '').replace(/"/g, '""')}"`,
-      `"${fb.rating || 5} of 5 Stars"`,
-      `"${fb.status === 'archived' ? 'Archived' : 'Active'}"`,
-      `"${(fb.message || '').replace(/"/g, '""')}"`
-    ]);
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const adminName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'MDRRMO Officer';
+    const role = localStorage.getItem('role') || 'Admin';
+    const nowStr = new Date().toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
 
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const filename = `feedback_report_${new Date().toISOString().slice(0, 10)}.csv`;
+    const filterLabel = this.activeFilter === 'trash'
+      ? 'Trash Archive'
+      : (this.activeFilter === 'all' ? 'All Feedback' : this.categoryLabel(this.activeFilter));
 
-    // 1. Check for modern File System Access API (Native Windows "Save As" file dialog)
-    if ('showSaveFilePicker' in window) {
-      try {
-        const handle = await (window as any).showSaveFilePicker({
-          suggestedName: filename,
-          types: [{
-            description: 'CSV Spreadsheet',
-            accept: { 'text/csv': ['.csv'] }
-          }]
-        });
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        this.ui.showToast(`Saved ${filename} successfully.`, 'success');
-        return;
-      } catch (err: any) {
-        // User aborted/cancelled the picker dialog
-        if (err?.name === 'AbortError') return;
+    const rowsHtml = list.map((fb, i) => {
+      const rating = Number(fb.rating) || 5;
+      const stars = '★'.repeat(rating) + '☆'.repeat(Math.max(5 - rating, 0));
+      const isArchived = !!fb.deleted_at;
+      const statusColor = isArchived ? '#c62828' : '#2e7d32';
+      const statusBg = isArchived ? '#ffebee' : '#e8f5e9';
+      const statusText = isArchived ? 'Archived (Trash)' : 'Active';
+
+      return `
+        <tr>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 11px;">${i + 1}</td>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px; white-space: nowrap;">${new Date(fb.created_at).toLocaleString()}</td>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-size: 11.5px;">${(fb.full_name || 'Anonymous Citizen').replace(/</g, '&lt;')}</td>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${(fb.email || fb.username || 'N/A').replace(/</g, '&lt;')}</td>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">
+            <span style="display: inline-block; padding: 2px 7px; border-radius: 4px; background: #f0f0f0; font-weight: 600;">
+              ${this.categoryLabel(fb.category)}
+            </span>
+          </td>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #f59e0b; white-space: nowrap;">
+            ${stars} <span style="font-size: 10px; color: #555; font-weight: bold;">(${rating}/5)</span>
+          </td>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 11px;">
+            <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; background: ${statusBg}; color: ${statusColor};">
+              ${statusText}
+            </span>
+          </td>
+          <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px; line-height: 1.4; max-width: 320px;">
+            ${(fb.message || '').replace(/</g, '&lt;')}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    const printHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>MDRRMO Citizen Feedback Report - ${new Date().toISOString().slice(0, 10)}</title>
+        <style>
+          @page { size: landscape; margin: 12mm 15mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #222; margin: 0; padding: 15px; font-size: 12px; }
+          .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #c62828; padding-bottom: 12px; margin-bottom: 16px; }
+          .header-left { display: flex; align-items: center; gap: 12px; }
+          .logo-box { width: 44px; height: 44px; background: #c62828; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 14px; }
+          .title-box h1 { margin: 0; font-size: 16px; text-transform: uppercase; color: #c62828; letter-spacing: 0.5px; }
+          .title-box p { margin: 2px 0 0; font-size: 11px; color: #666; }
+          .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #f8f9fa; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e9ecef; }
+          .meta-item { font-size: 11px; }
+          .meta-label { color: #888; text-transform: uppercase; font-size: 9px; font-weight: bold; margin-bottom: 2px; }
+          .meta-val { font-weight: 600; color: #333; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th { background: #f1f3f5; color: #495057; font-weight: 700; font-size: 11px; text-transform: uppercase; padding: 8px 10px; border-bottom: 2px solid #dee2e6; text-align: left; }
+          tr:nth-child(even) { background-color: #fafbfc; }
+          .footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 15px; border-top: 1px solid #dee2e6; font-size: 10px; color: #888; }
+          .sig-box { text-align: center; border-top: 1px solid #333; padding-top: 4px; width: 180px; }
+          @media print {
+            body { padding: 0; }
+            button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="header-left">
+            <div class="logo-box">SINE</div>
+            <div class="title-box">
+              <h1>MDRRMO San Isidro — Citizen Feedback & Ratings Report</h1>
+              <p>Municipal Disaster Risk Reduction and Management Office • Public Service Analytics</p>
+            </div>
+          </div>
+          <div style="text-align: right; font-size: 11px; color: #666;">
+            <div><b>Generated:</b> ${nowStr}</div>
+            <div><b>Officer:</b> ${adminName} (${role.toUpperCase()})</div>
+          </div>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-item">
+            <div class="meta-label">Total Submissions</div>
+            <div class="meta-val">${list.length} Records</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Average Satisfaction</div>
+            <div class="meta-val">${this.averageRating} / 5.0 Stars</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Positive Sentiment Ratio</div>
+            <div class="meta-val">${this.positivePercent}% Positive (4-5★)</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Export Filter Scope</div>
+            <div class="meta-val">${filterLabel}</div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align: center; width: 30px;">#</th>
+              <th style="width: 125px;">Date &amp; Time</th>
+              <th>Citizen Name</th>
+              <th>Contact / Email</th>
+              <th>Category</th>
+              <th style="text-align: center; width: 110px;">Rating</th>
+              <th style="text-align: center; width: 85px;">Status</th>
+              <th>Feedback Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <div>This document is an official export from the MDRRMO Citizen Response System. Confidential municipal record.</div>
+          <div class="sig-box">
+            <b>${adminName}</b><br>
+            <span>Certified MDRRMO Personnel</span>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
+      this.ui.showToast('Opening print dialog for PDF export...', 'success');
+    } else {
+      // Fallback: hidden iframe print
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+      const doc = iframe.contentWindow?.document;
+      if (doc) {
+        doc.open();
+        doc.write(printHtml);
+        doc.close();
+        setTimeout(() => {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+          setTimeout(() => document.body.removeChild(iframe), 2000);
+        }, 500);
+        this.ui.showToast('Preparing PDF report...', 'success');
+      } else {
+        this.ui.showToast('Could not open print dialog. Please allow popups.', 'danger');
       }
     }
-
-    // 2. Mobile Native Share Sheet if supported
-    if (navigator.canShare && typeof File !== 'undefined') {
-      try {
-        const file = new File([blob], filename, { type: 'text/csv' });
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: 'Citizen Feedback Export',
-            text: `SINE MDRRMO Citizen Feedback Export (${new Date().toLocaleDateString()})`
-          });
-          this.ui.showToast('Spreadsheet exported.', 'success');
-          return;
-        }
-      } catch (e) {
-        // Fall back to standard download
-      }
-    }
-
-    // 3. Fallback download with clear folder destination toast
-    this.downloadBlob(blob, filename);
-    this.ui.showToast(`Saved ${filename} to your Downloads folder.`, 'success');
-  }
-
-  private downloadBlob(blob: Blob, filename: string): void {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   categoryLabel(cat: string): string { return this.categoryLabels[cat] || cat; }

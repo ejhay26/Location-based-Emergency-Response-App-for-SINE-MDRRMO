@@ -218,14 +218,16 @@
     <div class="mobile-filter-section">
       <span class="mobile-section-label">Show Alerts</span>
       <div class="mobile-filter-pills-row">
-        <button type="button" class="filter-pill-btn" [style.background]="alertSourceFilter === 'all' ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="alertSourceFilter === 'all' ? 'white' : 'var(--ion-text-color)'" (click)="setAlertSourceFilter('all')">
-          All ({{ activeRequests.length + activeHazards.length }})
+        <button type="button" class="filter-pill-btn" [class.active]="alertSourceFilter === 'all'" (click)="setAlertSourceFilter('all')">
+          <span>All ({{ activeRequests.length + activeHazards.length }})</span>
         </button>
-        <button type="button" class="filter-pill-btn" [style.background]="alertSourceFilter === 'emergency' ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="alertSourceFilter === 'emergency' ? 'white' : 'var(--ion-text-color)'" (click)="setAlertSourceFilter('emergency')">
-          Emergency SOS ({{ activeRequests.length }})
+        <button type="button" class="filter-pill-btn" [class.active]="alertSourceFilter === 'emergency'" (click)="setAlertSourceFilter('emergency')">
+          <app-icon name="siren" [size]="13"></app-icon>
+          <span>Emergency SOS ({{ activeRequests.length }})</span>
         </button>
-        <button type="button" class="filter-pill-btn" [style.background]="alertSourceFilter === 'hazard' ? '#ffc409' : 'var(--ion-card-background, white)'" [style.color]="alertSourceFilter === 'hazard' ? '#000000' : 'var(--ion-text-color)'" (click)="setAlertSourceFilter('hazard')">
-          Hazards ({{ activeHazards.length }})
+        <button type="button" class="filter-pill-btn" [class.active-hazard]="alertSourceFilter === 'hazard'" (click)="setAlertSourceFilter('hazard')">
+          <app-icon name="hazard" [size]="13"></app-icon>
+          <span>Hazards ({{ activeHazards.length }})</span>
         </button>
       </div>
     </div>
@@ -234,23 +236,43 @@
     <div class="mobile-filter-section">
       <span class="mobile-section-label">Date Range</span>
       <div class="mobile-filter-pills-row">
-        <button *ngFor="let d of dateFilterOptions" type="button" class="filter-pill-btn" [style.background]="!customCalendarFilter && dateFilter === d.id ? 'var(--ion-color-step-700, #3a3a3c)' : 'var(--ion-card-background, white)'" [style.color]="!customCalendarFilter && dateFilter === d.id ? 'white' : 'var(--ion-text-color)'" (click)="setDateFilter(d.id)">
+        <button *ngFor="let d of dateFilterOptions" type="button" class="filter-pill-btn" [class.active-date]="!customCalendarFilter && dateFilter === d.id" (click)="setDateFilter(d.id)">
           {{ d.label }}
         </button>
         <app-date-range-filter [value]="customCalendarFilter" (valueChange)="onCalendarFilterChange($event)"></app-date-range-filter>
       </div>
     </div>
 
-    <!-- Barangay Filter -->
+    <!-- Barangay Filter with Search -->
     <div class="mobile-filter-section">
-      <span class="mobile-section-label">Barangay</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+        <span class="mobile-section-label">Barangay</span>
+        <span *ngIf="selectedBarangays.length > 0" style="font-size: 11px; font-weight: 700; color: var(--ion-color-danger);">
+          {{ selectedBarangays.length }} selected
+        </span>
+      </div>
+
+      <!-- Search box with enlarged placeholder -->
+      <div class="mobile-filter-search-box">
+        <app-icon name="search" [size]="15" color="var(--ion-color-medium)"></app-icon>
+        <input
+          type="text"
+          [(ngModel)]="mobileBarangaySearch"
+          placeholder="Search or filter barangay (e.g. Poblacion, Alua)..."
+          aria-label="Filter barangays" />
+        <button *ngIf="mobileBarangaySearch" type="button" class="search-clear-btn" (click)="mobileBarangaySearch = ''" aria-label="Clear search">✕</button>
+      </div>
+
       <div class="mobile-filter-pills-row">
-        <button type="button" class="filter-pill-btn" [style.background]="isBarangaySelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="isBarangaySelected('all') ? 'white' : 'var(--ion-text-color)'" (click)="toggleBarangayFilter('all')">
+        <button type="button" class="filter-pill-btn" [class.active]="isBarangaySelected('all')" (click)="toggleBarangayFilter('all')">
           All
         </button>
-        <button *ngFor="let b of barangayOptions" type="button" class="filter-pill-btn" [style.background]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="isBarangaySelected(b.id) ? 'white' : 'var(--ion-text-color)'" (click)="toggleBarangayFilter(b.id)">
+        <button *ngFor="let b of filteredMobileBarangays" type="button" class="filter-pill-btn" [class.active]="isBarangaySelected(b.id)" (click)="toggleBarangayFilter(b.id)">
           {{ b.name }}
         </button>
+        <span *ngIf="filteredMobileBarangays.length === 0" style="font-size: 12px; color: var(--ion-color-medium); padding: 6px 4px;">
+          No barangay matching "{{ mobileBarangaySearch }}"
+        </span>
       </div>
     </div>
 
@@ -258,11 +280,11 @@
     <div class="mobile-filter-section">
       <span class="mobile-section-label">Incident Type</span>
       <div class="mobile-filter-pills-row">
-        <button type="button" class="filter-pill-btn" [style.background]="isTypeSelected('all') ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="isTypeSelected('all') ? 'white' : 'var(--ion-text-color)'" (click)="toggleTypeFilter('all')">
+        <button type="button" class="filter-pill-btn" [class.active]="isTypeSelected('all')" (click)="toggleTypeFilter('all')">
           All Types
         </button>
-        <button *ngFor="let t of currentTypeOptions" type="button" class="filter-pill-btn" [style.background]="isTypeSelected(t.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'" [style.color]="isTypeSelected(t.id) ? 'white' : 'var(--ion-text-color)'" (click)="toggleTypeFilter(t.id)">
-          <app-icon [name]="t.icon" [size]="12" [color]="isTypeSelected(t.id) ? '#ffffff' : (t.color || 'var(--ion-color-danger)')"></app-icon>
+        <button *ngFor="let t of currentTypeOptions" type="button" class="filter-pill-btn" [class.active]="isTypeSelected(t.id)" (click)="toggleTypeFilter(t.id)">
+          <app-icon [name]="t.icon" [size]="13" [color]="isTypeSelected(t.id) ? '#ffffff' : (t.color || 'var(--ion-color-danger)')"></app-icon>
           <span>{{ t.label }}</span>
         </button>
       </div>

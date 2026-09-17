@@ -16,6 +16,7 @@ import { LocationService } from '../../../core/services/location';
 import { TourService } from '../../../core/services/tour';
 import { DeepLinkService } from '../../../core/services/deep-link';
 import { formatPhoneLocalPart, isValidPhonePH } from '../../../shared/utils/phone.util';
+import { isTauri } from '../../../shared/utils/platform.util';
 import { OtpAutofillService } from '../../../core/services/otp-autofill';
 import { OtpBoxInputComponent } from '../../../shared/components/otp-box-input/otp-box-input.component';
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
@@ -152,13 +153,22 @@ export class LoginPage {
     });
   }
 
+  private getDeviceName(): string {
+    if (isTauri()) return 'desktop';
+    if (Capacitor.isNativePlatform()) return `mobile_${Capacitor.getPlatform()}`;
+    return 'web';
+  }
+
   verifyLoginOtp() {
     if (!this.emailOtpData.otp || this.emailOtpData.otp.length < 6) {
       this.showToast('Please enter the 6-digit code.', 'warning'); return;
     }
-    const payload = this.loginOtpChannel === 'phone'
-      ? { otp_channel: 'phone', phone: this.emailOtpData.phone, otp: this.emailOtpData.otp }
-      : { otp_channel: 'email', email: this.emailOtpData.email, otp: this.emailOtpData.otp };
+    const payload = {
+      ...(this.loginOtpChannel === 'phone'
+        ? { otp_channel: 'phone', phone: this.emailOtpData.phone, otp: this.emailOtpData.otp }
+        : { otp_channel: 'email', email: this.emailOtpData.email, otp: this.emailOtpData.otp }),
+      device_name: this.getDeviceName(),
+    };
     this.isVerifyingOtp = true;
     this.api.loginVerifyOtp(payload).subscribe({
       next: (res: any) => { this.isVerifyingOtp = false; this.otpAutofill.stop(); this.handleLoginSuccess(res); },
@@ -337,7 +347,11 @@ export class LoginPage {
       this.showToast('Please enter both email/username and password.', 'warning'); return;
     }
     this.isLoggingIn = true;
-    this.api.login(this.credentials).subscribe({
+    const payload = {
+      ...this.credentials,
+      device_name: this.getDeviceName(),
+    };
+    this.api.login(payload).subscribe({
       next: (res: any) => { this.isLoggingIn = false; this.handleLoginSuccess(res); },
       error: (err: any) => {
         this.isLoggingIn = false;

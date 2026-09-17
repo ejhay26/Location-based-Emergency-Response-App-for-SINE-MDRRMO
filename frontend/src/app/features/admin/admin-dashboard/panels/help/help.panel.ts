@@ -70,56 +70,64 @@ export class HelpPanel {
         {
           id: 'nav-btn-broadcast',
           callout: 'Step 1: Open Alert Broadcast',
-          subtext: 'Click the highlighted Alert Broadcast button on the sidebar to open the advisory composer.',
+          subtext: 'Click the highlighted Alert Broadcast button on the sidebar to open the advisory panel.',
           waitForInteraction: true,
           interactionHint: 'Click Alert Broadcast on the sidebar'
         },
         {
+          id: 'broadcast-toggle-composer-btn',
+          panel: 'broadcast',
+          callout: 'Step 2: Open Announcement Composer',
+          subtext: 'Click "+ New Announcement" to expand the composer card and customize your advisory.',
+          waitForInteraction: true,
+          interactionHint: 'Click + New Announcement to open'
+        },
+        {
           id: 'broadcast-composer',
           panel: 'broadcast',
-          callout: 'Message, Media & Drag-and-Drop',
+          callout: 'Step 3: Message, Media & Drag-and-Drop',
           subtext: 'Enter the headline and advisory notice. You can drag and drop or attach up to 4 photos/videos for citizen guidance.',
           waitForInteraction: false,
         },
         {
           id: 'broadcast-barangay-selector',
           panel: 'broadcast',
-          callout: 'Choose Target Barangays',
+          callout: 'Step 4: Choose Target Barangays',
           subtext: 'Leave on "All Barangays" for town-wide alerts, or select individual barangays to target specific areas only.',
           waitForInteraction: false,
         },
         {
           id: 'broadcast-delivery-mode',
           panel: 'broadcast',
-          callout: 'Send Now or Schedule',
+          callout: 'Step 5: Send Now or Schedule',
           subtext: 'Choose "Post Immediately" for urgent alerts, or toggle to "Schedule for Later" to pick an automatic release date and time.',
           waitForInteraction: false,
         },
         {
           id: 'broadcast-submit-btn',
           panel: 'broadcast',
-          callout: 'Send or Queue Alert',
+          callout: 'Step 6: Send or Queue Alert',
           subtext: 'Click here to send the announcement as a push notification across all citizen mobile apps.',
           waitForInteraction: false,
         },
         {
           id: 'active-broadcasts-section',
           panel: 'broadcast',
-          callout: 'Active Announcements List',
+          callout: 'Step 7: Active Announcements List',
           subtext: 'All currently running announcements appear below the composer. You can check how long they have been active, see targeted areas, and click Stop once resolved.',
           waitForInteraction: false,
         },
         {
           id: 'scheduled-broadcasts-section',
           panel: 'broadcast',
-          callout: 'Scheduled Announcements Queue',
+          callout: 'Step 8: Scheduled Announcements Queue',
           subtext: 'Announcements scheduled for later release appear here. The system will automatically publish them at the designated date and time.',
           waitForInteraction: false,
         },
         {
           id: 'archived-broadcasts-section',
           panel: 'broadcast',
-          callout: 'Past & Archived History',
+          callout: 'Step 9: Past & Archived History',
           subtext: 'Past completed announcements are archived here for municipal auditing and disaster post-incident reports.',
           waitForInteraction: false,
         },
@@ -248,7 +256,7 @@ export class HelpPanel {
     if (isMobile) {
       if (proc.id === 'incident-map') return 7;
       if (proc.id === 'account-management') return 13;
-      if (proc.id === 'broadcast') return 8;
+      if (proc.id === 'broadcast') return 10;
       if (proc.id === 'archive') return 3;
     }
     return proc.steps.length;

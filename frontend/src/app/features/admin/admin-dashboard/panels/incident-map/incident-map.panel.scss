@@ -608,10 +608,11 @@
     gap: 0;
   }
 
-  /* Hide the bulky desktop toolbar & resizer */
+  /* Hide the bulky desktop toolbar, resizer, and desktop floating capsule */
   .map-top-toolbar,
   .map-split-resizer,
-  .map-queue-col {
+  .map-queue-col,
+  .floating-map-style-capsule {
     display: none !important;
   }
 
@@ -874,8 +875,150 @@
   .mobile-filter-pills-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
+  }
+
+  .filter-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    min-height: 38px;
+    box-sizing: border-box;
+    border-radius: 9999px;
+    border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+    background: var(--ion-color-step-50, rgba(0, 0, 0, 0.04));
+    color: var(--ion-text-color);
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+      transform: scale(0.96);
+    }
+
+    &.active {
+      background: linear-gradient(135deg, #eb445a, #c62828) !important;
+      color: #ffffff !important;
+      border-color: transparent !important;
+      box-shadow: 0 3px 12px rgba(235, 68, 90, 0.38) !important;
+      font-weight: 800;
+
+      app-icon {
+        color: #ffffff !important;
+      }
+    }
+
+    &.active-hazard {
+      background: linear-gradient(135deg, #ffc409, #e0a800) !important;
+      color: #000000 !important;
+      border-color: transparent !important;
+      box-shadow: 0 3px 12px rgba(255, 196, 9, 0.38) !important;
+      font-weight: 800;
+    }
+
+    &.active-date {
+      background: var(--ion-color-step-800, #3a3a3c) !important;
+      color: #ffffff !important;
+      border-color: transparent !important;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25) !important;
+      font-weight: 800;
+    }
+  }
+
+  /* Dark mode pill styling */
+  :host-context(.ion-palette-dark) .filter-pill-btn {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.07);
+    color: #e5e5ea;
+
+    &.active {
+      background: linear-gradient(135deg, #eb445a, #d32f2f) !important;
+      color: #ffffff !important;
+      border-color: transparent !important;
+    }
+
+    &.active-hazard {
+      background: linear-gradient(135deg, #ffd026, #e5a700) !important;
+      color: #000000 !important;
+      border-color: transparent !important;
+    }
+
+    &.active-date {
+      background: rgba(255, 255, 255, 0.22) !important;
+      color: #ffffff !important;
+      border-color: transparent !important;
+    }
+  }
+
+  /* Mobile Search Bar for Barangay with enlarged placeholder */
+  .mobile-filter-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    min-height: 44px;
+    border-radius: 14px;
+    background: var(--ion-color-step-50, rgba(0, 0, 0, 0.04));
+    border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+    box-sizing: border-box;
+    margin-bottom: 6px;
+    width: 100%;
+
+    input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--ion-text-color);
+      min-width: 0;
+
+      &::placeholder {
+        color: var(--ion-color-medium, #8e8e93);
+        font-size: 13px;
+        font-weight: 500;
+      }
+    }
+
+    .search-clear-btn {
+      background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
+      border: none;
+      padding: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ion-color-medium);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  }
+
+  :host-context(.ion-palette-dark) .mobile-filter-search-box {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.14);
+
+    input {
+      color: #ffffff;
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.45);
+      }
+    }
+
+    .search-clear-btn {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
   }
 
   .mobile-filter-card-footer {
