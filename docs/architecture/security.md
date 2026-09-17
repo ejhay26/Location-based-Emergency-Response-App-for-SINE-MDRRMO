@@ -9,12 +9,12 @@ Comprehensive documentation of authentication mechanisms, role enforcement, thre
 All API endpoints are secured via **Laravel Sanctum Bearer Tokens**. The frontend stores the token in secure client-side storage and passes it via the `Authorization: Bearer <token>` HTTP header on every authenticated request.
 
 ### Token Lifecycle
-1. On successful login (either password-based or verified OTP), all prior tokens for that user are revoked.
+1. **Multi-Device Concurrent Staff Sessions:** Administrative and dispatcher accounts maintain concurrent sessions across native desktop workstations (Tauri) and mobile devices without prematurely invalidating active session tokens.
 2. A new plain-text token is minted with specific **abilities** tied directly to the user's role:
    - **`admin`**: Granted abilities `['admin', 'dispatcher', 'citizen']`
    - **`dispatcher`**: Granted ability `['dispatcher']`
    - **`citizen`**: Granted ability `['citizen']`
-3. On logout, the token is permanently destroyed from the database (`personal_access_tokens` table).
+3. On explicit logout, the current session token is permanently revoked from the database (`personal_access_tokens` table).
 
 ---
 

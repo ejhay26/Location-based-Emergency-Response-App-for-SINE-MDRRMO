@@ -89,16 +89,17 @@ The **Analytics** panel presents interactive visualizations filterable by **7-da
 
 Dispatchers can transmit critical public safety announcements directly to citizens' mobile phones:
 1. Navigate to **Alert Broadcast**.
-2. Enter an optional **Headline** (e.g. *"Heavy Rainfall Warning"*).
-3. Type the detailed advisory message.
-4. **Select Audience:**
+2. If collapsed, tap the **"Create Broadcast"** button to expand the composer card.
+3. Enter an optional **Headline** (e.g. *"Heavy Rainfall Warning"*).
+4. Type the detailed advisory message.
+5. **Select Audience:**
    - Leave on **All Barangays** for a municipal-wide broadcast.
    - Or select specific **Barangays** (e.g. *Tabon*, *Pulo*) for localized alerts.
-5. **Attach Media & Drag-and-Drop:** Drag or select up to **4 photos or MP4 videos** for instant visual preview.
-6. **Delivery Mode:**
+6. **Attach Media & Drag-and-Drop:** Drag or select up to **4 photos or MP4 videos** for instant visual preview.
+7. **Delivery Mode:**
    - **Post Immediately:** Sends the push notification right away.
    - **Schedule for Later:** Pick a future date and time for automated release with past-time guards.
-7. **Active & Scheduled Announcements:** Monitor live broadcasts and scheduled queues directly below the composer.
+8. **Active & Scheduled Announcements:** Monitor live broadcasts and scheduled queues directly below the composer.
 
 ---
 
@@ -106,6 +107,6 @@ Dispatchers can transmit critical public safety announcements directly to citize
 
 Dispatchers can launch spotlight guided tours from the **Help** panel:
 - **Incident Map Tour:** Step-by-step guidance on live map controls, filters, queue browsing, and pin focus.
-- **Alert Broadcast Tour:** Walkthrough of headline writing, media attachments, barangay targeting, and scheduling.
+- **Alert Broadcast Tour:** Walkthrough of opening the composer card, headline writing, media attachments, barangay targeting, and scheduling.
 - **Archive Tour:** Guide on searching historical reports, false alarm tagging, and PDF export.
-- **Adaptive Mobile Steps:** Walkthrough automatically adjusts to highlight mobile sheets and drawer elements when opened on a smartphone.
+- **Adaptive Mobile Steps:** Walkthrough automatically adjusts to highlight mobile sheets, composer toggles, and drawer elements when opened on a smartphone.

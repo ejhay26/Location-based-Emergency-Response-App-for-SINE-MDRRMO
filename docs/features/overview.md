@@ -69,7 +69,8 @@ When an SOS is transmitted, this medical record is attached automatically to the
 
 - **Granular Audience Targeting:** Dispatchers can broadcast alerts either **Town-wide** (all residents) or scoped to one or more specific **Barangays**.
 - **Rich Media & Drag-and-Drop Composer:** Desktop composer supports drag-and-drop file uploads and up to **4 attached images or MP4 videos** with thumbnail previews.
-- **Immediate & Scheduled Delivery:** Dispatchers can send broadcasts immediately or schedule them for a future release date and time, protected by automated past-time guards.
+- **Collapsible Composer Card:** The announcement composer features a collapsible layout with a quick toggle button (`"Create Broadcast"`), maximizing screen real estate on desktop and mobile while seamlessly preserving composer form inputs across tab switching.
+- **Immediate & Scheduled Delivery:** Dispatchers can send broadcasts immediately or schedule them for a future release date and time (`scheduled_at`), protected by automated past-time guards.
 - **Active, Scheduled & Archived Management:** Operators can monitor live running alerts, inspect queued scheduled announcements, and review historical broadcasts.
 - **Client-Side Filtering:** Citizens only receive push notifications and UI banners that apply to their home barangay or the entire municipality.
 
@@ -80,6 +81,7 @@ When an SOS is transmitted, this medical record is attached automatically to the
 - **Rust-Powered Native Architecture:** Packaged via **Tauri v2** for Windows, macOS, and Linux with a 10–15 MB distribution size and ultra-low RAM footprint (~30–50 MB).
 - **Custom Frameless Titlebar:** Theme-aware window minimize, maximize, and close controls integrated seamlessly with the application header.
 - **Continuous Background Awareness:** Native OS desktop notifications and audio cues whenever a new emergency or hazard is logged.
+- **Multi-Device Concurrent Sessions:** Administrative and dispatcher accounts maintain independent, concurrent sessions between native desktop workstations and mobile devices without premature session termination.
 
 ---
 
@@ -94,7 +96,8 @@ When an SOS is transmitted, this medical record is attached automatically to the
 
 ## 11. Interactive Guided Tour & Tutorial System
 
-- **Viewport-Adaptive Tour Engine:** Tour steps dynamically adapt between desktop and mobile layouts (e.g., highlighting mobile bottom sheets and drawer buttons).
+- **Viewport-Adaptive Tour Engine:** Tour steps dynamically adapt between desktop and mobile layouts (e.g., highlighting mobile bottom sheets, drawer buttons, and floating controls).
+- **Step-by-Step Composer Expansion:** The Alert Broadcast procedure guide includes an interactive step prompting operators to open the collapsible composer card before customizing announcement text and attachments.
 - **Interactive Focus & Triage Card Previews:** Tour steps automatically center the map (`flyTo`), pulse markers, and trigger triage popup cards.
 - **Mock Demo Data Fallbacks:** In empty or offline testing environments, demo incident cards and broadcast records appear during walkthroughs to provide a complete training experience.
 
@@ -112,3 +115,14 @@ All administrative panels share two modular components:
 
 - **Multi-Channel Delivery:** Citizens can receive authentication codes via **Email** or **PhilSMS**.
 - **One-Tap Android Auto-Fill:** On Android devices, the native SMS User Consent API (`@capawesome/capacitor-android-sms-retriever`) reads the 6-digit code without requiring full SMS reading permissions.
+
+---
+
+## 14. Physics-Engineered UI & Motion Architecture
+
+- **Rigid Metallic Dialog Pop Animation:** Re-engineered dialog, modal, and alert popup animations utilizing rigid uniform-scale expansion (`0.88` to `1.028` overshoot to `1.0`) with locked aspect ratios, replacing elastic jelly distortions with snappy, professional feedback.
+- **Physics-Driven OTP Input:** Features micro-scale bounce on digit entry, in-flight verifying pulse, emerald cascade wave upon 6th digit completion, animated SVG checkmark overlay, and horizontal physics shake on incorrect codes.
+- **Unified 250ms Cross-Dissolve Dark Mode:** Clean, synchronized theme transitions across all platforms (Android, iOS, Windows, macOS, Linux) eliminating visual tearing.
+- **Skeleton Shimmer Loading States:** Replaces static loading text with responsive placeholder shimmer animations across metrics, queues, and verification cards.
+- **Performance-Capped Radar Ripples:** High-visibility map radar pulses restricted strictly to active, pending emergencies (<10 minutes old) with an automatic 8-cycle cutoff to safeguard client GPU resources.
+

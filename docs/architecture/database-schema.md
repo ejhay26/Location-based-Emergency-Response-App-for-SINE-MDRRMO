@@ -135,6 +135,7 @@ erDiagram
         text message
         longtext media_files
         tinyint is_active
+        timestamp scheduled_at
         timestamp created_at
     }
     BROADCAST_BARANGAYS {
@@ -315,7 +316,7 @@ Municipal response units and their linked emergency vehicle fleets.
 ### 2.7 `broadcasts` & `broadcast_barangays`
 Emergency alert banners pushed by dispatchers/admins.
 
-- **`broadcasts`**: Contains `broadcast_id`, `title`, `message`, `media_files` (JSON array of up to 4 images/videos), `is_active` (`1` or `0`), and `created_at`.
+- **`broadcasts`**: Contains `broadcast_id`, `title`, `message`, `media_files` (JSON array of up to 4 images/videos), `is_active` (`1` or `0`), `scheduled_at` (nullable future timestamp for queued releases), and `created_at`.
 - **`broadcast_barangays`**: Pivot table (`broadcast_id`, `barangay_id`). If empty, the broadcast is treated as **Town-wide**; otherwise, it is scoped exclusively to citizens registered in the selected barangays.
 
 ---

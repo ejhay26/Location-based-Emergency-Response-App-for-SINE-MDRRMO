@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Comprehensive architectural overview of the SINE MDRRMO Location-Based Emergency Response System (Version 0.73.0).
+Comprehensive architectural overview of the SINE MDRRMO Location-Based Emergency Response System.
 
 ---
 

@@ -1,7 +1,7 @@
 # Location-Based Emergency Response App — SINE MDRRMO
 
 ![License](https://img.shields.io/badge/license-Proprietary-red)
-![Version](https://img.shields.io/badge/version-v0.80.1-blue)
+![Version](https://img.shields.io/badge/version-v0.80.3-blue)
 ![Laravel](https://img.shields.io/badge/backend-Laravel%2013-FF2D20?logo=laravel&logoColor=white)
 ![PHP](https://img.shields.io/badge/php-8.4-777BB4?logo=php&logoColor=white)
 ![Angular](https://img.shields.io/badge/frontend-Angular%2020%20%2F%20Ionic%208-DD0031?logo=angular&logoColor=white)
@@ -20,22 +20,22 @@ Bachelor of Science in Information Technology Capstone Project — Nueva Ecija U
 
 Official pre-compiled application packages and installers for all supported operating systems are published under [**GitHub Releases**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases).
 
-[**Download Latest Release (v0.80.1)**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/latest) &bull; [**Browse All Releases and Past Versions**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases)
+[**Download Latest Release (v0.80.3)**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/latest) &bull; [**Browse All Releases and Past Versions**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases)
 
 ### Direct Application Downloads
 
 | Platform | Target Architecture | Direct Download Link | Format |
 |:---:|:---|:---|:---:|
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg" width="20" height="20" alt="Android" /> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.1_android.apk) | `.apk` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_x64-setup.exe) | `.exe` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.1_x64-portable.exe) | `.exe` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_universal.dmg) | `.dmg` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_aarch64.dmg) | `.dmg` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_x64.dmg) | `.dmg` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_amd64.deb) | `.deb` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_amd64.AppImage) | `.AppImage` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_arm64.deb) | `.deb` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.1/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.1_aarch64.AppImage) | `.AppImage` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg" width="20" height="20" alt="Android" /> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.3_android.apk) | `.apk` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_x64-setup.exe) | `.exe` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_v0.80.3_x64-portable.exe) | `.exe` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_universal.dmg) | `.dmg` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_aarch64.dmg) | `.dmg` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_x64.dmg) | `.dmg` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_amd64.deb) | `.deb` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_amd64.AppImage) | `.AppImage` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_arm64.deb) | `.deb` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.80.3/MDRRMO.EMERGENCY.RESPONSE.APP_0.80.3_aarch64.AppImage) | `.AppImage` |
 
 ---
 
@@ -92,15 +92,17 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 - **Home Screen Emergency Widget & Deep Links** — 1-Tap SOS widget pinned to the Android home screen connecting directly via `sinemdrrmo://report` with full-viewport map support.
 - **Authoritative Server Geolocation (`BarangayResolver`)** — Ray-casting point-in-polygon math against official PSA boundaries locks incidents and camera views to San Isidro's municipal territory.
 - **Interactive Admin Incident Map & Mobile Bottom Sheet** — Live incident queue with draggable sheet handle (peek/half/expanded states), automated map centering (`flyTo`), boundary dimming, and interactive popup cards.
-- **Tauri v2 Desktop Application** — Native desktop operations app built on Rust with frameless window controls, low RAM overhead, and background audio/push notifications.
+- **Tauri v2 Desktop Application** — Native desktop operations app built on Rust with frameless window controls, low RAM overhead, background audio/push notifications, and multi-device concurrent sessions.
 - **Mobile-Responsive Admin UI** — Responsive layout with dedicated mobile bottom tabs, touch-friendly filter sheets, and a unified Mobile Menu drawer for complete dispatch capability on phones and tablets.
-- **Interactive Spotlight Walkthroughs (Tour Engine)** — Step-by-step guided onboarding tours tailored for desktop and mobile viewports with mock fallback cards for offline and empty-state training.
-- **Drag-and-Drop Broadcast Composer** — Desktop drag-and-drop file upload zone supporting up to 4 photos or MP4 videos, target barangay selector, and scheduled future announcements with past-time guards.
+- **Interactive Spotlight Walkthroughs (Tour Engine)** — Step-by-step guided onboarding tours tailored for desktop and mobile viewports with interactive element tracking (including expanding the broadcast composer) and mock fallback cards for offline and empty-state training.
+- **Collapsible Broadcast Composer & Drag-and-Drop** — Quick toggle expand/collapse composer saving screen space and preserving draft state across tab switching, desktop drag-and-drop file uploads (up to 4 photos or MP4 videos), target barangay selector, and scheduled future announcements.
+- **Physics-Engineered UI & Motion Architecture** — Rigid metallic dialog pop animations (`0.88` to `1.028` overshoot to `1.0`), physics-driven OTP verification (digit bounce, emerald cascade wave, animated SVG checkmark overlay, error shake), seamless 250ms cross-dissolve dark mode, and skeleton shimmer loading states.
 - **Smart Fleet & Unit Dispatching** — Linked responder and vehicle dropdowns prevent assigning mismatched equipment (e.g. fire trucks to medical calls).
 - **"Golden Minute" Medical Profile** — Blood type, allergies, conditions, and PWD status are automatically attached to outgoing SOS alerts.
 - **Public Road Hazard Reporting** — Residents report floods, fallen trees, and downed power lines with photo proof to assist emergency route planning.
 - **Multi-Channel OTP Authentication** — Secure verification via Email OTP or SMS OTP (PhilSMS) with native Android SMS User Consent auto-retrieval.
 - **Interactive Analytics Dashboard** — Rolling 7/30/90-day incident trends, categorical breakdowns, and geographic volume distribution powered by Chart.js.
+
 
 ---
 

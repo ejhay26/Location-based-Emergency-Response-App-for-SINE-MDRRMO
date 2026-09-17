@@ -42,10 +42,11 @@ Every newly registered citizen remains in an `unverified` status until reviewed 
 
 ### Reviewing an Application
 For each applicant in the verification queue, the admin can inspect:
-1. **Front of Valid ID:** High-resolution image of the government document.
+1. **Front of Valid ID:** High-resolution image of the government document with 1-tap copy of the ID number.
 2. **Back of Valid ID:** High-resolution image of the reverse side.
 3. **Live Selfie with ID:** Live photograph showing the applicant holding the ID next to their face.
 4. **Account Details:** Full name, phone number, birthdate, home barangay, and ID type.
+5. **Direct Verification Links:** Quick access to official government verification portals (PhilSys eVerify, LTO LTMS, DFA, PRC LERIS).
 
 ### Verification Actions
 - **Approve User:**  
@@ -81,6 +82,7 @@ Dispatchers cannot self-register; they are created and managed directly by admin
 ## 7. Public Advisories & Scheduled Broadcasts
 
 Admins and dispatchers can compose town-wide or barangay-scoped push advisories:
+- **Collapsible Announcement Composer:** Maximize panel space by collapsing or expanding the composer via the `"Create Broadcast"` toggle button while keeping current drafts preserved.
 - **Desktop Drag-and-Drop:** Drag photos or MP4 videos directly onto the composer to attach up to 4 media files.
 - **Immediate Push:** Sends notifications instantly to citizen devices.
 - **Schedule for Later:** Choose a future date and time to queue automated announcements with past-time guards.
@@ -90,9 +92,10 @@ Admins and dispatchers can compose town-wide or barangay-scoped push advisories:
 
 ## 8. Dashboard Settings & Guided Operations Tours
 
-- **Dark Theme:** Toggle between High-Contrast Dark Mode and Clean Light Mode with circular ripple animations.
+- **Dark Theme:** Toggle between High-Contrast Dark Mode and Clean Light Mode with a seamless 250ms cross-dissolve transition across desktop and mobile.
 - **Reduce Animations:** Minimize UI transition effects for maximum performance on lower-spec workstations.
 - **Emergency Audio & Push Alerts:** Enable or mute real-time sound cues and push alerts for incoming SOS calls.
 - **Default Map Style:** Set the default tile layer for the Incident Map (**Street View** vs. **Satellite Imagery**).
-- **Interactive Guided Tours:** Step-by-step walkthroughs for dispatch, broadcasts, archiving, and staff management with viewport-adaptive mobile steps and mock demo fallbacks.
+- **Interactive Guided Tours:** Step-by-step walkthroughs for dispatch, broadcasts, archiving, and staff management with viewport-adaptive mobile steps, interactive element tracking (including expanding the broadcast composer), and mock demo fallbacks.
+- **Concurrent Device Sessions:** Admin accounts support simultaneous logins across the native desktop workstation (Tauri) and mobile devices without expiring active sessions.
 - **Session Logout:** Safely terminate the administrative session and clear local credentials.

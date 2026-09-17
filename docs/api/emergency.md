@@ -94,7 +94,7 @@ Records a false alarm strike against the reporting citizen.
 ## 4. Barangay-Targeted Broadcast Alerts
 
 ### 4.1 `POST /api/create-broadcast` **[dispatcher]**
-Pushes an emergency alert banner town-wide or to specific barangays.
+Pushes an emergency alert banner town-wide or to specific barangays, or queues it for future automated broadcast.
 
 - **Request Body:**
   ```json
@@ -102,11 +102,13 @@ Pushes an emergency alert banner town-wide or to specific barangays.
     "title": "Severe Flash Flood Advisory",
     "message": "Water levels rising near riverbanks in Tabon and Pulo. Evacuate if necessary.",
     "barangay_ids": [9, 6],
-    "media_files": ["data:image/jpeg;base64,..."]
+    "media_files": ["data:image/jpeg;base64,..."],
+    "scheduled_at": "2026-09-18T08:00:00.000Z"
   }
   ```
-  *(Leave `barangay_ids` empty or omit for a Town-wide broadcast).*
-- **Response (200):** `{ "message": "Broadcast pushed to Tabon, Pulo!" }`
+  *(Leave `barangay_ids` empty or omit for a Town-wide broadcast; omit `scheduled_at` for immediate broadcast).*
+- **Response (200):** `{ "message": "Broadcast pushed to Tabon, Pulo!" }` (or `{ "message": "Broadcast scheduled successfully!" }`)
+
 
 ---
 

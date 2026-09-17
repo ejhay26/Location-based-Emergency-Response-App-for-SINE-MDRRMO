@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Common issues, error codes, and step-by-step solutions when developing, running, or deploying the SINE MDRRMO Emergency Response App (Version 0.73.0).
+Common issues, error codes, and step-by-step solutions when developing, running, or deploying the SINE MDRRMO Emergency Response App.
 
 ---
 
