@@ -19,11 +19,11 @@
 }
 
 .analytics-top-bar {
-  background: var(--ion-card-background, #ffffff);
-  border-radius: 16px;
-  border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08)));
-  box-shadow: var(--card-shadow, 0 2px 8px rgba(0, 0, 0, 0.04));
-  padding: 10px 14px;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  padding: 2px 0 6px;
   display: flex;
   align-items: center;
   justify-content: space-between;

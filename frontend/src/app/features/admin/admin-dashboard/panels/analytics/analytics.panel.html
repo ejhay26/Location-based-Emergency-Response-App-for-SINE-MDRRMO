@@ -3,28 +3,29 @@
   <!-- Top Command Toolbar -->
   <div class="analytics-top-bar">
     
-    <!-- Tab Switcher: Emergency vs Public Hazards -->
-    <div class="apple-segmented-control" role="group" aria-label="Analytics Scope">
-      <button
-        type="button"
-        class="segmented-pill-btn"
-        [class.active]="analyticsTab === 'emergency'"
-        (click)="switchAnalyticsTab('emergency')">
-        <app-icon name="flame" [size]="13" [color]="analyticsTab === 'emergency' ? '#ffffff' : 'var(--ion-color-medium)'"></app-icon>
-        <span>Emergency</span>
-      </button>
-      <button
-        type="button"
-        class="segmented-pill-btn segmented-pill-hazard"
-        [class.active]="analyticsTab === 'hazard'"
-        (click)="switchAnalyticsTab('hazard')">
-        <app-icon name="hazard" [size]="13" [color]="analyticsTab === 'hazard' ? '#000000' : 'var(--ion-color-medium)'"></app-icon>
-        <span>Hazards</span>
-      </button>
-    </div>
+    <!-- Left: Scope Tabs & Date Range Presets side-by-side -->
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <!-- Tab Switcher: Emergency vs Public Hazards -->
+      <div class="apple-segmented-control" role="group" aria-label="Analytics Scope">
+        <button
+          type="button"
+          class="segmented-pill-btn"
+          [class.active]="analyticsTab === 'emergency'"
+          (click)="switchAnalyticsTab('emergency')">
+          <app-icon name="flame" [size]="13" [color]="analyticsTab === 'emergency' ? '#ffffff' : 'var(--ion-color-medium)'"></app-icon>
+          <span>Emergency</span>
+        </button>
+        <button
+          type="button"
+          class="segmented-pill-btn segmented-pill-hazard"
+          [class.active]="analyticsTab === 'hazard'"
+          (click)="switchAnalyticsTab('hazard')">
+          <app-icon name="hazard" [size]="13" [color]="analyticsTab === 'hazard' ? '#000000' : 'var(--ion-color-medium)'"></app-icon>
+          <span>Hazards</span>
+        </button>
+      </div>
 
-    <!-- Date Range Quick Filter Pills & Picker & Chart Type -->
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <!-- Date Range Quick Filter Pills (stays beside Emergency / Hazards) -->
       <div class="apple-segmented-control" role="group" aria-label="Chart Date Range">
         <button
           *ngFor="let r of [{v:1,l:'Today'},{v:7,l:'7 Days'},{v:30,l:'30 Days'},{v:90,l:'3 Months'}]"
@@ -35,7 +36,10 @@
           {{ r.l }}
         </button>
       </div>
+    </div>
 
+    <!-- Right: Custom Date Picker & Chart View Toggle -->
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
       <app-date-range-filter [value]="analyticsDateFilter" (valueChange)="onAnalyticsDateFilterChange($event)"></app-date-range-filter>
 
       <!-- Toggle Chart Type (Bar / Line) -->

@@ -139,11 +139,12 @@
     transition: background-color 0.1s ease;
 
     .checkbox-indicator {
-      width: 14px;
-      font-size: 12px;
-      font-weight: 800;
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       color: var(--ion-color-danger, #d32f2f);
-      text-align: center;
       flex-shrink: 0;
     }
 

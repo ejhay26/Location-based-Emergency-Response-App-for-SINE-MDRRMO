@@ -21,6 +21,8 @@ import { formatPhoneLocalPart, formatPhoneDisplayPH } from '../../../../../share
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../shared/components/filter-dropdown/filter-dropdown.component';
 
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
+
 interface DispatcherForm {
   first_name: string; last_name: string; phone: string;
   username: string; email: string; password: string; barangay_id: number | null;
@@ -34,7 +36,7 @@ interface DispatcherForm {
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
     ProxyImageDirective, DateRangeFilterComponent, FilterSummaryBarComponent, ListEnterDirective,
-    AppIconComponent, FilterDropdownComponent
+    AppIconComponent, FilterDropdownComponent, CustomTooltipDirective
   ],
   templateUrl: './dispatchers.panel.html',
 })

@@ -31,7 +31,7 @@
         [class.selected]="isSelected(opt.value)"
         [class.reset-item]="opt.value === 'all'"
         (click)="selectOption(opt.value, $event)">
-        <span class="checkbox-indicator">{{ isSelected(opt.value) ? '✓' : '' }}</span>
+        <span class="checkbox-indicator"><app-icon *ngIf="isSelected(opt.value)" name="check" [size]="12"></app-icon></span>
         <span class="item-label">{{ opt.label }}</span>
       </div>
       <div *ngIf="filteredOptions.length === 0" class="menu-empty">

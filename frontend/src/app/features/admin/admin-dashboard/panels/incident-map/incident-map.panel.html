@@ -65,7 +65,7 @@
           <input type="text" [(ngModel)]="barangaySearchQuery" placeholder="Search barangay..." />
         </div>
         <div class="menu-item reset-item" [class.selected]="selectedBarangays.length === 0" (click)="toggleBarangayFilter('all')">
-          <span class="checkbox-indicator">{{ selectedBarangays.length === 0 ? '✓' : '' }}</span>
+          <span class="checkbox-indicator"><app-icon *ngIf="selectedBarangays.length === 0" name="check" [size]="12"></app-icon></span>
           <span class="item-label">All Barangays (Reset)</span>
         </div>
         <div class="menu-divider"></div>
@@ -74,7 +74,7 @@
                class="menu-item"
                [class.selected]="isBarangaySelected(bgy.id)"
                (click)="toggleBarangayFilter(bgy.id)">
-            <span class="checkbox-indicator">{{ isBarangaySelected(bgy.id) ? '✓' : '' }}</span>
+            <span class="checkbox-indicator"><app-icon *ngIf="isBarangaySelected(bgy.id)" name="check" [size]="12"></app-icon></span>
             <span class="item-label">{{ bgy.name }}</span>
           </div>
         </div>
@@ -101,7 +101,7 @@
       <!-- Frosted Popover Dropdown Menu -->
       <div class="mac-frosted-menu" *ngIf="isTypeMenuOpen" (click)="$event.stopPropagation()">
         <div class="menu-item reset-item" [class.selected]="selectedTypes.length === 0" (click)="toggleTypeFilter('all')">
-          <span class="checkbox-indicator">{{ selectedTypes.length === 0 ? '✓' : '' }}</span>
+          <span class="checkbox-indicator"><app-icon *ngIf="selectedTypes.length === 0" name="check" [size]="12"></app-icon></span>
           <span class="item-label">All Types (Reset)</span>
         </div>
         <div class="menu-divider"></div>
@@ -110,7 +110,7 @@
                class="menu-item"
                [class.selected]="isTypeSelected(opt.id)"
                (click)="toggleTypeFilter(opt.id)">
-            <span class="checkbox-indicator">{{ isTypeSelected(opt.id) ? '✓' : '' }}</span>
+            <span class="checkbox-indicator"><app-icon *ngIf="isTypeSelected(opt.id)" name="check" [size]="12"></app-icon></span>
             <span class="type-color-dot" [style.background-color]="opt.color"></span>
             <span class="item-label">{{ opt.label }}</span>
           </div>
@@ -138,19 +138,19 @@
       <!-- Frosted Popover Dropdown Menu -->
       <div class="mac-frosted-menu mac-frosted-menu--date" *ngIf="isDateMenuOpen" (click)="$event.stopPropagation()">
         <div class="menu-item" [class.selected]="dateFilter === 'all'" (click)="setDateFilter('all'); closeAllMenus()">
-          <span class="checkbox-indicator">{{ dateFilter === 'all' ? '✓' : '' }}</span>
+          <span class="checkbox-indicator"><app-icon *ngIf="dateFilter === 'all'" name="check" [size]="12"></app-icon></span>
           <span class="item-label">All Time</span>
         </div>
         <div class="menu-item" [class.selected]="dateFilter === 'today'" (click)="setDateFilter('today'); closeAllMenus()">
-          <span class="checkbox-indicator">{{ dateFilter === 'today' ? '✓' : '' }}</span>
+          <span class="checkbox-indicator"><app-icon *ngIf="dateFilter === 'today'" name="check" [size]="12"></app-icon></span>
           <span class="item-label">Today</span>
         </div>
         <div class="menu-item" [class.selected]="dateFilter === '7days'" (click)="setDateFilter('7days'); closeAllMenus()">
-          <span class="checkbox-indicator">{{ dateFilter === '7days' ? '✓' : '' }}</span>
+          <span class="checkbox-indicator"><app-icon *ngIf="dateFilter === '7days'" name="check" [size]="12"></app-icon></span>
           <span class="item-label">Last 7 Days</span>
         </div>
         <div class="menu-item" [class.selected]="dateFilter === '30days'" (click)="setDateFilter('30days'); closeAllMenus()">
-          <span class="checkbox-indicator">{{ dateFilter === '30days' ? '✓' : '' }}</span>
+          <span class="checkbox-indicator"><app-icon *ngIf="dateFilter === '30days'" name="check" [size]="12"></app-icon></span>
           <span class="item-label">Last 30 Days</span>
         </div>
         <div class="menu-divider"></div>
