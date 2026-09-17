@@ -1,4 +1,5 @@
 import { Directive, ElementRef, HostListener, Input, OnDestroy, inject } from '@angular/core';
+import { isMacDesktop } from '../utils/platform.util';
 
 /**
  * Custom textbook / comic story dialog tooltip directive.
@@ -6,7 +7,7 @@ import { Directive, ElementRef, HostListener, Input, OnDestroy, inject } from '@
  * directly to the target element, animated with a subtle spring pop-up action.
  *
  * Usage:
- *   <button [appTooltip]="'Incident Map'" [tooltipSub]="'Live Incident & Hazard Map'">...</button>
+ *   <button [appTooltip]="'Incident Map'" [tooltipSub]="'Live Incident & Hazard Map'" [tooltipKbd]="'Ctrl + 1'">...</button>
  */
 @Directive({
   selector: '[appTooltip]',
@@ -15,6 +16,7 @@ import { Directive, ElementRef, HostListener, Input, OnDestroy, inject } from '@
 export class CustomTooltipDirective implements OnDestroy {
   @Input('appTooltip') text = '';
   @Input() tooltipSub?: string;
+  @Input() tooltipKbd?: string;
   @Input() tooltipPlacement: 'right' | 'left' | 'top' | 'bottom' = 'right';
 
   private readonly el = inject(ElementRef<HTMLElement>);
@@ -67,11 +69,44 @@ export class CustomTooltipDirective implements OnDestroy {
     tooltip.className = 'custom-story-tooltip';
     tooltip.setAttribute('role', 'tooltip');
 
-    // Title / main text
+    // Header row containing title and optional boxed keybindings
+    const header = document.createElement('div');
+    header.className = 'custom-story-tooltip__header';
+
     const titleSpan = document.createElement('span');
     titleSpan.className = 'custom-story-tooltip__title';
     titleSpan.textContent = this.text;
-    tooltip.appendChild(titleSpan);
+    header.appendChild(titleSpan);
+
+    if (this.tooltipKbd) {
+      const kbdWrap = document.createElement('span');
+      kbdWrap.className = 'custom-story-tooltip__kbd-wrap';
+
+      const isMac = isMacDesktop();
+      const rawParts = this.tooltipKbd.split('+').map(p => p.trim());
+      rawParts.forEach((part, idx) => {
+        if (idx > 0 && !isMac) {
+          const plus = document.createElement('span');
+          plus.className = 'custom-story-tooltip__plus';
+          plus.textContent = '+';
+          kbdWrap.appendChild(plus);
+        }
+        const kbd = document.createElement('kbd');
+        kbd.className = 'custom-story-tooltip__kbd';
+        let keyText = part;
+        if (isMac) {
+          const low = keyText.toLowerCase();
+          if (low === 'ctrl' || low === 'cmd') keyText = '⌘';
+          else if (low === 'alt' || low === 'option') keyText = '⌥';
+          else if (low === 'shift') keyText = '⇧';
+        }
+        kbd.textContent = keyText;
+        kbdWrap.appendChild(kbd);
+      });
+      header.appendChild(kbdWrap);
+    }
+
+    tooltip.appendChild(header);
 
     // Optional subtext
     if (this.tooltipSub) {

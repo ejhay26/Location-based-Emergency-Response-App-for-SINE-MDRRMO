@@ -75,6 +75,30 @@ export class IconRegistryService {
       }
     ],
     [
+      'search',
+      {
+        name: 'search',
+        faClass: 'fa-solid fa-magnifying-glass',
+        lucideSvg: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'
+      }
+    ],
+    [
+      'command',
+      {
+        name: 'command',
+        faClass: 'fa-solid fa-terminal',
+        lucideSvg: '<path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>'
+      }
+    ],
+    [
+      'moon',
+      {
+        name: 'moon',
+        faClass: 'fa-solid fa-moon',
+        lucideSvg: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'
+      }
+    ],
+    [
       'camera',
       {
         name: 'camera',

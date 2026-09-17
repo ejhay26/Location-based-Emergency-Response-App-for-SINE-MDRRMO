@@ -55,11 +55,12 @@ function normalizePicks(raw: unknown): string[] {
  *    dates get reordered for storage.
  */
 import { AppIconComponent } from '../app-icon/app-icon.component';
+import { CustomTooltipDirective } from '../../directives/custom-tooltip.directive';
 
 @Component({
   selector: 'app-date-range-filter',
   standalone: true,
-  imports: [CommonModule, IonButton, IonPopover, IonDatetime, IonSegment, IonSegmentButton, IonLabel, AppIconComponent],
+  imports: [CommonModule, IonButton, IonPopover, IonDatetime, IonSegment, IonSegmentButton, IonLabel, AppIconComponent, CustomTooltipDirective],
   templateUrl: './date-range-filter.component.html',
   styleUrls: ['./date-range-filter.component.scss']
 })

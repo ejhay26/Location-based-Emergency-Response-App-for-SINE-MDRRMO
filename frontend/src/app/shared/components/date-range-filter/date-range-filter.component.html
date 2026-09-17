@@ -3,10 +3,12 @@
   [id]="triggerId"
   class="mac-popover-btn date-range-btn"
   [class.has-filter]="hasValue"
-  [title]="displayLabel">
+  [appTooltip]="displayLabel"
+  [tooltipSub]="'Custom date selector'"
+  tooltipPlacement="top">
   <app-icon name="calendar" [size]="13" [color]="hasValue ? 'var(--ion-color-danger, #eb445a)' : 'currentColor'"></app-icon>
   <span class="btn-text">{{ displayLabel }}</span>
-  <span *ngIf="hasValue" class="mac-filter-clear-x" (click)="onClearTrigger($event)" title="Reset Date Filter">
+  <span *ngIf="hasValue" class="mac-filter-clear-x" (click)="onClearTrigger($event)" [appTooltip]="'Reset Date'" tooltipPlacement="top">
     <app-icon name="close" [size]="9" color="#ffffff"></app-icon>
   </span>
 </button>

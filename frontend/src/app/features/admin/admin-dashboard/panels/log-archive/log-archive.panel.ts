@@ -29,7 +29,7 @@ const ARCHIVE_FILTER_LABELS: Record<string, string> = {
   imports: [
     CommonModule, FormsModule, IonButton, IonBadge, ProxyImageDirective, VideoThumbnailDirective, UtcDatePipe,
     DateRangeFilterComponent, FilterSummaryBarComponent, RevealAnimateDirective, ListEnterDirective,
-    AppIconComponent, FilterDropdownComponent
+    AppIconComponent, FilterDropdownComponent, CustomTooltipDirective
   ],
   templateUrl: './log-archive.panel.html',
 })

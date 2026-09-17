@@ -1,7 +1,7 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { AppIconComponent } from '../app-icon/app-icon.component';
+import { CustomTooltipDirective } from '../../directives/custom-tooltip.directive';
 
 export interface FilterDropdownOption {
   value: any;
@@ -11,7 +11,7 @@ export interface FilterDropdownOption {
 @Component({
   selector: 'app-filter-dropdown',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppIconComponent],
+  imports: [CommonModule, FormsModule, AppIconComponent, CustomTooltipDirective],
   templateUrl: './filter-dropdown.component.html',
   styleUrls: ['./filter-dropdown.component.scss']
 })

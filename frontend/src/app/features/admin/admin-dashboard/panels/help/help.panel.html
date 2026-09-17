@@ -68,5 +68,124 @@
     </div>
   </div>
 
+  <!-- SECTION 2: WORKSTATION SHORTCUTS & OPERATIONAL CONTROLS -->
+  <div style="margin-top: 36px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <app-icon name="keyboard" [size]="17" color="var(--ion-color-danger)"></app-icon>
+        <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); text-transform: uppercase; letter-spacing: 0.5px;">
+          Desktop Workstation Shortcuts
+        </h3>
+      </div>
+      <span style="font-size: 12px; font-weight: 600; color: var(--ion-color-medium);">
+        Instant hotkeys for high-speed emergency response
+      </span>
+    </div>
+
+    <!-- Shortcuts 2-Column Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-bottom: 16px;">
+      
+      <!-- Card 1: Fast Panel Navigation -->
+      <div style="background: var(--ion-card-background, #ffffff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06));">
+          <app-icon name="compass" [size]="16" color="var(--ion-color-danger)"></app-icon>
+          <span style="font-weight: 800; font-size: 13.5px; color: var(--ion-text-color);">Panel Navigation</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Incident &amp; Hazard Map</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">1</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Alert Broadcast Center</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">2</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Citizen ID Verifications</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">3</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Analytics &amp; Response Times</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">4</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Settings &amp; Workstation Options</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">,</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Help &amp; Operating Procedures</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">F1</kbd>
+              <span *ngIf="isMac" style="font-size: 11px; color: var(--ion-color-medium);">or</span>
+              <kbd *ngIf="isMac" class="workstation-kbd">⌘</kbd><span *ngIf="isMac">+</span><kbd *ngIf="isMac" class="workstation-kbd">?</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Toggle Sidebar Collapse</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">B</kbd>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Quick Actions & Media -->
+      <div style="background: var(--ion-card-background, #ffffff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06));">
+          <app-icon name="sliders-horizontal" [size]="16" color="var(--ion-color-danger)"></app-icon>
+          <span style="font-weight: 800; font-size: 13.5px; color: var(--ion-text-color);">Actions &amp; Media Lightbox</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Spotlight Quick Command Palette</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">F</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Compose New Announcement</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">N</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Toggle Dark / Light Theme</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">D</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Refresh Incident &amp; Alert Feeds</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">F5</kbd> <span style="font-size: 11px; color: var(--ion-color-medium);">or</span> <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">R</kbd>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 

@@ -6,6 +6,7 @@ import { AdminUiService } from '../../admin-ui.service';
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 
 export type FeedbackFilter = 'all' | 'suggestion' | 'bug' | 'general' | 'high_rating' | 'low_rating' | 'trash';
 
@@ -16,7 +17,7 @@ export type FeedbackFilter = 'all' | 'suggestion' | 'bug' | 'general' | 'high_ra
 @Component({
   selector: 'app-feedback-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, UtcDatePipe, ListEnterDirective, AppIconComponent],
+  imports: [CommonModule, FormsModule, UtcDatePipe, ListEnterDirective, AppIconComponent, CustomTooltipDirective],
   templateUrl: './feedback.panel.html',
 })
 export class FeedbackPanel implements OnInit {

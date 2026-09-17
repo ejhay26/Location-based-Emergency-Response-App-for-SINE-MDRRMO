@@ -76,13 +76,13 @@
 
         <!-- 3-Dot Strike Indicator Pips -->
         <div style="display: flex; align-items: center; gap: 5px;">
-          <span title="Strike 1" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
+          <span appTooltip="Strike 1" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
                 [style.background]="(c.false_alarm_strikes || 0) >= 1 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
                 [style.box-shadow]="(c.false_alarm_strikes || 0) >= 1 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
-          <span title="Strike 2" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
+          <span appTooltip="Strike 2" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
                 [style.background]="(c.false_alarm_strikes || 0) >= 2 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
                 [style.box-shadow]="(c.false_alarm_strikes || 0) >= 2 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
-          <span title="Strike 3 (Ban)" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
+          <span appTooltip="Strike 3 (Ban)" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
                 [style.background]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
                 [style.box-shadow]="(c.false_alarm_strikes || 0) >= 3 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
         </div>

@@ -19,6 +19,7 @@ import { isTauri } from '../../../../../shared/utils/platform.util';
 import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
 import { DateFilterValue, matchesDateFilter } from '../../../../../shared/utils/date-filter.util';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 import { TourService } from '../../../../../core/services/tour';
 
 /**
@@ -39,7 +40,8 @@ const FALLBACK_POLL_MS = 30_000;
     IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
     ProxyImageDirective, VideoThumbnailDirective,
-    UtcDatePipe, DateRangeFilterComponent, AppIconComponent
+    UtcDatePipe, DateRangeFilterComponent, AppIconComponent,
+    CustomTooltipDirective
   ],
   templateUrl: './incident-map.panel.html',
   styleUrl: './incident-map.panel.scss',

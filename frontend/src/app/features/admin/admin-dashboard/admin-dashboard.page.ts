@@ -11,6 +11,7 @@ import { UserSettingsService } from '../../../core/services/user-settings';
 import { TourService } from '../../../core/services/tour';
 import { PushNotificationsService } from '../../../core/services/push-notifications';
 import { DesktopNotificationsService } from '../../../core/services/desktop-notifications';
+import { KeyboardShortcutsService } from '../../../core/services/keyboard-shortcuts.service';
 import { AdminUiService } from './admin-ui.service';
 
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
@@ -75,6 +76,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
 
   // Only present in the DOM while viewMode is 'active'/'hazards'; undefined otherwise.
   @ViewChild(IncidentMapPanel) private incidentMapPanel?: IncidentMapPanel;
+  @ViewChild(BroadcastPanel) private broadcastPanel?: BroadcastPanel;
 
   isMobileSidebarOpen = false;
 
@@ -160,6 +162,9 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   private echoHazardSub?: Subscription;
   private echoUserSub?: Subscription;
   private countsPollSub?: Subscription;
+  private shortcutPanelSub?: Subscription;
+  private shortcutActionSub?: Subscription;
+  private shortcutBarangaySub?: Subscription;
 
   constructor(
     private router: Router,
@@ -171,6 +176,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     private pushNotifications: PushNotificationsService,
     private desktopNotifications: DesktopNotificationsService,
     public  ui: AdminUiService,
+    private shortcuts: KeyboardShortcutsService,
   ) {}
 
   ngOnInit() {
@@ -187,6 +193,49 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     });
     this.isDesktop = isTauri();
     this.isMac = isMacDesktop();
+
+    // Check if a shortcut navigated here with a pending panel target (e.g. Ctrl+, or F1)
+    const pending = this.shortcuts.consumePendingPanel();
+    if (pending) {
+      this.selectViewMode(pending as ViewMode);
+    }
+
+    this.shortcutPanelSub = this.shortcuts.panelNavigation$.subscribe(panel => {
+      this.selectViewMode(panel as ViewMode);
+    });
+
+    this.shortcutActionSub = this.shortcuts.action$.subscribe(action => {
+      switch (action.type) {
+        case 'toggle-sidebar':
+          this.toggleSidebar();
+          break;
+        case 'toggle-dark-mode':
+          this.userSettings.toggleDarkMode(!this.isDarkMode);
+          break;
+        case 'new-announcement':
+          this.selectViewMode('broadcast');
+          setTimeout(() => {
+            if (this.broadcastPanel) {
+              this.broadcastPanel.openComposer();
+            }
+          }, 80);
+          break;
+        case 'start-tour':
+          this.selectViewMode('help');
+          break;
+        case 'refresh-data':
+          this.refreshAllCounts();
+          this.incidentMapPanel?.loadData();
+          break;
+      }
+    });
+
+    this.shortcutBarangaySub = this.shortcuts.barangayJump$.subscribe(id => {
+      this.selectViewMode('active');
+      setTimeout(() => {
+        this.incidentMapPanel?.toggleBarangayFilter(id);
+      }, 100);
+    });
     
     // Restore saved sidebar width if present
     const savedWidth = localStorage.getItem('admin_sidebar_width');
@@ -233,6 +282,9 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.echoHazardSub?.unsubscribe();
     this.echoUserSub?.unsubscribe();
     this.countsPollSub?.unsubscribe();
+    this.shortcutPanelSub?.unsubscribe();
+    this.shortcutActionSub?.unsubscribe();
+    this.shortcutBarangaySub?.unsubscribe();
     this.desktopNotifications.stop();
     this.stopResizeListeners();
     window.removeEventListener('resize', this.boundWindowResize);

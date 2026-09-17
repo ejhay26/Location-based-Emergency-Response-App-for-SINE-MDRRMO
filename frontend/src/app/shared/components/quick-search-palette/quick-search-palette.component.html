@@ -1,0 +1,103 @@
+<!-- ── Apple Spotlight / Command Palette Overlay ── -->
+<div
+  *ngIf="shortcuts.isQuickSearchOpen()"
+  class="spotlight-backdrop"
+  (click)="close()"
+>
+  <div class="spotlight-card" (click)="$event.stopPropagation()">
+    <!-- ── Search Header Bar ── -->
+    <div class="spotlight-header">
+      <div class="spotlight-icon-wrap">
+        <app-icon name="search" [size]="18"></app-icon>
+      </div>
+      <input
+        #searchInput
+        type="text"
+        class="spotlight-input"
+        placeholder="Type a command or search panels, actions, barangays..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="selectedIndex = 0"
+        (keydown)="onInputKeyDown($event)"
+        spellcheck="false"
+        autocomplete="off"
+      />
+      <button
+        *ngIf="searchQuery"
+        type="button"
+        class="spotlight-clear-btn"
+        (click)="clearSearch()"
+        appTooltip="Clear Search"
+      >
+        ✕
+      </button>
+      <span
+        class="spotlight-esc-hint"
+        (click)="close()"
+        appTooltip="Dismiss Palette"
+        tooltipKbd="Esc"
+      >
+        ESC
+      </span>
+    </div>
+
+    <!-- ── Scrollable Results Body ── -->
+    <div #resultsBody class="spotlight-body">
+      <ng-container *ngFor="let item of filteredItems; let i = index">
+        <!-- Category Section Separator -->
+        <div
+          *ngIf="i === 0 || item.category !== filteredItems[i - 1].category"
+          class="spotlight-category-header"
+        >
+          {{ item.category }}
+        </div>
+
+        <!-- Result Item Row -->
+        <div
+          class="spotlight-item"
+          [class.is-selected]="i === selectedIndex"
+          (mouseenter)="selectedIndex = i"
+          (click)="selectItem(item)"
+        >
+          <div class="item-left">
+            <div class="item-icon-box">
+              <app-icon [name]="item.icon" [size]="16"></app-icon>
+            </div>
+            <div class="item-text">
+              <span class="item-title">{{ item.title }}</span>
+              <span class="item-subtitle">{{ item.subtitle }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="item.shortcut" class="item-badge-kbd">
+            {{ item.shortcut }}
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredItems.length === 0" class="spotlight-empty">
+        <app-icon name="circle-question" [size]="28" color="var(--ion-color-medium)"></app-icon>
+        <p>No matching commands found for "{{ searchQuery }}"</p>
+        <span>Try searching for "map", "broadcast", "settings", "dark mode", or a barangay name.</span>
+      </div>
+    </div>
+
+    <!-- ── Bottom Action Footer ── -->
+    <div class="spotlight-footer">
+      <div class="footer-nav-hints">
+        <span class="nav-hint-item">
+          <kbd>↑</kbd><kbd>↓</kbd> Navigate
+        </span>
+        <span class="nav-hint-item">
+          <kbd>↵</kbd> Select
+        </span>
+        <span class="nav-hint-item">
+          <kbd>esc</kbd> Dismiss
+        </span>
+      </div>
+      <div style="font-weight: 600; font-size: 11px; letter-spacing: 0.2px; opacity: 0.85;">
+        MDRRMO Quick Command
+      </div>
+    </div>
+  </div>
+</div>

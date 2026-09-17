@@ -2,13 +2,14 @@ import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ProxyImageDirective } from '../../directives/proxy-image.directive';
+import { CustomTooltipDirective } from '../../directives/custom-tooltip.directive';
 
 import { AppIconComponent } from '../app-icon/app-icon.component';
 
 @Component({
   selector: 'app-dialogs',
   standalone: true,
-  imports: [CommonModule, ProxyImageDirective, AppIconComponent],
+  imports: [CommonModule, ProxyImageDirective, AppIconComponent, CustomTooltipDirective],
   template: `
     <!-- Confirm Dialog (Apple iOS UIAlertController Style) -->
     <div *ngIf="dialog.confirmDialog().open" class="c-overlay" [class.c-overlay-closing]="dialog.closingConfirm()" style="z-index: 99999;">
@@ -72,18 +73,18 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
         <!-- Controls: Zoom In, Zoom Out, Reset, Close -->
         <div class="lightbox-tools">
           <ng-container *ngIf="!dialog.lightboxIsVideo()">
-            <button type="button" class="lightbox-tool-btn" (click)="zoomOut()" [disabled]="scale <= 1" title="Zoom Out">
+            <button type="button" class="lightbox-tool-btn" (click)="zoomOut()" [disabled]="scale <= 1" [appTooltip]="'Zoom Out'" tooltipPlacement="bottom">
               <app-icon name="compress" [size]="16" color="#ffffff"></app-icon>
             </button>
-            <button type="button" class="lightbox-tool-btn" (click)="zoomIn()" [disabled]="scale >= 4" title="Zoom In">
+            <button type="button" class="lightbox-tool-btn" (click)="zoomIn()" [disabled]="scale >= 4" [appTooltip]="'Zoom In'" tooltipPlacement="bottom">
               <app-icon name="expand" [size]="16" color="#ffffff"></app-icon>
             </button>
-            <button type="button" class="lightbox-tool-btn" *ngIf="scale > 1" (click)="resetZoom()" title="Reset Zoom">
+            <button type="button" class="lightbox-tool-btn" *ngIf="scale > 1" (click)="resetZoom()" [appTooltip]="'Reset Zoom'" tooltipPlacement="bottom">
               <app-icon name="history" [size]="16" color="#ffffff"></app-icon>
             </button>
           </ng-container>
 
-          <button type="button" class="lightbox-close-btn" (click)="closeLightbox()" title="Close Viewer">
+          <button type="button" class="lightbox-close-btn" (click)="closeLightbox()" [appTooltip]="'Close Viewer'" [tooltipKbd]="'ESC'" tooltipPlacement="bottom">
             <app-icon name="close" [size]="18" color="#ffffff"></app-icon>
           </button>
         </div>
@@ -126,7 +127,9 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
               type="button"
               class="lightbox-nav-btn lightbox-nav-prev"
               (click)="prevMedia($event)"
-              title="Previous Photo">
+              [appTooltip]="'Previous Photo'"
+              [tooltipKbd]="'←'"
+              tooltipPlacement="right">
         <app-icon name="chevron-left" [size]="20" color="#ffffff"></app-icon>
       </button>
 
@@ -134,7 +137,9 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
               type="button"
               class="lightbox-nav-btn lightbox-nav-next"
               (click)="nextMedia($event)"
-              title="Next Photo">
+              [appTooltip]="'Next Photo'"
+              [tooltipKbd]="'→'"
+              tooltipPlacement="left">
         <app-icon name="chevron-right" [size]="20" color="#ffffff"></app-icon>
       </button>
 
@@ -150,6 +155,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
         </div>
         <p class="lightbox-hint">
           <span *ngIf="!dialog.lightboxIsVideo()"><app-icon name="expand" [size]="12" color="#ffffff" style="margin-right: 4px;"></app-icon>Double-tap or pinch to zoom</span>
+          <span *ngIf="dialog.lightboxIsVideo()"><app-icon name="play" [size]="12" color="#ffffff" style="margin-right: 4px;"></app-icon>Space to play / pause video</span>
           <span *ngIf="dialog.totalMediaCount > 1" style="margin-left: 8px;">• <app-icon name="chevron-right" [size]="12" color="#ffffff" style="margin: 0 4px;"></app-icon>Swipe to navigate</span>
         </p>
       </div>
@@ -190,13 +196,54 @@ export class AppDialogsComponent {
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
-    if (!this.dialog.lightboxOpen()) return;
-    if (event.key === 'Escape') {
-      this.closeLightbox();
-    } else if (event.key === 'ArrowRight' && this.dialog.hasNextMedia) {
-      this.nextMedia();
-    } else if (event.key === 'ArrowLeft' && this.dialog.hasPrevMedia) {
-      this.prevMedia();
+    // 1. Confirm dialog keyboard interactions
+    if (this.dialog.confirmDialog().open) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        this.dialog.closeConfirm();
+        return;
+      }
+      if (event.key === 'Enter') {
+        const active = document.activeElement;
+        const tag = active ? active.tagName.toLowerCase() : '';
+        const isMultiline = tag === 'textarea' || tag === 'ion-textarea' || active?.getAttribute('contenteditable') === 'true';
+        if (!isMultiline && !this.dialog.confirmLoading()) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.dialog.runConfirm();
+          return;
+        }
+      }
+    }
+
+    // 2. Media lightbox keyboard interactions
+    if (this.dialog.lightboxOpen()) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        this.closeLightbox();
+      } else if (event.key === 'ArrowRight' && this.dialog.hasNextMedia) {
+        this.nextMedia();
+      } else if (event.key === 'ArrowLeft' && this.dialog.hasPrevMedia) {
+        this.prevMedia();
+      } else if (event.code === 'Space' || event.key === ' ') {
+        if (this.dialog.lightboxIsVideo()) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.toggleVideoPlayback();
+        }
+      }
+    }
+  }
+
+  toggleVideoPlayback(): void {
+    const video = document.querySelector('.lightbox-video') as HTMLVideoElement | null;
+    if (!video) return;
+    if (video.paused) {
+      void video.play();
+    } else {
+      video.pause();
     }
   }
 

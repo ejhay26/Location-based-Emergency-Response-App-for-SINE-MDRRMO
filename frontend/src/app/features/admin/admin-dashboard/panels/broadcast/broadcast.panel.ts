@@ -26,6 +26,8 @@ export interface BroadcastMediaItem {
   file?: File;
 }
 
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
+
 @Component({
   selector: 'app-broadcast-panel',
   standalone: true,
@@ -33,9 +35,11 @@ export interface BroadcastMediaItem {
     CommonModule, FormsModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonInput, IonButton,
     IonSelect, IonSelectOption,
-    UtcDatePipe, ListEnterDirective, ProxyImageDirective, AppIconComponent
+    UtcDatePipe, ListEnterDirective, ProxyImageDirective, AppIconComponent,
+    CustomTooltipDirective
   ],
   templateUrl: './broadcast.panel.html',
+  styleUrls: ['./broadcast.panel.scss'],
 })
 export class BroadcastPanel implements OnInit, OnDestroy {
 
@@ -64,6 +68,16 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   toggleComposer(): void {
     this.showComposer = !this.showComposer;
     if (this.showComposer) {
+      this.saveComposerPreset();
+    }
+    if (this.tour.isActive()) {
+      this.tour.onInteraction();
+    }
+  }
+
+  openComposer(): void {
+    if (!this.showComposer) {
+      this.showComposer = true;
       this.saveComposerPreset();
     }
     if (this.tour.isActive()) {

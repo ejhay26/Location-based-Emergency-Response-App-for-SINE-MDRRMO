@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TourService, TourStep } from '../../../../../core/services/tour';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { KeyboardShortcutsService } from '../../../../../core/services/keyboard-shortcuts.service';
 
 export interface ProcedureGuide {
   id: string;
@@ -262,7 +263,18 @@ export class HelpPanel {
     return proc.steps.length;
   }
 
-  constructor(private tour: TourService) {}
+  constructor(
+    private tour: TourService,
+    public shortcuts: KeyboardShortcutsService
+  ) {}
+
+  get isMac(): boolean {
+    return this.shortcuts.isMac;
+  }
+
+  get modKey(): string {
+    return this.isMac ? '⌘' : 'Ctrl';
+  }
 
   startWalkthrough(procedure: ProcedureGuide): void {
     const isMobile = window.innerWidth <= 768;

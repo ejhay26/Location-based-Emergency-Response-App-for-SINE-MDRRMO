@@ -23,7 +23,7 @@ import { AppIconComponent } from '../../../../../shared/components/app-icon/app-
     IonButton,
     IonList, IonItem, IonLabel, IonPopover, IonBadge,
     UtcDatePipe, DateRangeFilterComponent, FilterSummaryBarComponent,
-    AppIconComponent
+    AppIconComponent, CustomTooltipDirective
   ],
   templateUrl: './analytics.panel.html',
   styleUrl: './analytics.panel.scss',

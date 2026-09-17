@@ -19,6 +19,7 @@ import { TourService } from '../../../../../core/services/tour';
 import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../shared/components/filter-dropdown/filter-dropdown.component';
 
 import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 
 @Component({
   selector: 'app-verifications-panel',
@@ -26,7 +27,8 @@ import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
   imports: [
     CommonModule, FormsModule, IonButton, ProxyImageDirective,
     DateRangeFilterComponent, FilterSummaryBarComponent,
-    AppIconComponent, FilterDropdownComponent, UtcDatePipe
+    AppIconComponent, FilterDropdownComponent, UtcDatePipe,
+    CustomTooltipDirective
   ],
   templateUrl: './verifications.panel.html',
   styleUrl: './verifications.panel.scss',

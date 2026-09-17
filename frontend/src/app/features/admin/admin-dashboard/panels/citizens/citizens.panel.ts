@@ -27,7 +27,7 @@ import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../sh
     CommonModule, FormsModule, IonButton, IonModal, IonContent,
     ProxyImageDirective, UtcDatePipe, DateRangeFilterComponent,
     FilterSummaryBarComponent, ListEnterDirective, AppIconComponent,
-    FilterDropdownComponent
+    FilterDropdownComponent, CustomTooltipDirective
   ],
   templateUrl: './citizens.panel.html',
 })

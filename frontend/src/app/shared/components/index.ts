@@ -7,3 +7,4 @@ export { FilterSummaryBarComponent } from './filter-summary-bar/filter-summary-b
 export { FloatingSosCardComponent, FloatingSosStatus } from './floating-sos-card/floating-sos-card.component';
 export { AppIconComponent } from './app-icon/app-icon.component';
 export { FilterDropdownComponent, FilterDropdownOption } from './filter-dropdown/filter-dropdown.component';
+export { QuickSearchPaletteComponent } from './quick-search-palette/quick-search-palette.component';

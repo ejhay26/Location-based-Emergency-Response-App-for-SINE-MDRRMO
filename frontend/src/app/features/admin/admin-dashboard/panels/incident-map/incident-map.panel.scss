@@ -285,9 +285,37 @@
     &.reset-item {
       font-weight: 800;
     }
+  }
 
-    &.custom-date-item {
-      padding: 4px 6px;
+  .custom-date-footer {
+    padding: 4px 5px 2px 5px;
+    background: transparent;
+
+    app-date-range-filter {
+      display: block;
+      width: 100%;
+    }
+
+    ::ng-deep .date-range-btn {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      background: var(--ion-color-step-50, rgba(0, 0, 0, 0.03));
+      border: 1px solid var(--inset-divider, rgba(0, 0, 0, 0.1));
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ion-text-color, #1c1c1e);
+      box-shadow: none;
+      transition: background-color 0.12s ease, border-color 0.12s ease;
+
+      &:hover {
+        background: var(--ion-color-step-100, rgba(0, 0, 0, 0.07));
+        border-color: rgba(0, 0, 0, 0.2);
+      }
     }
   }
 

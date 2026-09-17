@@ -11,19 +11,19 @@
     
     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
       <!-- Export PDF Button (Official Printable / Save as PDF Report) -->
-      <button (click)="exportPdf()" [disabled]="filteredList.length === 0" title="Export feedback to an official PDF report" style="padding: 9px 16px; border-radius: 10px; border: none; background: var(--ion-color-danger, #eb445a); color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(235,68,90,0.3); transition: opacity 0.15s;" [style.opacity]="filteredList.length === 0 ? 0.5 : 1">
+      <button (click)="exportPdf()" [disabled]="filteredList.length === 0" appTooltip="Export feedback to an official PDF report" style="padding: 9px 16px; border-radius: 10px; border: none; background: var(--ion-color-danger, #eb445a); color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(235,68,90,0.3); transition: opacity 0.15s;" [style.opacity]="filteredList.length === 0 ? 0.5 : 1">
         <app-icon name="file-pdf" [size]="15" color="#ffffff"></app-icon>
         Export PDF
       </button>
 
       <!-- Clear / Move to Trash Button (when on active tabs) -->
-      <button *ngIf="activeFilter !== 'trash'" (click)="clearAllFeedback()" [disabled]="activeList.length === 0" title="Move active feedback to Trash Archive" style="padding: 9px 16px; border-radius: 10px; border: 1.5px solid rgba(235,68,90,0.35); background: rgba(235,68,90,0.06); color: var(--ion-color-danger, #eb445a); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: opacity 0.15s;" [style.opacity]="activeList.length === 0 ? 0.5 : 1">
+      <button *ngIf="activeFilter !== 'trash'" (click)="clearAllFeedback()" [disabled]="activeList.length === 0" appTooltip="Move active feedback to Trash Archive" style="padding: 9px 16px; border-radius: 10px; border: 1.5px solid rgba(235,68,90,0.35); background: rgba(235,68,90,0.06); color: var(--ion-color-danger, #eb445a); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: opacity 0.15s;" [style.opacity]="activeList.length === 0 ? 0.5 : 1">
         <app-icon name="trash" [size]="14" color="var(--ion-color-danger, #eb445a)"></app-icon>
         Move All to Trash
       </button>
 
       <!-- Empty Trash Permanently Button (when on Trash tab) -->
-      <button *ngIf="activeFilter === 'trash'" (click)="purgeTrash()" [disabled]="trashList.length === 0" title="Permanently delete all archived feedback" style="padding: 9px 16px; border-radius: 10px; border: none; background: #b71c1c; color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(183,28,28,0.35); transition: opacity 0.15s;" [style.opacity]="trashList.length === 0 ? 0.5 : 1">
+      <button *ngIf="activeFilter === 'trash'" (click)="purgeTrash()" [disabled]="trashList.length === 0" appTooltip="Permanently delete all archived feedback" style="padding: 9px 16px; border-radius: 10px; border: none; background: #b71c1c; color: white; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(183,28,28,0.35); transition: opacity 0.15s;" [style.opacity]="trashList.length === 0 ? 0.5 : 1">
         <app-icon name="trash" [size]="14" color="#ffffff"></app-icon>
         Empty Trash Permanently
       </button>
@@ -208,7 +208,7 @@
                   type="button"
                   (click)="forwardBugToDev(fb)"
                   [disabled]="isForwardingBug[fb.id]"
-                  [title]="fb.is_forwarded ? 'Already forwarded to ejcp2005@gmail.com' : 'Forward this bug report to developer technical support (ejcp2005@gmail.com)'"
+                  [appTooltip]="fb.is_forwarded ? 'Already forwarded to ejcp2005@gmail.com' : 'Forward this bug report to developer technical support (ejcp2005@gmail.com)'"
                   style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid rgba(56,128,255,0.35); background: rgba(56,128,255,0.08); color: #3880ff; transition: all 0.15s ease;">
             <app-icon name="send" [size]="12" color="#3880ff"></app-icon>
             {{ fb.is_forwarded ? 'Re-send to Devs' : 'Forward to Dev Team' }}
@@ -218,7 +218,7 @@
           <button *ngIf="fb.status !== 'archived'"
                   type="button"
                   (click)="archiveFeedback(fb)"
-                  title="Move to Trash Archive"
+                  appTooltip="Move to Trash Archive"
                   style="display: inline-flex; align-items: center; gap: 5px; padding: 6px 11px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); background: transparent; color: var(--ion-color-medium); transition: all 0.15s ease;">
             <app-icon name="trash" [size]="12" color="var(--ion-color-medium)"></app-icon>
             Trash
@@ -228,7 +228,7 @@
           <button *ngIf="fb.status === 'archived'"
                   type="button"
                   (click)="restoreFeedback(fb)"
-                  title="Restore this feedback item to active list"
+                  appTooltip="Restore this feedback item to active list"
                   style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid rgba(45,211,111,0.35); background: rgba(45,211,111,0.1); color: #2dd36f; transition: all 0.15s ease;">
             <app-icon name="rotate-ccw" [size]="12" color="#2dd36f"></app-icon>
             Restore

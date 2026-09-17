@@ -5,7 +5,9 @@
     <button
       type="button"
       (click)="setAlertSourceFilter('all')"
-      title="Show all emergency SOS calls and public hazards"
+      [appTooltip]="'All Incidents'"
+      [tooltipSub]="'SOS & Hazard alerts'"
+      tooltipPlacement="bottom"
       [class.active]="alertSourceFilter === 'all'"
       class="segmented-pill-btn">
       <app-icon name="layers" [size]="13"></app-icon>
@@ -15,7 +17,9 @@
     <button
       type="button"
       (click)="setAlertSourceFilter('emergency')"
-      title="Filter by Emergency SOS Calls"
+      [appTooltip]="'Emergency SOS'"
+      [tooltipSub]="'Critical SOS calls'"
+      tooltipPlacement="bottom"
       [class.active]="alertSourceFilter === 'emergency'"
       class="segmented-pill-btn segmented-pill-emergency">
       <app-icon name="siren" [size]="13"></app-icon>
@@ -25,7 +29,9 @@
     <button
       type="button"
       (click)="setAlertSourceFilter('hazard')"
-      title="Filter by Public Road Hazards"
+      [appTooltip]="'Road Hazards'"
+      [tooltipSub]="'Public road hazards'"
+      tooltipPlacement="bottom"
       [class.active]="alertSourceFilter === 'hazard'"
       class="segmented-pill-btn segmented-pill-hazard">
       <app-icon name="hazard" [size]="13"></app-icon>
@@ -43,10 +49,12 @@
         class="mac-popover-btn"
         [class.has-filter]="selectedBarangays.length > 0"
         (click)="toggleBarangayMenu()"
-        title="Filter by Barangay (Multi-select)">
+        [appTooltip]="'Barangay Filter'"
+        [tooltipSub]="'Multi-select communities'"
+        tooltipPlacement="bottom">
         <app-icon name="map-pin" [size]="13" [color]="selectedBarangays.length > 0 ? 'var(--ion-color-danger, #eb445a)' : 'currentColor'"></app-icon>
         <span class="btn-text">{{ barangayButtonLabel }}</span>
-        <span *ngIf="selectedBarangays.length > 0" class="mac-filter-clear-x" (click)="$event.stopPropagation(); toggleBarangayFilter('all')" title="Reset Barangays">✕</span>
+        <span *ngIf="selectedBarangays.length > 0" class="mac-filter-clear-x" (click)="$event.stopPropagation(); toggleBarangayFilter('all')" [appTooltip]="'Reset Barangays'" tooltipPlacement="bottom">✕</span>
         <app-icon name="chevron-down" [size]="11" class="chevron-icon"></app-icon>
       </button>
 
@@ -81,10 +89,12 @@
         class="mac-popover-btn"
         [class.has-filter]="selectedTypes.length > 0"
         (click)="toggleTypeMenu()"
-        title="Filter by Incident Type (Multi-select)">
+        [appTooltip]="'Incident Type'"
+        [tooltipSub]="'Filter by alert category'"
+        tooltipPlacement="bottom">
         <app-icon name="tag" [size]="13" [color]="selectedTypes.length > 0 ? 'var(--ion-color-danger, #eb445a)' : 'currentColor'"></app-icon>
         <span class="btn-text">{{ typeButtonLabel }}</span>
-        <span *ngIf="selectedTypes.length > 0" class="mac-filter-clear-x" (click)="$event.stopPropagation(); toggleTypeFilter('all')" title="Reset Types">✕</span>
+        <span *ngIf="selectedTypes.length > 0" class="mac-filter-clear-x" (click)="$event.stopPropagation(); toggleTypeFilter('all')" [appTooltip]="'Reset Types'" tooltipPlacement="bottom">✕</span>
         <app-icon name="chevron-down" [size]="11" class="chevron-icon"></app-icon>
       </button>
 
@@ -116,10 +126,12 @@
         class="mac-popover-btn"
         [class.has-filter]="dateFilter !== 'all'"
         (click)="toggleDateMenu()"
-        title="Filter by Date">
+        [appTooltip]="'Date Filter'"
+        [tooltipSub]="'Filter by timeline'"
+        tooltipPlacement="bottom">
         <app-icon name="calendar" [size]="13" [color]="dateFilter !== 'all' ? 'var(--ion-color-danger, #eb445a)' : 'currentColor'"></app-icon>
         <span class="btn-text">{{ dateButtonLabel }}</span>
-        <span *ngIf="dateFilter !== 'all'" class="mac-filter-clear-x" (click)="$event.stopPropagation(); setDateFilter('all')" title="Reset Date">✕</span>
+        <span *ngIf="dateFilter !== 'all'" class="mac-filter-clear-x" (click)="$event.stopPropagation(); setDateFilter('all')" [appTooltip]="'Reset Date'" tooltipPlacement="bottom">✕</span>
         <app-icon name="chevron-down" [size]="11" class="chevron-icon"></app-icon>
       </button>
 
@@ -142,7 +154,7 @@
           <span class="item-label">Last 30 Days</span>
         </div>
         <div class="menu-divider"></div>
-        <div class="menu-item custom-date-item">
+        <div class="custom-date-footer">
           <app-date-range-filter
             [value]="customCalendarFilter"
             (valueChange)="onCalendarFilterChange($event); closeAllMenus()">
@@ -157,7 +169,9 @@
       type="button"
       class="mac-reset-all-btn"
       (click)="resetAllFilters()"
-      title="Reset all filters to default">
+      [appTooltip]="'Reset All'"
+      [tooltipSub]="'Restore default filters'"
+      tooltipPlacement="bottom">
       <app-icon name="rotate-ccw" [size]="12"></app-icon>
       <span>Reset All</span>
     </button>
@@ -337,7 +351,9 @@
   <div class="map-split-resizer"
        [class.resizing]="isResizingQueue"
        (mousedown)="onSplitterMouseDown($event)"
-       title="Drag to resize queue width">
+       [appTooltip]="'Resize Queue'"
+       [tooltipSub]="'Drag to adjust width'"
+       tooltipPlacement="left">
     <div class="resizer-bar"></div>
   </div>
 
@@ -406,10 +422,10 @@
         <p *ngIf="!item.data.proof_files?.length" style="font-size: 11.5px; color: var(--ion-color-medium); margin: 8px 0 0 0;">No files attached</p>
 
         <div style="display: flex; gap: 8px; margin-top: 14px;" (click)="$event.stopPropagation()">
-          <ion-button *ngIf="item.data.status === 'Pending'" color="warning" size="small" (click)="openDispatchModal(item.data.request_id)" title="Assign emergency responder team and vehicle" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px;">
+          <ion-button *ngIf="item.data.status === 'Pending'" color="warning" size="small" (click)="openDispatchModal(item.data.request_id)" [appTooltip]="'Dispatch Responder'" [tooltipSub]="'Assign team & vehicle'" tooltipPlacement="top" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px;">
             <app-icon name="truck-medical" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Dispatch
           </ion-button>
-          <ion-button color="success" size="small" (click)="resolveEmergency(item.data.request_id)" title="Mark this emergency incident as resolved and close ticket" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px; --box-shadow: 0 3px 10px rgba(45,211,111,0.25);">
+          <ion-button color="success" size="small" (click)="resolveEmergency(item.data.request_id)" [appTooltip]="'Resolve Incident'" [tooltipSub]="'Close ticket'" tooltipPlacement="top" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px; --box-shadow: 0 3px 10px rgba(45,211,111,0.25);">
             <app-icon name="check" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Resolve
           </ion-button>
         </div>
@@ -444,7 +460,7 @@
         <p *ngIf="!item.data.proof_files?.length" style="font-size: 11.5px; color: var(--ion-color-medium); margin: 8px 0 0 0;">No files attached</p>
 
         <div style="display: flex; gap: 8px; margin-top: 14px;" (click)="$event.stopPropagation()">
-          <ion-button color="warning" fill="outline" expand="block" size="small" (click)="dismissHazard(item.data.hazard_id)" title="Acknowledge and archive this public hazard report" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px;">
+          <ion-button color="warning" fill="outline" expand="block" size="small" (click)="dismissHazard(item.data.hazard_id)" [appTooltip]="'Resolve Hazard'" [tooltipSub]="'Archive hazard report'" tooltipPlacement="top" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px;">
             <app-icon name="check" [size]="16" color="#ffc409" style="margin-right: 6px;"></app-icon> Resolve Hazard
           </ion-button>
         </div>

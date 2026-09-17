@@ -106,14 +106,14 @@
                       color="danger"
                       fill="outline"
                       (click)="rejectCitizen(selectedUser.user_id)"
-                      title="Deny verification request"
+                      appTooltip="Deny verification request"
                       style="font-weight: 700; height: 42px; min-width: 110px; --border-radius: 12px; margin: 0;">
             <app-icon name="user-xmark" [size]="15" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon> Deny
           </ion-button>
           <ion-button id="verify-approve-btn"
                       color="success"
                       (click)="approveCitizen(selectedUser.user_id)"
-                      title="Approve citizen account and dispatch welcome email"
+                      appTooltip="Approve citizen account and dispatch welcome email"
                       style="font-weight: 700; height: 42px; min-width: 140px; --border-radius: 12px; --box-shadow: 0 3px 12px rgba(45,211,111,0.28); margin: 0;">
             <app-icon name="user-check" [size]="15" color="#ffffff" style="margin-right: 6px;"></app-icon> Approve Citizen
           </ion-button>
@@ -174,7 +174,7 @@
       <div class="photos-grid">
         <!-- Front ID -->
         <div class="photo-card"
-             title="Click to zoom Front ID"
+             appTooltip="Click to zoom Front ID"
              (click)="ui.openLightbox(selectedUser.valid_id_proof, false)">
           <div class="photo-badge">
             <span>Front ID</span>
@@ -187,7 +187,7 @@
 
         <!-- Back ID -->
         <div class="photo-card"
-             title="Click to zoom Back ID"
+             appTooltip="Click to zoom Back ID"
              (click)="ui.openLightbox(selectedUser.valid_id_proof_back || selectedUser.valid_id_proof, false)">
           <div class="photo-badge">
             <span>Back ID</span>
@@ -201,7 +201,7 @@
 
         <!-- Selfie with ID -->
         <div class="photo-card"
-             title="Click to zoom Selfie"
+             appTooltip="Click to zoom Selfie"
              (click)="ui.openLightbox(selectedUser.selfie_with_id_proof, false)">
           <div class="photo-badge">
             <span>Selfie with ID</span>

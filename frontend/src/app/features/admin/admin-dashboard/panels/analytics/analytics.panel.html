@@ -43,7 +43,7 @@
         type="button"
         class="mac-popover-btn"
         (click)="toggleChartType()"
-        title="Toggle between Bar and Line chart views">
+        appTooltip="Toggle between Bar and Line chart views">
         <app-icon [name]="trendChartType === 'bar' ? 'chart-pie' : 'sliders'" [size]="13" color="var(--ion-color-danger)"></app-icon>
         <span class="btn-text">{{ trendChartType === 'bar' ? 'Line View' : 'Bar View' }}</span>
       </button>

@@ -110,3 +110,21 @@ Dispatchers can launch spotlight guided tours from the **Help** panel:
 - **Alert Broadcast Tour:** Walkthrough of opening the composer card, headline writing, media attachments, barangay targeting, and scheduling.
 - **Archive Tour:** Guide on searching historical reports, false alarm tagging, and PDF export.
 - **Adaptive Mobile Steps:** Walkthrough automatically adjusts to highlight mobile sheets, composer toggles, and drawer elements when opened on a smartphone.
+
+---
+
+## 9. Desktop Keyboard Shortcuts & Quick Search
+
+Dispatcher desktop workstations support high-velocity keyboard shortcuts and quick navigation:
+- <kbd>Ctrl</kbd> + <kbd>,</kbd> (<kbd>⌘</kbd> + <kbd>,</kbd> on macOS): Jump directly to Settings.
+- <kbd>F1</kbd> (<kbd>⌘</kbd> + <kbd>?</kbd> on macOS): Open SOPs, Operator Procedures & Tours.
+- <kbd>Ctrl</kbd> + <kbd>F</kbd> / <kbd>Ctrl</kbd> + <kbd>K</kbd>: Open Apple Spotlight-style **Quick Search & Command Palette** (jump to panels, execute actions, or zoom directly to any barangay on the map).
+- <kbd>Ctrl</kbd> + <kbd>1</kbd> – <kbd>4</kbd>: Switch between Incident Map, Alert Broadcast, ID Verifications, and Analytics.
+- <kbd>Ctrl</kbd> + <kbd>B</kbd>: Toggle sidebar collapse/expand.
+- <kbd>Ctrl</kbd> + <kbd>D</kbd>: Toggle dark/light theme.
+- <kbd>Ctrl</kbd> + <kbd>N</kbd>: Open Alert Broadcast and stretch open the Announcement Composer.
+- <kbd>ESC</kbd>: Dismiss active confirmation dialogs, lightboxes, or the search palette.
+- <kbd>ENTER</kbd>: Confirm active dialogs or execute highlighted command palette items (multiline textareas preserve standard Enter newlines).
+
+For full details, see the [Desktop Shortcuts Guide](file:///docs/guides/desktop-shortcuts.md).
+

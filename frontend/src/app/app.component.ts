@@ -2,17 +2,18 @@ import { Component, OnInit, isDevMode } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
-import { TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent } from './shared/components/index';
+import { TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent, QuickSearchPaletteComponent } from './shared/components/index';
 import { isTauri, isMacDesktop } from './shared/utils/platform.util';
 import { UserSettingsService } from './core/services/user-settings';
 import { LocationService } from './core/services/location';
 import { DeepLinkService } from './core/services/deep-link';
+import { KeyboardShortcutsService } from './core/services/keyboard-shortcuts.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   standalone: true,
-  imports: [IonApp, IonRouterOutlet, TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent],
+  imports: [IonApp, IonRouterOutlet, TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent, QuickSearchPaletteComponent],
 })
 export class AppComponent implements OnInit {
   isDesktop = false;
@@ -23,11 +24,15 @@ export class AppComponent implements OnInit {
     private settings: UserSettingsService,
     private locationSvc: LocationService,
     private deepLink: DeepLinkService,
+    private shortcuts: KeyboardShortcutsService,
   ) {}
 
   ngOnInit() {
     this.isDesktop = isTauri();
     this.isMac = isMacDesktop();
+
+    // Initialize global keyboard shortcuts (desktop power keys, quick search, etc.)
+    this.shortcuts.init();
 
     // Disable default browser context menu on production desktop builds
     if (this.isDesktop && !isDevMode()) {

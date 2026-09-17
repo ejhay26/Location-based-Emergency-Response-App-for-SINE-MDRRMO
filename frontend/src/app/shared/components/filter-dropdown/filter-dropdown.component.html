@@ -5,10 +5,10 @@
     [class.has-filter]="hasFilter"
     (click)="toggleMenu($event)"
     [attr.aria-expanded]="isOpen"
-    [title]="currentLabel">
+    [appTooltip]="currentLabel">
     <app-icon *ngIf="icon" [name]="icon" [size]="13" [color]="hasFilter ? 'var(--ion-color-danger, #eb445a)' : 'currentColor'"></app-icon>
     <span class="btn-text">{{ currentLabel }}</span>
-    <span *ngIf="showClear && hasFilter" class="mac-filter-clear-x" (click)="clear($event)" title="Reset">
+    <span *ngIf="showClear && hasFilter" class="mac-filter-clear-x" (click)="clear($event)" appTooltip="Reset filter">
       <app-icon name="close" [size]="9" color="#ffffff"></app-icon>
     </span>
     <app-icon name="chevron-down" [size]="11" class="chevron-icon"></app-icon>

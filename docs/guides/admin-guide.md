@@ -99,3 +99,21 @@ Admins and dispatchers can compose town-wide or barangay-scoped push advisories:
 - **Interactive Guided Tours:** Step-by-step walkthroughs for dispatch, broadcasts, archiving, and staff management with viewport-adaptive mobile steps, interactive element tracking (including expanding the broadcast composer), and mock demo fallbacks.
 - **Concurrent Device Sessions:** Admin accounts support simultaneous logins across the native desktop workstation (Tauri) and mobile devices without expiring active sessions.
 - **Session Logout:** Safely terminate the administrative session and clear local credentials.
+
+---
+
+## 9. Desktop Keyboard Shortcuts & Quick Search
+
+For fast incident response on administrative workstations, global hotkeys and a custom command palette are available:
+- <kbd>Ctrl</kbd> + <kbd>,</kbd> (<kbd>⌘</kbd> + <kbd>,</kbd> on macOS): Jump directly to Settings.
+- <kbd>F1</kbd> (<kbd>⌘</kbd> + <kbd>?</kbd> on macOS): Open Help & Guided Tours.
+- <kbd>Ctrl</kbd> + <kbd>F</kbd> / <kbd>Ctrl</kbd> + <kbd>K</kbd>: Open Apple Spotlight-style **Quick Search & Command Palette** to search panels, trigger actions, or zoom to barangays.
+- <kbd>Ctrl</kbd> + <kbd>1</kbd> – <kbd>4</kbd>: Direct switch between Incident Map, Broadcast Center, ID Verifications, and Analytics.
+- <kbd>Ctrl</kbd> + <kbd>B</kbd>: Toggle sidebar collapse/expand.
+- <kbd>Ctrl</kbd> + <kbd>D</kbd>: Toggle dark/light theme.
+- <kbd>Ctrl</kbd> + <kbd>N</kbd>: Open Alert Broadcast and stretch open the Announcement Composer.
+- <kbd>ESC</kbd>: Dismiss active confirmation dialogs, lightboxes, or the search palette.
+- <kbd>ENTER</kbd>: Confirm active dialogs or execute highlighted command palette items (multiline textareas preserve standard Enter newlines).
+
+For the complete keybinding table and usage guide, refer to the [Desktop Shortcuts Guide](file:///docs/guides/desktop-shortcuts.md).
+

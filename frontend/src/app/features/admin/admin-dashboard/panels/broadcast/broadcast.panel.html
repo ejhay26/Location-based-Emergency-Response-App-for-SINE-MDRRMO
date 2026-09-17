@@ -1,5 +1,5 @@
 <div style="width:100%;">
-  <ion-card id="broadcast-composer" color="light" style="margin: 0; box-shadow: var(--card-shadow); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); border-radius: 16px; overflow: hidden; transition: all 0.25s ease;">
+  <ion-card id="broadcast-composer" color="light" class="broadcast-composer-card">
     <!-- Interactive Header with Toggle Button & Preset Summary -->
     <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; user-select: none;" (click)="toggleComposer()">
       <div style="display: flex; align-items: center; gap: 10px;">
@@ -14,15 +14,18 @@
           </p>
         </div>
       </div>
-      <button type="button" id="broadcast-toggle-composer-btn" (click)="$event.stopPropagation(); toggleComposer()"
-              style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); background: var(--ion-card-background, #fff); color: var(--ion-text-color); font-size: 12.5px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.04); transition: all 0.15s ease;">
-        <app-icon [name]="showComposer ? 'chevron-up' : 'plus'" [size]="14" color="var(--ion-color-danger)"></app-icon>
+      <button type="button" id="broadcast-toggle-composer-btn" class="broadcast-toggle-btn" (click)="$event.stopPropagation(); toggleComposer()">
+        <span class="mac-chevron-icon" [class.is-expanded]="showComposer">
+          <app-icon [name]="showComposer ? 'chevron-up' : 'plus'" [size]="14" color="var(--ion-color-danger)"></app-icon>
+        </span>
         <span>{{ showComposer ? 'Minimize' : 'New Announcement' }}</span>
       </button>
     </div>
 
-    <!-- Collapsible Form Content -->
-    <ion-card-content *ngIf="showComposer" style="padding-top: 0;">
+    <!-- Fluid macOS-Style Vertically Stretching Form Content -->
+    <div class="mac-accordion-collapse" [class.is-expanded]="showComposer">
+      <div class="mac-accordion-inner">
+        <ion-card-content style="padding-top: 0;">
       <!-- Title Input -->
       <ion-item fill="outline" class="ion-margin-bottom ion-margin-top" style="--border-radius: 12px; --background: var(--ion-card-background, #fff);">
         <ion-input label="Announcement Headline / Title (Optional)" labelPlacement="floating" [(ngModel)]="broadcastForm.title" (ngModelChange)="saveComposerPreset()" placeholder="e.g. Typhoon Warning, Relief Operation Notice..."></ion-input>
@@ -61,7 +64,7 @@
             type="button"
             (click)="triggerFileInput()"
             [disabled]="selectedMedia.length >= 4"
-            title="Attach up to 4 photos (JPG/PNG) or videos (MP4) to this announcement"
+            appTooltip="Attach up to 4 photos (JPG/PNG) or videos (MP4) to this announcement"
             style="display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); background: var(--ion-card-background, white); color: var(--ion-text-color); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.15s;">
             <app-icon name="paperclip" [size]="14" color="var(--ion-color-danger)"></app-icon>
             <span>Attach Files ({{ selectedMedia.length }}/4)</span>
@@ -95,7 +98,7 @@
             <button
               type="button"
               (click)="removeMedia(mi)"
-              title="Remove attached file"
+              appTooltip="Remove attached file"
               style="position: absolute; top: 3px; right: 3px; width: 22px; height: 22px; border-radius: 50%; background: #eb445a; color: white; border: none; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
               <app-icon name="close" [size]="12" color="#ffffff"></app-icon>
             </button>
@@ -106,7 +109,7 @@
       <p style="font-size: 11px; font-weight: 800; color: var(--ion-color-medium); margin: 14px 0 8px; text-transform: uppercase; letter-spacing: 0.8px;">TARGET AUDIENCE</p>
       <div id="broadcast-barangay-selector" style="display: flex; flex-wrap: wrap; gap: 6px;">
         <button (click)="selectTownWide()"
-          title="Push announcement town-wide across all 9 barangays"
+          appTooltip="Push announcement town-wide across all 9 barangays"
           [style.background]="isTownWide ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
           [style.color]="isTownWide ? 'white' : 'var(--ion-text-color)'"
           [style.border-color]="isTownWide ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
@@ -115,7 +118,7 @@
           <span>All Barangays</span>
         </button>
         <button *ngFor="let b of barangays" (click)="toggleBarangay(b.id)"
-          [title]="'Target Barangay ' + b.name"
+          [appTooltip]="'Target Barangay ' + b.name"
           [style.background]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-card-background, white)'"
           [style.color]="isBarangaySelected(b.id) ? 'white' : 'var(--ion-text-color)'"
           [style.border-color]="isBarangaySelected(b.id) ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, #ccc)'"
@@ -250,12 +253,14 @@
       <!-- Submit / Schedule Alert Button -->
       <ion-button id="broadcast-submit-btn" expand="block" color="danger" (click)="confirmSubmitBroadcast()"
         [disabled]="!broadcastForm.message.trim() || (isScheduled && isPastScheduleTime)"
-        title="Send emergency broadcast alert to selected recipients"
+        appTooltip="Send emergency broadcast alert to selected recipients"
         style="font-weight: 800; height: 48px; margin-top: 18px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(235,68,90,0.3);">
         <app-icon [name]="isScheduled ? 'calendar-clock' : 'send'" [size]="16" color="#ffffff" style="margin-right: 8px;"></app-icon>
         {{ isScheduled ? 'Schedule Announcement' : 'Send Announcement' }}
       </ion-button>
     </ion-card-content>
+      </div>
+    </div>
   </ion-card>
 
   <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -269,15 +274,17 @@
           Active Broadcasts ({{ activeBroadcasts.length }})
         </h3>
       </div>
-      <button type="button" (click)="showActiveSection = !showActiveSection"
-              title="Toggle Active Broadcasts Section"
-              style="display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px solid var(--ion-color-step-200, #ccc); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--ion-color-medium); cursor: pointer;">
+      <button type="button" class="section-toggle-btn" (click)="showActiveSection = !showActiveSection"
+              appTooltip="Toggle Active Broadcasts Section">
         <span>{{ showActiveSection ? 'Collapse' : 'Expand' }}</span>
-        <app-icon [name]="showActiveSection ? 'chevron-up' : 'chevron-down'" [size]="14"></app-icon>
+        <span class="mac-chevron-icon" [class.is-expanded]="showActiveSection">
+          <app-icon name="chevron-down" [size]="14"></app-icon>
+        </span>
       </button>
     </div>
 
-    <div *ngIf="showActiveSection">
+    <div class="mac-accordion-collapse" [class.is-expanded]="showActiveSection">
+      <div class="mac-accordion-inner">
       <!-- Empty State -->
       <div *ngIf="activeBroadcasts.length === 0" style="margin-top: 10px; padding: 24px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
         <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -323,7 +330,7 @@
               <span>{{ broadcast.location }}</span>
             </span>
             <button type="button" (click)="endBroadcast(broadcast)"
-              title="End and archive this active public broadcast"
+              appTooltip="End and archive this active public broadcast"
               style="display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(235,68,90,0.3); background: rgba(235,68,90,0.08); color: var(--ion-color-danger); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s;">
               <app-icon name="trash" [size]="13" color="var(--ion-color-danger)"></app-icon> Stop
             </button>
@@ -368,6 +375,7 @@
           </div>
         </div>
       </div>
+      </div>
     </div>
   </div>
 
@@ -382,15 +390,17 @@
           Scheduled Broadcasts ({{ scheduledBroadcasts.length }})
         </h3>
       </div>
-      <button type="button" (click)="showScheduledSection = !showScheduledSection"
-              title="Toggle Scheduled Broadcasts Section"
-              style="display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px solid var(--ion-color-step-200, #ccc); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--ion-color-medium); cursor: pointer;">
+      <button type="button" class="section-toggle-btn" (click)="showScheduledSection = !showScheduledSection"
+              appTooltip="Toggle Scheduled Broadcasts Section">
         <span>{{ showScheduledSection ? 'Collapse' : 'Expand' }}</span>
-        <app-icon [name]="showScheduledSection ? 'chevron-up' : 'chevron-down'" [size]="14"></app-icon>
+        <span class="mac-chevron-icon" [class.is-expanded]="showScheduledSection">
+          <app-icon name="chevron-down" [size]="14"></app-icon>
+        </span>
       </button>
     </div>
 
-    <div *ngIf="showScheduledSection">
+    <div class="mac-accordion-collapse" [class.is-expanded]="showScheduledSection">
+      <div class="mac-accordion-inner">
       <!-- Empty State -->
       <div *ngIf="scheduledBroadcasts.length === 0" style="margin-top: 10px; padding: 20px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
         <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(56,128,255,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -427,7 +437,7 @@
               {{ broadcast.location }}
             </span>
             <button type="button" (click)="endBroadcast(broadcast)"
-              title="Cancel this scheduled broadcast"
+              appTooltip="Cancel this scheduled broadcast"
               style="display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(235,68,90,0.3); background: rgba(235,68,90,0.08); color: var(--ion-color-danger); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;">
               <app-icon name="close" [size]="13" color="var(--ion-color-danger)"></app-icon> Cancel
             </button>
@@ -443,6 +453,7 @@
           </p>
         </div>
       </div>
+      </div>
     </div>
   </div>
 
@@ -457,15 +468,17 @@
           Past / Archived Broadcasts ({{ archivedBroadcasts.length }})
         </h3>
       </div>
-      <button type="button" (click)="showArchivedSection = !showArchivedSection"
-              title="Toggle Archived Broadcasts Section"
-              style="display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px solid var(--ion-color-step-200, #ccc); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--ion-color-medium); cursor: pointer;">
+      <button type="button" class="section-toggle-btn" (click)="showArchivedSection = !showArchivedSection"
+              appTooltip="Toggle Archived Broadcasts Section">
         <span>{{ showArchivedSection ? 'Collapse' : 'Expand' }}</span>
-        <app-icon [name]="showArchivedSection ? 'chevron-up' : 'chevron-down'" [size]="14"></app-icon>
+        <span class="mac-chevron-icon" [class.is-expanded]="showArchivedSection">
+          <app-icon name="chevron-down" [size]="14"></app-icon>
+        </span>
       </button>
     </div>
 
-    <div *ngIf="showArchivedSection">
+    <div class="mac-accordion-collapse" [class.is-expanded]="showArchivedSection">
+      <div class="mac-accordion-inner">
       <!-- Empty State -->
       <div *ngIf="archivedBroadcasts.length === 0" style="margin-top: 10px; padding: 20px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
         <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -503,6 +516,7 @@
             {{ broadcast.message }}
           </p>
         </div>
+      </div>
       </div>
     </div>
   </div>

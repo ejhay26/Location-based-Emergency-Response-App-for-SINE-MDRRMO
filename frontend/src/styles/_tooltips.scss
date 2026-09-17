@@ -31,11 +31,54 @@
     animation: tooltipSpringFadeOut 0.1s cubic-bezier(0.4, 0, 1, 1) forwards;
   }
 
+  .custom-story-tooltip__header {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
   .custom-story-tooltip__title {
     font-weight: 700;
     letter-spacing: 0.2px;
     color: var(--ion-text-color, #111113);
     font-size: 12px;
+  }
+
+  .custom-story-tooltip__kbd-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: auto;
+  }
+
+  .custom-story-tooltip__kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4.5px;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ion-color-medium, #5c5c60);
+    background: var(--ion-color-step-100, rgba(0, 0, 0, 0.05));
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.22);
+    border-radius: 4px;
+    box-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.08);
+    box-sizing: border-box;
+    user-select: none;
+  }
+
+  .custom-story-tooltip__plus {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--ion-color-medium, #8e8e93);
+    padding: 0 1px;
+    user-select: none;
   }
 
   .custom-story-tooltip__sub {
@@ -44,6 +87,41 @@
     color: var(--ion-color-medium, #5c5c60);
     letter-spacing: 0.1px;
   }
+}
+
+/* ── Standalone 3D Physical Workstation Keycap (for Help Panel, Dialogs & Cards) ── */
+.workstation-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6.5px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ion-text-color, #1f2937);
+  background: var(--ion-color-step-50, #f8f9fa);
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.16));
+  border-bottom: 2.5px solid rgba(0, 0, 0, 0.28);
+  border-radius: 5px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  user-select: none;
+  vertical-align: middle;
+  transition: all 0.1s ease;
+}
+
+body.dark .workstation-kbd,
+[data-theme="dark"] .workstation-kbd,
+.dark-theme .workstation-kbd {
+  background: var(--ion-color-step-150, #2c2c2e);
+  border-color: rgba(255, 255, 255, 0.16);
+  border-bottom: 2.5px solid rgba(255, 255, 255, 0.35);
+  color: #f2f2f7;
+  box-shadow: 0 1px 2.5px rgba(0, 0, 0, 0.35);
+}
 
   /* ── Right-positioned tooltip: Arrowhead pointing LEFT ── */
   &.custom-story-tooltip--right {
@@ -188,6 +266,18 @@
 
   .custom-story-tooltip__title {
     color: #ffffff;
+  }
+
+  .custom-story-tooltip__kbd {
+    color: #f2f2f7;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.16);
+    border-bottom-color: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  .custom-story-tooltip__plus {
+    color: rgba(255, 255, 255, 0.45);
   }
 
   .custom-story-tooltip__sub {
