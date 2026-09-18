@@ -1,5 +1,6 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AppIconComponent } from '../app-icon/app-icon.component';
 import { CustomTooltipDirective } from '../../directives/custom-tooltip.directive';
 

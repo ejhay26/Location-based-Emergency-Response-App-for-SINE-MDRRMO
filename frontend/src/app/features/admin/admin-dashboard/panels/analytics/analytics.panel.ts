@@ -13,6 +13,7 @@ import { FilterSummaryBarComponent } from '../../../../../shared/components/filt
 import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../../../../../shared/utils/date-filter.util';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 
 @Component({
   selector: 'app-analytics-panel',

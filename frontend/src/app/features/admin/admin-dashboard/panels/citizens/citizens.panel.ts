@@ -19,6 +19,7 @@ import { DateFilterValue, matchesDateFilter, formatDateFilterLabel } from '../..
 import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/flip-reflow.util';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../shared/components/filter-dropdown/filter-dropdown.component';
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 
 @Component({
   selector: 'app-citizens-panel',

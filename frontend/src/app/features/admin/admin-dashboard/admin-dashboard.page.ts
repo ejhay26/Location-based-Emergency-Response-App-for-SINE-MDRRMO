@@ -308,8 +308,9 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.tourSub?.unsubscribe();
+    this.echoConnectedSub?.unsubscribe();
     this.echoEmergencySub?.unsubscribe();
     this.echoHazardSub?.unsubscribe();
     this.echoUserSub?.unsubscribe();
@@ -437,18 +438,5 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
         ).subscribe({ next: finishLogout });
       }),
     });
-  }
-
-  ngOnDestroy(): void {
-    this.tourSub?.unsubscribe();
-    this.echoConnectedSub?.unsubscribe();
-    this.echoEmergencySub?.unsubscribe();
-    this.echoHazardSub?.unsubscribe();
-    this.echoUserSub?.unsubscribe();
-    this.countsPollSub?.unsubscribe();
-    this.shortcutPanelSub?.unsubscribe();
-    this.shortcutActionSub?.unsubscribe();
-    this.shortcutBarangaySub?.unsubscribe();
-    this.stopResizeListeners();
   }
 }

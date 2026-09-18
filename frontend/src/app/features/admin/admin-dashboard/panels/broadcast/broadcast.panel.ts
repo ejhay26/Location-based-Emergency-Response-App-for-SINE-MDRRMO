@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonCard, IonCardContent,
   IonItem, IonInput, IonButton,
   IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
@@ -16,6 +16,7 @@ import { ProxyImageDirective } from '../../../../../shared/directives/proxy-imag
 import { BARANGAYS, Barangay } from '../../../../../shared/constants/barangays';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 import { TourService } from '../../../../../core/services/tour';
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 
 /**
  * BroadcastPanel — admin alert broadcaster with immediate and scheduled modes.
@@ -26,14 +27,12 @@ export interface BroadcastMediaItem {
   file?: File;
 }
 
-import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
-
 @Component({
   selector: 'app-broadcast-panel',
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonInput, IonButton,
+    IonCard, IonCardContent, IonItem, IonInput, IonButton,
     IonSelect, IonSelectOption,
     UtcDatePipe, ListEnterDirective, ProxyImageDirective, AppIconComponent,
     CustomTooltipDirective

@@ -18,6 +18,7 @@ import { captureFlipRects, playFlipReorder } from '../../../../../shared/utils/f
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../shared/components/filter-dropdown/filter-dropdown.component';
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 
 const ARCHIVE_FILTER_LABELS: Record<string, string> = {
   resolved: 'Resolved', false_alarm: 'False Alarms', cancelled: 'Cancelled',
