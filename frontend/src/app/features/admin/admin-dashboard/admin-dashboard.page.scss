@@ -666,4 +666,55 @@
   }
 }
 
+/* ── SYSTEM STATUS FOOTER (NON-AI SLOP, DISCREET) ── */
+.sidebar-system-footer {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--ion-color-step-100, rgba(0, 0, 0, 0.05));
+  display: flex;
+  align-items: center;
+
+  &.is-collapsed {
+    justify-content: center;
+    padding-top: 8px;
+  }
+}
+
+.connection-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ion-color-step-500, #8e8e93);
+  background: transparent;
+  user-select: none;
+
+  .status-text {
+    font-size: 11px;
+    letter-spacing: 0.2px;
+  }
+
+  &.is-disconnected {
+    color: #d97706;
+    background: rgba(245, 158, 11, 0.1);
+    font-weight: 700;
+  }
+}
+
+.mobile-offline-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #d97706;
+  background: rgba(245, 158, 11, 0.12);
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-right: 6px;
+}
+
 

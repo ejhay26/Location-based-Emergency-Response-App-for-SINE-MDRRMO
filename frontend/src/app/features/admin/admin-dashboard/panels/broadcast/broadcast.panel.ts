@@ -48,12 +48,43 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   broadcastForm = { title: '', message: '' };
   selectedMedia: BroadcastMediaItem[] = [];
   selectedBarangayIds: number[] = []; // empty = town-wide
+  draftBroadcasts: any[] = [];
   activeBroadcasts: any[] = [];
   scheduledBroadcasts: any[] = [];
   archivedBroadcasts: any[] = [];
 
+  // Currently loaded draft ID (if editing an existing saved draft)
+  editingDraftId: number | null = null;
+
   // Drag & drop state for desktop
   isDraggingFileOver = false;
+
+  /** Returns true if the composer has unsaved draft content. */
+  isDirty(): boolean {
+    return Boolean(
+      this.editingDraftId !== null ||
+      (this.broadcastForm.title && this.broadcastForm.title.trim().length > 0) ||
+      (this.broadcastForm.message && this.broadcastForm.message.trim().length > 0) ||
+      (this.selectedMedia && this.selectedMedia.length > 0)
+    );
+  }
+
+  /** Reset the dirty form draft. */
+  clearDraft(): void {
+    this.editingDraftId = null;
+    this.broadcastForm = { title: '', message: '' };
+    this.selectedMedia = [];
+    this.selectedBarangayIds = [];
+    this.isScheduled = false;
+    this.scheduledDateTime = '';
+    this.schedYear = '';
+    this.schedMonth = '';
+    this.schedDay = '';
+    this.deliveryMode = 'immediate';
+    try {
+      localStorage.removeItem('broadcast_composer_preset');
+    } catch {}
+  }
 
   get isMobile(): boolean {
     return typeof window !== 'undefined' && window.innerWidth <= 768;
@@ -61,6 +92,7 @@ export class BroadcastPanel implements OnInit, OnDestroy {
 
   // Collapsible section states (Composer minimized by default to save screen space)
   showComposer = false;
+  showDraftsSection = true;
   showActiveSection = true;
   showScheduledSection = true;
   showArchivedSection = false;
@@ -88,6 +120,7 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   saveComposerPreset(): void {
     try {
       const preset = {
+        editingDraftId: this.editingDraftId,
         title: this.broadcastForm.title,
         message: this.broadcastForm.message,
         selectedBarangayIds: this.selectedBarangayIds,
@@ -102,10 +135,11 @@ export class BroadcastPanel implements OnInit, OnDestroy {
       const raw = localStorage.getItem('broadcast_composer_preset');
       if (raw) {
         const p = JSON.parse(raw);
+        if (p.editingDraftId) this.editingDraftId = p.editingDraftId;
         if (p.title) this.broadcastForm.title = p.title;
         if (p.message) this.broadcastForm.message = p.message;
         if (Array.isArray(p.selectedBarangayIds)) this.selectedBarangayIds = p.selectedBarangayIds;
-        if (p.deliveryMode === 'scheduled' || p.deliveryMode === 'immediate') {
+        if (p.deliveryMode === 'scheduled' || p.deliveryMode === 'immediate' || p.deliveryMode === 'draft') {
           this.setDeliveryMode(p.deliveryMode);
         }
       }
@@ -143,6 +177,20 @@ export class BroadcastPanel implements OnInit, OnDestroy {
 
   private echoBroadcastSub?: Subscription;
   private tourSub?: Subscription;
+
+  readonly DEMO_DRAFT_BROADCAST = {
+    broadcast_id: 999990,
+    title: 'Draft: Pre-emptive Evacuation Advisory for Low-lying Zones',
+    message: 'Water levels approaching critical flood stage. Dispatch teams on standby for evacuation assistance. Review before publishing.',
+    barangays: [{ barangay_id: 1, barangay_name: 'Poblacion' }],
+    location: 'Poblacion',
+    is_active: 0,
+    is_draft: 1,
+    scheduled_at: null,
+    created_at: new Date().toISOString(),
+    media_files: [],
+    is_demo: true
+  };
 
   readonly DEMO_ACTIVE_BROADCAST = {
     broadcast_id: 999991,
@@ -200,6 +248,7 @@ export class BroadcastPanel implements OnInit, OnDestroy {
 
     this.tourSub = this.tour.stepChange$.subscribe(({ id, active }) => {
       if (active) {
+        this.showDraftsSection = true;
         this.showScheduledSection = true;
         this.showArchivedSection = true;
         if (id && id !== 'broadcast-toggle-composer-btn' && (
@@ -209,6 +258,9 @@ export class BroadcastPanel implements OnInit, OnDestroy {
           id === 'broadcast-submit-btn'
         )) {
           this.showComposer = true;
+        }
+        if (this.draftBroadcasts.length === 0) {
+          this.draftBroadcasts = [this.DEMO_DRAFT_BROADCAST];
         }
         if (this.activeBroadcasts.length === 0) {
           this.activeBroadcasts = [this.DEMO_ACTIVE_BROADCAST];
@@ -220,6 +272,9 @@ export class BroadcastPanel implements OnInit, OnDestroy {
           this.archivedBroadcasts = [this.DEMO_ARCHIVED_BROADCAST];
         }
       } else {
+        if (this.draftBroadcasts.length === 1 && this.draftBroadcasts[0].is_demo) {
+          this.draftBroadcasts = [];
+        }
         if (this.activeBroadcasts.length === 1 && this.activeBroadcasts[0].is_demo) {
           this.activeBroadcasts = [];
         }
@@ -277,9 +332,9 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     return Array.from({ length: daysCount }, (_, i) => i + 1);
   }
 
-  deliveryMode: 'immediate' | 'scheduled' = 'immediate';
+  deliveryMode: 'immediate' | 'scheduled' | 'draft' = 'immediate';
 
-  setDeliveryMode(mode: 'immediate' | 'scheduled'): void {
+  setDeliveryMode(mode: 'immediate' | 'scheduled' | 'draft'): void {
     this.deliveryMode = mode;
     this.setScheduledMode(mode === 'scheduled');
     this.saveComposerPreset();
@@ -292,13 +347,16 @@ export class BroadcastPanel implements OnInit, OnDestroy {
 
   setScheduledMode(enable: boolean): void {
     this.isScheduled = enable;
-    this.deliveryMode = enable ? 'scheduled' : 'immediate';
     if (enable) {
+      this.deliveryMode = 'scheduled';
       if (!this.schedYear) {
         this.initScheduledDateTime();
       } else {
         this.autoCorrectIfPast(false);
       }
+    } else if (this.deliveryMode === 'scheduled') {
+      this.deliveryMode = 'immediate';
+      this.scheduledDateTime = '';
     } else {
       this.scheduledDateTime = '';
     }
@@ -397,10 +455,12 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     this.api.getActiveBroadcast().subscribe({
       next: (res: any) => {
         if (res && typeof res === 'object' && !Array.isArray(res)) {
+          this.draftBroadcasts     = res.drafts || [];
           this.activeBroadcasts    = res.active || [];
           this.scheduledBroadcasts = res.scheduled || [];
           this.archivedBroadcasts  = res.archived || [];
         } else if (Array.isArray(res)) {
+          this.draftBroadcasts     = [];
           this.activeBroadcasts    = res;
           this.scheduledBroadcasts = [];
           this.archivedBroadcasts  = [];
@@ -487,12 +547,117 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     this.selectedMedia.splice(index, 1);
   }
 
+  /** Save currently composed announcement as a reviewable draft */
+  saveAsDraft(): void {
+    if (!this.broadcastForm.message.trim() && !this.broadcastForm.title.trim()) {
+      this.ui.showToast('Please enter a headline or message to save as draft.', 'warning');
+      return;
+    }
+
+    const payload: any = {
+      ...(this.editingDraftId ? { broadcast_id: this.editingDraftId } : {}),
+      title: this.broadcastForm.title.trim() || undefined,
+      message: this.broadcastForm.message.trim() || '(Draft announcement)',
+      media_files: this.selectedMedia.map(m => m.preview),
+      ...(this.isTownWide ? {} : { barangay_ids: this.selectedBarangayIds }),
+      is_draft: true,
+      ...(this.isScheduled && this.scheduledDateTime ? { scheduled_at: this.scheduledDateTime } : {}),
+    };
+
+    this.api.createBroadcast(payload).subscribe({
+      next: (res: any) => {
+        this.ui.showToast(res?.message || 'Announcement saved as draft for later review.', 'success');
+        this.clearDraft();
+        this.showComposer = false;
+        this.fetchBroadcasts();
+      },
+      error: (err: any) => {
+        this.ui.showToast(err?.error?.message || 'Failed to save announcement draft.', 'danger');
+      }
+    });
+  }
+
+  /** Load a draft back into composer for editing, reviewal, and publishing */
+  loadDraft(draft: any): void {
+    this.editingDraftId = draft.broadcast_id;
+    this.broadcastForm.title = draft.title || '';
+    this.broadcastForm.message = draft.message || '';
+    this.selectedBarangayIds = Array.isArray(draft.barangay_ids) ? [...draft.barangay_ids] : [];
+
+    if (Array.isArray(draft.media_files) && draft.media_files.length > 0) {
+      this.selectedMedia = draft.media_files.map((path: string) => ({
+        preview: path,
+        type: this.ui.isVideoFile(path) ? 'video' : 'image',
+      }));
+    } else {
+      this.selectedMedia = [];
+    }
+
+    if (draft.scheduled_at) {
+      this.setDeliveryMode('scheduled');
+      const d = new Date(draft.scheduled_at);
+      if (!isNaN(d.getTime())) {
+        this.schedYear = String(d.getFullYear());
+        this.schedMonth = String(d.getMonth() + 1).padStart(2, '0');
+        this.schedDay = String(d.getDate());
+        let h = d.getHours();
+        this.schedPeriod = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        this.schedHour = String(h).padStart(2, '0');
+        this.schedMinute = String(d.getMinutes()).padStart(2, '0');
+        this.updateScheduledDateTime();
+      }
+    } else {
+      this.setDeliveryMode('draft');
+    }
+
+    this.showComposer = true;
+    this.ui.showToast(`Draft "${draft.title || 'Announcement'}" loaded into composer.`, 'primary');
+  }
+
+  /** Permanently discard a draft */
+  discardDraft(draft: any): void {
+    this.ui.confirm({
+      title: 'Discard Draft',
+      message: 'Are you sure you want to discard this draft? This cannot be undone.',
+      icon: 'trash',
+      iconColor: '#eb445a',
+      confirmLabel: 'Discard Draft',
+      confirmColor: 'danger',
+      details: [
+        { label: 'Target',  value: draft.location, icon: 'map-pin' },
+        { label: 'Message', value: draft.message,  icon: 'message-square' },
+      ],
+      onConfirm: () => new Promise<void>((resolve, reject) => {
+        this.api.deleteDraft(draft.broadcast_id).subscribe({
+          next: () => {
+            this.ui.showToast('Draft announcement discarded.', 'medium');
+            if (this.editingDraftId === draft.broadcast_id) {
+              this.clearDraft();
+            }
+            this.fetchBroadcasts();
+            resolve();
+          },
+          error: () => {
+            this.ui.showToast('Failed to discard draft.', 'danger');
+            reject();
+          }
+        });
+      })
+    });
+  }
+
   /**
    * Opens a confirmation dialog before sending. The HTTP call is placed
    * inside `onConfirm` so the dialog's own Confirm button shows the loading
    * spinner for the full duration of the request — no separate flag needed.
    */
   confirmSubmitBroadcast() {
+    if (this.deliveryMode === 'draft') {
+      this.saveAsDraft();
+      return;
+    }
+
     if (!this.broadcastForm.message.trim()) return;
 
     if (this.isScheduled) {
@@ -514,6 +679,10 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     const details: any[] = [
       { label: 'Target',  value: this.isTownWide ? 'Town-wide (all citizens)' : target, icon: 'map-pin' },
     ];
+
+    if (this.editingDraftId) {
+      details.push({ label: 'Mode', value: 'Publishing Saved Draft', icon: 'draft' });
+    }
 
     if (this.isScheduled) {
       const scheduledFormatted = new Date(this.scheduledDateTime).toLocaleString([], {
@@ -544,9 +713,11 @@ export class BroadcastPanel implements OnInit, OnDestroy {
       details,
       onConfirm: () => new Promise<void>((resolve, reject) => {
         const payload: any = {
+          ...(this.editingDraftId ? { broadcast_id: this.editingDraftId } : {}),
           title: this.broadcastForm.title.trim() || undefined,
           message: this.broadcastForm.message.trim(),
           media_files: this.selectedMedia.map(m => m.preview),
+          is_draft: false,
           ...(this.isTownWide ? {} : { barangay_ids: this.selectedBarangayIds }),
           ...(this.isScheduled ? { scheduled_at: this.scheduledDateTime } : {}),
         };
@@ -556,17 +727,8 @@ export class BroadcastPanel implements OnInit, OnDestroy {
               res?.message || (this.isScheduled ? 'Announcement scheduled!' : 'Announcement sent!'),
               'success',
             );
-            this.broadcastForm.title   = '';
-            this.broadcastForm.message = '';
-            this.selectedMedia         = [];
-            this.selectedBarangayIds   = [];
-            this.isScheduled           = false;
-            this.scheduledDateTime     = '';
-            this.schedYear             = '';
-            this.schedMonth            = '';
-            this.schedDay              = '';
-            this.clearComposerPreset();
-            this.showComposer          = false;
+            this.clearDraft();
+            this.showComposer = false;
             this.fetchBroadcasts();
             resolve();
           },

@@ -20,20 +20,21 @@ class SosController extends Controller
         private readonly NotificationService $notificationService
     ) {
     }
-
     public function submitSos(Request $request)
     {
+        $userId = $request->user()?->user_id ?? $request->input('user_id');
+
         $request->validate([
             'user_id'          => 'required|integer',
             'incident_type_id' => 'required|integer',
-            'latitude'         => 'required|numeric',
-            'longitude'        => 'required|numeric',
+            'latitude'         => 'required|numeric|between:-90,90',
+            'longitude'        => 'required|numeric|between:-180,180',
             'proof_files'      => 'nullable|array|max:2',
             'proof_files.*'    => 'nullable|string|max:20971520',
             'description'      => 'nullable|string|max:1000',
         ]);
 
-        $existing = EmergencyRequest::where('user_id', $request->user_id)
+        $existing = EmergencyRequest::where('user_id', $userId)
             ->whereIn('status', ['Pending', 'Dispatched'])
             ->first();
         if ($existing) {
@@ -42,7 +43,7 @@ class SosController extends Controller
 
         $proofFilesJson = null;
         if ($request->filled('proof_files') && count($request->proof_files)) {
-            $proofFilesJson = $this->processProofFiles($request->proof_files, $request->user_id, 'sos');
+            $proofFilesJson = $this->processProofFiles($request->proof_files, $userId, 'sos');
         }
 
         // Server-side, authoritative barangay resolution — see
@@ -52,7 +53,7 @@ class SosController extends Controller
         $barangayId = $this->barangayResolver->resolve((float) $request->latitude, (float) $request->longitude);
 
         $created = EmergencyRequest::create([
-            'user_id'          => $request->user_id,
+            'user_id'          => $userId,
             'incident_type_id' => $request->incident_type_id,
             'description'      => $request->description,
             'proof_files'      => $proofFilesJson,

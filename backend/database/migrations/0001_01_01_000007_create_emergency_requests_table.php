@@ -27,6 +27,8 @@ return new class extends Migration
             $table->foreign('user_id')->references('user_id')->on('users')->nullOnDelete();
             $table->foreign('incident_type_id')->references('incident_type_id')->on('incident_types')->nullOnDelete();
             $table->foreign('barangay_id')->references('barangay_id')->on('barangays')->nullOnDelete();
+
+            $table->index(['status', 'request_time'], 'idx_emergency_requests_status_time');
         });
     }
 

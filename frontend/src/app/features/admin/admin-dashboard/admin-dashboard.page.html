@@ -28,6 +28,10 @@
 
       <!-- 3. Right: Role / Status Badge -->
       <div class="mobile-header-right">
+        <span *ngIf="!isServerConnected" class="mobile-offline-tag" [appTooltip]="'Connection lost • Reconnecting...'">
+          <app-icon name="wifi-off" [size]="12" color="#f59e0b"></app-icon>
+          <span>Offline</span>
+        </span>
         <span class="mobile-role-badge-pill">{{ currentRole === 'admin' ? 'Admin' : 'Dispatcher' }}</span>
       </div>
     </div>
@@ -201,6 +205,18 @@
               </div>
             </div>
 
+          </div>
+
+          <!-- Bottom System Status (Discreet, professional) -->
+          <div class="sidebar-system-footer" [class.is-collapsed]="isSidebarCollapsed">
+            <div class="connection-status-pill"
+                 [class.is-disconnected]="!isServerConnected"
+                 [appTooltip]="isServerConnected ? 'Real-time incident updates connected' : 'Connection lost • Reconnecting...'">
+              <app-icon [name]="isServerConnected ? 'wifi' : 'wifi-off'" [size]="13" [color]="isServerConnected ? 'var(--ion-color-medium)' : '#f59e0b'"></app-icon>
+              <span *ngIf="!isSidebarCollapsed" class="status-text">
+                {{ isServerConnected ? 'Connected' : 'Offline' }}
+              </span>
+            </div>
           </div>
         </div>
 

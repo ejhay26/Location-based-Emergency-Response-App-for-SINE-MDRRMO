@@ -380,6 +380,7 @@
     <div *ngFor="let item of unifiedActiveItems; trackBy: trackByUnifiedItem"
          [attr.id]="item.type === 'emergency' ? ('admin-incident-' + item.data.request_id) : ('admin-hazard-' + item.data.hazard_id)"
          class="incident-card"
+         [class.newly-arrived]="isNewlyArrived(item)"
          [class.selected-incident-card]="item.type === 'emergency' && selectedRequestId === item.data.request_id && previewType === 'emergency'"
          [class.selected-hazard-card]="item.type === 'hazard' && selectedRequestId === item.data.hazard_id && previewType === 'hazard'"
          (click)="selectIncidentCard(item.data, item.type)">
@@ -398,6 +399,19 @@
         <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description || 'Emergency alert triggered' }}</p>
         <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Citizen:</strong> {{ item.data.first_name }} {{ item.data.last_name }}</p>
         <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+        <div *ngIf="item.data.latitude && item.data.longitude"
+             style="display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 0; font-size: 11.5px; color: var(--ion-color-medium);">
+          <span><strong>GPS:</strong> {{ formatCoords(item.data.latitude, item.data.longitude) }}</span>
+          <button type="button"
+                  class="copy-coords-btn"
+                  (click)="copyCoordinates(item.data.latitude, item.data.longitude, 'em_' + item.data.request_id, $event)"
+                  [appTooltip]="'Copy Coordinates'"
+                  [tooltipSub]="'Copy lat, lng to clipboard'"
+                  tooltipPlacement="left">
+            <app-icon [name]="copiedCoordId === ('em_' + item.data.request_id) ? 'check' : 'copy'" [size]="12"></app-icon>
+            <span>{{ copiedCoordId === ('em_' + item.data.request_id) ? 'Copied' : 'Copy' }}</span>
+          </button>
+        </div>
 
         <div *ngIf="item.data.blood_type || item.data.allergies" style="display: flex; align-items: center; gap: 6px; margin: 6px 0 0 0; padding: 4px 8px; border-radius: 8px; background: rgba(45,211,111,0.1); border: 1px solid rgba(45,211,111,0.25);">
           <app-icon name="heart" [size]="14" color="#2dd36f"></app-icon>
@@ -445,6 +459,19 @@
         <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description }}</p>
         <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Reported by:</strong> {{ item.data.first_name }} {{ item.data.last_name }}</p>
         <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+        <div *ngIf="item.data.latitude && item.data.longitude"
+             style="display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 0; font-size: 11.5px; color: var(--ion-color-medium);">
+          <span><strong>GPS:</strong> {{ formatCoords(item.data.latitude, item.data.longitude) }}</span>
+          <button type="button"
+                  class="copy-coords-btn"
+                  (click)="copyCoordinates(item.data.latitude, item.data.longitude, 'haz_' + item.data.hazard_id, $event)"
+                  [appTooltip]="'Copy Coordinates'"
+                  [tooltipSub]="'Copy lat, lng to clipboard'"
+                  tooltipPlacement="left">
+            <app-icon [name]="copiedCoordId === ('haz_' + item.data.hazard_id) ? 'check' : 'copy'" [size]="12"></app-icon>
+            <span>{{ copiedCoordId === ('haz_' + item.data.hazard_id) ? 'Copied' : 'Copy' }}</span>
+          </button>
+        </div>
 
         <div *ngIf="item.data.proof_files?.length" class="media-thumb-grid">
           <div *ngFor="let filePath of item.data.proof_files"
@@ -509,6 +536,7 @@
       <!-- Incident card loop for mobile sheet -->
       <div *ngFor="let item of unifiedActiveItems; trackBy: trackByUnifiedItem"
            class="incident-card"
+           [class.newly-arrived]="isNewlyArrived(item)"
            [class.selected-incident-card]="item.type === 'emergency' && selectedRequestId === item.data.request_id && previewType === 'emergency'"
            [class.selected-hazard-card]="item.type === 'hazard' && selectedRequestId === item.data.hazard_id && previewType === 'hazard'"
            (click)="selectIncidentCard(item.data, item.type)">
@@ -526,6 +554,17 @@
           </div>
           <p style="font-size: 13.5px; margin: 3px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description || 'Emergency alert triggered' }}</p>
           <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Citizen:</strong> {{ item.data.first_name }} {{ item.data.last_name }} · <strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+          <div *ngIf="item.data.latitude && item.data.longitude"
+               style="display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 0; font-size: 11.5px; color: var(--ion-color-medium);">
+            <span><strong>GPS:</strong> {{ formatCoords(item.data.latitude, item.data.longitude) }}</span>
+            <button type="button"
+                    class="copy-coords-btn"
+                    (click)="copyCoordinates(item.data.latitude, item.data.longitude, 'em_m_' + item.data.request_id, $event)"
+                    aria-label="Copy Coordinates">
+              <app-icon [name]="copiedCoordId === ('em_m_' + item.data.request_id) ? 'check' : 'copy'" [size]="12"></app-icon>
+              <span>{{ copiedCoordId === ('em_m_' + item.data.request_id) ? 'Copied' : 'Copy' }}</span>
+            </button>
+          </div>
 
           <div style="display: flex; gap: 8px; margin-top: 12px;" (click)="$event.stopPropagation()">
             <ion-button *ngIf="item.data.status === 'Pending'" color="warning" (click)="openDispatchModal(item.data.request_id)" style="font-weight: 800; flex: 1; height: 42px; margin: 0; --border-radius: 12px; font-size: 13.5px;">
@@ -550,6 +589,17 @@
           </div>
           <p style="font-size: 13.5px; margin: 3px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description }}</p>
           <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Reported by:</strong> {{ item.data.first_name }} {{ item.data.last_name }} · <strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+          <div *ngIf="item.data.latitude && item.data.longitude"
+               style="display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 0; font-size: 11.5px; color: var(--ion-color-medium);">
+            <span><strong>GPS:</strong> {{ formatCoords(item.data.latitude, item.data.longitude) }}</span>
+            <button type="button"
+                    class="copy-coords-btn"
+                    (click)="copyCoordinates(item.data.latitude, item.data.longitude, 'haz_m_' + item.data.hazard_id, $event)"
+                    aria-label="Copy Coordinates">
+              <app-icon [name]="copiedCoordId === ('haz_m_' + item.data.hazard_id) ? 'check' : 'copy'" [size]="12"></app-icon>
+              <span>{{ copiedCoordId === ('haz_m_' + item.data.hazard_id) ? 'Copied' : 'Copy' }}</span>
+            </button>
+          </div>
 
           <div style="display: flex; gap: 8px; margin-top: 12px;" (click)="$event.stopPropagation()">
             <ion-button color="warning" fill="outline" expand="block" (click)="dismissHazard(item.data.hazard_id)" style="font-weight: 800; flex: 1; height: 42px; margin: 0; --border-radius: 12px; font-size: 13.5px;">

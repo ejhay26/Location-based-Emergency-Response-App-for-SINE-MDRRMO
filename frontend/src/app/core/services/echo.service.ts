@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { environment } from '../../../environments/environment';
@@ -38,9 +38,10 @@ export class EchoService implements OnDestroy {
   private readonly hazardUpdated$    = new Subject<ReverbEvent['data']>();
   private readonly broadcastUpdated$ = new Subject<ReverbEvent['data']>();
   private readonly userVerified$     = new Subject<ReverbEvent['data']>();
-  private readonly connected$        = new Subject<boolean>();
+  private readonly connected$        = new BehaviorSubject<boolean>(false);
 
   readonly onConnected:        Observable<boolean>            = this.connected$.asObservable();
+  get isConnected(): boolean { return this.connected$.value; }
   readonly onEmergencyUpdated: Observable<ReverbEvent['data']> = this.emergencyUpdated$.asObservable();
   readonly onHazardUpdated:    Observable<ReverbEvent['data']> = this.hazardUpdated$.asObservable();
   readonly onBroadcastUpdated: Observable<ReverbEvent['data']> = this.broadcastUpdated$.asObservable();

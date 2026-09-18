@@ -23,6 +23,8 @@ return new class extends Migration
 
             $table->foreign('user_id')->references('user_id')->on('users')->nullOnDelete();
             $table->foreign('barangay_id')->references('barangay_id')->on('barangays')->nullOnDelete();
+
+            $table->index(['status', 'created_at'], 'idx_hazards_status_created');
         });
     }
 

@@ -410,17 +410,30 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     }
   }
 
+  copiedCoordId: string | null = null;
+  newlyArrivedIds = new Set<string>();
+
   ngAfterViewInit() {
+    (window as any).__copyIncidentCoords = (lat: any, lng: any) => {
+      this.copyCoordinates(lat, lng);
+    };
+
     this.loadData();
     setTimeout(() => this.initMap(), 250);
 
     this.echo.connect();
 
-    this.echoEmergencySub = this.echo.onEmergencyUpdated.subscribe(() => {
+    this.echoEmergencySub = this.echo.onEmergencyUpdated.subscribe((data) => {
+      if (data?.request_id) {
+        this.markAsNewlyArrived('emergency', data.request_id);
+      }
       this.loadData();
     });
 
-    this.echoHazardSub = this.echo.onHazardUpdated.subscribe(() => {
+    this.echoHazardSub = this.echo.onHazardUpdated.subscribe((data) => {
+      if (data?.hazard_id) {
+        this.markAsNewlyArrived('hazard', data.hazard_id);
+      }
       this.loadData();
     });
 
@@ -493,6 +506,51 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   invalidateMapSize() {
     if (!this.map) return;
     setTimeout(() => this.map.invalidateSize(), 260);
+  }
+
+  formatCoords(lat: any, lng: any): string {
+    if (!lat || !lng) return 'N/A';
+    const parsedLat = parseFloat(String(lat));
+    const parsedLng = parseFloat(String(lng));
+    if (isNaN(parsedLat) || isNaN(parsedLng)) return `${lat}, ${lng}`;
+    return `${parsedLat.toFixed(5)}, ${parsedLng.toFixed(5)}`;
+  }
+
+  copyCoordinates(lat: any, lng: any, itemId?: string, event?: Event): void {
+    if (event) event.stopPropagation();
+    if (!lat || !lng) return;
+    const text = `${parseFloat(String(lat)).toFixed(6)}, ${parseFloat(String(lng)).toFixed(6)}`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    if (itemId) {
+      this.copiedCoordId = itemId;
+      setTimeout(() => {
+        if (this.copiedCoordId === itemId) this.copiedCoordId = null;
+      }, 2000);
+    }
+    this.ui.showToast(`Coordinates copied: ${text}`, 'medium');
+  }
+
+  isNewlyArrived(item: any): boolean {
+    if (!item?.data) return false;
+    const id = item.type === 'emergency' ? `em_${item.data.request_id}` : `haz_${item.data.hazard_id}`;
+    return this.newlyArrivedIds.has(id);
+  }
+
+  markAsNewlyArrived(type: 'emergency' | 'hazard', id: number | string): void {
+    const key = type === 'emergency' ? `em_${id}` : `haz_${id}`;
+    this.newlyArrivedIds.add(key);
+    setTimeout(() => {
+      this.newlyArrivedIds.delete(key);
+    }, 2800);
   }
 
   normalizeBgyName(name: string): string {
@@ -846,7 +904,10 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         <h2 style="color:#eb445a;font-size:18px;font-weight:bold;margin:0 0 8px 0;border-bottom:2px solid #eb445a20;padding-bottom:4px;">${req.incident_name.toUpperCase()} EMERGENCY</h2>
         <p style="font-size:15px;margin:4px 0;"><b>Citizen:</b> ${req.first_name} ${req.last_name}</p>
         <p style="font-size:15px;margin:4px 0;"><b>Contact:</b> ${req.phone}</p>
-        <p style="font-size:13px;margin:4px 0;color:gray;background:var(--ion-color-light);padding:4px;border-radius:4px;"><b>Coords:</b> ${req.latitude}, ${req.longitude}</p>
+        <div style="font-size:13px;margin:4px 0;color:gray;background:var(--ion-color-light);padding:4px 8px;border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
+          <span><b>Coords:</b> ${req.latitude}, ${req.longitude}</span>
+          <button onclick="window.__copyIncidentCoords('${req.latitude}','${req.longitude}')" style="background:var(--ion-color-step-100, #eee);border:1px solid var(--ion-color-step-200, #ccc);color:var(--ion-text-color, #111);padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">Copy</button>
+        </div>
         <p style="font-size:13px;margin:4px 0;"><b>Barangay:</b> ${req.barangay_name || 'Unresolved'}</p>
         <div style="margin-top:12px;display:flex;gap:8px;">
           <button onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${req.request_id}}))" style="background:#ffc409;color:black;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">DISPATCH UNIT</button>
@@ -881,7 +942,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         <h2 style="color:#e0ac00;font-size:17px;font-weight:bold;margin:0 0 6px 0;border-bottom:2px solid #ffc40930;padding-bottom:4px;">PUBLIC HAZARD LOG</h2>
         <p style="font-size:15px;margin:4px 0;line-height:1.4;background:var(--ion-color-light);padding:8px;border-radius:6px;border:1px solid #ffc40940;">"${haz.description}"</p>
         <p style="font-size:12px;color:gray;margin:6px 0 0 0;">Reported by: ${haz.first_name} ${haz.last_name}</p>
-        <p style="font-size:12px;color:gray;margin:2px 0 0 0;"><b>Barangay:</b> ${haz.barangay_name || 'Unresolved'}</p></div>`;
+        <p style="font-size:12px;color:gray;margin:2px 0 0 0;"><b>Barangay:</b> ${haz.barangay_name || 'Unresolved'}</p>
+        <div style="font-size:12px;color:gray;margin:4px 0 0 0;background:var(--ion-color-light);padding:4px 8px;border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
+          <span><b>Coords:</b> ${haz.latitude}, ${haz.longitude}</span>
+          <button onclick="window.__copyIncidentCoords('${haz.latitude}','${haz.longitude}')" style="background:var(--ion-color-step-100, #eee);border:1px solid var(--ion-color-step-200, #ccc);color:var(--ion-text-color, #111);padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">Copy</button>
+        </div></div>`;
       const marker = L.marker([haz.latitude, haz.longitude], { icon }).bindPopup(popup).addTo(this.map);
       marker.on('click', () => {
         this.selectedRequestId = haz.hazard_id; this.previewType = 'hazard';

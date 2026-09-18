@@ -7,9 +7,13 @@
           <app-icon name="megaphone" [size]="18" color="var(--ion-color-danger)"></app-icon>
         </div>
         <div>
-          <h3 style="margin: 0; font-weight: 800; font-size: 15.5px; color: var(--ion-text-color); letter-spacing: -0.2px;">Create Announcement / Alert</h3>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h3 style="margin: 0; font-weight: 800; font-size: 15.5px; color: var(--ion-text-color); letter-spacing: -0.2px;">Create Announcement / Alert</h3>
+            <span *ngIf="editingDraftId" style="font-size: 10px; font-weight: 800; color: #b45309; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); padding: 1px 7px; border-radius: 6px;">Editing Draft #{{ editingDraftId }}</span>
+          </div>
           <p *ngIf="!showComposer" style="margin: 2px 0 0 0; font-size: 12px; color: var(--ion-color-medium); font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-            <span *ngIf="broadcastForm.message || broadcastForm.title" style="color: var(--ion-color-danger); font-weight: 800; background: rgba(235,68,90,0.1); padding: 1px 7px; border-radius: 6px;">Draft in progress</span>
+            <span *ngIf="editingDraftId" style="color: #b45309; font-weight: 800; background: rgba(245,158,11,0.15); padding: 1px 7px; border-radius: 6px;">Draft loaded</span>
+            <span *ngIf="!editingDraftId && (broadcastForm.message || broadcastForm.title)" style="color: var(--ion-color-danger); font-weight: 800; background: rgba(235,68,90,0.1); padding: 1px 7px; border-radius: 6px;">Draft in progress</span>
             <span>Audience: {{ isTownWide ? 'Town-Wide' : (selectedBarangayIds.length + ' Barangays Selected') }}</span>
           </p>
         </div>
@@ -71,9 +75,9 @@
           </button>
         </div>
 
-        <!-- Drag and Drop Active Glowing Zone (Desktop Only) -->
+        <!-- Drag and Drop Active Zone (Desktop Only) -->
         <div *ngIf="!isMobile && isDraggingFileOver"
-             style="padding: 24px 16px; border: 2px dashed var(--ion-color-danger); border-radius: 14px; background: rgba(235, 68, 90, 0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 6px; animation: pulse-border 1s infinite alternate;">
+             style="padding: 24px 16px; border: 2px dashed var(--ion-color-danger); border-radius: 14px; background: rgba(235, 68, 90, 0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 6px;">
           <app-icon name="paperclip" [size]="28" color="var(--ion-color-danger)"></app-icon>
           <span style="font-size: 13.5px; font-weight: 800; color: var(--ion-color-danger); margin-top: 6px;">Drop photos or MP4 videos here</span>
           <span style="font-size: 11.5px; color: var(--ion-color-medium); margin-top: 2px;">Supported: JPG, PNG, MP4 (up to 4 items, 10MB max)</span>
@@ -149,7 +153,7 @@
           <button
             type="button"
             class="segmented-pill-btn"
-            style="flex: 1; height: 36px; padding: 0 14px; font-size: 12.5px; justify-content: center;"
+            style="flex: 1; height: 36px; padding: 0 10px; font-size: 12.5px; justify-content: center;"
             [class.active]="deliveryMode === 'immediate'"
             (click)="setDeliveryMode('immediate')">
             <app-icon name="send" [size]="14"></app-icon>
@@ -158,16 +162,25 @@
           <button
             type="button"
             class="segmented-pill-btn"
-            style="flex: 1; height: 36px; padding: 0 14px; font-size: 12.5px; justify-content: center;"
+            style="flex: 1; height: 36px; padding: 0 10px; font-size: 12.5px; justify-content: center;"
             [class.active]="deliveryMode === 'scheduled'"
             (click)="setDeliveryMode('scheduled')">
             <app-icon name="calendar-clock" [size]="14"></app-icon>
             <span>Schedule for Later</span>
           </button>
+          <button
+            type="button"
+            class="segmented-pill-btn"
+            style="flex: 1; height: 36px; padding: 0 10px; font-size: 12.5px; justify-content: center;"
+            [class.active]="deliveryMode === 'draft'"
+            (click)="setDeliveryMode('draft')">
+            <app-icon name="draft" [size]="14"></app-icon>
+            <span>Save as Draft</span>
+          </button>
         </div>
       </div>
 
-      <!-- Aesthetic Popover Date & Time Selector -->
+      <!-- Aesthetic Popover Date & Time Selector (Scheduled Mode only) -->
       <div *ngIf="isScheduled" style="margin-top: 14px; padding: 14px; border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.03)); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
         <label style="font-size: 11px; font-weight: 800; color: var(--ion-color-danger); text-transform: uppercase; letter-spacing: 0.6px; display: block; margin-bottom: 8px;">
           Auto-Release Date & Time
@@ -250,18 +263,142 @@
         </span>
       </div>
 
-      <!-- Submit / Schedule Alert Button -->
-      <ion-button id="broadcast-submit-btn" expand="block" color="danger" (click)="confirmSubmitBroadcast()"
-        [disabled]="!broadcastForm.message.trim() || (isScheduled && isPastScheduleTime)"
-        appTooltip="Send emergency broadcast alert to selected recipients"
-        style="font-weight: 800; height: 48px; margin-top: 18px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(235,68,90,0.3);">
-        <app-icon [name]="isScheduled ? 'calendar-clock' : 'send'" [size]="16" color="#ffffff" style="margin-right: 8px;"></app-icon>
-        {{ isScheduled ? 'Schedule Announcement' : 'Send Announcement' }}
-      </ion-button>
+      <!-- Action Buttons Row -->
+      <div style="display: flex; gap: 10px; margin-top: 18px; align-items: stretch; flex-wrap: wrap;">
+        <!-- Quick Save as Draft Button (Always available to save for later reviewal without switching delivery mode) -->
+        <button
+          *ngIf="deliveryMode !== 'draft'"
+          type="button"
+          (click)="saveAsDraft()"
+          [disabled]="!broadcastForm.message.trim() && !broadcastForm.title.trim()"
+          appTooltip="Save this announcement as a draft for reviewal before publishing"
+          style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 16px; height: 48px; border-radius: 12px; border: 1.5px solid var(--ion-color-step-300, #b0b0b0); background: var(--ion-card-background, #fff); color: var(--ion-text-color); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
+          <app-icon name="save" [size]="15" color="var(--ion-color-medium)"></app-icon>
+          <span>{{ editingDraftId ? 'Save Draft' : 'Draft' }}</span>
+        </button>
+
+        <!-- Primary Action Button (Publish / Schedule / Save Draft) -->
+        <ion-button
+          id="broadcast-submit-btn"
+          expand="block"
+          [color]="deliveryMode === 'draft' ? 'medium' : 'danger'"
+          (click)="confirmSubmitBroadcast()"
+          [disabled]="deliveryMode === 'draft' ? (!broadcastForm.message.trim() && !broadcastForm.title.trim()) : (!broadcastForm.message.trim() || (isScheduled && isPastScheduleTime))"
+          [appTooltip]="deliveryMode === 'draft' ? 'Save draft for later reviewal' : 'Send emergency broadcast alert to selected recipients'"
+          style="flex: 1; min-width: 180px; font-weight: 800; height: 48px; margin: 0; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(235,68,90,0.3);">
+          <app-icon [name]="deliveryMode === 'draft' ? 'save' : (isScheduled ? 'calendar-clock' : 'send')" [size]="16" color="#ffffff" style="margin-right: 8px;"></app-icon>
+          {{ deliveryMode === 'draft' ? (editingDraftId ? 'Update Saved Draft' : 'Save Draft for Reviewal') : (isScheduled ? 'Schedule Announcement' : (editingDraftId ? 'Publish Draft Now' : 'Send Announcement')) }}
+        </ion-button>
+
+        <!-- Cancel Draft Editing Button (if actively editing a loaded draft) -->
+        <button
+          *ngIf="editingDraftId"
+          type="button"
+          (click)="clearDraft()"
+          appTooltip="Cancel editing this draft and clear composer"
+          style="display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 14px; height: 48px; border-radius: 12px; border: 1px solid var(--ion-color-step-200, #ccc); background: transparent; color: var(--ion-color-medium); font-size: 12px; font-weight: 700; cursor: pointer;">
+          <app-icon name="close" [size]="13" color="var(--ion-color-medium)"></app-icon>
+          <span>Cancel</span>
+        </button>
+      </div>
     </ion-card-content>
       </div>
     </div>
   </ion-card>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       SECTION 0: SAVED DRAFTS (Collapsible, Awaiting Reviewal)
+       ═══════════════════════════════════════════════════════════════════════════ -->
+  <div id="draft-broadcasts-section" style="margin-top: 24px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 2px 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+        <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); letter-spacing: 0.3px;">
+          Saved Drafts ({{ draftBroadcasts.length }})
+        </h3>
+      </div>
+      <button type="button" class="section-toggle-btn" (click)="showDraftsSection = !showDraftsSection"
+              appTooltip="Toggle Saved Drafts Section">
+        <span>{{ showDraftsSection ? 'Collapse' : 'Expand' }}</span>
+        <span class="mac-chevron-icon" [class.is-expanded]="showDraftsSection">
+          <app-icon name="chevron-down" [size]="14"></app-icon>
+        </span>
+      </button>
+    </div>
+
+    <div class="mac-accordion-collapse" [class.is-expanded]="showDraftsSection">
+      <div class="mac-accordion-inner">
+      <!-- Empty State -->
+      <div *ngIf="draftBroadcasts.length === 0" style="margin-top: 10px; padding: 20px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
+        <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(245,158,11,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <app-icon name="draft" [size]="18" color="#d97706"></app-icon>
+        </div>
+        <div>
+          <p style="margin: 0; font-weight: 700; font-size: 13.5px; color: var(--ion-text-color);">No Saved Drafts</p>
+          <p style="margin: 2px 0 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">Announcements saved as draft for later reviewal will appear here before publishing.</p>
+        </div>
+      </div>
+
+      <!-- Draft Cards -->
+      <div *ngFor="let draft of draftBroadcasts; trackBy: trackByBroadcastId"
+           style="margin-top: 12px; border-radius: 16px; overflow: hidden; border: 1.5px solid rgba(245,158,11,0.45); background: var(--ion-card-background, white); box-shadow: 0 4px 14px rgba(245,158,11,0.06);">
+
+        <div style="padding: 12px 16px; background: linear-gradient(135deg, rgba(245,158,11,0.09), rgba(245,158,11,0.03)); border-bottom: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+            <div style="width: 32px; height: 32px; border-radius: 10px; background: #d97706; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
+              <app-icon name="draft" [size]="16" color="#ffffff"></app-icon>
+            </div>
+            <div style="min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 11px; font-weight: 800; color: #b45309; text-transform: uppercase; letter-spacing: 0.5px;">Draft • Awaiting Review</span>
+                <span *ngIf="editingDraftId === draft.broadcast_id" style="font-size: 9.5px; font-weight: 800; color: #2563eb; background: rgba(37,99,235,0.12); padding: 1px 6px; border-radius: 4px; text-transform: uppercase;">In Composer</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                <span style="font-size: 11px; color: var(--ion-color-medium); font-weight: 600;">
+                  Created {{ timeAgo(draft.created_at) }} • {{ draft.created_at | utcDate:'medium' }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 10px; font-weight: 800; color: #b45309; background: rgba(245,158,11,0.14); padding: 4px 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+              {{ draft.location }}
+            </span>
+            <button type="button" (click)="loadDraft(draft)"
+              appTooltip="Load this draft into the composer to edit, review, and publish"
+              style="display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 10px; border: 1px solid #d97706; background: rgba(245,158,11,0.12); color: #b45309; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s;">
+              <app-icon name="draft" [size]="13" color="#b45309"></app-icon> Review / Edit
+            </button>
+            <button type="button" (click)="discardDraft(draft)"
+              appTooltip="Discard this saved draft permanently"
+              style="display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(235,68,90,0.3); background: rgba(235,68,90,0.06); color: var(--ion-color-danger); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s;">
+              <app-icon name="trash" [size]="13" color="var(--ion-color-danger)"></app-icon> Discard
+            </button>
+          </div>
+        </div>
+
+        <div style="padding: 14px 16px;">
+          <h4 *ngIf="draft.title" style="margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color);">
+            {{ draft.title }}
+          </h4>
+          <p style="margin: 0; font-size: 13px; color: var(--ion-text-color); line-height: 1.5; white-space: pre-line;">
+            {{ draft.message }}
+          </p>
+
+          <!-- Media Thumbnails Grid -->
+          <div *ngIf="draft.media_files?.length" style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+            <div *ngFor="let mPath of draft.media_files"
+                 (click)="ui.openLightbox(mPath, ui.isVideoFile(mPath), draft.media_files)"
+                 style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; background: #1a1a1a; cursor: pointer; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.1));">
+              <img *ngIf="!ui.isVideoFile(mPath)" [proxySrc]="mPath" style="width: 100%; height: 100%; object-fit: cover;" />
+              <video *ngIf="ui.isVideoFile(mPath)" [proxySrc]="mPath" style="width: 100%; height: 100%; object-fit: cover;" muted></video>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════════
        SECTION 1: ACTIVE BROADCASTS (Collapsible)
@@ -269,7 +406,6 @@
   <div id="active-broadcasts-section" style="margin-top: 24px;">
     <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 2px 8px;">
       <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; animation: pulse-dot 1.5s ease-in-out infinite;"></span>
         <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); letter-spacing: 0.3px;">
           Active Broadcasts ({{ activeBroadcasts.length }})
         </h3>
@@ -310,7 +446,7 @@
             <div style="min-width: 0;">
               <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                 <span style="font-size: 11.5px; font-weight: 800; color: var(--ion-color-danger); text-transform: uppercase; letter-spacing: 0.6px;">Active Broadcast</span>
-                <span style="width: 7px; height: 7px; border-radius: 50%; background: #22c55e; display: inline-block; animation: pulse-dot 1.5s ease-in-out infinite;"></span>
+                <span style="font-size: 9.5px; font-weight: 800; color: #16a34a; background: rgba(22,163,74,0.12); padding: 1px 7px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.5px;">Live</span>
                 <!-- Scheduled indicator badge (only shown if sent as scheduled) -->
                 <span *ngIf="broadcast.scheduled_at"
                       style="font-size: 10px; font-weight: 800; color: #3880ff; background: rgba(56,128,255,0.12); padding: 2px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; letter-spacing: 0.4px;">

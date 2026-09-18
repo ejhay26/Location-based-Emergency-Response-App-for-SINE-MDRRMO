@@ -35,15 +35,27 @@ class DispatchController extends Controller
             'responder_id' => 'required|integer',
             'vehicle_id'   => 'required|integer',
         ]);
-        Dispatch::create([
-            'request_id'    => $request->request_id,
-            'responder_id'  => $request->responder_id,
-            'vehicle_id'    => $request->vehicle_id,
-            'dispatch_time' => now(),
-            'status'        => 'En Route',
-        ]);
-        EmergencyRequest::where('request_id', $request->request_id)
-            ->update(['status' => 'Dispatched']);
+
+        DB::transaction(function () use ($request) {
+            Dispatch::create([
+                'request_id'    => $request->request_id,
+                'responder_id'  => $request->responder_id,
+                'vehicle_id'    => $request->vehicle_id,
+                'dispatch_time' => now(),
+                'status'        => 'En Route',
+            ]);
+
+            EmergencyRequest::where('request_id', $request->request_id)
+                ->update(['status' => 'Dispatched']);
+
+            // Update assigned responder and vehicle status to prevent double-assignment
+            Responder::where('responder_id', $request->responder_id)
+                ->update(['status' => 'Dispatched']);
+
+            Vehicle::where('vehicle_id', $request->vehicle_id)
+                ->update(['status' => 'In Use']);
+        });
+
         $req = EmergencyRequest::find($request->request_id);
         if ($req) {
             $this->notifications->notifyUser($req->user_id, 'Responders Dispatched', 'Help is on the way to your location.', ['type' => 'dispatched']);
@@ -57,10 +69,29 @@ class DispatchController extends Controller
     public function resolveEmergency(Request $request)
     {
         $request->validate(['request_id' => 'required|integer']);
-        EmergencyRequest::where('request_id', $request->request_id)
-            ->update(['status' => 'Resolved']);
-        Dispatch::where('request_id', $request->request_id)
-            ->update(['status' => 'Completed', 'arrival_time' => now()]);
+
+        DB::transaction(function () use ($request) {
+            EmergencyRequest::where('request_id', $request->request_id)
+                ->update(['status' => 'Resolved']);
+
+            // Release all active responders and vehicles for this emergency
+            $activeDispatches = Dispatch::where('request_id', $request->request_id)
+                ->where('status', 'En Route')
+                ->get();
+
+            foreach ($activeDispatches as $dispatch) {
+                if ($dispatch->responder_id) {
+                    Responder::where('responder_id', $dispatch->responder_id)
+                        ->update(['status' => 'Available']);
+                }
+                if ($dispatch->vehicle_id) {
+                    Vehicle::where('vehicle_id', $dispatch->vehicle_id)
+                        ->update(['status' => 'Available']);
+                }
+                $dispatch->update(['status' => 'Completed', 'arrival_time' => now()]);
+            }
+        });
+
         $req = EmergencyRequest::find($request->request_id);
         if ($req) {
             $this->notifications->notifyUser($req->user_id, 'Emergency Resolved', 'Your report has been resolved. Stay safe.', ['type' => 'resolved']);

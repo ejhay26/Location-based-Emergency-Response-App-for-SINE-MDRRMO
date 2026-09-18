@@ -105,5 +105,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/resolve-hazard',        [HazardController::class, 'resolveHazard']);
         Route::post('/create-broadcast',      [BroadcastController::class, 'createBroadcast']);
         Route::post('/clear-broadcast',       [BroadcastController::class, 'clearBroadcast']);
+        Route::post('/delete-draft',          [BroadcastController::class, 'deleteDraft']);
     });
 });

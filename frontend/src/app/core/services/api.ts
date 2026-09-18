@@ -126,8 +126,9 @@ export class ApiService {
   resolveHazard(data: any): Observable<any>       { return this.http.post(`${this.url}/resolve-hazard`, data, this.opts(true)); }
 
   // Broadcasts
-  createBroadcast(data: { title?: string; message: string; media_files?: string[]; barangay_ids?: number[] }): Observable<any> { return this.http.post(`${this.url}/create-broadcast`, data, this.opts(true)); }
+  createBroadcast(data: { broadcast_id?: number; title?: string; message: string; media_files?: string[]; barangay_ids?: number[]; scheduled_at?: string; is_draft?: boolean }): Observable<any> { return this.http.post(`${this.url}/create-broadcast`, data, this.opts(true)); }
   clearBroadcast(broadcastId: number): Observable<any> { return this.http.post(`${this.url}/clear-broadcast`, { broadcast_id: broadcastId }, this.opts(true)); }
+  deleteDraft(broadcastId: number): Observable<any> { return this.http.post(`${this.url}/delete-draft`, { broadcast_id: broadcastId }, this.opts(true)); }
 
   // Admin / dispatcher
   getPendingVerifications(): Observable<any>      { return this.http.get(`${this.url}/pending-verifications`, this.opts(true)); }

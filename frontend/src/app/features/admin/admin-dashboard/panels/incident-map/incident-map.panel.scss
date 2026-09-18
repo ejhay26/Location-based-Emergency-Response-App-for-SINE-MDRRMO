@@ -490,7 +490,7 @@
 
 .map-container-col {
   flex: 1;
-  min-width: 0;
+  min-width: 320px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -572,6 +572,47 @@
   &.selected-hazard-card {
     border: 2px solid #ffc409 !important;
     box-shadow: 0 0 0 3px rgba(255, 196, 9, 0.25), 0 8px 20px rgba(255, 196, 9, 0.15) !important;
+  }
+
+  &.newly-arrived {
+    animation: arrivalHighlight 2.5s ease-out forwards;
+  }
+}
+
+@keyframes arrivalHighlight {
+  0% {
+    background-color: rgba(235, 68, 90, 0.18);
+    box-shadow: 0 0 0 2px rgba(235, 68, 90, 0.35);
+  }
+  60% {
+    background-color: rgba(235, 68, 90, 0.06);
+  }
+  100% {
+    background-color: var(--ion-card-background, #ffffff);
+  }
+}
+
+.copy-coords-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--ion-color-step-100, rgba(0, 0, 0, 0.04));
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.08));
+  color: var(--ion-text-color, #111);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
+    color: var(--ion-color-danger, #eb445a);
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 }
 

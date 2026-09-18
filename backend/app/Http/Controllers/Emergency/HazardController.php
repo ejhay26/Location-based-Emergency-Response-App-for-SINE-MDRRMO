@@ -23,17 +23,19 @@ class HazardController extends Controller
 
     public function submitHazard(Request $request)
     {
+        $userId = $request->user()?->user_id ?? $request->input('user_id');
+
         $request->validate([
             'user_id'       => 'required|integer',
             'description'   => 'required|string',
-            'latitude'      => 'required|numeric',
-            'longitude'     => 'required|numeric',
+            'latitude'      => 'required|numeric|between:-90,90',
+            'longitude'     => 'required|numeric|between:-180,180',
             'proof_files'   => 'required|array|min:1|max:2',
             'proof_files.*' => 'string|max:20971520',
             'hazard_type'   => 'nullable|string|max:50',
         ]);
 
-        $proofFilesJson = $this->processProofFiles($request->proof_files, $request->user_id, 'hazard');
+        $proofFilesJson = $this->processProofFiles($request->proof_files, $userId, 'hazard');
 
         // Server-side, authoritative barangay resolution — see
         // BarangayResolver's class doc for why this is never trusted from
@@ -42,7 +44,7 @@ class HazardController extends Controller
         $barangayId = $this->barangayResolver->resolve((float) $request->latitude, (float) $request->longitude);
 
         $hazard = Hazard::create([
-            'user_id'     => $request->user_id,
+            'user_id'     => $userId,
             'description' => $request->description,
             'hazard_type' => $request->hazard_type,
             'proof_files' => $proofFilesJson,

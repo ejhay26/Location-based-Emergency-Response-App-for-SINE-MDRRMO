@@ -91,6 +91,46 @@ export class IconRegistryService {
       }
     ],
     [
+      'copy',
+      {
+        name: 'copy',
+        faClass: 'fa-regular fa-copy',
+        lucideSvg: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>'
+      }
+    ],
+    [
+      'wifi',
+      {
+        name: 'wifi',
+        faClass: 'fa-solid fa-wifi',
+        lucideSvg: '<path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/>'
+      }
+    ],
+    [
+      'wifi-off',
+      {
+        name: 'wifi-off',
+        faClass: 'fa-solid fa-plane-slash',
+        lucideSvg: '<path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><line x1="2" x2="22" y1="2" y2="22"/>'
+      }
+    ],
+    [
+      'draft',
+      {
+        name: 'draft',
+        faClass: 'fa-solid fa-file-pen',
+        lucideSvg: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'
+      }
+    ],
+    [
+      'save',
+      {
+        name: 'save',
+        faClass: 'fa-solid fa-floppy-disk',
+        lucideSvg: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>'
+      }
+    ],
+    [
       'moon',
       {
         name: 'moon',

@@ -14,6 +14,7 @@ import { DesktopNotificationsService } from '../../../core/services/desktop-noti
 import { KeyboardShortcutsService } from '../../../core/services/keyboard-shortcuts.service';
 import { AdminUiService } from './admin-ui.service';
 
+import { DialogService } from '../../../core/services/dialog.service';
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 import { CustomTooltipDirective } from '../../../shared/directives/custom-tooltip.directive';
 import { isTauri, isMacDesktop } from '../../../shared/utils/platform.util';
@@ -99,6 +100,8 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.isMoreSheetOpen = false;
   }
 
+  isServerConnected = true;
+
   get isSubPanel(): boolean {
     return ['verifications', 'dispatchers', 'citizens', 'analytics', 'feedback', 'settings', 'help'].includes(this.viewMode);
   }
@@ -109,6 +112,27 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   selectViewMode(mode: ViewMode): void {
+    if (this.viewMode === 'broadcast' && mode !== 'broadcast' && this.broadcastPanel?.isDirty()) {
+      this.dialog.confirm({
+        title: 'Unsaved Broadcast',
+        message: 'You have an unsaved announcement draft in progress. Discarding will lose your message content.',
+        icon: 'circle-alert',
+        iconColor: 'var(--ion-color-warning, #eab308)',
+        confirmLabel: 'Discard & Leave',
+        confirmColor: 'danger',
+        cancelLabel: 'Keep Editing',
+      }).then(confirmed => {
+        if (confirmed) {
+          this.broadcastPanel?.clearDraft();
+          this.applyViewMode(mode);
+        }
+      });
+      return;
+    }
+    this.applyViewMode(mode);
+  }
+
+  private applyViewMode(mode: ViewMode): void {
     if (mode === 'menu' && this.isSubPanel) {
       this.navDirection = 'back';
     } else if (mode !== 'menu') {
@@ -158,6 +182,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   private tourSub?: Subscription;
+  private echoConnectedSub?: Subscription;
   private echoEmergencySub?: Subscription;
   private echoHazardSub?: Subscription;
   private echoUserSub?: Subscription;
@@ -177,9 +202,16 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     private desktopNotifications: DesktopNotificationsService,
     public  ui: AdminUiService,
     private shortcuts: KeyboardShortcutsService,
+    private dialog: DialogService,
   ) {}
 
   ngOnInit() {
+    this.echo.connect();
+    this.isServerConnected = this.echo.isConnected;
+    this.echoConnectedSub = this.echo.onConnected.subscribe(connected => {
+      this.isServerConnected = connected;
+    });
+
     this.tourSub = this.tour.panelChange$.subscribe(panel => {
       if (panel) this.viewMode = panel as ViewMode;
     });
@@ -405,5 +437,18 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
         ).subscribe({ next: finishLogout });
       }),
     });
+  }
+
+  ngOnDestroy(): void {
+    this.tourSub?.unsubscribe();
+    this.echoConnectedSub?.unsubscribe();
+    this.echoEmergencySub?.unsubscribe();
+    this.echoHazardSub?.unsubscribe();
+    this.echoUserSub?.unsubscribe();
+    this.countsPollSub?.unsubscribe();
+    this.shortcutPanelSub?.unsubscribe();
+    this.shortcutActionSub?.unsubscribe();
+    this.shortcutBarangaySub?.unsubscribe();
+    this.stopResizeListeners();
   }
 }
