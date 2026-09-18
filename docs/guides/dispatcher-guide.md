@@ -85,11 +85,11 @@ The **Analytics** panel presents interactive visualizations filterable by **7-da
 
 ---
 
-## 7. Public Advisories & Scheduled Broadcasts
+## 7. Public Advisories, Scheduled Broadcasts & Drafts
 
-Dispatchers can transmit critical public safety announcements directly to citizens' mobile phones:
+Dispatchers can compose and transmit public safety announcements directly to citizens' mobile phones:
 1. Navigate to **Alert Broadcast**.
-2. If collapsed, tap the **"Create Broadcast"** button to expand the composer card.
+2. If collapsed, tap the **"New Announcement"** button to expand the composer card.
 3. Enter an optional **Headline** (e.g. *"Heavy Rainfall Warning"*).
 4. Type the detailed advisory message.
 5. **Select Audience:**
@@ -97,9 +97,14 @@ Dispatchers can transmit critical public safety announcements directly to citize
    - Or select specific **Barangays** (e.g. *Tabon*, *Pulo*) for localized alerts.
 6. **Attach Media & Drag-and-Drop:** Drag or select up to **4 photos or MP4 videos** for instant visual preview.
 7. **Delivery Mode:**
-   - **Post Immediately:** Sends the push notification right away.
+   - **Post Immediately:** Sends the push notification and alert banner right away.
    - **Schedule for Later:** Pick a future date and time for automated release with past-time guards.
-8. **Active & Scheduled Announcements:** Monitor live broadcasts and scheduled queues directly below the composer.
+   - **Save as Draft:** Stores the advisory in a reviewable draft state without notifying citizens.
+8. **Drafts Review & Management:**
+   - Click **Draft** (or choose the "Save as Draft" mode) to save an announcement in the **Saved Drafts** queue.
+   - Operators can review pending drafts, click **Review / Edit** to load them directly into the composer, refine details, and publish or schedule them.
+   - Click **Discard** on any draft to remove it permanently.
+9. **Active, Scheduled & Archived Announcements:** Monitor live running alerts, inspect queued scheduled announcements, and audit historical broadcasts directly below the composer.
 
 ---
 

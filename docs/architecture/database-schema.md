@@ -135,6 +135,7 @@ erDiagram
         text message
         longtext media_files
         tinyint is_active
+        tinyint is_draft
         timestamp scheduled_at
         timestamp created_at
     }
@@ -272,6 +273,8 @@ Stores one-tap SOS emergency filings from citizens.
 | `is_false_alarm` | `boolean` | No | Default `false`; set to `true` on confirmed false alarm mark |
 | `request_time` | `timestamp` | No | Incident timestamp |
 
+- **Indexes:** `idx_emergency_requests_status_time` composite index on `(status, request_time)` for optimized queue ordering and low-latency dashboard polling.
+
 ---
 
 ### 2.4 `hazards`
@@ -287,6 +290,8 @@ Citizen-reported public road hazards (floods, fallen trees, electrical hazards).
 | `proof_files` | `longtext` (JSON) | Yes | JSON array of photo/video evidence paths |
 | `latitude` / `longitude` | `decimal(10,8)` / `(11,8)` | Yes | Hazard location coordinates |
 | `status` | `varchar(50)` | Yes | `'Active'`, `'Resolved'` |
+
+- **Indexes:** `idx_hazards_status_created` composite index on `(status, created_at)` for rapid active hazard querying.
 
 ---
 
@@ -316,7 +321,7 @@ Municipal response units and their linked emergency vehicle fleets.
 ### 2.7 `broadcasts` & `broadcast_barangays`
 Emergency alert banners pushed by dispatchers/admins.
 
-- **`broadcasts`**: Contains `broadcast_id`, `title`, `message`, `media_files` (JSON array of up to 4 images/videos), `is_active` (`1` or `0`), `scheduled_at` (nullable future timestamp for queued releases), and `created_at`.
+- **`broadcasts`**: Contains `broadcast_id`, `title`, `message`, `media_files` (JSON array of up to 4 images/videos), `is_active` (`1` or `0`), `is_draft` (`1` for saved review drafts, `0` for published/archived), `scheduled_at` (nullable future timestamp for queued releases), and `created_at`.
 - **`broadcast_barangays`**: Pivot table (`broadcast_id`, `barangay_id`). If empty, the broadcast is treated as **Town-wide**; otherwise, it is scoped exclusively to citizens registered in the selected barangays.
 
 ---

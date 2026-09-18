@@ -79,14 +79,16 @@ Dispatchers cannot self-register; they are created and managed directly by admin
 
 ---
 
-## 7. Public Advisories & Scheduled Broadcasts
+## 7. Public Advisories, Scheduled Broadcasts & Drafts
 
 Admins and dispatchers can compose town-wide or barangay-scoped push advisories:
-- **Collapsible Announcement Composer:** Maximize panel space by collapsing or expanding the composer via the `"Create Broadcast"` toggle button while keeping current drafts preserved.
+- **Collapsible Announcement Composer:** Maximize panel space by collapsing or expanding the composer via the `"New Announcement"` toggle button while keeping current drafts preserved.
 - **Desktop Drag-and-Drop:** Drag photos or MP4 videos directly onto the composer to attach up to 4 media files.
 - **Immediate Push:** Sends notifications instantly to citizen devices.
 - **Schedule for Later:** Choose a future date and time to queue automated announcements with past-time guards.
-- **Active, Scheduled & Past Sections:** View running broadcasts, monitor queued scheduled alerts, and review archived advisories.
+- **Save as Draft:** Stores the advisory in the **Saved Drafts** queue for operational review without alerting citizens.
+- **Drafts Management & Reviewal:** Supervisors and operators can review pending drafts, click **Review / Edit** to reload them into the composer, edit details, and publish or schedule them.
+- **Active, Scheduled, Drafts & Past Sections:** View running broadcasts, monitor queued scheduled alerts, inspect unreleased drafts, and review archived advisories.
 
 ---
 

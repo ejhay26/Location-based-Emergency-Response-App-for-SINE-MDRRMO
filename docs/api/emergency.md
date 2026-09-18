@@ -94,49 +94,74 @@ Records a false alarm strike against the reporting citizen.
 ## 4. Barangay-Targeted Broadcast Alerts
 
 ### 4.1 `POST /api/create-broadcast` **[dispatcher]**
-Pushes an emergency alert banner town-wide or to specific barangays, or queues it for future automated broadcast.
+Pushes an emergency alert banner town-wide or to specific barangays, queues it for future scheduled release, or saves it as a draft for later review.
 
 - **Request Body:**
   ```json
   {
+    "broadcast_id": 8,
     "title": "Severe Flash Flood Advisory",
     "message": "Water levels rising near riverbanks in Tabon and Pulo. Evacuate if necessary.",
     "barangay_ids": [9, 6],
     "media_files": ["data:image/jpeg;base64,..."],
-    "scheduled_at": "2026-09-18T08:00:00.000Z"
+    "scheduled_at": "2026-09-18T08:00:00.000Z",
+    "is_draft": false
   }
   ```
-  *(Leave `barangay_ids` empty or omit for a Town-wide broadcast; omit `scheduled_at` for immediate broadcast).*
-- **Response (200):** `{ "message": "Broadcast pushed to Tabon, Pulo!" }` (or `{ "message": "Broadcast scheduled successfully!" }`)
-
+  - `broadcast_id` *(optional)*: Pass the ID when updating a previously saved draft or publishing it.
+  - `is_draft` *(optional)*: Set to `true` to save the announcement as a draft without sending push notifications or alerting citizens.
+  - `scheduled_at` *(optional)*: Date/time for automated future release.
+  - `barangay_ids` *(optional)*: Array of target barangay IDs. Leave empty or omit for town-wide alerts.
+- **Response (200):**
+  ```json
+  {
+    "message": "Broadcast pushed to Tabon, Pulo!",
+    "broadcast_id": 8
+  }
+  ```
 
 ---
 
 ### 4.2 `GET /api/active-broadcast`
-Returns all active broadcast alerts. Citizens only receive town-wide alerts plus broadcasts matching their home barangay; dispatchers/admins receive all active alerts.
+Retrieves broadcast alerts based on user role:
+- **Citizens:** Returns active alerts whose scheduled time has arrived or was immediate. Scoped to town-wide alerts and the citizen's registered barangay. Drafts are never returned.
+- **Dispatchers / Admins:** Returns an object containing `drafts`, `active`, `scheduled`, and `archived` arrays.
 
-- **Response (200):**
+- **Response for Admin / Dispatcher (200):**
   ```json
-  [
-    {
-      "broadcast_id": 8,
-      "title": "Severe Flash Flood Advisory",
-      "message": "Water levels rising near riverbanks...",
-      "media_files": ["https://.../broadcast_1.jpg"],
-      "is_active": 1,
-      "created_at": "2026-08-21 14:00:00",
-      "scope": "barangay",
-      "location": "Tabon, Pulo",
-      "barangay_ids": [9, 6]
-    }
-  ]
+  {
+    "drafts": [
+      {
+        "broadcast_id": 12,
+        "title": "Draft Evacuation Notice",
+        "message": "Draft advisory content...",
+        "media_files": [],
+        "is_active": 0,
+        "is_draft": 1,
+        "created_at": "2026-09-18 16:00:00",
+        "scope": "barangay",
+        "location": "Poblacion",
+        "barangay_ids": [1]
+      }
+    ],
+    "active": [],
+    "scheduled": [],
+    "archived": []
+  }
   ```
 
 ---
 
 ### 4.3 `POST /api/clear-broadcast` **[dispatcher]**
-Deactivates a specific broadcast alert.
+Stops and archives an active broadcast alert, removing it from citizen devices. If called on a draft, permanently removes the draft.
 - **Request Body:** `{ "broadcast_id": 8 }`
+
+---
+
+### 4.4 `POST /api/delete-draft` **[dispatcher]**
+Permanently discards a saved draft announcement.
+- **Request Body:** `{ "broadcast_id": 12 }`
+- **Response (200):** `{ "message": "Draft announcement discarded." }`
 
 ---
 
@@ -164,5 +189,5 @@ The client subscribes to public Reverb channels using **Laravel Echo**:
 |---|---|---|---|
 | **`emergencies`** | `.EmergencyUpdated` | `{"action": "submitted"\|"dispatched"\|"resolved"\|"cancelled"\|"false_alarm", "request_id": 42}` | Any change to active SOS requests |
 | **`hazards`** | `.HazardUpdated` | `{"action": "submitted"\|"resolved", "hazard_id": 15}` | Hazard reported or acknowledged |
-| **`broadcasts`** | `.BroadcastMessageUpdated` | `{"action": "created"\|"cleared", "broadcast_id": 8}` | Admin alert banner added or removed |
+| **`broadcasts`** | `.BroadcastMessageUpdated` | `{"action": "created"\|"cleared"\|"draft_saved"\|"deleted", "broadcast_id": 8}` | Admin alert banner added, removed, or draft updated |
 | **`users`** | `.UserVerified` | `{"action": "approved"\|"rejected"\|"suspended"\|"reinstated", "user_id": 12}` | Citizen verification state modified |
