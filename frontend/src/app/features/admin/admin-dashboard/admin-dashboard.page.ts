@@ -116,7 +116,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     const adminOnlyPanels: ViewMode[] = ['feedback', 'verifications', 'dispatchers', 'citizens'];
     const isAdmin = this.currentRole?.toLowerCase() === 'admin';
     if (!isAdmin && adminOnlyPanels.includes(mode)) {
-      this.ui.toast('Access restricted: Administrator privileges required', 'warning');
+      this.ui.showToast('Access restricted: Administrator privileges required', 'warning');
       return;
     }
 

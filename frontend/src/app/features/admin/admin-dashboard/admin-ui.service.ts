@@ -60,6 +60,9 @@ export class AdminUiService {
       action,
     });
   }
+  async toast(msg: string, color: any = 'danger', action?: ToastAction) {
+    return this.showToast(msg, color, action);
+  }
 
   // ── Barangay names ───────────────────────────────────────────────────────
   // Single source of truth is shared/constants/barangays.ts — mirrored here

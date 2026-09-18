@@ -658,11 +658,6 @@ export class BroadcastPanel implements OnInit, OnDestroy {
    * spinner for the full duration of the request — no separate flag needed.
    */
   confirmSubmitBroadcast() {
-    if (this.deliveryMode === 'draft') {
-      this.saveAsDraft();
-      return;
-    }
-
     if (!this.broadcastForm.message.trim()) return;
 
     if (this.isScheduled) {
