@@ -71,11 +71,11 @@ When an SOS is transmitted, this medical record is attached automatically to the
 - **Granular Audience Targeting:** Dispatchers can broadcast alerts either **Town-wide** (all residents) or scoped to one or more specific **Barangays**.
 - **Rich Media & Drag-and-Drop Composer:** Desktop composer supports drag-and-drop file uploads and up to **4 attached images or MP4 videos** with thumbnail previews.
 - **Collapsible Composer Card:** The announcement composer features a collapsible layout with a quick toggle button (`"+ New Announcement"`), maximizing screen real estate on desktop and mobile while seamlessly preserving composer form inputs across tab switching.
-- **Three Delivery Modes:**
+- **Delivery Schedules & Draft Workflow:**
   - **Post Immediately:** Pushes alerts immediately to citizen devices.
   - **Schedule for Later:** Queues announcements for automated future release at a specified date and time (`scheduled_at`), protected by past-time validation guards.
-  - **Save as Draft:** Stores the announcement in a reviewable draft state without sending notifications or sounding public alarms.
-- **Drafts Management & Reviewal:** A dedicated **Saved Drafts** section displays all unreleased announcements. Dispatchers can click **Review / Edit** to load any draft back into the composer for editing and publishing, or click **Discard** to remove it.
+  - **Save as Draft:** Stores the announcement in the reviewable **Saved Drafts** queue without sending notifications or sounding public alarms.
+- **Drafts Review & Publishing Queue:** A dedicated **Saved Drafts** section displays all unreleased announcements awaiting review. Dispatchers can click **Review / Edit** to load any draft back into the composer to refine details, update the draft, or publish/schedule immediately, or click **Discard** to remove it.
 - **Active, Scheduled & Archived Management:** Operators monitor active running alerts, inspect queued scheduled announcements, and audit historical broadcasts.
 - **Client-Side Filtering:** Citizens only receive push notifications and UI banners that apply to their home barangay or the entire municipality. Drafts are never delivered to citizen devices.
 

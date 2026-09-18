@@ -269,24 +269,59 @@ export class KeyboardShortcutsService {
       return;
     }
 
-    // 9. Number keys: Ctrl + 1-4 for fast panel switching
+    // 9. Number keys: Ctrl/Cmd + 1-9 & 0 for fast panel switching (strictly matching sidebar top-to-bottom order)
     if (modifier && !e.shiftKey && !e.altKey) {
-      if (e.key === '1') {
-        e.preventDefault();
-        e.stopPropagation();
-        this.navigateToPanel('active');
-      } else if (e.key === '2') {
-        e.preventDefault();
-        e.stopPropagation();
-        this.navigateToPanel('broadcast');
-      } else if (e.key === '3') {
-        e.preventDefault();
-        e.stopPropagation();
-        this.navigateToPanel('verifications');
-      } else if (e.key === '4') {
-        e.preventDefault();
-        e.stopPropagation();
-        this.navigateToPanel('analytics');
+      switch (e.key) {
+        case '1':
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToPanel('active');
+          break;
+        case '2':
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToPanel('archive');
+          break;
+        case '3':
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToPanel('analytics');
+          break;
+        case '4':
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToPanel('broadcast');
+          break;
+        case '5':
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToPanel('feedback');
+          break;
+        case '6':
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToPanel('verifications');
+          break;
+        case '7':
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToPanel('dispatchers');
+          break;
+        case '8':
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToPanel('citizens');
+          break;
+        case '9':
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToPanel('settings');
+          break;
+        case '0':
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateToPanel('help');
+          break;
       }
     }
   }

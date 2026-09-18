@@ -138,7 +138,7 @@ export class BroadcastPanel implements OnInit, OnDestroy {
         if (p.title) this.broadcastForm.title = p.title;
         if (p.message) this.broadcastForm.message = p.message;
         if (Array.isArray(p.selectedBarangayIds)) this.selectedBarangayIds = p.selectedBarangayIds;
-        if (p.deliveryMode === 'scheduled' || p.deliveryMode === 'immediate' || p.deliveryMode === 'draft') {
+        if (p.deliveryMode === 'scheduled' || p.deliveryMode === 'immediate') {
           this.setDeliveryMode(p.deliveryMode);
         }
       }
@@ -331,9 +331,9 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     return Array.from({ length: daysCount }, (_, i) => i + 1);
   }
 
-  deliveryMode: 'immediate' | 'scheduled' | 'draft' = 'immediate';
+  deliveryMode: 'immediate' | 'scheduled' = 'immediate';
 
-  setDeliveryMode(mode: 'immediate' | 'scheduled' | 'draft'): void {
+  setDeliveryMode(mode: 'immediate' | 'scheduled'): void {
     this.deliveryMode = mode;
     this.setScheduledMode(mode === 'scheduled');
     this.saveComposerPreset();
@@ -342,6 +342,12 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   onDeliveryModeChange(ev?: any): void {
     const val = ev?.detail?.value || this.deliveryMode;
     this.setDeliveryMode(val);
+  }
+
+  clearComposerForm(): void {
+    this.broadcastForm = { title: '', message: '' };
+    this.selectedMedia = [];
+    this.saveComposerPreset();
   }
 
   setScheduledMode(enable: boolean): void {
@@ -607,7 +613,7 @@ export class BroadcastPanel implements OnInit, OnDestroy {
         this.updateScheduledDateTime();
       }
     } else {
-      this.setDeliveryMode('draft');
+      this.setDeliveryMode('immediate');
     }
 
     this.showComposer = true;

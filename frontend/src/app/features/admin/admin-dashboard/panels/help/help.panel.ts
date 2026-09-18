@@ -100,15 +100,15 @@ export class HelpPanel {
         {
           id: 'broadcast-delivery-mode',
           panel: 'broadcast',
-          callout: 'Step 5: Delivery Mode: Immediate, Scheduled, or Draft',
-          subtext: 'Choose "Post Immediately" for urgent alerts, "Schedule for Later" for timed automatic delivery, or "Save as Draft" to keep the notice saved for operational review before sending.',
+          callout: 'Step 5: Delivery Schedule (Immediate or Scheduled)',
+          subtext: 'Choose "Post Immediately" for real-time alerts, or "Schedule for Later" to set an automated release date and time.',
           waitForInteraction: false,
         },
         {
           id: 'broadcast-submit-btn',
           panel: 'broadcast',
-          callout: 'Step 6: Send, Schedule, or Save Draft',
-          subtext: 'Submit the announcement directly to citizens, queue it for schedule, or click the "Draft" button anytime to save your draft without broadcasting.',
+          callout: 'Step 6: Send, Schedule, or Save as Draft',
+          subtext: 'Click "Send Announcement" to broadcast to citizens, or click "Save as Draft" to store your work in the review queue without sending.',
           waitForInteraction: false,
         },
         {

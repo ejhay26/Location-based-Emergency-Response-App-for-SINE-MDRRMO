@@ -1,4 +1,4 @@
-// ── QUICK SEARCH / COMMAND PALETTE STYLES (Apple Spotlight / Raycast) ──
+// ── QUICK SEARCH / COMMAND PALETTE (Apple HIG & Spotlight Design) ──
 :host {
   display: contents;
 }
@@ -7,59 +7,42 @@
   position: fixed;
   inset: 0;
   z-index: 99990;
-  background: rgba(10, 14, 22, 0.65);
+  background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: clamp(60px, 12vh, 140px);
+  padding-top: clamp(60px, 12vh, 130px);
   padding-left: 16px;
   padding-right: 16px;
-  animation: spotlightFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: spotlightFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes spotlightFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .spotlight-card {
   width: 100%;
-  max-width: 640px;
-  max-height: min(78vh, 600px);
+  max-width: 620px;
+  max-height: min(78vh, 580px);
   background: var(--ion-card-background, #ffffff);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 20px;
-  box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.55),
-              0 0 0 1px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--card-border, rgba(0, 0, 0, 0.1));
+  border-radius: 16px;
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.22),
+              0 0 0 1px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: spotlightScaleIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-
-  @media (prefers-color-scheme: dark) {
-    background: rgba(24, 28, 40, 0.94);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
-:host-context(body.dark-mode) .spotlight-card,
-body.dark-mode .spotlight-card {
-  background: rgba(24, 28, 40, 0.94);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 24px 72px -12px rgba(0, 0, 0, 0.75),
-              0 0 0 1px rgba(255, 255, 255, 0.08);
+  animation: spotlightScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes spotlightScaleIn {
   from {
     opacity: 0;
-    transform: scale(0.96) translateY(-8px);
+    transform: scale(0.97) translateY(-6px);
   }
   to {
     opacity: 1;
@@ -72,8 +55,8 @@ body.dark-mode .spotlight-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--inset-divider, rgba(140, 140, 140, 0.15));
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--inset-divider, rgba(0, 0, 0, 0.07));
   position: relative;
 }
 
@@ -81,11 +64,9 @@ body.dark-mode .spotlight-card {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: rgba(235, 68, 90, 0.12);
-  color: var(--ion-color-danger, #eb445a);
+  width: 28px;
+  height: 28px;
+  color: var(--ion-color-medium, #8e8e93);
   flex-shrink: 0;
 }
 
@@ -95,7 +76,7 @@ body.dark-mode .spotlight-card {
   background: transparent;
   font-size: 16px;
   font-weight: 500;
-  color: var(--ion-text-color, #1a1a1a);
+  color: var(--ion-text-color, #111113);
   outline: none;
   font-family: inherit;
   letter-spacing: -0.2px;
@@ -107,63 +88,68 @@ body.dark-mode .spotlight-card {
 }
 
 .spotlight-clear-btn {
-  background: rgba(140, 140, 140, 0.18);
+  background: var(--ion-color-step-100, rgba(0, 0, 0, 0.08));
   border: none;
   border-radius: 50%;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--ion-color-medium, #8e8e93);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   padding: 0;
   transition: all 0.15s ease;
 
   &:hover {
-    background: rgba(140, 140, 140, 0.32);
-    color: var(--ion-text-color, #1a1a1a);
+    background: var(--ion-color-step-200, rgba(0, 0, 0, 0.16));
+    color: var(--ion-text-color, #111113);
   }
 }
 
 .spotlight-esc-hint {
   display: inline-flex;
   align-items: center;
-  padding: 3px 7px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--ion-color-medium, #8e8e93);
-  background: var(--ion-color-step-100, rgba(140, 140, 140, 0.12));
-  border: 1px solid rgba(140, 140, 140, 0.2);
-  border-radius: 6px;
-  letter-spacing: 0.3px;
+  justify-content: center;
+  min-width: 26px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--ion-color-medium, #636366);
+  background: var(--ion-color-step-50, #f8f9fa);
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.15));
+  border-bottom: 2px solid rgba(0, 0, 0, 0.22);
+  border-radius: 5px;
+  letter-spacing: 0.2px;
   cursor: pointer;
+  user-select: none;
 }
 
 // ── Results List ──
 .spotlight-body {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 12px 14px;
+  padding: 8px 10px 12px;
   overscroll-behavior: contain;
 
   &::-webkit-scrollbar {
     width: 6px;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(140, 140, 140, 0.24);
+    background: var(--ion-color-step-200, rgba(0, 0, 0, 0.15));
     border-radius: 4px;
   }
 }
 
 .spotlight-category-header {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
   color: var(--ion-color-medium, #8e8e93);
-  padding: 10px 12px 6px;
+  padding: 10px 10px 4px;
 }
 
 .spotlight-item {
@@ -171,29 +157,22 @@ body.dark-mode .spotlight-card {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  margin: 2px 0;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.12s ease, transform 0.1s ease;
+  background: transparent;
+  transition: background-color 0.12s ease;
   user-select: none;
 
   &:hover,
   &.is-selected {
-    background: rgba(235, 68, 90, 0.1);
+    background: var(--ion-color-step-100, #f2f2f7);
 
     .item-icon-box {
-      background: var(--ion-color-danger, #eb445a);
+      background: var(--ion-color-danger, #d32f2f);
       color: #ffffff;
-      transform: scale(1.05);
     }
-
-    .item-title {
-      color: var(--ion-color-danger, #eb445a);
-    }
-  }
-
-  &.is-selected {
-    box-shadow: inset 3px 0 0 var(--ion-color-danger, #eb445a);
   }
 }
 
@@ -206,16 +185,16 @@ body.dark-mode .spotlight-card {
 }
 
 .item-icon-box {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: var(--ion-color-step-100, rgba(140, 140, 140, 0.12));
-  color: var(--ion-color-medium, #8e8e93);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
+  color: var(--ion-color-medium, #636366);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: all 0.12s ease;
 }
 
 .item-text {
@@ -223,21 +202,21 @@ body.dark-mode .spotlight-card {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1.5px;
 }
 
 .item-title {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
-  color: var(--ion-text-color, #1a1a1a);
+  color: var(--ion-text-color, #111113);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color 0.12s ease;
 }
 
 .item-subtitle {
-  font-size: 12px;
+  font-size: 11.5px;
+  font-weight: 400;
   color: var(--ion-color-medium, #8e8e93);
   white-space: nowrap;
   overflow: hidden;
@@ -247,15 +226,21 @@ body.dark-mode .spotlight-card {
 .item-badge-kbd {
   display: inline-flex;
   align-items: center;
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ion-color-medium, #8e8e93);
-  background: var(--ion-color-step-50, rgba(140, 140, 140, 0.08));
-  border: 1px solid rgba(140, 140, 140, 0.18);
-  border-radius: 6px;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ion-text-color, #1f2937);
+  background: var(--ion-color-step-50, #f8f9fa);
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.15));
+  border-bottom: 2px solid rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
   white-space: nowrap;
   flex-shrink: 0;
+  user-select: none;
 }
 
 // ── Empty State ──
@@ -271,7 +256,7 @@ body.dark-mode .spotlight-card {
     margin: 0;
     font-size: 14px;
     font-weight: 600;
-    color: var(--ion-text-color, #1a1a1a);
+    color: var(--ion-text-color, #111113);
   }
 
   span {
@@ -280,35 +265,112 @@ body.dark-mode .spotlight-card {
   }
 }
 
-// ── Footer with navigation instructions ──
+// ── Bottom Navigation Footer (Apple HIG Style) ──
 .spotlight-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 18px;
-  border-top: 1px solid var(--inset-divider, rgba(140, 140, 140, 0.12));
-  background: var(--ion-color-step-50, rgba(140, 140, 140, 0.04));
-  font-size: 11.5px;
+  padding: 9px 16px;
+  border-top: 1px solid var(--inset-divider, rgba(0, 0, 0, 0.07));
+  background: var(--ion-color-step-50, #f9f9fb);
+  font-size: 11px;
   color: var(--ion-color-medium, #8e8e93);
 }
 
 .footer-nav-hints {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 
   .nav-hint-item {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 
     kbd {
-      padding: 1px 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      min-width: 16px;
+      height: 16px;
       font-size: 10px;
-      font-weight: 700;
-      background: var(--ion-color-step-100, rgba(140, 140, 140, 0.15));
-      border: 1px solid rgba(140, 140, 140, 0.2);
+      font-weight: 800;
+      color: var(--ion-text-color, #1f2937);
+      background: var(--ion-card-background, #ffffff);
+      border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.15));
+      border-bottom: 1.5px solid rgba(0, 0, 0, 0.25);
       border-radius: 4px;
+    }
+  }
+}
+
+// ── DARK THEME OVERRIDES (OLED Pure Black & Apple Dark Hierarchy) ──
+body.dark,
+body.dark-mode,
+.dark-theme,
+.ion-palette-dark,
+[data-theme="dark"] {
+  .spotlight-backdrop {
+    background: rgba(0, 0, 0, 0.65);
+  }
+
+  .spotlight-card {
+    background: var(--ion-card-background, #1c1c1e);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.8),
+                0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+
+  .spotlight-header {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .spotlight-esc-hint {
+    background: var(--ion-color-step-150, #2c2c2e);
+    border-color: rgba(255, 255, 255, 0.15);
+    border-bottom-color: rgba(255, 255, 255, 0.32);
+    color: #f2f2f7;
+  }
+
+  .spotlight-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .spotlight-item {
+    &:hover,
+    &.is-selected {
+      background: var(--ion-color-step-150, #2c2c2e);
+
+      .item-icon-box {
+        background: var(--ion-color-danger, #eb445a);
+        color: #ffffff;
+      }
+    }
+  }
+
+  .item-icon-box {
+    background: rgba(255, 255, 255, 0.08);
+    color: #a1a1aa;
+  }
+
+  .item-badge-kbd {
+    background: var(--ion-color-step-150, #2c2c2e);
+    border-color: rgba(255, 255, 255, 0.15);
+    border-bottom-color: rgba(255, 255, 255, 0.32);
+    color: #f2f2f7;
+  }
+
+  .spotlight-footer {
+    background: var(--ion-color-step-100, #161618);
+    border-top-color: rgba(255, 255, 255, 0.08);
+    color: #8e8e93;
+
+    .footer-nav-hints .nav-hint-item kbd {
+      background: var(--ion-color-step-200, #2c2c2e);
+      border-color: rgba(255, 255, 255, 0.16);
+      border-bottom-color: rgba(255, 255, 255, 0.32);
+      color: #f2f2f7;
     }
   }
 }

@@ -100,12 +100,11 @@ Dispatchers can compose and transmit public safety announcements directly to cit
    - Leave on **All Barangays** for a municipal-wide broadcast.
    - Or select specific **Barangays** (e.g. *Tabon*, *Pulo*) for localized alerts.
 6. **Attach Media & Drag-and-Drop:** Drag or select up to **4 photos or MP4 videos** for instant visual preview.
-7. **Delivery Mode:**
-   - **Post Immediately:** Sends the push notification and alert banner right away.
+7. **Delivery Schedule:**
+   - **Post Immediately:** Sends the push notification and alert banner right away upon clicking "Send Announcement".
    - **Schedule for Later:** Pick a future date and time for automated release with past-time guards.
-   - **Save as Draft:** Stores the advisory in a reviewable draft state without notifying citizens.
 8. **Drafts Review & Management:**
-   - Click **Draft** (or choose the "Save as Draft" mode) to save an announcement in the **Saved Drafts** queue.
+   - Click **Save as Draft** anytime in the composer toolbar to store work in the **Saved Drafts** queue without notifying citizens.
    - Operators can review pending drafts, click **Review / Edit** to load them directly into the composer, refine details, and publish or schedule them.
    - Click **Discard** on any draft to remove it permanently.
 9. **Active, Scheduled & Archived Announcements:** Monitor live running alerts, inspect queued scheduled announcements, and audit historical broadcasts directly below the composer.
@@ -116,7 +115,7 @@ Dispatchers can compose and transmit public safety announcements directly to cit
 
 Dispatchers can launch spotlight guided tours from the **Help** panel:
 - **Incident Map Tour:** Step-by-step guidance on live map controls, filters, queue browsing, and pin focus.
-- **Alert Broadcast Tour:** Walkthrough of expanding the composer card, headline writing, media attachments, barangay targeting, delivery modes (immediate, scheduled, draft), saving drafts for operational review, and managing the active, scheduled, and draft queues.
+- **Alert Broadcast Tour:** Walkthrough of expanding the composer card, headline writing, media attachments, barangay targeting, delivery schedules (immediate, scheduled), saving drafts for operational review, and managing the active, scheduled, and draft queues.
 - **Archive Tour:** Guide on searching historical reports, false alarm tagging, and PDF export.
 - **Adaptive Mobile Steps:** Walkthrough automatically adjusts to highlight mobile sheets, composer toggles, and drawer elements when opened on a smartphone.
 

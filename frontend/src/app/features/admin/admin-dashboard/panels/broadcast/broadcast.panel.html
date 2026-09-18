@@ -144,12 +144,12 @@
         </div>
       </div>
 
-      <!-- Delivery Mode (System Responsive Segment Toggle) -->
+      <!-- Delivery Mode (2 Choices: Post Immediately or Schedule for Later) -->
       <div id="broadcast-delivery-mode" style="margin-top: 18px;">
         <label style="font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.6px; display: block; margin-bottom: 6px;">
-          Delivery Mode
+          Delivery Schedule
         </label>
-        <div class="apple-segmented-control" role="group" aria-label="Delivery Mode" style="width: 100%; display: flex;">
+        <div class="apple-segmented-control" role="group" aria-label="Delivery Schedule" style="width: 100%; display: flex;">
           <button
             type="button"
             class="segmented-pill-btn"
@@ -167,15 +167,6 @@
             (click)="setDeliveryMode('scheduled')">
             <app-icon name="calendar-clock" [size]="14"></app-icon>
             <span>Schedule for Later</span>
-          </button>
-          <button
-            type="button"
-            class="segmented-pill-btn"
-            style="flex: 1; height: 36px; padding: 0 10px; font-size: 12.5px; justify-content: center;"
-            [class.active]="deliveryMode === 'draft'"
-            (click)="setDeliveryMode('draft')">
-            <app-icon name="draft" [size]="14"></app-icon>
-            <span>Save as Draft</span>
           </button>
         </div>
       </div>
@@ -263,43 +254,59 @@
         </span>
       </div>
 
-      <!-- Action Buttons Row -->
-      <div style="display: flex; gap: 10px; margin-top: 18px; align-items: stretch; flex-wrap: wrap;">
-        <!-- Quick Save as Draft Button (Always available to save for later reviewal without switching delivery mode) -->
+      <!-- Draft Editing Active Banner -->
+      <div *ngIf="editingDraftId"
+           style="margin-top: 14px; padding: 10px 14px; border-radius: 12px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.28); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <app-icon name="draft" [size]="16" color="#f59e0b"></app-icon>
+          <span style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color);">
+            Reviewing Draft <strong style="color: #f59e0b;">#{{ editingDraftId }}</strong>
+          </span>
+        </div>
         <button
-          *ngIf="deliveryMode !== 'draft'"
+          type="button"
+          (click)="clearDraft()"
+          style="border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.15)); background: var(--ion-card-background, #fff); color: var(--ion-color-medium); font-size: 11.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px;"
+          [appTooltip]="'Cancel reviewing draft and reset composer'">
+          <app-icon name="close" [size]="12" color="var(--ion-color-medium)"></app-icon>
+          <span>Cancel Review</span>
+        </button>
+      </div>
+
+      <!-- Action Buttons Toolbar -->
+      <div style="display: flex; gap: 10px; margin-top: 18px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+        <!-- Clear Form Button (when composing fresh and content exists) -->
+        <button
+          *ngIf="!editingDraftId && (broadcastForm.title.trim() || broadcastForm.message.trim() || selectedMedia.length > 0)"
+          type="button"
+          (click)="clearComposerForm()"
+          style="margin-right: auto; border: none; background: transparent; color: var(--ion-color-medium); font-size: 12px; font-weight: 600; cursor: pointer; padding: 8px 10px; border-radius: 8px;"
+          [appTooltip]="'Clear headline, message text, and attachments'">
+          Clear Form
+        </button>
+
+        <!-- Secondary Action: Save as Draft / Update Draft -->
+        <button
           type="button"
           (click)="saveAsDraft()"
           [disabled]="!broadcastForm.message.trim() && !broadcastForm.title.trim()"
-          appTooltip="Save this announcement as a draft for reviewal before publishing"
-          style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 16px; height: 48px; border-radius: 12px; border: 1.5px solid var(--ion-color-step-300, #b0b0b0); background: var(--ion-card-background, #fff); color: var(--ion-text-color); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
-          <app-icon name="save" [size]="15" color="var(--ion-color-medium)"></app-icon>
-          <span>{{ editingDraftId ? 'Save Draft' : 'Draft' }}</span>
+          [appTooltip]="editingDraftId ? 'Save changes to this draft in the review queue' : 'Save as draft to review and edit before sending'"
+          style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 18px; height: 44px; border-radius: 12px; border: 1.5px solid var(--ion-color-step-300, #b0b0b0); background: var(--ion-card-background, #fff); color: var(--ion-text-color); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
+          <app-icon name="draft" [size]="15" color="var(--ion-color-medium)"></app-icon>
+          <span>{{ editingDraftId ? 'Update Draft' : 'Save as Draft' }}</span>
         </button>
 
-        <!-- Primary Action Button (Publish / Schedule / Save Draft) -->
+        <!-- Primary Action: Send Announcement / Schedule Announcement / Publish Draft Now -->
         <ion-button
           id="broadcast-submit-btn"
-          expand="block"
-          [color]="deliveryMode === 'draft' ? 'medium' : 'danger'"
+          color="danger"
           (click)="confirmSubmitBroadcast()"
-          [disabled]="deliveryMode === 'draft' ? (!broadcastForm.message.trim() && !broadcastForm.title.trim()) : (!broadcastForm.message.trim() || (isScheduled && isPastScheduleTime))"
-          [appTooltip]="deliveryMode === 'draft' ? 'Save draft for later reviewal' : 'Send emergency broadcast alert to selected recipients'"
-          style="flex: 1; min-width: 180px; font-weight: 800; height: 48px; margin: 0; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(235,68,90,0.3);">
-          <app-icon [name]="deliveryMode === 'draft' ? 'save' : (isScheduled ? 'calendar-clock' : 'send')" [size]="16" color="#ffffff" style="margin-right: 8px;"></app-icon>
-          {{ deliveryMode === 'draft' ? (editingDraftId ? 'Update Saved Draft' : 'Save Draft for Reviewal') : (isScheduled ? 'Schedule Announcement' : (editingDraftId ? 'Publish Draft Now' : 'Send Announcement')) }}
+          [disabled]="!broadcastForm.message.trim() || (isScheduled && isPastScheduleTime)"
+          [appTooltip]="isScheduled ? 'Queue broadcast to auto-release at scheduled date/time' : (editingDraftId ? 'Publish this draft immediately to citizens' : 'Send emergency broadcast immediately to citizens')"
+          style="min-width: 190px; height: 44px; margin: 0; font-weight: 800; font-size: 13px; --border-radius: 12px; --box-shadow: 0 4px 14px rgba(235,68,90,0.28);">
+          <app-icon [name]="isScheduled ? 'calendar-clock' : 'send'" [size]="15" color="#ffffff" style="margin-right: 7px;"></app-icon>
+          {{ isScheduled ? (editingDraftId ? 'Schedule Draft' : 'Schedule Announcement') : (editingDraftId ? 'Publish Draft Now' : 'Send Announcement') }}
         </ion-button>
-
-        <!-- Cancel Draft Editing Button (if actively editing a loaded draft) -->
-        <button
-          *ngIf="editingDraftId"
-          type="button"
-          (click)="clearDraft()"
-          appTooltip="Cancel editing this draft and clear composer"
-          style="display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 14px; height: 48px; border-radius: 12px; border: 1px solid var(--ion-color-step-200, #ccc); background: transparent; color: var(--ion-color-medium); font-size: 12px; font-weight: 700; cursor: pointer;">
-          <app-icon name="close" [size]="13" color="var(--ion-color-medium)"></app-icon>
-          <span>Cancel</span>
-        </button>
       </div>
     </ion-card-content>
       </div>
