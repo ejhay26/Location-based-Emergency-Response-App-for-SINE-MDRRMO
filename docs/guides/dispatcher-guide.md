@@ -37,16 +37,20 @@ The **Incident Map** is the primary operational dashboard:
 [Tap "Dispatch" Button]
         ├─ Step 1: Select Responder Unit (BFP, PNP, Rescue, RHU)
         ├─ Step 2: Select Matching Vehicle (Ambulance, Fire Truck, Patrol Car)
+        │         (Assets automatically synchronized to in-use status across all consoles)
         │
         ▼
 [Confirm Dispatch] ──▶ Status becomes "En Route" (Citizen notified via Push Alert)
         │
         ▼ (Incident Resolved on Scene)
 [Tap "Resolve"]    ──▶ Confirmation dialog with animated loading spinner
+        │             (Assigned units and vehicles automatically returned to available)
         │
         ▼
 Status becomes "Resolved" & moved to Log Archive
 ```
+
+- **Copy Coordinates:** Dispatchers can click the coordinate button on any incident card to copy latitude and longitude directly to the clipboard.
 
 ---
 
@@ -112,7 +116,7 @@ Dispatchers can compose and transmit public safety announcements directly to cit
 
 Dispatchers can launch spotlight guided tours from the **Help** panel:
 - **Incident Map Tour:** Step-by-step guidance on live map controls, filters, queue browsing, and pin focus.
-- **Alert Broadcast Tour:** Walkthrough of opening the composer card, headline writing, media attachments, barangay targeting, and scheduling.
+- **Alert Broadcast Tour:** Walkthrough of expanding the composer card, headline writing, media attachments, barangay targeting, delivery modes (immediate, scheduled, draft), saving drafts for operational review, and managing the active, scheduled, and draft queues.
 - **Archive Tour:** Guide on searching historical reports, false alarm tagging, and PDF export.
 - **Adaptive Mobile Steps:** Walkthrough automatically adjusts to highlight mobile sheets, composer toggles, and drawer elements when opened on a smartphone.
 

@@ -49,6 +49,7 @@ To maintain functionality during cell tower congestion or signal outages:
 ## 6. Smart Unit & Fleet Dispatching
 
 - **Linked Asset Dropdowns:** The dispatch system prevents mismatched unit assignments by linking responder teams (Fire, Police, Rescue, RHU) to their specific assigned vehicles (e.g. selecting BFP only reveals fire trucks and water tenders).
+- **Real-Time Asset State Synchronization:** Unit dispatching dynamically flags responder and vehicle states to `in_use` across all active operations consoles to prevent double-assignment. Resolving or cancelling the emergency restores assets back to `available`.
 - **Incident Lifecycle Tracking:** Dispatches transition incidents through `Pending` → `Dispatched` (`En Route`) → `Resolved` (`Completed`), sending push notifications to reporting citizens at each milestone.
 
 ---
@@ -69,7 +70,7 @@ When an SOS is transmitted, this medical record is attached automatically to the
 
 - **Granular Audience Targeting:** Dispatchers can broadcast alerts either **Town-wide** (all residents) or scoped to one or more specific **Barangays**.
 - **Rich Media & Drag-and-Drop Composer:** Desktop composer supports drag-and-drop file uploads and up to **4 attached images or MP4 videos** with thumbnail previews.
-- **Collapsible Composer Card:** The announcement composer features a collapsible layout with a quick toggle button (`"Create Broadcast"`), maximizing screen real estate on desktop and mobile while seamlessly preserving composer form inputs across tab switching.
+- **Collapsible Composer Card:** The announcement composer features a collapsible layout with a quick toggle button (`"+ New Announcement"`), maximizing screen real estate on desktop and mobile while seamlessly preserving composer form inputs across tab switching.
 - **Three Delivery Modes:**
   - **Post Immediately:** Pushes alerts immediately to citizen devices.
   - **Schedule for Later:** Queues announcements for automated future release at a specified date and time (`scheduled_at`), protected by past-time validation guards.

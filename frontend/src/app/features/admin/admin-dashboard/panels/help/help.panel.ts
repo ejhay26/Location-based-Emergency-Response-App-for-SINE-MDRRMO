@@ -264,8 +264,7 @@ export class HelpPanel {
     if (isMobile) {
       if (proc.id === 'incident-map') return 7;
       if (proc.id === 'account-management') return 13;
-      if (proc.id === 'broadcast') return 10;
-      if (proc.id === 'archive') return 3;
+      return this.buildMobileSteps(proc.steps).length;
     }
     return proc.steps.length;
   }
@@ -532,6 +531,14 @@ export class HelpPanel {
       }
     }
 
-    return result;
+    return result.map((s, idx) => {
+      if (/^Step \d+:/i.test(s.callout)) {
+        return {
+          ...s,
+          callout: s.callout.replace(/^Step \d+:/i, `Step ${idx + 1}:`)
+        };
+      }
+      return s;
+    });
   }
 }

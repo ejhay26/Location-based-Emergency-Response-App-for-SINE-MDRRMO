@@ -98,7 +98,7 @@ Admins and dispatchers can compose town-wide or barangay-scoped push advisories:
 - **Reduce Animations:** Minimize UI transition effects for maximum performance on lower-spec workstations.
 - **Emergency Audio & Push Alerts:** Enable or mute real-time sound cues and push alerts for incoming SOS calls.
 - **Default Map Style:** Set the default tile layer for the Incident Map (**Street View** vs. **Satellite Imagery**).
-- **Interactive Guided Tours:** Step-by-step walkthroughs for dispatch, broadcasts, archiving, and staff management with viewport-adaptive mobile steps, interactive element tracking (including expanding the broadcast composer), and mock demo fallbacks.
+- **Interactive Guided Tours:** Step-by-step walkthroughs for dispatch, broadcasts, archiving, and staff management with viewport-adaptive mobile steps, interactive element tracking (including expanding the broadcast composer and inspecting saved drafts), and mock demo fallbacks.
 - **Concurrent Device Sessions:** Admin accounts support simultaneous logins across the native desktop workstation (Tauri) and mobile devices without expiring active sessions.
 - **Session Logout:** Safely terminate the administrative session and clear local credentials.
 
