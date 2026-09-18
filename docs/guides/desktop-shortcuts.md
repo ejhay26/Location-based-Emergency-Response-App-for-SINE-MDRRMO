@@ -8,21 +8,25 @@ This guide documents the native keyboard shortcuts, macOS-style fluid accordion 
 
 The desktop application intercepts native workstation hotkeys to optimize emergency dispatch speeds and minimize mouse dependency.
 
-| Shortcut (Windows / Linux) | Shortcut (macOS) | Target / Action | Description |
-| :--- | :--- | :--- | :--- |
-| <kbd>Ctrl</kbd> + <kbd>,</kbd> | <kbd>⌘</kbd> + <kbd>,</kbd> | **Settings Panel** | Instantly navigates to the administrative system settings, audio alert preferences, and appearance configurations. |
-| <kbd>F1</kbd> | <kbd>F1</kbd> or <kbd>⌘</kbd> + <kbd>?</kbd> | **Help & Procedures Panel** | Opens the MDRRMO standard operating procedures, operator checklists, and interactive guided tours (suppresses browser help). |
-| <kbd>Ctrl</kbd> + <kbd>F</kbd> or <kbd>Ctrl</kbd> + <kbd>K</kbd> | <kbd>⌘</kbd> + <kbd>F</kbd> or <kbd>⌘</kbd> + <kbd>K</kbd> | **Spotlight Command Palette** | Disables the native browser find bar and opens the custom **Quick Search & Command Palette** overlay. |
-| <kbd>Ctrl</kbd> + <kbd>B</kbd> | <kbd>⌘</kbd> + <kbd>B</kbd> | **Toggle Sidebar** | Collapses or expands the left navigation menu between icon-only compact mode and full-width navigation. |
-| <kbd>Ctrl</kbd> + <kbd>D</kbd> | <kbd>⌘</kbd> + <kbd>D</kbd> | **Toggle Dark / Light Mode** | Seamlessly switches between the night-shift dark workstation interface and the high-contrast light theme. |
-| <kbd>Ctrl</kbd> + <kbd>N</kbd> | <kbd>⌘</kbd> + <kbd>N</kbd> | **New Announcement Composer** | Navigates to the Alert Broadcast panel and smoothly stretches open the announcement composer card. |
-| <kbd>Ctrl</kbd> + <kbd>1</kbd> | <kbd>⌘</kbd> + <kbd>1</kbd> | **Incident & Hazard Map** | Quick switch to the live real-time incident map and dispatch queue. |
-| <kbd>Ctrl</kbd> + <kbd>2</kbd> | <kbd>⌘</kbd> + <kbd>2</kbd> | **Alert Broadcast Center** | Quick switch to push notifications, SMS broadcast, and citizen advisories. |
-| <kbd>Ctrl</kbd> + <kbd>3</kbd> | <kbd>⌘</kbd> + <kbd>3</kbd> | **ID Verifications** | Quick switch to the citizen KYC review and approval queue. |
-| <kbd>Ctrl</kbd> + <kbd>4</kbd> | <kbd>⌘</kbd> + <kbd>4</kbd> | **Analytics & Reports** | Quick switch to response time trends, heatmaps, and dispatch benchmarks. |
-| <kbd>ESC</kbd> | <kbd>esc</kbd> | **Dismiss / Cancel** | Cascading dismiss for open modal dialogs, media lightboxes, the Quick Search Palette, and mobile drawer sheets. |
-| <kbd>ENTER</kbd> | <kbd>return</kbd> | **Confirm / Select** | Runs the primary confirm action on active confirm dialogs, or executes the highlighted Command Palette item. |
-| <kbd>SPACE</kbd> | <kbd>space</kbd> | **Toggle Video Playback** | Pauses or plays video recordings in the full-screen media lightbox without scrolling the viewport. |
+| Shortcut (Windows / Linux) | Shortcut (macOS) | Target / Action | Role | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| <kbd>Ctrl</kbd> + <kbd>1</kbd> | <kbd>⌘</kbd> + <kbd>1</kbd> | **Incident Map** | All Staff | Quick switch to the live real-time incident map and dispatch queue. |
+| <kbd>Ctrl</kbd> + <kbd>2</kbd> | <kbd>⌘</kbd> + <kbd>2</kbd> | **Log Archive** | All Staff | Quick switch to historical incident logs and resolved reports audit trail. |
+| <kbd>Ctrl</kbd> + <kbd>3</kbd> | <kbd>⌘</kbd> + <kbd>3</kbd> | **Analytics & Reports** | All Staff | Quick switch to response time trends, heatmaps, and dispatch benchmarks. |
+| <kbd>Ctrl</kbd> + <kbd>4</kbd> | <kbd>⌘</kbd> + <kbd>4</kbd> | **Alert Broadcast** | All Staff | Quick switch to emergency broadcast center, push alerts, and SMS advisories. |
+| <kbd>Ctrl</kbd> + <kbd>5</kbd> | <kbd>⌘</kbd> + <kbd>5</kbd> | **Citizen Feedback** | **Admin Only** | Quick switch to citizen review queue, ratings, and incident feedback. |
+| <kbd>Ctrl</kbd> + <kbd>6</kbd> | <kbd>⌘</kbd> + <kbd>6</kbd> | **ID Verifications** | **Admin Only** | Quick switch to citizen KYC review queue and ID document approvals. |
+| <kbd>Ctrl</kbd> + <kbd>7</kbd> | <kbd>⌘</kbd> + <kbd>7</kbd> | **Dispatcher Personnel** | **Admin Only** | Quick switch to dispatcher credential management, personnel, and teams. |
+| <kbd>Ctrl</kbd> + <kbd>8</kbd> | <kbd>⌘</kbd> + <kbd>8</kbd> | **Citizen Directory** | **Admin Only** | Quick switch to registered citizen accounts, phone directory, and addresses. |
+| <kbd>Ctrl</kbd> + <kbd>,</kbd> | <kbd>⌘</kbd> + <kbd>,</kbd> | **Settings Panel** | All Staff | Instantly navigates to system settings, audio alert preferences, and theme options. |
+| <kbd>F1</kbd> | <kbd>F1</kbd> or <kbd>⌘</kbd> + <kbd>?</kbd> | **Help & Procedures** | All Staff | Opens MDRRMO standard operating procedures and interactive guided tours. |
+| <kbd>Ctrl</kbd> + <kbd>F</kbd> or <kbd>Ctrl</kbd> + <kbd>K</kbd> | <kbd>⌘</kbd> + <kbd>F</kbd> or <kbd>⌘</kbd> + <kbd>K</kbd> | **Spotlight Command Palette** | All Staff | Disables native browser find and opens the Apple Spotlight-style command palette. |
+| <kbd>Ctrl</kbd> + <kbd>B</kbd> | <kbd>⌘</kbd> + <kbd>B</kbd> | **Toggle Sidebar** | All Staff | Collapses or expands the left navigation menu between compact and full width. |
+| <kbd>Ctrl</kbd> + <kbd>D</kbd> | <kbd>⌘</kbd> + <kbd>D</kbd> | **Toggle Dark / Light Mode** | All Staff | Seamlessly switches between the night-shift dark workstation and high-contrast light theme. |
+| <kbd>Ctrl</kbd> + <kbd>N</kbd> | <kbd>⌘</kbd> + <kbd>N</kbd> | **New Announcement Composer** | All Staff | Navigates to Alert Broadcast and expands the announcement composer. |
+| <kbd>ESC</kbd> | <kbd>esc</kbd> | **Dismiss / Cancel** | All Staff | Cascading dismiss for modal dialogs, lightboxes, command palette, and drawer sheets. |
+| <kbd>ENTER</kbd> | <kbd>return</kbd> | **Confirm / Select** | All Staff | Executes primary confirmation on dialogs or runs the highlighted command palette item. |
+| <kbd>SPACE</kbd> | <kbd>space</kbd> | **Toggle Video Playback** | All Staff | Pauses or plays video recordings in the full-screen media lightbox without page scroll. |
 
 > [!NOTE]
 > **Preserved Multiline Line Breaks:**  

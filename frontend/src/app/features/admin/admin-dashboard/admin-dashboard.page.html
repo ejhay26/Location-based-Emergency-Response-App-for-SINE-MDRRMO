@@ -90,7 +90,7 @@
                 <span *ngIf="isSidebarCollapsed" class="sidebar-section-dot"></span>
               </div>
               <div class="sidebar-section-items">
-                <button id="nav-btn-active" (click)="selectViewMode('active')" [appTooltip]="'Incident Map'" [tooltipSub]="'Live Incident & Hazard Map'" [tooltipKbd]="'Ctrl + 1'" class="menu-capsule-link" [class.active]="viewMode === 'active'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button id="nav-btn-active" (click)="selectViewMode('active')" [appTooltip]="'Incident Map'" [tooltipSub]="'Live Incident & Hazard Map'" [tooltipKbd]="isMac ? '⌘ 1' : 'Ctrl + 1'" class="menu-capsule-link" [class.active]="viewMode === 'active'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
                     <app-icon name="map" [size]="18" [color]="viewMode === 'active' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
                     <!-- Collapsed Icon Corner Badge -->
@@ -114,13 +114,13 @@
                 <span *ngIf="isSidebarCollapsed" class="sidebar-section-dot"></span>
               </div>
               <div class="sidebar-section-items">
-                <button id="nav-btn-archive" (click)="selectViewMode('archive')" [appTooltip]="'Log Archive'" [tooltipSub]="'Historical Incident Logs'" [tooltipKbd]="'Ctrl + 2'" class="menu-capsule-link" [class.active]="viewMode === 'archive'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button id="nav-btn-archive" (click)="selectViewMode('archive')" [appTooltip]="'Log Archive'" [tooltipSub]="'Historical Incident Logs'" [tooltipKbd]="isMac ? '⌘ 2' : 'Ctrl + 2'" class="menu-capsule-link" [class.active]="viewMode === 'archive'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
                     <app-icon name="history" [size]="18" [color]="viewMode === 'archive' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
                   </div>
                   <span *ngIf="!isSidebarCollapsed" class="sidebar-label">Log Archive</span>
                 </button>
-                <button id="nav-btn-analytics" (click)="selectViewMode('analytics')" [appTooltip]="'Analytics'" [tooltipSub]="'Reports & Response Times'" [tooltipKbd]="'Ctrl + 3'" class="menu-capsule-link" [class.active]="viewMode === 'analytics'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button id="nav-btn-analytics" (click)="selectViewMode('analytics')" [appTooltip]="'Analytics'" [tooltipSub]="'Reports & Response Times'" [tooltipKbd]="isMac ? '⌘ 3' : 'Ctrl + 3'" class="menu-capsule-link" [class.active]="viewMode === 'analytics'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
                     <app-icon name="chart-pie" [size]="18" [color]="viewMode === 'analytics' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
                   </div>
@@ -136,13 +136,13 @@
                 <span *ngIf="isSidebarCollapsed" class="sidebar-section-dot"></span>
               </div>
               <div class="sidebar-section-items">
-                <button id="nav-btn-broadcast" (click)="selectViewMode('broadcast')" [appTooltip]="'Alert Broadcast'" [tooltipSub]="'Advisories & Push Alerts'" [tooltipKbd]="'Ctrl + 4'" class="menu-capsule-link" [class.active]="viewMode === 'broadcast'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button id="nav-btn-broadcast" (click)="selectViewMode('broadcast')" [appTooltip]="'Alert Broadcast'" [tooltipSub]="'Advisories & Push Alerts'" [tooltipKbd]="isMac ? '⌘ 4' : 'Ctrl + 4'" class="menu-capsule-link" [class.active]="viewMode === 'broadcast'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
                     <app-icon name="siren" [size]="18" [color]="viewMode === 'broadcast' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
                   </div>
                   <span *ngIf="!isSidebarCollapsed" class="sidebar-label">Alert Broadcast</span>
                 </button>
-                <button *ngIf="currentRole === 'admin'" id="nav-btn-feedback" (click)="selectViewMode('feedback')" [appTooltip]="'Feedback'" [tooltipSub]="'Citizen Reviews & Ratings'" [tooltipKbd]="'Ctrl + 5'" class="menu-capsule-link" [class.active]="viewMode === 'feedback'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button *ngIf="currentRole === 'admin'" id="nav-btn-feedback" (click)="selectViewMode('feedback')" [appTooltip]="'Feedback'" [tooltipSub]="'Citizen Reviews & Ratings'" [tooltipKbd]="isMac ? '⌘ 5' : 'Ctrl + 5'" class="menu-capsule-link" [class.active]="viewMode === 'feedback'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
                     <app-icon name="message-square" [size]="18" [color]="viewMode === 'feedback' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
                   </div>
@@ -158,7 +158,7 @@
                 <span *ngIf="isSidebarCollapsed" class="sidebar-section-dot"></span>
               </div>
               <div class="sidebar-section-items">
-                <button id="nav-btn-verifications" (click)="selectViewMode('verifications')" [appTooltip]="'ID Verifications'" [tooltipSub]="'Citizen KYC Queue'" [tooltipKbd]="'Ctrl + 6'" class="menu-capsule-link" [class.active]="viewMode === 'verifications'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button id="nav-btn-verifications" (click)="selectViewMode('verifications')" [appTooltip]="'ID Verifications'" [tooltipSub]="'Citizen KYC Queue'" [tooltipKbd]="isMac ? '⌘ 6' : 'Ctrl + 6'" class="menu-capsule-link" [class.active]="viewMode === 'verifications'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
                     <app-icon name="id-card" [size]="18" [color]="viewMode === 'verifications' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
                     <!-- Collapsed Icon Corner Badge -->
@@ -172,13 +172,13 @@
                     {{ pendingVerificationsCount > 99 ? '99+' : pendingVerificationsCount }}
                   </span>
                 </button>
-                <button id="nav-btn-dispatchers" (click)="selectViewMode('dispatchers')" [appTooltip]="'Dispatchers'" [tooltipSub]="'Manage Staff Accounts'" [tooltipKbd]="'Ctrl + 7'" class="menu-capsule-link" [class.active]="viewMode === 'dispatchers'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button id="nav-btn-dispatchers" (click)="selectViewMode('dispatchers')" [appTooltip]="'Dispatchers'" [tooltipSub]="'Manage Staff Accounts'" [tooltipKbd]="isMac ? '⌘ 7' : 'Ctrl + 7'" class="menu-capsule-link" [class.active]="viewMode === 'dispatchers'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
                     <app-icon name="user-gear" [size]="18" [color]="viewMode === 'dispatchers' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
                   </div>
                   <span *ngIf="!isSidebarCollapsed" class="sidebar-label">Dispatchers</span>
                 </button>
-                <button id="nav-btn-citizens" (click)="selectViewMode('citizens')" [appTooltip]="'Citizens'" [tooltipSub]="'Citizen Directory'" [tooltipKbd]="'Ctrl + 8'" class="menu-capsule-link" [class.active]="viewMode === 'citizens'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button id="nav-btn-citizens" (click)="selectViewMode('citizens')" [appTooltip]="'Citizens'" [tooltipSub]="'Citizen Directory'" [tooltipKbd]="isMac ? '⌘ 8' : 'Ctrl + 8'" class="menu-capsule-link" [class.active]="viewMode === 'citizens'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <div class="sidebar-icon-wrap" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'">
                     <app-icon name="users" [size]="18" [color]="viewMode === 'citizens' ? '#ffffff' : 'var(--ion-color-danger)'"></app-icon>
                   </div>
@@ -194,7 +194,7 @@
                 <span *ngIf="isSidebarCollapsed" class="sidebar-section-dot"></span>
               </div>
               <div class="sidebar-section-items">
-                <button id="nav-btn-settings" (click)="selectViewMode('settings')" [appTooltip]="'Settings'" [tooltipSub]="'Alerts, Theme & System'" [tooltipKbd]="'Ctrl + 9'" class="menu-capsule-link" [class.active]="viewMode === 'settings'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
+                <button id="nav-btn-settings" (click)="selectViewMode('settings')" [appTooltip]="'Settings'" [tooltipSub]="'Alerts, Theme & System'" [tooltipKbd]="isMac ? '⌘ ,' : 'Ctrl + ,'" class="menu-capsule-link" [class.active]="viewMode === 'settings'" [style.justify-content]="isSidebarCollapsed ? 'center' : 'flex-start'">
                   <app-icon name="settings" [size]="18" [color]="viewMode === 'settings' ? '#ffffff' : 'var(--ion-color-danger)'" [style.margin-right]="isSidebarCollapsed ? '0' : '12px'"></app-icon>
                   <span *ngIf="!isSidebarCollapsed">Settings</span>
                 </button>

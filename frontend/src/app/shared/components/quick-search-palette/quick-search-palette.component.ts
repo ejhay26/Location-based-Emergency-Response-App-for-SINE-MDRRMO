@@ -42,6 +42,7 @@ export class QuickSearchPaletteComponent implements OnInit {
       if (isOpen) {
         this.searchQuery = '';
         this.selectedIndex = 0;
+        this.buildItems();
         setTimeout(() => {
           this.searchInput?.nativeElement?.focus();
         }, 50);
@@ -57,12 +58,17 @@ export class QuickSearchPaletteComponent implements OnInit {
     return this.shortcuts.isMac;
   }
 
+  get isAdmin(): boolean {
+    return this.shortcuts.isAdmin();
+  }
+
   private buildItems(): void {
     const isMac = this.isMac;
     const mod = isMac ? '⌘ ' : 'Ctrl + ';
+    const isAdmin = this.isAdmin;
 
-    this.allItems = [
-      // ── Panels & Navigation (Strictly synchronized with sidebar order) ──
+    const panelItems: CommandPaletteItem[] = [
+      // ── Core Operational Panels (Accessible to both Dispatchers & Admins) ──
       {
         id: 'panel-active',
         category: 'Panels',
@@ -103,53 +109,63 @@ export class QuickSearchPaletteComponent implements OnInit {
         keywords: ['broadcast', 'alert', 'announcement', 'sms', 'push', 'warning', 'advisory'],
         run: () => this.shortcuts.navigateToPanel('broadcast'),
       },
-      {
-        id: 'panel-feedback',
-        category: 'Panels',
-        title: 'Feedback',
-        subtitle: 'Emergency response ratings & citizen reviews',
-        icon: 'message-square',
-        shortcut: `${mod}5`,
-        keywords: ['feedback', 'reviews', 'ratings', 'comments', 'citizen response'],
-        run: () => this.shortcuts.navigateToPanel('feedback'),
-      },
-      {
-        id: 'panel-verifications',
-        category: 'Panels',
-        title: 'ID Verifications',
-        subtitle: 'Review pending KYC citizen government IDs & approve accounts',
-        icon: 'id-card',
-        shortcut: `${mod}6`,
-        keywords: ['verification', 'kyc', 'id', 'citizens', 'approve', 'reject', 'pending'],
-        run: () => this.shortcuts.navigateToPanel('verifications'),
-      },
-      {
-        id: 'panel-dispatchers',
-        category: 'Panels',
-        title: 'Dispatchers',
-        subtitle: 'Manage MDRRMO dispatcher credentials & permissions',
-        icon: 'user-gear',
-        shortcut: `${mod}7`,
-        keywords: ['dispatchers', 'staff', 'operators', 'personnel', 'team'],
-        run: () => this.shortcuts.navigateToPanel('dispatchers'),
-      },
-      {
-        id: 'panel-citizens',
-        category: 'Panels',
-        title: 'Citizens',
-        subtitle: 'Manage registered citizens, contact numbers & addresses',
-        icon: 'users',
-        shortcut: `${mod}8`,
-        keywords: ['citizens', 'directory', 'residents', 'users', 'contacts'],
-        run: () => this.shortcuts.navigateToPanel('citizens'),
-      },
+    ];
+
+    // ── Administrative & Management Panels (Strict RBAC: Admin Only) ──
+    if (isAdmin) {
+      panelItems.push(
+        {
+          id: 'panel-feedback',
+          category: 'Panels',
+          title: 'Feedback',
+          subtitle: 'Emergency response ratings & citizen reviews',
+          icon: 'message-square',
+          shortcut: `${mod}5`,
+          keywords: ['feedback', 'reviews', 'ratings', 'comments', 'citizen response'],
+          run: () => this.shortcuts.navigateToPanel('feedback'),
+        },
+        {
+          id: 'panel-verifications',
+          category: 'Panels',
+          title: 'ID Verifications',
+          subtitle: 'Review pending KYC citizen government IDs & approve accounts',
+          icon: 'id-card',
+          shortcut: `${mod}6`,
+          keywords: ['verification', 'kyc', 'id', 'citizens', 'approve', 'reject', 'pending'],
+          run: () => this.shortcuts.navigateToPanel('verifications'),
+        },
+        {
+          id: 'panel-dispatchers',
+          category: 'Panels',
+          title: 'Dispatchers',
+          subtitle: 'Manage MDRRMO dispatcher credentials & permissions',
+          icon: 'user-gear',
+          shortcut: `${mod}7`,
+          keywords: ['dispatchers', 'staff', 'operators', 'personnel', 'team'],
+          run: () => this.shortcuts.navigateToPanel('dispatchers'),
+        },
+        {
+          id: 'panel-citizens',
+          category: 'Panels',
+          title: 'Citizens',
+          subtitle: 'Manage registered citizens, contact numbers & addresses',
+          icon: 'users',
+          shortcut: `${mod}8`,
+          keywords: ['citizens', 'directory', 'residents', 'users', 'contacts'],
+          run: () => this.shortcuts.navigateToPanel('citizens'),
+        }
+      );
+    }
+
+    // ── System & Workstation Panels (All Staff) ──
+    panelItems.push(
       {
         id: 'panel-settings',
         category: 'Panels',
         title: 'Settings',
         subtitle: 'MDRRMO system alerts, theme, and workstation options',
         icon: 'settings',
-        shortcut: `${mod}9`,
+        shortcut: `${mod},`,
         keywords: ['settings', 'preferences', 'configuration', 'theme', 'audio', 'notifications'],
         run: () => this.shortcuts.navigateToPanel('settings'),
       },
@@ -162,7 +178,11 @@ export class QuickSearchPaletteComponent implements OnInit {
         shortcut: 'F1',
         keywords: ['help', 'manual', 'procedures', 'sop', 'guide', 'tutorial', 'instructions'],
         run: () => this.shortcuts.navigateToPanel('help'),
-      },
+      }
+    );
+
+    this.allItems = [
+      ...panelItems,
 
       // ── Quick Actions ──
       {

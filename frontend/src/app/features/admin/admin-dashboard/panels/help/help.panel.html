@@ -94,32 +94,63 @@
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
-            <span style="color: var(--ion-text-color); font-weight: 600;">Incident &amp; Hazard Map</span>
+            <span style="color: var(--ion-text-color); font-weight: 600;">Incident Map</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
               <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">1</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
-            <span style="color: var(--ion-text-color); font-weight: 600;">Alert Broadcast Center</span>
+            <span style="color: var(--ion-text-color); font-weight: 600;">Log Archive</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
               <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">2</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
-            <span style="color: var(--ion-text-color); font-weight: 600;">Citizen ID Verifications</span>
+            <span style="color: var(--ion-text-color); font-weight: 600;">Analytics &amp; Reports</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
               <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">3</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
-            <span style="color: var(--ion-text-color); font-weight: 600;">Analytics &amp; Response Times</span>
+            <span style="color: var(--ion-text-color); font-weight: 600;">Alert Broadcast</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
               <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">4</kbd>
             </span>
           </div>
+
+          <!-- Admin-Only Panel Shortcuts -->
+          <ng-container *ngIf="isAdmin">
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--ion-text-color); font-weight: 600;">Citizen Feedback</span>
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">5</kbd>
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--ion-text-color); font-weight: 600;">Citizen ID Verifications</span>
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">6</kbd>
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--ion-text-color); font-weight: 600;">Dispatcher Personnel</span>
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">7</kbd>
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--ion-text-color); font-weight: 600;">Citizen Directory</span>
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">8</kbd>
+              </span>
+            </div>
+          </ng-container>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Settings &amp; Workstation Options</span>

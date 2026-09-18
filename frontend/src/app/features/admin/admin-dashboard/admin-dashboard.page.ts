@@ -112,6 +112,14 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   selectViewMode(mode: ViewMode): void {
+    // Strict RBAC: Prevent dispatchers from accessing administrative panels
+    const adminOnlyPanels: ViewMode[] = ['feedback', 'verifications', 'dispatchers', 'citizens'];
+    const isAdmin = this.currentRole?.toLowerCase() === 'admin';
+    if (!isAdmin && adminOnlyPanels.includes(mode)) {
+      this.ui.toast('Access restricted: Administrator privileges required', 'warning');
+      return;
+    }
+
     if (this.viewMode === 'broadcast' && mode !== 'broadcast' && this.broadcastPanel?.isDirty()) {
       this.dialog.confirm({
         title: 'Unsaved Broadcast',

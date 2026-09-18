@@ -40,7 +40,13 @@ export class KeyboardShortcutsService {
   /** Checks if the current session is an admin or dispatcher */
   isAdminOrDispatcher(): boolean {
     const role = localStorage.getItem('role');
-    return role === 'admin' || role === 'dispatcher';
+    return role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'dispatcher';
+  }
+
+  /** Checks if the current session has full administrator privileges */
+  isAdmin(): boolean {
+    const role = localStorage.getItem('role');
+    return role?.toLowerCase() === 'admin';
   }
 
   get isMac(): boolean {
@@ -86,9 +92,17 @@ export class KeyboardShortcutsService {
   /**
    * Request navigation to an admin dashboard panel (e.g. 'settings', 'help', 'broadcast').
    * If not already on /admin-dashboard, navigates there first.
+   * Strictly enforces Role-Based Access Control (RBAC): Dispatchers are blocked from admin panels.
    */
   navigateToPanel(panel: string): void {
     if (!this.isAdminOrDispatcher()) return;
+
+    // Strict RBAC: Dispatchers must never access administrative panels
+    const adminOnlyPanels = ['feedback', 'verifications', 'dispatchers', 'citizens'];
+    if (!this.isAdmin() && adminOnlyPanels.includes(panel)) {
+      return;
+    }
+
     this.closeQuickSearch();
 
     if (this.router.url.includes('/admin-dashboard')) {
@@ -269,8 +283,9 @@ export class KeyboardShortcutsService {
       return;
     }
 
-    // 9. Number keys: Ctrl/Cmd + 1-9 & 0 for fast panel switching (strictly matching sidebar top-to-bottom order)
+    // 9. Number keys: Ctrl/Cmd + 1-4 (all staff) & 5-8 (admin only) strictly matching sidebar top-to-bottom order
     if (modifier && !e.shiftKey && !e.altKey) {
+      const isAdmin = this.isAdmin();
       switch (e.key) {
         case '1':
           e.preventDefault();
@@ -293,34 +308,32 @@ export class KeyboardShortcutsService {
           this.navigateToPanel('broadcast');
           break;
         case '5':
-          e.preventDefault();
-          e.stopPropagation();
-          this.navigateToPanel('feedback');
+          if (isAdmin) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.navigateToPanel('feedback');
+          }
           break;
         case '6':
-          e.preventDefault();
-          e.stopPropagation();
-          this.navigateToPanel('verifications');
+          if (isAdmin) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.navigateToPanel('verifications');
+          }
           break;
         case '7':
-          e.preventDefault();
-          e.stopPropagation();
-          this.navigateToPanel('dispatchers');
+          if (isAdmin) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.navigateToPanel('dispatchers');
+          }
           break;
         case '8':
-          e.preventDefault();
-          e.stopPropagation();
-          this.navigateToPanel('citizens');
-          break;
-        case '9':
-          e.preventDefault();
-          e.stopPropagation();
-          this.navigateToPanel('settings');
-          break;
-        case '0':
-          e.preventDefault();
-          e.stopPropagation();
-          this.navigateToPanel('help');
+          if (isAdmin) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.navigateToPanel('citizens');
+          }
           break;
       }
     }
