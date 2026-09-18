@@ -128,15 +128,30 @@ export class KeyboardShortcutsService {
     this.action$.next({ type: actionType });
   }
 
+  /** Pending barangay focus target to preserve state across panel mount transitions */
+  private pendingBarangayFocus: number | 'all' | null = null;
+
   /**
    * Trigger a map focus/filter for a specific barangay
    */
   jumpToBarangay(barangayId: number | 'all'): void {
     this.closeQuickSearch();
+    this.pendingBarangayFocus = barangayId;
     this.navigateToPanel('active');
+    this.barangayJump$.next(barangayId);
     setTimeout(() => {
       this.barangayJump$.next(barangayId);
     }, 120);
+  }
+
+  consumeBarangayFocus(): number | 'all' | null {
+    const val = this.pendingBarangayFocus;
+    this.pendingBarangayFocus = null;
+    return val;
+  }
+
+  peekBarangayFocus(): number | 'all' | null {
+    return this.pendingBarangayFocus;
   }
 
   consumePendingPanel(): string | null {

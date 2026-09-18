@@ -21,6 +21,7 @@ import { DateFilterValue, matchesDateFilter } from '../../../../../shared/utils/
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 import { TourService } from '../../../../../core/services/tour';
+import { KeyboardShortcutsService } from '../../../../../core/services/keyboard-shortcuts.service';
 
 /**
  * Fallback polling interval for the incident map — active continuously as
@@ -344,6 +345,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   private tourSub?: Subscription;
+  private barangayJumpSub?: Subscription;
   private isAutoOpenedByTour = false;
 
   constructor(
@@ -352,6 +354,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     public ui: AdminUiService,
     private echo: EchoService,
     public tour: TourService,
+    private shortcuts: KeyboardShortcutsService,
   ) {
     const savedWidth = localStorage.getItem('admin_map_queue_width');
     if (savedWidth) {
@@ -421,6 +424,18 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.loadData();
     setTimeout(() => this.initMap(), 250);
 
+    // Check if a spotlight barangay focus was requested before or during mount
+    const pendingFocus = this.shortcuts.consumeBarangayFocus();
+    if (pendingFocus !== null && pendingFocus !== undefined) {
+      this.focusBarangay(pendingFocus);
+    }
+
+    this.barangayJumpSub = this.shortcuts.barangayJump$.subscribe((id) => {
+      if (id !== null && id !== undefined) {
+        this.focusBarangay(id);
+      }
+    });
+
     this.echo.connect();
 
     this.echoEmergencySub = this.echo.onEmergencyUpdated.subscribe((data) => {
@@ -477,6 +492,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.tourSub?.unsubscribe();
+    this.barangayJumpSub?.unsubscribe();
     this.fallbackPollSub?.unsubscribe();
     this.echoEmergencySub?.unsubscribe();
     this.echoHazardSub?.unsubscribe();
@@ -662,6 +678,28 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     return item.type + '-' + (item.type === 'emergency' ? item.data.request_id : item.data.hazard_id);
   }
 
+  /** Pending barangay focus target to preserve highlight across cold map and GeoJSON loads */
+  pendingBarangayFocus: number | 'all' | null = null;
+
+  /**
+   * Explicitly focuses and highlights a single barangay on the map (used by Spotlight / Command Palette).
+   * Unlike toggleBarangayFilter, this exclusively selects the specified barangay and zooms to it.
+   */
+  focusBarangay(id: number | 'all'): void {
+    if (id === 'all') {
+      this.selectedBarangays = [];
+      this.pendingBarangayFocus = null;
+    } else {
+      this.selectedBarangays = [id];
+      this.pendingBarangayFocus = id;
+    }
+    if (!this.map || !this.bgyGeoJson) {
+      return;
+    }
+    this.highlightBarangays();
+    this.plotMarkers();
+  }
+
   toggleBarangayFilter(id: number | 'all') {
     if (id === 'all') {
       this.selectedBarangays = [];
@@ -837,15 +875,28 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       if (this.map) {
         this.bgyLabelsLayer.addTo(this.map);
       }
+
+      // Automatically apply any pending focus requested before GeoJSON was loaded
+      if (this.selectedBarangays.length > 0 || this.pendingBarangayFocus !== null) {
+        const target = this.pendingBarangayFocus !== null ? this.pendingBarangayFocus : (this.selectedBarangays[0] || 'all');
+        this.pendingBarangayFocus = null;
+        this.focusBarangay(target);
+      }
     });
 
     this.http.get('assets/data/san-isidro.geojson').subscribe((json: any) => {
       const boundaryLayer = L.geoJSON(json, { filter: (f) => f.geometry.type !== 'Point', style: { color: '#eb445a', weight: 3, fillOpacity: 0 } }).addTo(this.map);
       this.townBounds = boundaryLayer.getBounds();
-      this.map.fitBounds(this.townBounds);
       this.map.setMaxBounds(this.townBounds.pad(0.2));
       const hole = json.features[0].geometry.coordinates[0].map((c: any[]) => [c[1], c[0]]);
       L.polygon([[[-90,-180],[90,-180],[90,180],[-90,180]], hole], { color: 'transparent', fillColor: '#888888', fillOpacity: 0.6 }).addTo(this.map);
+
+      // If a specific barangay was already selected/focused, preserve its zoom & highlight instead of snapping to town
+      if (this.selectedBarangays.length > 0) {
+        this.highlightBarangays();
+      } else {
+        this.map.fitBounds(this.townBounds);
+      }
       this.plotMarkers();
     });
   }

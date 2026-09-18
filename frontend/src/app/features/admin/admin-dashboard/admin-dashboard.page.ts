@@ -272,9 +272,13 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
 
     this.shortcutBarangaySub = this.shortcuts.barangayJump$.subscribe(id => {
       this.selectViewMode('active');
+      this.incidentMapPanel?.focusBarangay(id);
       setTimeout(() => {
-        this.incidentMapPanel?.toggleBarangayFilter(id);
+        this.incidentMapPanel?.focusBarangay(id);
       }, 100);
+      setTimeout(() => {
+        this.incidentMapPanel?.focusBarangay(id);
+      }, 350);
     });
     
     // Restore saved sidebar width if present
