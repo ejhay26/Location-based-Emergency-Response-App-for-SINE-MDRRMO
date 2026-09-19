@@ -91,16 +91,23 @@ ion-app.desktop-app.mac-desktop ion-toolbar ion-title[style*="text-align:center"
   text-align: center !important;
 }
 
-ion-app.desktop-app.mac-desktop .admin-sidebar {
-  padding-top: 96px !important;
+ion-app.desktop-app.mac-desktop .admin-sidebar,
+ion-app.mac-desktop .admin-sidebar {
+  padding-top: 54px !important;
 
   &.is-collapsed {
-    padding-top: 100px !important;
+    padding-top: 56px !important;
   }
 }
 
-ion-app.desktop-app.mac-desktop .admin-main-viewport {
-  padding: 56px 20px 18px 20px !important;
+ion-app.desktop-app.mac-desktop .admin-main-viewport,
+ion-app.mac-desktop .admin-main-viewport {
+  padding: 52px 20px 18px 20px !important;
+}
+
+ion-app.desktop-app.mac-desktop ion-header,
+ion-app.mac-desktop ion-header {
+  padding-top: 48px !important;
 }
 
 ion-app.desktop-app.mac-desktop {

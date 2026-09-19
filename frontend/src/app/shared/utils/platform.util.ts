@@ -4,7 +4,7 @@
  * Returns false in the browser and in Capacitor's Android/iOS webviews.
  */
 export function isTauri(): boolean {
-  return typeof window !== 'undefined' && !!(window as any).__TAURI_INTERNALS__;
+  return typeof window !== 'undefined' && (!!(window as any).__TAURI_INTERNALS__ || !!(window as any).__TAURI__);
 }
 
 export function isDesktop(): boolean {

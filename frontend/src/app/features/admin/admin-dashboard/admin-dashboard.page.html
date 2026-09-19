@@ -1,5 +1,5 @@
 <ion-content class="ion-padding" style="--padding-top: 0; --padding-bottom: 0; --padding-start: 0; --padding-end: 0; --overflow: hidden;">
-  <div class="admin-desktop-wrapper">
+  <div class="admin-desktop-wrapper" [class.is-mac]="isMac">
 
     <!-- ── MOBILE TOP NAVIGATION BAR (FIXED AT TOP ON SUB-PANELS & MENU) ── -->
     <div *ngIf="!isMapView" class="admin-mobile-header">
@@ -41,7 +41,7 @@
 
     <div class="admin-desktop-body">
       <!-- ── SIDEBAR ── -->
-      <div class="admin-sidebar" [class.is-collapsed]="isSidebarCollapsed" [class.mobile-open]="isMobileSidebarOpen" [style.width]="isSidebarCollapsed ? (isMac ? '88px' : '72px') : (sidebarWidth + 'px')">
+      <div class="admin-sidebar" [class.is-mac]="isMac" [class.is-collapsed]="isSidebarCollapsed" [class.mobile-open]="isMobileSidebarOpen" [style.width]="isSidebarCollapsed ? (isMac ? '88px' : '72px') : (sidebarWidth + 'px')">
         <div style="display: flex; flex-direction: column; height: 100%;">
           
           <!-- Brand Header & Dynamic Toggle -->
@@ -232,7 +232,7 @@
       </div>
 
       <!-- ── MAIN VIEWPORT ── -->
-      <div class="admin-main-viewport">
+      <div class="admin-main-viewport" [class.is-mac]="isMac">
         <!-- incident-map renders its own flex layout -->
         <div *ngIf="isMapView" style="flex: 1; display: flex; min-width: 0; height: 100%; overflow: hidden;">
           <app-incident-map-panel style="flex: 1; display: flex; min-width: 0;"></app-incident-map-panel>

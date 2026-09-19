@@ -16,6 +16,10 @@
   -webkit-user-select: none;
   user-select: none;
   pointer-events: none;
+
+  &.is-mac {
+    height: 50px;
+  }
 }
 
 .app-titlebar__mac-space {

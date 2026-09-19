@@ -383,6 +383,38 @@
   padding-top: 24px !important;
 }
 
+/* macOS Desktop (Tauri) Traffic Light Clearance:
+   Native window traffic lights (close/minimize/zoom) sit at x: 22, y: 20 (height ~14px, down to y: 34).
+   Provide 54px top padding on the sidebar and 52px on the main viewport so all elements start with
+   a generous, balanced 20px clearance below the traffic lights across the entire window. */
+:host-context(ion-app.mac-desktop),
+:host-context(ion-app.desktop-app.mac-desktop) {
+  .admin-sidebar {
+    padding-top: 54px !important;
+
+    &.is-collapsed {
+      padding-top: 56px !important;
+    }
+  }
+
+  .admin-main-viewport {
+    padding: 52px 20px 18px 20px !important;
+  }
+}
+
+/* Direct element class bindings for guaranteed application inside scoped component */
+.admin-sidebar.is-mac {
+  padding-top: 54px !important;
+
+  &.is-collapsed {
+    padding-top: 56px !important;
+  }
+}
+
+.admin-main-viewport.is-mac {
+  padding: 52px 20px 18px 20px !important;
+}
+
 /* Slim scroll container with bottom fade-out mask */
 .admin-scroll-panel {
   -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
