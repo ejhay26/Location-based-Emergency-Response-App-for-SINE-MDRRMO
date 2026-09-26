@@ -820,15 +820,13 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
     this.streetLayer = L.tileLayer(osmTileUrl, {
       maxZoom: 19,
-      attribution: '© OpenStreetMap contributors',
-      crossOrigin: true
+      attribution: '© OpenStreetMap contributors'
     });
 
     this.satelliteLayer = L.tileLayer(satelliteTileUrl, {
       maxZoom: 19,
       maxNativeZoom: 18,
-      attribution: '© Esri',
-      crossOrigin: true
+      attribution: '© Esri'
     });
 
     if (this.mapStyle === 'street') {

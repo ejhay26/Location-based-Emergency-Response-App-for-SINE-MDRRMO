@@ -12,43 +12,6 @@ import { TourService } from '../../../../../core/services/tour';
 import { PressFeedbackDirective } from '../../../../../shared/directives/press-feedback.directive';
 import { environment } from '../../../../../../environments/environment';
 
-// @ts-ignore
-const CachedTileLayer = L.TileLayer.extend({
-  createTile: function (coords: any, done: any) {
-    const tile = document.createElement('img');
-    const url  = this.getTileUrl(coords);
-    tile.crossOrigin = 'Anonymous';
-    const fetchOptions: RequestInit = {
-      mode: 'cors', referrerPolicy: 'no-referrer',
-      headers: {
-        'User-Agent': 'SINEMDRRMOApp/1.0 (sine-mdrrmo-capstone; contact: ejperez623@gmail.com)',
-        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-      }
-    };
-    const loadTile = (blob: Blob) => { tile.src = URL.createObjectURL(blob); done(null, tile); };
-    const fetchFresh = () =>
-      fetch(url, fetchOptions)
-        .then((net: Response) => {
-          if (!net.ok) throw new Error(`Tile fetch ${net.status}`);
-          const clone = net.clone();
-          if ('caches' in window) { caches.open('mdrrmo-tile-cache-v1').then((cache: Cache) => cache.put(url, clone)); }
-          return net.blob();
-        })
-        .then(loadTile)
-        .catch((err: any) => {
-          done(err, tile);
-        });
-    if ('caches' in window) {
-      caches.open('mdrrmo-tile-cache-v1').then((cache: Cache) => {
-        cache.match(url).then((cached: Response | undefined) => {
-          if (cached) { cached.blob().then(loadTile); } else { fetchFresh(); }
-        });
-      });
-    } else { fetchFresh(); }
-    return tile;
-  }
-});
-
 export interface ReportCoords { latitude: string; longitude: string; barangayName: string | null; }
 
 import { IonSegment, IonSegmentButton, IonLabel } from '@ionic/angular/standalone';
@@ -552,9 +515,8 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     const osmTileUrl = (environment as any).mapTileUrl || 'http://159.223.42.159/tiles/osm/{z}/{x}/{y}.png';
     const satelliteTileUrl = (environment as any).satelliteTileUrl || 'http://159.223.42.159/tiles/satellite/{z}/{y}/{x}.jpg';
 
-    // @ts-ignore
-    this.streetLayer = new CachedTileLayer(osmTileUrl, { maxZoom: 19, attribution: '© OpenStreetMap' });
-    this.satelliteLayer = L.tileLayer(satelliteTileUrl, { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri', crossOrigin: true });
+    this.streetLayer = L.tileLayer(osmTileUrl, { maxZoom: 19, attribution: '© OpenStreetMap' });
+    this.satelliteLayer = L.tileLayer(satelliteTileUrl, { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri' });
 
     if (this.mapStyle === 'street') {
       this.streetLayer.addTo(this.map);
