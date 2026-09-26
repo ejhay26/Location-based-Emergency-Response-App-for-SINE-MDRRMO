@@ -7,6 +7,7 @@
 ![Angular](https://img.shields.io/badge/frontend-Angular%2020%20%2F%20Ionic%208-DD0031?logo=angular&logoColor=white)
 ![Tauri](https://img.shields.io/badge/desktop-Tauri%20v2%20(Rust)-24C8D8?logo=tauri&logoColor=white)
 ![Database](https://img.shields.io/badge/database-MariaDB-003545?logo=mariadb&logoColor=white)
+![Cache](https://img.shields.io/badge/cache-Redis%207-DC382D?logo=redis&logoColor=white)
 ![Broadcasting](https://img.shields.io/badge/realtime-Laravel%20Reverb-FF2D20?logo=laravel&logoColor=white)
 ![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20Windows%20%7C%20macOS%20%7C%20Linux-3DDC84?logo=android&logoColor=white)
 
@@ -76,7 +77,7 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/gnubash/4EAA25" width="40" height="40" alt="PhilSMS" pointer-events="none"/><br/><sub><b>PhilSMS API</b></sub></td>
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/socketdotio/010101" width="40" height="40" alt="Reverb" pointer-events="none"/><br/><sub><b>Reverb (WS)</b></sub></td>
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/rust/000000" width="40" height="40" alt="Rust" pointer-events="none"/><br/><sub><b>Rust Engine</b></sub></td>
-<td align="center" width="110"></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/redis/FF4438" width="40" height="40" alt="Redis" pointer-events="none"/><br/><sub><b>Redis 7</b></sub></td>
 </tr>
 </table>
 
@@ -85,6 +86,7 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 ## Core Features
 
 - **Real-Time WebSocket Synchronization** — Powered by Laravel Reverb and Laravel Echo; incidents, unit assignments, hazard updates, and broadcast alerts appear instantaneously across devices without manual refresh.
+- **High-Performance In-Memory Caching & Synced AOF Storage** — Containerized Redis 7 in Podman with Append-Only File (AOF) persistence mapped to host storage, caching geospatial query data and active session state with sub-millisecond retrieval.
 - **Role-Based Access Control (RBAC)** — Granular permission tiers and token abilities for Citizens, Dispatchers, and Master Administrators.
 - **Anti-Prank Verification System** — Requires live camera photo or 10-second video evidence (with duration capping and MP4/PNG/JPEG magic byte verification) combined with locked GPS coordinates.
 - **Dual-Sided Government ID Verification** — Guided registration with clear photo tips, front & back ID capture, selfie with ID, and simplified Terms of Service & Privacy Policy (RA 10173 compliance).
