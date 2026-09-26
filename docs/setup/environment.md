@@ -95,12 +95,15 @@ Used for transactional OTP verification during registration, login, and password
 
 ---
 
-## 8. Session, Cache & Queue
+## 8. Session, Cache & Queue (Redis In-Memory Engine)
 
 | Variable | Default / Example | Purpose |
 |---|---|---|
-| `SESSION_DRIVER` | `file` | Session storage driver (API uses Sanctum bearer tokens) |
-| `CACHE_STORE` | `file` (local) / `redis` (prod) | Application cache driver |
-| `QUEUE_CONNECTION` | `database` / `redis` | Queue driver for asynchronous notifications and emails |
-| `REDIS_HOST` | `127.0.0.1` | Redis host (if using Redis cache/queue) |
-| `REDIS_PORT` | `6379` | Redis port |
+| `SESSION_DRIVER` | `redis` (prod) / `file` (local) | Session storage driver |
+| `CACHE_STORE` | `redis` (prod) / `file` (local) | Application cache driver (powers Sanctum token caching & rate limits) |
+| `QUEUE_CONNECTION` | `redis` (prod) / `database` (local) | Queue driver for asynchronous notifications and emails |
+| `REDIS_CLIENT` | `phpredis` | PHP Redis driver (`phpredis` native C extension or `predis`) |
+| `REDIS_HOST` | `redis` (container stack) / `127.0.0.1` (local) | Redis host address (resolves via container bridge DNS) |
+| `REDIS_PASSWORD` | `YourRedisPassword123!` | Redis authentication password |
+| `REDIS_PORT` | `6379` | Dedicated Redis port |
+

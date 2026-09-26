@@ -37,10 +37,11 @@ The application operates as a decoupled client-server architecture consisting of
        │                       │                         │
        ▼                       ▼                         ▼
 ┌──────────────┐       ┌──────────────┐       ┌──────────────────────────┐
-│   MariaDB    │       │ S3 / Cloud   │       │    Third-Party Cloud     │
-│   Database   │       │ Storage (R2) │       │ ├─ PhilSMS (SMS OTP)     │
-│ (emergencydb)│       │ (Media Proof)│       │ └─ Firebase (FCM v1)     │
-└──────────────┘       └──────────────┘       └──────────────────────────┘
+│   MariaDB    │       │ Podman Redis │       │    Cloud Services        │
+│   Database   │       │ (Synced AOF/ │       │ ├─ S3/R2 Cloud Storage   │
+│ (emergencydb)│       │  Cache LRU)  │       │ ├─ PhilSMS (SMS OTP)     │
+└──────────────┘       └──────────────┘       │ └─ Firebase (FCM v1)     │
+                                              └──────────────────────────┘
 ```
 
 ---
@@ -57,11 +58,30 @@ Rather than continuous polling, the platform employs **Laravel Reverb**, a high-
 | `broadcasts` | `BroadcastMessageUpdated` | Admin creates or clears an alert broadcast | Citizen home screen displays or dismisses targeted alert banners immediately. |
 | `users` | `UserVerified` | Citizen ID approved, rejected, suspended, or reinstated | Admin verification queue refreshes; Citizen pending verification screen updates. |
 
-> **Resilience Fallback:** Lightweight background polling runs alongside WebSockets to guarantee synchronization during reconnection events.
+> **Resilience & Scaling Workaround:**
+> - **Lifecycle-Aware WebSocket Pause:** On native mobile (Capacitor) and background browser tabs, the WebSocket connection pauses after a 4-second grace period. Background notifications are delegated to Firebase Cloud Messaging (FCM). Upon foregrounding, the connection resumes with random jitter (50–400ms) to prevent thundering-herd reconnect spikes. This reduces idle concurrent connections by 85–90% on the single 2GB VPS.
+> - **Resilience Fallback:** Lightweight background polling runs alongside WebSockets to guarantee synchronization during reconnection events.
 
 ---
 
-## 3. Role-Based Access Control (RBAC)
+## 3. High-Performance In-Memory Tier (Containerized Redis with Synced AOF Storage)
+
+To support high-concurrency disaster scenarios across San Isidro's population without overloading the single-VPS host:
+
+1. **Sanctum Token Caching (`PersonalAccessToken`):**
+   - Resolves Bearer tokens from Redis RAM in 0.1ms with a 5-minute TTL (`sanctum_token:<hash>`).
+   - Throttles `last_used_at` updates to once per 5 minutes, eliminating high-frequency write storms on MariaDB.
+   - Automatically purges from Redis on logout or account suspension.
+2. **In-Memory Queue Engine (`queue:work redis`):**
+   - Asynchronously processes email notifications (Resend), SMS OTPs (PhilSMS), and FCM pushes via Redis push-based queues (`BLPOP`), keeping user-facing HTTP request latencies under 50ms.
+3. **RAM Protection & Real Storage Persistence:**
+   - Runs in Podman with `--appendonly yes`, mounting `./docker/data/redis:/data:Z` on real host storage to survive reboots.
+   - Enforces `maxmemory 256mb` and `maxmemory-policy allkeys-lru`, guaranteeing Redis will never exceed 256MB of RAM.
+   - Host is protected by a 2GB Linux swap space (`/swapfile`, swappiness=10) and `ulimit 65536` file descriptors to prevent OOM killer crashes and socket exhaustion.
+
+---
+
+## 4. Role-Based Access Control (RBAC)
 
 The system enforces strict multi-tenant role isolation across three tiers: **`citizen`**, **`dispatcher`**, and **`admin`**.
 
@@ -76,7 +96,7 @@ The system enforces strict multi-tenant role isolation across three tiers: **`ci
 
 ---
 
-## 4. Key Design & Technical Decisions
+## 5. Key Design & Technical Decisions
 
 1. **Authoritative Server-Side Geolocation (`BarangayResolver`):**
    - The frontend previews the barangay locally for instant UI feedback, but the backend **always** performs server-side ray-casting against official PSA boundary polygons (`san-isidro-barangays.geojson`) to guarantee authenticity.

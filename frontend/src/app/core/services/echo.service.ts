@@ -2,6 +2,8 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { environment } from '../../../environments/environment';
 
 /** Shape of each raw event payload arriving from Reverb. */
@@ -22,6 +24,13 @@ export interface ReverbEvent {
  * entire app lifetime. Exposes typed Observables for each public channel
  * so consumers never touch Echo or Pusher directly.
  *
+ * Lifecycle-Aware WebSocket Management:
+ *   - On native mobile (Capacitor) and desktop/web tabs, pauses (disconnects)
+ *     the WebSocket connection when the app is placed in the background or tab is hidden.
+ *   - Automatically resumes and re-subscribes with jitter when foregrounded.
+ *   - Background alerts are handled via Firebase Cloud Messaging (FCM) push notifications,
+ *     drastically reducing idle TCP sockets and memory usage on the VPS.
+ *
  * Channels:
  *   emergencies  — EmergencyUpdated   (SOS submit / dispatch / resolve / cancel / false_alarm)
  *   hazards      — HazardUpdated      (hazard submit / resolve)
@@ -34,11 +43,18 @@ export class EchoService implements OnDestroy {
   // mismatch — the runtime behaviour is identical regardless of the type param.
   private echo: any = null;
 
+  private shouldBeConnected = false;
+  private isPaused = false;
+  private pauseTimer: any = null;
+  private appStateListenerHandle: any = null;
+  private visibilityListener: (() => void) | null = null;
+
   private readonly emergencyUpdated$ = new Subject<ReverbEvent['data']>();
   private readonly hazardUpdated$    = new Subject<ReverbEvent['data']>();
   private readonly broadcastUpdated$ = new Subject<ReverbEvent['data']>();
   private readonly userVerified$     = new Subject<ReverbEvent['data']>();
   private readonly connected$        = new BehaviorSubject<boolean>(false);
+  private readonly resumed$          = new Subject<void>();
 
   readonly onConnected:        Observable<boolean>            = this.connected$.asObservable();
   get isConnected(): boolean { return this.connected$.value; }
@@ -47,8 +63,103 @@ export class EchoService implements OnDestroy {
   readonly onBroadcastUpdated: Observable<ReverbEvent['data']> = this.broadcastUpdated$.asObservable();
   /** Emits whenever a UserVerified event arrives (approved / rejected / suspended / reinstated). */
   readonly onUserVerified:     Observable<ReverbEvent['data']> = this.userVerified$.asObservable();
+  /** Emits whenever the app resumes from background and restores the WebSocket connection. */
+  readonly onResumed:          Observable<void>               = this.resumed$.asObservable();
+
+  constructor() {
+    this.initLifecycleListeners();
+  }
+
+  /**
+   * Listens for mobile app state changes (Capacitor) and web visibility changes.
+   */
+  private initLifecycleListeners(): void {
+    if (Capacitor.isNativePlatform()) {
+      App.addListener('appStateChange', (state) => {
+        if (!state.isActive) {
+          this.handleBackground();
+        } else {
+          this.handleForeground();
+        }
+      }).then(handle => {
+        this.appStateListenerHandle = handle;
+      }).catch(err => {
+        console.warn('EchoService: Failed to bind appStateChange listener', err);
+      });
+    }
+
+    if (typeof document !== 'undefined') {
+      this.visibilityListener = () => {
+        if (document.hidden) {
+          this.handleBackground();
+        } else {
+          this.handleForeground();
+        }
+      };
+      document.addEventListener('visibilitychange', this.visibilityListener);
+    }
+  }
+
+  private handleBackground(): void {
+    if (!this.shouldBeConnected || this.isPaused) return;
+
+    // 4-second grace period: prevents disconnect/reconnect churn if user
+    // quickly pulls down notification shade or switches apps briefly.
+    if (this.pauseTimer) clearTimeout(this.pauseTimer);
+    this.pauseTimer = setTimeout(() => {
+      this.pauseWebSocket();
+    }, 4000);
+  }
+
+  private handleForeground(): void {
+    if (this.pauseTimer) {
+      clearTimeout(this.pauseTimer);
+      this.pauseTimer = null;
+    }
+
+    if (this.isPaused && this.shouldBeConnected) {
+      // Add slight randomized jitter (50ms - 400ms) to prevent thundering-herd
+      // reconnect spikes if hundreds of devices wake simultaneously.
+      const jitter = Math.floor(Math.random() * 350) + 50;
+      setTimeout(() => {
+        if (this.shouldBeConnected) {
+          this.resumeWebSocket();
+        }
+      }, jitter);
+    }
+  }
+
+  private pauseWebSocket(): void {
+    if (!this.echo) return;
+    this.isPaused = true;
+    try {
+      this.echo.disconnect();
+    } catch (e) {
+      console.warn('EchoService: Error while disconnecting on pause', e);
+    }
+    this.echo = null;
+    this.connected$.next(false);
+  }
+
+  private resumeWebSocket(): void {
+    this.isPaused = false;
+    this.initEcho();
+    this.resumed$.next();
+  }
 
   connect(): void {
+    this.shouldBeConnected = true;
+    this.isPaused = false;
+    if (this.pauseTimer) {
+      clearTimeout(this.pauseTimer);
+      this.pauseTimer = null;
+    }
+
+    if (this.echo) return;
+    this.initEcho();
+  }
+
+  private initEcho(): void {
     if (this.echo) return;
 
     (window as any).Pusher = Pusher;
@@ -62,6 +173,9 @@ export class EchoService implements OnDestroy {
       forceTLS:          environment.reverbScheme === 'https',
       enabledTransports: ['ws', 'wss'],
       disableStats:      true,
+      // Ping interval of 60s and timeout of 30s aligned with server-side config
+      activityTimeout:   60000,
+      pongTimeout:       30000,
     });
 
     this.echo = echo;
@@ -90,13 +204,31 @@ export class EchoService implements OnDestroy {
   }
 
   disconnect(): void {
+    this.shouldBeConnected = false;
+    this.isPaused = false;
+    if (this.pauseTimer) {
+      clearTimeout(this.pauseTimer);
+      this.pauseTimer = null;
+    }
     if (!this.echo) return;
-    this.echo.disconnect();
+    try {
+      this.echo.disconnect();
+    } catch (e) {
+      console.warn('EchoService: Error while disconnecting', e);
+    }
     this.echo = null;
     this.connected$.next(false);
   }
 
   ngOnDestroy(): void {
     this.disconnect();
+    if (this.appStateListenerHandle) {
+      this.appStateListenerHandle.remove?.();
+      this.appStateListenerHandle = null;
+    }
+    if (this.visibilityListener && typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.visibilityListener);
+      this.visibilityListener = null;
+    }
   }
 }

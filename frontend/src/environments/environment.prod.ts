@@ -1,6 +1,8 @@
 export const environment = {
   production: true,
   apiUrl: 'http://159.223.42.159/api',
+  mapTileUrl: 'http://159.223.42.159/tiles/osm/{z}/{x}/{y}.png',
+  satelliteTileUrl: 'http://159.223.42.159/tiles/satellite/{z}/{y}/{x}.jpg',
 
   // ── Laravel Reverb (WebSocket) ─────────────────────────────────────────
   // In production, Nginx on standard HTTP port 80 proxies /app/ → reverb container.
@@ -9,3 +11,4 @@ export const environment = {
   reverbPort: 80,
   reverbScheme: 'http',
 };
+

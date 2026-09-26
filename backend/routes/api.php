@@ -13,9 +13,15 @@ use App\Http\Controllers\Emergency\BroadcastController;
 use App\Http\Controllers\Emergency\AnalyticsController;
 use App\Http\Controllers\UserSettingsController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\Map\TileProxyController;
 
 // ── Public routes (no token required) ────────────────────────────────────────
 Route::get('/health',           fn () => response()->json(['status' => 'ok', 'timestamp' => now()]));
+
+// ── Map Tile Proxy & Cache (fallback for local dev without Nginx) ─────────────
+Route::get('/tiles/osm/{z}/{x}/{y}.png',            [TileProxyController::class, 'osm']);
+Route::get('/tiles/satellite/{z}/{y}/{x}',          [TileProxyController::class, 'satellite']);
+Route::get('/tiles/satellite/{z}/{y}/{x}.{ext}',    [TileProxyController::class, 'satellite']);
 Route::post('/register',        [AuthController::class, 'register']);
 Route::post('/login',           [AuthController::class, 'login']);
 Route::post('/login-send-otp',   [AuthController::class, 'loginSendOtp'])->middleware('throttle:3,1');

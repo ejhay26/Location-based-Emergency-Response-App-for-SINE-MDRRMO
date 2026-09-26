@@ -25,3 +25,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/docker/cache/
+/docker/data/*
+!/docker/data/redis/.gitkeep
+/storage/app/tiles/

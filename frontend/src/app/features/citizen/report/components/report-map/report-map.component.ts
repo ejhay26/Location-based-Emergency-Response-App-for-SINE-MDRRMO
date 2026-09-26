@@ -10,6 +10,7 @@ import { UserSettingsService } from '../../../../../core/services/user-settings'
 import { LocationService } from '../../../../../core/services/location';
 import { TourService } from '../../../../../core/services/tour';
 import { PressFeedbackDirective } from '../../../../../shared/directives/press-feedback.directive';
+import { environment } from '../../../../../../environments/environment';
 
 // @ts-ignore
 const CachedTileLayer = L.TileLayer.extend({
@@ -28,13 +29,25 @@ const CachedTileLayer = L.TileLayer.extend({
     const fetchFresh = () =>
       fetch(url, fetchOptions)
         .then((net: Response) => {
-          if (!net.ok) throw new Error(`OSM tile ${net.status}`);
+          if (!net.ok) throw new Error(`Tile fetch ${net.status}`);
           const clone = net.clone();
           if ('caches' in window) { caches.open('mdrrmo-tile-cache-v1').then((cache: Cache) => cache.put(url, clone)); }
           return net.blob();
         })
         .then(loadTile)
-        .catch((err: any) => done(err, tile));
+        .catch((err: any) => {
+          if (url.includes('/tiles/osm/')) {
+            const fallbackUrl = url.replace(/https?:\/\/[^\/]+(?:\/api)?\/tiles\/osm\//, 'https://tile.openstreetmap.org/');
+            return fetch(fallbackUrl, fetchOptions)
+              .then(net => {
+                if (!net.ok) throw new Error(`Fallback OSM ${net.status}`);
+                return net.blob();
+              })
+              .then(loadTile)
+              .catch((e: any) => done(e, tile));
+          }
+          done(err, tile);
+        });
     if ('caches' in window) {
       caches.open('mdrrmo-tile-cache-v1').then((cache: Cache) => {
         cache.match(url).then((cached: Response | undefined) => {
@@ -546,9 +559,19 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     // this class's other lookups were fixed for — see mapCanvasRef's doc
     // comment above. tryInit() already guards this truthy before calling here.
     this.map = L.map(this.mapCanvasRef!.nativeElement, { minZoom: 13, zoomControl: false }).setView([15.3014, 120.9274], 14);
+    const osmTileUrl = (environment as any).mapTileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const satelliteTileUrl = (environment as any).satelliteTileUrl || 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+
     // @ts-ignore
-    this.streetLayer = new CachedTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
-    this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri' });
+    this.streetLayer = new CachedTileLayer(osmTileUrl, { maxZoom: 19, attribution: '© OpenStreetMap' });
+    this.satelliteLayer = L.tileLayer(satelliteTileUrl, { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri', crossOrigin: true });
+    this.satelliteLayer.on('tileerror', (e: any) => {
+      const tile = e?.tile;
+      if (tile && !tile.dataset?.fallbackTried && tile.src && tile.src.includes('/tiles/satellite/')) {
+        tile.dataset.fallbackTried = 'true';
+        tile.src = tile.src.replace(/https?:\/\/[^\/]+(?:\/api)?\/tiles\/satellite\//, 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/').replace(/\.(?:jpg|jpeg|png)$/, '');
+      }
+    });
 
     if (this.mapStyle === 'street') {
       this.streetLayer.addTo(this.map);

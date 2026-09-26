@@ -8,6 +8,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
 } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
+import { environment } from '../../../../../../environments/environment';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
 import { EchoService } from '../../../../../core/services/echo.service';
@@ -814,9 +815,35 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   initMap() {
     if (this.map) return;
     this.map = L.map('dispatch-map', { minZoom: 12, zoomControl: false }).setView([15.3014, 120.9274], 13);
-    const osmTileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    this.streetLayer    = L.tileLayer(osmTileUrl, { maxZoom: 19, attribution: '© OpenStreetMap contributors' });
-    this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri' });
+    const osmTileUrl = (environment as any).mapTileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const satelliteTileUrl = (environment as any).satelliteTileUrl || 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+
+    this.streetLayer = L.tileLayer(osmTileUrl, {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors',
+      crossOrigin: true
+    });
+    this.streetLayer.on('tileerror', (e: any) => {
+      const tile = e?.tile;
+      if (tile && !tile.dataset?.fallbackTried && tile.src && tile.src.includes('/tiles/osm/')) {
+        tile.dataset.fallbackTried = 'true';
+        tile.src = tile.src.replace(/https?:\/\/[^\/]+(?:\/api)?\/tiles\/osm\//, 'https://tile.openstreetmap.org/');
+      }
+    });
+
+    this.satelliteLayer = L.tileLayer(satelliteTileUrl, {
+      maxZoom: 19,
+      maxNativeZoom: 18,
+      attribution: '© Esri',
+      crossOrigin: true
+    });
+    this.satelliteLayer.on('tileerror', (e: any) => {
+      const tile = e?.tile;
+      if (tile && !tile.dataset?.fallbackTried && tile.src && tile.src.includes('/tiles/satellite/')) {
+        tile.dataset.fallbackTried = 'true';
+        tile.src = tile.src.replace(/https?:\/\/[^\/]+(?:\/api)?\/tiles\/satellite\//, 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/').replace(/\.(?:jpg|jpeg|png)$/, '');
+      }
+    });
 
     if (this.mapStyle === 'street') {
       this.streetLayer.addTo(this.map);

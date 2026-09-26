@@ -23,6 +23,12 @@ mkdir -p storage/framework/cache storage/framework/sessions storage/framework/vi
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
+# Ensure Nginx map tile cache directory exists and is writable by nginx
+mkdir -p /var/cache/nginx/tiles
+chown -R nginx:nginx /var/cache/nginx
+chmod -R 777 /var/cache/nginx
+
+
 # ── 2. Re-run package discovery at runtime so bootstrap/cache/packages.php
 #       only lists production providers. The Dockerfile runs
 #       `composer install --no-dev`, but the post-autoload-dump hook

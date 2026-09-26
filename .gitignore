@@ -18,3 +18,6 @@ release/
 # Keystore files
 *.keystore
 *.jks
+
+# Experimental Flutter Port
+frontend2/

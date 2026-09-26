@@ -21,7 +21,11 @@ RUN apk add --no-cache \
 # ── PHP extensions ────────────────────────────────────────────────────────
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
  && docker-php-ext-install -j$(nproc) \
-        pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache xml
+        pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache xml \
+ && apk add --no-cache autoconf g++ make linux-headers \
+ && pecl install redis \
+ && docker-php-ext-enable redis \
+ && apk del autoconf g++ make linux-headers
 
 # ── Composer ──────────────────────────────────────────────────────────────
 COPY --from=composer_stage /usr/bin/composer /usr/bin/composer
