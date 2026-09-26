@@ -38,13 +38,14 @@ const CachedTileLayer = L.TileLayer.extend({
         .catch((err: any) => {
           if (url.includes('/tiles/osm/')) {
             const fallbackUrl = url.replace(/https?:\/\/[^\/]+(?:\/api)?\/tiles\/osm\//, 'https://tile.openstreetmap.org/');
-            return fetch(fallbackUrl, fetchOptions)
+            fetch(fallbackUrl, fetchOptions)
               .then(net => {
                 if (!net.ok) throw new Error(`Fallback OSM ${net.status}`);
                 return net.blob();
               })
               .then(loadTile)
               .catch((e: any) => done(e, tile));
+            return;
           }
           done(err, tile);
         });
