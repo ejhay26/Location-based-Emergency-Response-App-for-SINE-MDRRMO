@@ -815,20 +815,13 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   initMap() {
     if (this.map) return;
     this.map = L.map('dispatch-map', { minZoom: 12, zoomControl: false }).setView([15.3014, 120.9274], 13);
-    const osmTileUrl = (environment as any).mapTileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const satelliteTileUrl = (environment as any).satelliteTileUrl || 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+    const osmTileUrl = (environment as any).mapTileUrl || 'http://159.223.42.159/tiles/osm/{z}/{x}/{y}.png';
+    const satelliteTileUrl = (environment as any).satelliteTileUrl || 'http://159.223.42.159/tiles/satellite/{z}/{y}/{x}.jpg';
 
     this.streetLayer = L.tileLayer(osmTileUrl, {
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors',
       crossOrigin: true
-    });
-    this.streetLayer.on('tileerror', (e: any) => {
-      const tile = e?.tile;
-      if (tile && !tile.dataset?.fallbackTried && tile.src && tile.src.includes('/tiles/osm/')) {
-        tile.dataset.fallbackTried = 'true';
-        tile.src = tile.src.replace(/https?:\/\/[^\/]+(?:\/api)?\/tiles\/osm\//, 'https://tile.openstreetmap.org/');
-      }
     });
 
     this.satelliteLayer = L.tileLayer(satelliteTileUrl, {
@@ -836,13 +829,6 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       maxNativeZoom: 18,
       attribution: '© Esri',
       crossOrigin: true
-    });
-    this.satelliteLayer.on('tileerror', (e: any) => {
-      const tile = e?.tile;
-      if (tile && !tile.dataset?.fallbackTried && tile.src && tile.src.includes('/tiles/satellite/')) {
-        tile.dataset.fallbackTried = 'true';
-        tile.src = tile.src.replace(/https?:\/\/[^\/]+(?:\/api)?\/tiles\/satellite\//, 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/').replace(/\.(?:jpg|jpeg|png)$/, '');
-      }
     });
 
     if (this.mapStyle === 'street') {

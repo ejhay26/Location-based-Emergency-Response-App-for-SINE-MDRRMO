@@ -28,4 +28,13 @@ if (env('BACKUP_AUTO_ENABLED', true)) {
     }
 }
 
+// ── SINE MDRRMO Map Tile Cache Automated Refresh ────────────────────────────
+// Pre-warms and updates all San Isidro municipal boundary tiles (Zooms 12-17).
+// Runs weekly on Sundays at 03:00 AM off-peak, storing refreshed tiles directly
+// on the persistent VPS SSD so user client apps never query OSM directly.
+Schedule::command('map:cache-tiles --zoom-min=12 --zoom-max=17')
+    ->weeklyOn(0, '03:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
 
