@@ -34,3 +34,12 @@ Route::get('/storage-proxy/{path}', function (Request $request, string $path) {
         ->header('Access-Control-Allow-Headers','*')
         ->header('Cache-Control',               'public, max-age=86400');
 })->where('path', '.*');
+
+/**
+ * Fallback route for unauthenticated API requests that redirect to 'login'.
+ * Returns 401 JSON so unauthenticated requests never crash with RouteNotFoundException.
+ */
+Route::get('/login', function () {
+    return response()->json(['message' => 'Unauthenticated.'], 401);
+})->name('login');
+
