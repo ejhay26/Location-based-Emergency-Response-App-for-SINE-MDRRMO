@@ -12,8 +12,13 @@ class FeedbackController extends Controller
 {
     public function store(Request $request)
     {
+        $userId = $request->user()?->user_id ?? $request->input('user_id');
+        if (!$userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
         $request->validate([
-            'user_id'     => 'required|integer',
+            'user_id'     => 'nullable|integer',
             'message'     => 'required|string|min:5|max:2000',
             'category'    => 'nullable|string|in:general,bug,suggestion,other',
             'rating'      => 'nullable|integer|min:1|max:5',
@@ -21,7 +26,7 @@ class FeedbackController extends Controller
         ]);
 
         $id = DB::table('feedback')->insertGetId([
-            'user_id'     => $request->user_id,
+            'user_id'     => $userId,
             'message'     => $request->message,
             'category'    => $request->category ?? 'general',
             'rating'      => $request->rating ?? 5,

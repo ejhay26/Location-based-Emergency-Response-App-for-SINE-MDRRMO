@@ -23,9 +23,12 @@ class SosController extends Controller
     public function submitSos(Request $request)
     {
         $userId = $request->user()?->user_id ?? $request->input('user_id');
+        if (!$userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
 
         $request->validate([
-            'user_id'          => 'required|integer',
+            'user_id'          => 'nullable|integer',
             'incident_type_id' => 'required|integer',
             'latitude'         => 'required|numeric|between:-90,90',
             'longitude'        => 'required|numeric|between:-180,180',
@@ -76,11 +79,21 @@ class SosController extends Controller
         return response()->json(['message' => 'Emergency SOS sent!', 'request_id' => $created->request_id], 201);
     }
 
-    public function getMyEmergencies($user_id)
+    public function getMyEmergencies(Request $request, $user_id = null)
     {
+        $authUser = $request->user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $targetId = $user_id ? (int)$user_id : $authUser->user_id;
+        if ($targetId !== $authUser->user_id && !$authUser->tokenCan('admin') && !$authUser->tokenCan('dispatcher')) {
+            return response()->json(['message' => 'Unauthorized to view emergencies for another user.'], 403);
+        }
+
         $requests = DB::table('emergency_requests')
             ->join('incident_types', 'emergency_requests.incident_type_id', '=', 'incident_types.incident_type_id')
-            ->where('emergency_requests.user_id', $user_id)
+            ->where('emergency_requests.user_id', $targetId)
             ->orderBy('emergency_requests.request_time', 'desc')
             ->select('emergency_requests.*', 'incident_types.incident_name')
             ->get()
@@ -94,13 +107,18 @@ class SosController extends Controller
             'request_id' => 'required|integer',
             'user_id'    => 'nullable|integer',
         ]);
-        $userId = $request->user_id ?? $request->user()?->user_id;
+
+        $authUser = $request->user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
 
         $query = EmergencyRequest::where('request_id', $request->request_id)
             ->where('status', 'Pending');
 
-        if ($userId) {
-            $query->where('user_id', $userId);
+        // Citizens can only cancel their own emergencies. Dispatchers/admins can cancel any.
+        if (!$authUser->tokenCan('admin') && !$authUser->tokenCan('dispatcher')) {
+            $query->where('user_id', $authUser->user_id);
         }
 
         $affected = $query->update(['status' => 'Cancelled']);

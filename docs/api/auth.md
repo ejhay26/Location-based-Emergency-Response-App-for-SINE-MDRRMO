@@ -16,8 +16,9 @@ Lightweight health probe endpoint.
 
 ---
 
-### 1.2 `POST /api/register`
-Creates a new citizen registration and triggers an initial OTP verification code.
+### 1.2 `POST /api/register` (Throttled: 5/min)
+Creates a new citizen registration in `pending_otp` status and triggers an initial OTP verification code.
+*Note: Government `valid_id_number` must be unique across all active or pending accounts.*
 
 - **Request Body (JSON):**
   | Field | Type | Required | Description |
@@ -31,7 +32,7 @@ Creates a new citizen registration and triggers an initial OTP verification code
   | `password` | string | Yes | Strong password (8+ chars, uppercase, lowercase, digit, symbol) |
   | `barangay_id` | integer | Yes | ID of resident barangay (1–9) |
   | `valid_id_type` | string | Yes | Verified Philippine ID: PhilSys, Driver's License, Passport, UMID, Postal ID, PRC License |
-  | `valid_id_number` | string | Yes | Formatted government ID number |
+  | `valid_id_number` | string | Yes | Formatted government ID number (unique) |
   | `valid_id_expiry` | string (YYYY-MM-DD) | Optional | ID Expiration Date (required for Driver's License, Passport, Postal, PRC) |
   | `valid_id_details` | object / JSON | Optional | Extra metadata (e.g. `{ "profession": "..." }`) |
   | `valid_id_image` | string (base64) | Yes | Front of Valid Government ID |
@@ -59,7 +60,10 @@ Authenticates a citizen, dispatcher, or admin using username/email and password.
     "user": { "user_id": 12, "first_name": "Juan", "role": "citizen", "setup_completed": false }
   }
   ```
-- **Error (403):** Returns `{ "message": "Your account registration is currently pending admin verification review.", "reason": "unverified" }` if ID has not yet been approved.
+- **Error (403 Forbidden):**
+  - **Pending OTP:** `{ "message": "Please verify the OTP code sent to your email to complete registration.", "reason": "pending_otp", "email": "user@example.com" }`
+  - **Pending Admin Review:** `{ "message": "Your account registration is currently pending admin verification review.", "reason": "unverified" }`
+  - **Suspended:** `{ "message": "This account has been suspended.", "reason": "banned" }`
 
 ---
 
@@ -93,11 +97,35 @@ Verifies the passwordless login code and issues a Sanctum token.
 
 ---
 
-### 1.6 `POST /api/verify-otp`
-Confirms the OTP received during registration.
+### 1.6 `POST /api/verify-otp` (Throttled: 10/min)
+Confirms the OTP received during registration. Transitions `account_status` from `pending_otp` to `unverified` (queueing the application for admin review) and stamps `email_verified_at = now()`.
 
 - **Request Body:** `{ "email": "user@example.com", "otp": "1234" }`
-- **Response (200):** `{ "message": "Verification successful", "user": {...}, "role": "citizen" }`
+- **Response (200):** `{ "message": "Verification successful. Your account is now pending admin verification.", "user": {...}, "role": "citizen" }`
+
+---
+
+### 1.7 Public Check Endpoints
+- `GET /api/check-username?username=...` (Throttled: 20/min)
+- `GET /api/check-email?email=...` (Throttled: 20/min)
+- `POST /api/check-verification-status` (Throttled: 10/min)
+- `POST /api/reset-password` (Throttled: 5/min)
+
+---
+
+## 2. Authenticated Account & Profile Endpoints (`auth:sanctum`)
+*Note: All endpoints below derive user identity authoritatively from the Sanctum bearer token (`$request->user()->user_id`). Passing foreign user IDs in the request body is rejected or ignored to prevent IDOR vulnerabilities.*
+
+- `POST /api/send-password-change-otp`: Sends password-change OTP to authenticated user's email/phone.
+- `POST /api/verify-password-change-otp`: Verifies OTP for the authenticated session.
+- `POST /api/update-password`: Sets new password following verified OTP confirmation.
+- `POST /api/update-profile-picture`: Updates authenticated user's avatar.
+- `POST /api/update-medical-profile`: Updates medical/blood type/PWD details.
+- `POST /api/complete-account-setup`: Marks first-time onboarding tour as completed.
+- `POST /api/save-push-token`: Registers device FCM token bound to authenticated user.
+- `POST /api/delete-push-token`: Revokes device token on logout.
+- `GET /api/settings`: Returns personalized app settings for authenticated user.
+- `POST /api/settings`: Persists setting key/value pairs for authenticated user.
 
 ---
 

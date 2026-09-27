@@ -184,6 +184,13 @@ class AuthController extends Controller
             ? User::where('email', $request->login)->first()
             : User::whereHas('profile', fn($q) => $q->where('username', $request->login))->first();
 
+        if ($user && $user->account_status === 'pending_otp') {
+            return response()->json([
+                'message' => 'Please verify the OTP code sent to your email to complete registration.',
+                'reason'  => 'pending_otp',
+                'email'   => $user->email,
+            ], 403);
+        }
         if ($user && $user->account_status === 'unverified') {
             return response()->json(['message' => 'Your account registration is currently pending admin verification review.', 'reason' => 'unverified'], 403);
         }
@@ -290,17 +297,32 @@ class AuthController extends Controller
             return response()->json(['message' => 'Please enter a valid Philippine mobile number.'], 422);
         }
 
-        // Check if an existing ACTIVE or BANNED account already uses this username, email, or phone
+        // Enforce single use of valid_id_number across active or pending registrations
+        if ($request->filled('valid_id_number')) {
+            $idNumber = trim($request->valid_id_number);
+            $existingId = DB::table('user_verifications')
+                ->join('users', 'user_verifications.user_id', '=', 'users.user_id')
+                ->where('user_verifications.valid_id_number', $idNumber)
+                ->whereIn('users.account_status', ['active', 'unverified', 'pending_otp'])
+                ->whereNull('users.deleted_at')
+                ->first();
+
+            if ($existingId) {
+                return response()->json(['message' => 'This ID number has already been registered or is pending review.'], 422);
+            }
+        }
+
+        // Check if an existing ACTIVE, BANNED, or UNVERIFIED (pending admin review) account already uses this username, email, or phone
         $existingActive = User::where(function ($q) use ($request, $normalizedPhone) {
             $q->where('email', $request->email)
               ->orWhereHas('profile', function ($pq) use ($request, $normalizedPhone) {
                   $pq->where('username', $request->username)
                      ->orWhere('phone', $normalizedPhone);
               });
-        })->where('account_status', '!=', 'unverified')->first();
+        })->whereIn('account_status', ['active', 'banned', 'unverified'])->first();
 
         if ($existingActive) {
-            if ($existingActive->username === $request->username) {
+            if ($existingActive->profile?->username === $request->username) {
                 return response()->json(['message' => 'This username is already registered.'], 422);
             }
             if ($existingActive->email === $request->email) {
@@ -309,14 +331,28 @@ class AuthController extends Controller
             return response()->json(['message' => 'This phone number is already registered.'], 422);
         }
 
-        // Cleanly prune any stale unverified attempt from an aborted earlier session
-        User::where(function ($q) use ($request, $normalizedPhone) {
+        // Cleanly prune only stale uncompleted sessions (pending_otp), and purge their uploaded files from storage
+        $staleAttempts = User::with('profile')->where(function ($q) use ($request, $normalizedPhone) {
             $q->where('email', $request->email)
               ->orWhereHas('profile', function ($pq) use ($request, $normalizedPhone) {
                   $pq->where('username', $request->username)
                      ->orWhere('phone', $normalizedPhone);
               });
-        })->where('account_status', 'unverified')->delete();
+        })->where('account_status', 'pending_otp')->get();
+
+        $disk = config('filesystems.default') ?: 'public';
+        foreach ($staleAttempts as $stale) {
+            if ($stale->profile?->username) {
+                Storage::disk($disk)->deleteDirectory('verification_ids/' . $stale->profile->username);
+                if ($disk !== 'public') {
+                    Storage::disk('public')->deleteDirectory('verification_ids/' . $stale->profile->username);
+                }
+            }
+            $stale->verification()?->delete();
+            $stale->medicalProfile()?->delete();
+            $stale->profile()?->delete();
+            $stale->delete();
+        }
 
         $id_base64 = $this->decodeBase64($request->valid_id_image);
         if ($id_base64 === false) {
@@ -376,7 +412,7 @@ class AuthController extends Controller
                 'email'          => $request->email,
                 'password'       => Hash::make($request->password),
                 'role'           => 'citizen',
-                'account_status' => 'unverified',
+                'account_status' => 'pending_otp',
             ]);
 
             UserProfile::create([
@@ -645,10 +681,15 @@ class AuthController extends Controller
         $request->validate(['email' => 'required|email', 'otp' => 'required|numeric']);
         if ($this->otp->verify('otp_' . $request->email, $request->otp)) {
             $user = User::where('email', $request->email)->first();
+            if ($user) {
+                $user->account_status = 'unverified';
+                $user->email_verified_at = now();
+                $user->save();
+            }
             return response()->json([
-                'message' => 'Verification successful',
-                'user'    => $user->fresh(),
-                'role'    => $user->role,
+                'message' => 'Verification successful. Your account is now pending admin verification.',
+                'user'    => $user?->fresh(),
+                'role'    => $user?->role,
             ]);
         }
         return response()->json(['message' => 'Invalid or expired OTP'], 400);

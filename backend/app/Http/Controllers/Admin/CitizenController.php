@@ -262,10 +262,12 @@ class CitizenController extends Controller
     public function rejectUser(Request $request)
     {
         $request->validate(['user_id' => 'required|integer']);
-        $user = User::where('user_id', $request->user_id)->first();
+        $user = User::with(['profile', 'verification', 'medicalProfile'])->where('user_id', $request->user_id)->first();
         if ($user) {
             $userEmail = $user->email;
             $userFirstName = $user->first_name;
+            $username = $user->profile?->username;
+            $userId = $user->user_id;
 
             // Send polite rejection email before deleting record
             if (!empty($userEmail)) {
@@ -280,11 +282,22 @@ class CitizenController extends Controller
                 }
             }
 
-            if ($user->valid_id_proof) {
-                Storage::disk('public')->deleteDirectory('verification_ids/' . $user->username);
+            // Clean up verification ID photos and selfies from storage
+            $disk = config('filesystems.default') ?: 'public';
+            if ($username) {
+                Storage::disk($disk)->deleteDirectory('verification_ids/' . $username);
+                if ($disk !== 'public') {
+                    Storage::disk('public')->deleteDirectory('verification_ids/' . $username);
+                }
             }
-            $userId = $user->user_id;
+            Storage::disk($disk)->deleteDirectory('profiles/' . $userId);
+
+            // Delete child relational records and the user
+            $user->verification()?->delete();
+            $user->medicalProfile()?->delete();
+            $user->profile()?->delete();
             $user->delete();
+
             broadcast(new UserVerified('rejected', $userId));
         }
         return response()->json(['message' => 'User request rejected and deleted.']);

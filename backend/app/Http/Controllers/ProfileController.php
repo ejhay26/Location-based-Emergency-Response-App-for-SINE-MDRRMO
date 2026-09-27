@@ -20,9 +20,14 @@ class ProfileController extends Controller
     public function updateProfilePicture(Request $request)
     {
         $request->validate([
-            'user_id' => 'required',
+            'user_id' => 'nullable',
             'image'   => 'required|string',
         ]);
+
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
 
         $image_base64 = $this->decodeBase64($request->image);
         if ($image_base64 === false) {
@@ -34,11 +39,6 @@ class ProfileController extends Controller
         $mime = $this->detectMime($image_base64);
         if ($mime === null || $mime === 'video/mp4') {
             return response()->json(['message' => 'Profile picture must be a PNG or JPEG image.'], 422);
-        }
-
-        $user = User::where('user_id', $request->user_id)->first();
-        if (!$user) {
-            return response()->json(['message' => 'User not found.'], 404);
         }
 
         // Store new file FIRST, then delete old — avoids broken state on failure.
@@ -74,9 +74,9 @@ class ProfileController extends Controller
 
     public function updateMedicalProfile(Request $request)
     {
-        $request->validate(['user_id' => 'required']);
-        $user = User::where('user_id', $request->user_id)->first();
-        if (!$user) return response()->json(['message' => 'User not found'], 404);
+        $request->validate(['user_id' => 'nullable']);
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated.'], 401);
 
         $user->medicalProfile()->updateOrCreate(
             ['user_id' => $user->user_id],
@@ -101,9 +101,9 @@ class ProfileController extends Controller
      */
     public function completeAccountSetup(Request $request)
     {
-        $request->validate(['user_id' => 'required']);
-        $user = User::where('user_id', $request->user_id)->first();
-        if (!$user) return response()->json(['message' => 'User not found'], 404);
+        $request->validate(['user_id' => 'nullable']);
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated.'], 401);
 
         $user->profile()->updateOrCreate(
             ['user_id' => $user->user_id],
@@ -116,28 +116,35 @@ class ProfileController extends Controller
     public function savePushToken(Request $request)
     {
         $request->validate([
-            'user_id'  => 'required|integer',
+            'user_id'  => 'nullable|integer',
             'token'    => 'required|string',
             'platform' => 'nullable|string|in:android,ios',
         ]);
+        $userId = $request->user()?->user_id ?? $request->user_id;
+        if (!$userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
         DeviceToken::updateOrCreate(
             ['token' => $request->token],
-            ['user_id' => $request->user_id, 'platform' => $request->platform ?? 'android', 'created_at' => now()]
+            ['user_id' => $userId, 'platform' => $request->platform ?? 'android', 'created_at' => now()]
         );
         return response()->json(['message' => 'Token saved.']);
     }
 
     /**
      * Deletes only the single device_tokens row matching this exact token
-     * (i.e. this device), not every token belonging to the user — so
-     * logging out on one phone doesn't silence broadcasts on the user's
-     * other devices. Called on logout so a signed-out device stops
-     * receiving push notifications.
+     * (i.e. this device), belonging to the authenticated user.
+     * Called on logout so a signed-out device stops receiving push notifications.
      */
     public function deletePushToken(Request $request)
     {
         $request->validate(['token' => 'required|string']);
-        DeviceToken::where('token', $request->token)->delete();
+        $query = DeviceToken::where('token', $request->token);
+        if ($request->user()) {
+            $query->where('user_id', $request->user()->user_id);
+        }
+        $query->delete();
         return response()->json(['message' => 'Token removed.']);
     }
 }

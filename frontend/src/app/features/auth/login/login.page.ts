@@ -372,6 +372,10 @@ export class LoginPage {
         } else if (err.status === 403) {
           if (err.error?.reason === 'unverified') {
             this.router.navigate(['/pending-verification'], { queryParams: { login: this.credentials.login } });
+          } else if (err.error?.reason === 'pending_otp') {
+            const targetEmail = err.error?.email || this.credentials.login;
+            this.showToast('Please verify the OTP sent to your email to complete registration.', 'warning');
+            this.router.navigate(['/register'], { queryParams: { step: 4, email: targetEmail } });
           } else {
             this.showToast('Your account has been suspended. Contact the admin.', 'danger');
           }

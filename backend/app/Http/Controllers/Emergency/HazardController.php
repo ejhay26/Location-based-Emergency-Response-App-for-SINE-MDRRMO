@@ -24,9 +24,12 @@ class HazardController extends Controller
     public function submitHazard(Request $request)
     {
         $userId = $request->user()?->user_id ?? $request->input('user_id');
+        if (!$userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
 
         $request->validate([
-            'user_id'       => 'required|integer',
+            'user_id'       => 'nullable|integer',
             'description'   => 'required|string',
             'latitude'      => 'required|numeric|between:-90,90',
             'longitude'     => 'required|numeric|between:-180,180',

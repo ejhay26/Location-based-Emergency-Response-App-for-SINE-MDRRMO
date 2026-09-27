@@ -50,26 +50,37 @@ Route::middleware('ability:dispatcher')->group(function () {
 
 ## 3. Account Verification & Lifecycle Security
 
-New citizen registrations start in a locked state to prevent unauthorized system usage:
+New citizen registrations start in a two-stage locked state to protect staff from unverified spam submissions:
 
 ```
 [Citizen Registers]
-  ├─ Enters Personal Data
+  ├─ Enters Personal Data & Barangay
   ├─ Live Front ID + Back ID + Selfie with ID
-  └─ Verifies Email/SMS OTP
+  └─ Sets Password & Valid ID Number (Unique check enforced)
+          │
+          ▼
+  account_status = 'pending_otp'
+  (Cannot log in; 403 reason: 'pending_otp'; Hidden from Admin Verification Queue)
+          │
+          ▼
+   [Verifies Email/SMS OTP]
           │
           ▼
   account_status = 'unverified'
-  (Cannot log in; Token is NOT issued)
+  email_verified_at = now()
+  (Queued in Admin Dashboard under Pending Verifications)
           │
           ├─────────────────────────────────────────┐
           ▼                                         ▼
    [Admin Reviews ID in Dashboard]            [Admin Rejects ID]
    Approve → account_status = 'active'         Permanent Deletion of User
-   Citizen can now log in                      & ID files (No residual PII)
+   Citizen can now log in                      & ID files from storage (Zero residual PII)
 ```
 
-- **Status Polling & WebSocket:** The pending verification screen listens to real-time `UserVerified` events on the public `users` channel, while concurrently checking `POST /check-verification-status` (public, throttled to 10/min) every 25 seconds.
+- **Step 4 Interruption Handling:** If a registrant exits or crashes during OTP verification, their account remains in `pending_otp`. Subsequent logins return HTTP 403 with `reason: 'pending_otp'` and route the user back to complete verification.
+- **Valid ID Number Uniqueness:** The system verifies `user_verifications.valid_id_number` against active and pending registrations to prevent duplicate government ID usage.
+- **Permanent PII Cleanup on Reject:** `rejectUser` resolves the citizen's uploaded documents across configured storage disks (`config('filesystems.default')` and public fallback) and purges the directory before deleting database records.
+- **Strict Token Identity Enforcement (Anti-IDOR):** Endpoints behind `auth:sanctum` (`/settings`, `/update-profile-picture`, `/update-password`, `/send-password-change-otp`, `/verify-password-change-otp`, `/submit-sos`, `/cancel-sos`, `/my-emergencies`, `/save-push-token`, `/delete-push-token`, `/feedback`) derive user identity strictly from `$request->user()->user_id` rather than client request bodies.
 
 ---
 

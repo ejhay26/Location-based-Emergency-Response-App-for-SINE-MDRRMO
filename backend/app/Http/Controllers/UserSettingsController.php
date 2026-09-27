@@ -31,10 +31,20 @@ class UserSettingsController extends Controller
         'video_trimming_enabled' => 'true',
     ];
 
-    public function get(int $user_id)
+    public function get(Request $request, ?int $user_id = null)
     {
+        $authUser = $request->user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $targetId = $user_id ?: $authUser->user_id;
+        if ($targetId !== $authUser->user_id && !$authUser->tokenCan('admin') && !$authUser->tokenCan('dispatcher')) {
+            return response()->json(['message' => 'Unauthorized to view settings for another user.'], 403);
+        }
+
         $rows = DB::table('user_settings')
-            ->where('user_id', $user_id)
+            ->where('user_id', $targetId)
             ->whereIn('key', self::ALLOWED_KEYS)
             ->get(['key', 'value']);
 
@@ -49,13 +59,23 @@ class UserSettingsController extends Controller
     public function set(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|integer',
+            'user_id' => 'nullable|integer',
             'key'     => 'required|string|in:' . implode(',', self::ALLOWED_KEYS),
             'value'   => 'required|string|max:255',
         ]);
 
+        $authUser = $request->user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $targetId = $request->user_id ? (int)$request->user_id : $authUser->user_id;
+        if ($targetId !== $authUser->user_id && !$authUser->tokenCan('admin')) {
+            return response()->json(['message' => 'Unauthorized to modify settings for another user.'], 403);
+        }
+
         DB::table('user_settings')->updateOrInsert(
-            ['user_id' => $request->user_id, 'key' => $request->key],
+            ['user_id' => $targetId, 'key' => $request->key],
             ['value' => $request->value, 'updated_at' => now()]
         );
 

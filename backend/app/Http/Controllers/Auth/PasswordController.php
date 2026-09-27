@@ -30,11 +30,14 @@ class PasswordController extends Controller
 
     public function sendPasswordChangeOtp(Request $request)
     {
-        $request->validate(['user_id' => 'required|integer', 'channel' => 'required|in:email,phone']);
-        $user = User::where('user_id', $request->user_id)->first();
-        if (!$user) return response()->json(['message' => 'User not found.'], 404);
+        $request->validate([
+            'user_id' => 'nullable|integer',
+            'channel' => 'required|in:email,phone'
+        ]);
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated.'], 401);
 
-        $result = $this->otp->requestOtp('pwd_change_otp_' . $request->user_id);
+        $result = $this->otp->requestOtp('pwd_change_otp_' . $user->user_id);
         if (isset($result['blocked'])) {
             if ($result['blocked'] === 'cooldown') {
                 return response()->json([
@@ -82,9 +85,15 @@ class PasswordController extends Controller
 
     public function verifyPasswordChangeOtp(Request $request)
     {
-        $request->validate(['user_id' => 'required|integer', 'otp' => 'required|numeric']);
-        if ($this->otp->verify('pwd_change_otp_' . $request->user_id, $request->otp)) {
-            Cache::put('pwd_change_verified_' . $request->user_id, true, now()->addMinutes(5));
+        $request->validate([
+            'user_id' => 'nullable|integer',
+            'otp'     => 'required|numeric',
+        ]);
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated.'], 401);
+
+        if ($this->otp->verify('pwd_change_otp_' . $user->user_id, $request->otp)) {
+            Cache::put('pwd_change_verified_' . $user->user_id, true, now()->addMinutes(5));
             return response()->json(['message' => 'OTP verified.']);
         }
         return response()->json(['message' => 'Invalid or expired OTP.'], 400);
@@ -93,17 +102,19 @@ class PasswordController extends Controller
     public function updatePassword(Request $request)
     {
         $request->validate([
-            'user_id'      => 'required',
+            'user_id'      => 'nullable|integer',
             'new_password' => CommonRules::strongPassword(),
         ]);
-        if (!Cache::get('pwd_change_verified_' . $request->user_id)) {
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated.'], 401);
+
+        if (!Cache::get('pwd_change_verified_' . $user->user_id)) {
             return response()->json(['message' => 'Identity verification required before changing password.'], 403);
         }
-        $user = User::where('user_id', $request->user_id)->first();
-        if (!$user) return response()->json(['message' => 'User not found.'], 404);
+
         $user->password = Hash::make($request->new_password);
         $user->save();
-        Cache::forget('pwd_change_verified_' . $request->user_id);
+        Cache::forget('pwd_change_verified_' . $user->user_id);
         return response()->json(['message' => 'Password updated successfully!']);
     }
 }

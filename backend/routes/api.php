@@ -22,18 +22,18 @@ Route::get('/health',           fn () => response()->json(['status' => 'ok', 'ti
 Route::get('/tiles/osm/{z}/{x}/{y}.png',            [TileProxyController::class, 'osm']);
 Route::get('/tiles/satellite/{z}/{y}/{x}',          [TileProxyController::class, 'satellite']);
 Route::get('/tiles/satellite/{z}/{y}/{x}.{ext}',    [TileProxyController::class, 'satellite']);
-Route::post('/register',        [AuthController::class, 'register']);
+Route::post('/register',        [AuthController::class, 'register'])->middleware('throttle:5,1');
 Route::post('/login',           [AuthController::class, 'login']);
 Route::post('/login-send-otp',   [AuthController::class, 'loginSendOtp'])->middleware('throttle:3,1');
 Route::post('/login-verify-otp', [AuthController::class, 'loginVerifyOtp'])->middleware('throttle:5,1');
-Route::post('/verify-otp',      [AuthController::class, 'verifyOtp']);
+Route::post('/verify-otp',      [AuthController::class, 'verifyOtp'])->middleware('throttle:10,1');
 Route::post('/resend-registration-otp', [AuthController::class, 'resendRegistrationOtp'])->middleware('throttle:3,1');
 Route::post('/check-verification-status', [AuthController::class, 'checkVerificationStatus'])->middleware('throttle:10,1');
-Route::get('/check-username',   [AuthController::class, 'checkUsername']);
-Route::get('/check-email',      [AuthController::class, 'checkEmail']);
+Route::get('/check-username',   [AuthController::class, 'checkUsername'])->middleware('throttle:20,1');
+Route::get('/check-email',      [AuthController::class, 'checkEmail'])->middleware('throttle:20,1');
 Route::post('/forgot-password',  [AuthController::class, 'forgotPassword'])->middleware('throttle:3,1');
 Route::post('/verify-reset-otp', [AuthController::class, 'verifyResetOtp'])->middleware('throttle:5,1');
-Route::post('/reset-password',   [AuthController::class, 'resetPassword']);
+Route::post('/reset-password',   [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
 
 // ── Sanctum-protected routes ──────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
@@ -61,7 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/complete-account-setup',     [ProfileController::class, 'completeAccountSetup']);
 
     // Settings
-    Route::get('/settings/{user_id}', [UserSettingsController::class, 'get']);
+    Route::get('/settings/{user_id?}', [UserSettingsController::class, 'get']);
     Route::post('/settings',          [UserSettingsController::class, 'set']);
 
     // Push notifications
@@ -72,10 +72,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/submit-sos',                 [SosController::class, 'submitSos'])->middleware('throttle:5,1');
     Route::post('/cancel-sos',                 [SosController::class, 'cancelEmergency']);
     Route::post('/submit-hazard',              [HazardController::class, 'submitHazard'])->middleware('throttle:5,1');
-    Route::get('/my-emergencies/{user_id}',    [SosController::class, 'getMyEmergencies']);
+    Route::get('/my-emergencies/{user_id?}',   [SosController::class, 'getMyEmergencies']);
 
     // Feedback
-    Route::post('/feedback',         [FeedbackController::class, 'store']);
+    Route::post('/feedback',         [FeedbackController::class, 'store'])->middleware('throttle:10,1');
 
     // Admin-only account & verification management
     // (admin tokens hold ['admin','dispatcher','citizen']; dispatcher/citizen

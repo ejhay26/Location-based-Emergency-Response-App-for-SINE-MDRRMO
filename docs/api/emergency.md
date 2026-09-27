@@ -21,6 +21,7 @@ Submits a high-priority emergency request with live GPS coordinates and camera e
     "description": "Structure fire spreading to neighboring house"
   }
   ```
+  *(Note: `user_id` is automatically derived from the authenticated Sanctum token).*
 - **Backend Action:** Automatically resolves the authoritative `barangay_id` via `BarangayResolver` and broadcasts `EmergencyUpdated` (`submitted`) on the `emergencies` WebSocket channel.
 - **Response (201):** `{ "message": "Emergency SOS sent!", "request_id": 42 }`
 
@@ -28,13 +29,15 @@ Submits a high-priority emergency request with live GPS coordinates and camera e
 
 ### 1.2 `POST /api/cancel-sos`
 Cancels an active pending emergency if submitted by mistake.
-- **Request Body:** `{ "request_id": 42, "user_id": 12 }`
+- **Request Body:** `{ "request_id": 42 }` *(Optional: `"user_id": 12`)*
+- **Security:** Citizens can only cancel their own pending emergencies. Dispatchers/admins may cancel any emergency.
 - **Response (200):** `{ "message": "Emergency request cancelled." }`
 
 ---
 
-### 1.3 `GET /api/my-emergencies/{user_id}`
+### 1.3 `GET /api/my-emergencies/{user_id?}`
 Returns the authenticated citizen's personal emergency history.
+- **Security:** Citizens can only view their own history. Accessing another user's history requires `dispatcher` or `admin` abilities. The `{user_id}` route parameter is optional and defaults to the authenticated user.
 
 ---
 
