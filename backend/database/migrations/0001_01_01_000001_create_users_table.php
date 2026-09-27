@@ -11,9 +11,10 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->integer('user_id')->autoIncrement();
             $table->string('email', 100)->nullable()->unique();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('password', 255)->nullable();
             $table->enum('role', ['citizen', 'dispatcher', 'admin'])->default('citizen');
-            $table->enum('account_status', ['unverified', 'active', 'banned'])->default('active');
+            $table->enum('account_status', ['pending_otp', 'unverified', 'active', 'banned'])->default('active');
             $table->string('ban_reason', 500)->nullable();
             $table->timestamp('banned_at')->nullable();
             $table->unsignedTinyInteger('false_alarm_strikes')->default(0);
