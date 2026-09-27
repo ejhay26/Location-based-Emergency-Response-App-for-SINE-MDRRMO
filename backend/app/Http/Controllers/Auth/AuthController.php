@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 /**
  * Core authentication: login (password + OTP variants), registration,
@@ -278,13 +279,28 @@ class AuthController extends Controller
             'last_name'           => 'required|string|max:100',
             'phone'               => 'required|string|max:20',
             'birthdate'           => 'required|date|after:1900-01-01|before_or_equal:today',
-            'username'            => 'required|string|min:3|max:20|regex:/^[a-zA-Z0-9_]+$/',
+            'username'            => 'required|string|min:3|max:20|regex:/^[a-zA-Z0-9._]+$/',
             'email'               => 'required|email|max:100',
             'password'            => CommonRules::strongPassword(),
             'barangay_id'         => 'required|integer|exists:barangays,barangay_id',
             'valid_id_image'      => 'required|string',
             'valid_id_image_back' => 'required|string',
-            'valid_id_type'       => 'required|string|max:50',
+            'valid_id_type'       => [
+                'required',
+                'string',
+                Rule::in([
+                    'Philippine National ID (PhilSys)',
+                    "Driver's License",
+                    'Philippine Passport',
+                    'UMID / SSS ID',
+                    'Postal ID',
+                    'PRC License',
+                    "Voter's ID",
+                    'Senior Citizen ID',
+                    'PWD ID',
+                    'Barangay ID',
+                ]),
+            ],
             'valid_id_number'     => 'nullable|string|max:100',
             'valid_id_expiry'     => 'nullable|date',
             'valid_id_details'    => 'nullable',
@@ -557,6 +573,15 @@ class AuthController extends Controller
     public function checkUsername(Request $request)
     {
         $requested = trim((string) $request->query('username', ''));
+
+        if (!empty($requested) && !preg_match('/^[a-zA-Z0-9._]{3,20}$/', $requested)) {
+            return response()->json([
+                'available'   => false,
+                'reason'      => 'invalid_format',
+                'suggestions' => [],
+            ]);
+        }
+
         // Only count ACTIVE or BANNED accounts as taken — ignore aborted unverified attempts
         $exists = !empty($requested) && UserProfile::where('username', $requested)
             ->whereHas('user', fn($q) => $q->where('account_status', '!=', 'unverified'))

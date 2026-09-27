@@ -27,11 +27,11 @@ Creates a new citizen registration in `pending_otp` status and triggers an initi
   | `last_name` | string | Yes | Citizen surname |
   | `phone` | string | Yes | Philippine mobile number (`09...` or `+639...`) |
   | `birthdate` | string (YYYY-MM-DD) | Yes | Citizen date of birth |
-  | `username` | string | Yes | Unique username |
+  | `username` | string | Yes | Unique handle (3–20 chars, alphanumeric, dots, and underscores allowed: `^[a-zA-Z0-9._]+$`) |
   | `email` | string | Yes | Unique email address |
   | `password` | string | Yes | Strong password (8+ chars, uppercase, lowercase, digit, symbol) |
   | `barangay_id` | integer | Yes | ID of resident barangay (1–9) |
-  | `valid_id_type` | string | Yes | Verified Philippine ID: PhilSys, Driver's License, Passport, UMID, Postal ID, PRC License |
+  | `valid_id_type` | string (enum) | Yes | Whitelisted Philippine ID: `Philippine National ID (PhilSys)`, `Driver's License`, `Philippine Passport`, `UMID / SSS ID`, `Postal ID`, `PRC License`, `Voter's ID`, `Senior Citizen ID`, `PWD ID`, `Barangay ID` |
   | `valid_id_number` | string | Yes | Formatted government ID number (unique) |
   | `valid_id_expiry` | string (YYYY-MM-DD) | Optional | ID Expiration Date (required for Driver's License, Passport, Postal, PRC) |
   | `valid_id_details` | object / JSON | Optional | Extra metadata (e.g. `{ "profession": "..." }`) |
