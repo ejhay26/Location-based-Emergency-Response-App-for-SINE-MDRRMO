@@ -35,6 +35,8 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
   isLoadingSuggestions = false;
 
   private usernameDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private emailDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
   ngOnInit(): void {
     if (this.userData) {
       if (this.userData._usernameAvailable !== undefined && this.userData._usernameAvailable !== null) {
