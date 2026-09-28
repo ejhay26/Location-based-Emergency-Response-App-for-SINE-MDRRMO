@@ -159,7 +159,9 @@ export class RegisterPage implements OnDestroy {
     valid_id_expiry: null as string | null,
     valid_id_details: null as any,
     selfie_with_id_image: '',
-    otp_channel: 'email' as 'email' | 'sms'
+    otp_channel: 'email' as 'email' | 'sms',
+    _usernameAvailable: null as boolean | null,
+    _emailAvailable: null as boolean | null
   };
 
   onIdTypeChange(): void {
@@ -172,6 +174,93 @@ export class RegisterPage implements OnDestroy {
     this.expiryYear = '';
   }
 
+  get isIdNumberValid(): boolean {
+    const num = (this.userData.valid_id_number ?? '').trim();
+    if (!num) return false;
+    switch (this.userData.valid_id_type) {
+      case 'Philippine National ID (PhilSys)':
+        return /^\d{4}-\d{4}-\d{4}-\d{4}$/.test(num);
+      case "Driver's License":
+        return /^[A-Z0-9]{3}-\d{2}-\d{6}$/.test(num);
+      case 'Philippine Passport':
+        return /^[A-Z]\d{7}[A-Z0-9]?$/.test(num);
+      case 'UMID / SSS ID':
+        return /^\d{4}-\d{7}-\d{1}$/.test(num);
+      case 'Postal ID':
+        return /^[A-Z0-9]{9,20}$/.test(num);
+      case 'PRC License':
+        return /^\d{7}$/.test(num);
+      default:
+        return num.length >= 4;
+    }
+  }
+
+  get isIdNumberInvalid(): boolean {
+    const num = (this.userData.valid_id_number ?? '').trim();
+    if (!num) return false;
+    return !this.isIdNumberValid;
+  }
+
+  getIdNumberFeedback(): string {
+    const num = (this.userData.valid_id_number ?? '').trim();
+    const type = this.userData.valid_id_type;
+    if (!num) {
+      switch (type) {
+        case 'Philippine National ID (PhilSys)':
+          return 'Enter the 16-digit number printed on your PhilSys card or printed ePhilID.';
+        case "Driver's License":
+          return "Enter your LTO Driver's License number (e.g. N01-12-345678).";
+        case 'Philippine Passport':
+          return 'Enter your DFA Passport number starting with a letter (e.g. P1234567A).';
+        case 'UMID / SSS ID':
+          return 'Enter your 12-digit Common Reference Number (e.g. 0000-0000000-0).';
+        case 'Postal ID':
+          return 'Enter your Postal Reference Number (PRN) found on the card.';
+        case 'PRC License':
+          return 'Enter your 7-digit PRC Professional Registration number.';
+        default:
+          return 'Enter your valid government ID number.';
+      }
+    }
+
+    if (this.isIdNumberValid) {
+      switch (type) {
+        case 'Philippine National ID (PhilSys)': return 'Valid PhilSys PCN format';
+        case "Driver's License": return "Valid LTO Driver's License format";
+        case 'Philippine Passport': return 'Valid DFA Passport number format';
+        case 'UMID / SSS ID': return 'Valid UMID / SSS CRN format';
+        case 'Postal ID': return 'Valid Postal Reference Number format';
+        case 'PRC License': return 'Valid 7-digit PRC License format';
+        default: return 'Valid ID number format';
+      }
+    }
+
+    switch (type) {
+      case 'Philippine National ID (PhilSys)': {
+        const digits = num.replace(/\D/g, '').length;
+        return `${digits}/16 digits entered • Format: XXXX-XXXX-XXXX-XXXX`;
+      }
+      case "Driver's License": {
+        const clean = num.replace(/[^A-Z0-9]/gi, '').length;
+        return `${clean}/11 characters entered • Format: N01-12-345678`;
+      }
+      case 'Philippine Passport':
+        return 'Passport must start with a letter followed by 7-8 numbers/letters (e.g. P1234567A)';
+      case 'UMID / SSS ID': {
+        const digits = num.replace(/\D/g, '').length;
+        return `${digits}/12 digits entered • Format: 0000-0000000-0`;
+      }
+      case 'Postal ID':
+        return 'Must be at least 9 alphanumeric characters (e.g. 1234567890)';
+      case 'PRC License': {
+        const digits = num.replace(/\D/g, '').length;
+        return `${digits}/7 digits entered`;
+      }
+      default:
+        return 'Incomplete ID number';
+    }
+  }
+
   onPhilSysInput(val: string | null | undefined): void {
     const digits = (val ?? '').replace(/\D/g, '').slice(0, 16);
     const chunks = digits.match(/.{1,4}/g);
@@ -180,7 +269,7 @@ export class RegisterPage implements OnDestroy {
 
   onDriverLicenseInput(val: string | null | undefined): void {
     let clean = (val ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (clean.length > 9) clean = clean.slice(0, 9);
+    if (clean.length > 11) clean = clean.slice(0, 11);
     if (clean.length > 5) {
       this.userData.valid_id_number = `${clean.slice(0, 3)}-${clean.slice(3, 5)}-${clean.slice(5)}`;
     } else if (clean.length > 3) {
@@ -188,6 +277,14 @@ export class RegisterPage implements OnDestroy {
     } else {
       this.userData.valid_id_number = clean;
     }
+  }
+
+  onPassportInput(val: string | null | undefined): void {
+    this.userData.valid_id_number = (val ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 9);
+  }
+
+  onPostalInput(val: string | null | undefined): void {
+    this.userData.valid_id_number = (val ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20);
   }
 
   onUmidInput(val: string | null | undefined): void {
@@ -256,11 +353,13 @@ export class RegisterPage implements OnDestroy {
         this.showToast('Please enter both username and email.');
         return;
       }
-      if (this.accountDetailsCmp?.usernameAvailable !== true) {
+      const usernameOk = this.accountDetailsCmp?.usernameAvailable === true || this.userData._usernameAvailable === true;
+      if (!usernameOk) {
         this.showToast('Please choose an available username.');
         return;
       }
-      if (this.accountDetailsCmp?.emailAvailable !== true) {
+      const emailOk = this.accountDetailsCmp?.emailAvailable === true || this.userData._emailAvailable === true;
+      if (!emailOk) {
         this.showToast('Please enter a valid, available email address.');
         return;
       }
@@ -284,6 +383,10 @@ export class RegisterPage implements OnDestroy {
       }
       if (!this.userData.valid_id_number?.trim()) {
         this.showToast('Please enter your valid ID number.');
+        return;
+      }
+      if (!this.isIdNumberValid) {
+        this.showToast('Please enter a valid ID number matching the required format.');
         return;
       }
       const typesWithExpiry = ["Driver's License", 'Philippine Passport', 'Postal ID', 'PRC License'];

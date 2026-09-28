@@ -29,7 +29,7 @@
   <div style="max-width: 440px; margin: 0 auto;">
 
     <!-- ══ STEP 1: Personal Details & Residence ══ -->
-    <div *ngIf="currentStep === 1">
+    <div [hidden]="currentStep !== 1">
       <div class="inset-card" style="margin-bottom: 14px;">
         <ion-item lines="full">
           <ion-input label="First Name" labelPlacement="stacked" placeholder="Enter your first name" [(ngModel)]="userData.first_name" required></ion-input>
@@ -89,7 +89,7 @@
     </div>
 
     <!-- ══ STEP 2: Account Credentials & Security ══ -->
-    <div *ngIf="currentStep === 2">
+    <div [hidden]="currentStep !== 2">
       <app-register-account-details [userData]="userData"></app-register-account-details>
 
       <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -103,7 +103,7 @@
     </div>
 
     <!-- ══ STEP 3: Identity Verification & OTP Channel ══ -->
-    <div *ngIf="currentStep === 3">
+    <div [hidden]="currentStep !== 3">
       <!-- Verification Tips Box -->
       <div style="background: var(--ion-card-background, white); border: 1.5px solid rgba(235,68,90,0.25); border-radius: 18px; padding: 14px 16px; margin: 4px 0 16px 0; box-shadow: var(--card-shadow);">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -152,14 +152,17 @@
           <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
             16-Digit PhilSys Card Number (PCN)
           </label>
-          <div class="boxed-input-wrap">
+          <div class="boxed-input-wrap" [class.is-valid]="isIdNumberValid" [class.is-invalid]="isIdNumberInvalid">
             <ion-input type="text" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19"
               [value]="userData.valid_id_number"
               (ionInput)="onPhilSysInput($event.detail.value)">
             </ion-input>
+            <app-icon name="check" *ngIf="isIdNumberValid" [size]="18" color="#2dd36f" slot="end"></app-icon>
+            <app-icon name="circle-alert" *ngIf="isIdNumberInvalid" [size]="18" color="#eb445a" slot="end"></app-icon>
           </div>
-          <p style="font-size: 11px; color: var(--ion-color-medium); margin: 6px 0 0 2px;">
-            Enter the 16-digit number printed on your physical PhilSys ID or printed ePhilID.
+          <p class="id-helper-text" [class.valid]="isIdNumberValid" [class.error]="isIdNumberInvalid">
+            <app-icon [name]="isIdNumberValid ? 'check' : (isIdNumberInvalid ? 'circle-alert' : 'info')" [size]="12" [color]="isIdNumberValid ? '#2dd36f' : (isIdNumberInvalid ? '#eb445a' : 'var(--ion-color-medium)')"></app-icon>
+            <span>{{ getIdNumberFeedback() }}</span>
           </p>
         </div>
 
@@ -168,12 +171,18 @@
           <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
             LTO License Number
           </label>
-          <div class="boxed-input-wrap" style="margin-bottom: 12px;">
+          <div class="boxed-input-wrap" [class.is-valid]="isIdNumberValid" [class.is-invalid]="isIdNumberInvalid">
             <ion-input type="text" placeholder="e.g. N01-12-345678" maxlength="13"
               [value]="userData.valid_id_number"
               (ionInput)="onDriverLicenseInput($event.detail.value)">
             </ion-input>
+            <app-icon name="check" *ngIf="isIdNumberValid" [size]="18" color="#2dd36f" slot="end"></app-icon>
+            <app-icon name="circle-alert" *ngIf="isIdNumberInvalid" [size]="18" color="#eb445a" slot="end"></app-icon>
           </div>
+          <p class="id-helper-text" [class.valid]="isIdNumberValid" [class.error]="isIdNumberInvalid" style="margin-bottom: 12px;">
+            <app-icon [name]="isIdNumberValid ? 'check' : (isIdNumberInvalid ? 'circle-alert' : 'info')" [size]="12" [color]="isIdNumberValid ? '#2dd36f' : (isIdNumberInvalid ? '#eb445a' : 'var(--ion-color-medium)')"></app-icon>
+            <span>{{ getIdNumberFeedback() }}</span>
+          </p>
           <label style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
             Expiration Date
           </label>
@@ -201,12 +210,18 @@
           <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
             DFA Passport Number
           </label>
-          <div class="boxed-input-wrap" style="margin-bottom: 12px;">
+          <div class="boxed-input-wrap" [class.is-valid]="isIdNumberValid" [class.is-invalid]="isIdNumberInvalid">
             <ion-input type="text" placeholder="e.g. P1234567A" maxlength="10"
-              [(ngModel)]="userData.valid_id_number"
-              (ionInput)="userData.valid_id_number = ($event.detail.value || '').toUpperCase().trim()">
+              [value]="userData.valid_id_number"
+              (ionInput)="onPassportInput($event.detail.value)">
             </ion-input>
+            <app-icon name="check" *ngIf="isIdNumberValid" [size]="18" color="#2dd36f" slot="end"></app-icon>
+            <app-icon name="circle-alert" *ngIf="isIdNumberInvalid" [size]="18" color="#eb445a" slot="end"></app-icon>
           </div>
+          <p class="id-helper-text" [class.valid]="isIdNumberValid" [class.error]="isIdNumberInvalid" style="margin-bottom: 12px;">
+            <app-icon [name]="isIdNumberValid ? 'check' : (isIdNumberInvalid ? 'circle-alert' : 'info')" [size]="12" [color]="isIdNumberValid ? '#2dd36f' : (isIdNumberInvalid ? '#eb445a' : 'var(--ion-color-medium)')"></app-icon>
+            <span>{{ getIdNumberFeedback() }}</span>
+          </p>
           <label style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
             Passport Expiry Date
           </label>
@@ -234,12 +249,18 @@
           <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
             Common Reference Number (CRN) / SSS Number
           </label>
-          <div class="boxed-input-wrap">
+          <div class="boxed-input-wrap" [class.is-valid]="isIdNumberValid" [class.is-invalid]="isIdNumberInvalid">
             <ion-input type="text" placeholder="0000-0000000-0" maxlength="14"
               [value]="userData.valid_id_number"
               (ionInput)="onUmidInput($event.detail.value)">
             </ion-input>
+            <app-icon name="check" *ngIf="isIdNumberValid" [size]="18" color="#2dd36f" slot="end"></app-icon>
+            <app-icon name="circle-alert" *ngIf="isIdNumberInvalid" [size]="18" color="#eb445a" slot="end"></app-icon>
           </div>
+          <p class="id-helper-text" [class.valid]="isIdNumberValid" [class.error]="isIdNumberInvalid">
+            <app-icon [name]="isIdNumberValid ? 'check' : (isIdNumberInvalid ? 'circle-alert' : 'info')" [size]="12" [color]="isIdNumberValid ? '#2dd36f' : (isIdNumberInvalid ? '#eb445a' : 'var(--ion-color-medium)')"></app-icon>
+            <span>{{ getIdNumberFeedback() }}</span>
+          </p>
         </div>
 
         <!-- Postal ID -->
@@ -247,12 +268,18 @@
           <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
             Postal Reference Number (PRN)
           </label>
-          <div class="boxed-input-wrap" style="margin-bottom: 12px;">
+          <div class="boxed-input-wrap" [class.is-valid]="isIdNumberValid" [class.is-invalid]="isIdNumberInvalid">
             <ion-input type="text" placeholder="e.g. 1234567890" maxlength="20"
-              [(ngModel)]="userData.valid_id_number"
-              (ionInput)="userData.valid_id_number = ($event.detail.value || '').toUpperCase().trim()">
+              [value]="userData.valid_id_number"
+              (ionInput)="onPostalInput($event.detail.value)">
             </ion-input>
+            <app-icon name="check" *ngIf="isIdNumberValid" [size]="18" color="#2dd36f" slot="end"></app-icon>
+            <app-icon name="circle-alert" *ngIf="isIdNumberInvalid" [size]="18" color="#eb445a" slot="end"></app-icon>
           </div>
+          <p class="id-helper-text" [class.valid]="isIdNumberValid" [class.error]="isIdNumberInvalid" style="margin-bottom: 12px;">
+            <app-icon [name]="isIdNumberValid ? 'check' : (isIdNumberInvalid ? 'circle-alert' : 'info')" [size]="12" [color]="isIdNumberValid ? '#2dd36f' : (isIdNumberInvalid ? '#eb445a' : 'var(--ion-color-medium)')"></app-icon>
+            <span>{{ getIdNumberFeedback() }}</span>
+          </p>
           <label style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
             Card Expiration Date
           </label>
@@ -288,12 +315,18 @@
           <label style="font-size: 12.5px; font-weight: 700; color: var(--ion-text-color); display: block; margin-bottom: 6px;">
             PRC Registration Number (7 Digits)
           </label>
-          <div class="boxed-input-wrap" style="margin-bottom: 12px;">
+          <div class="boxed-input-wrap" [class.is-valid]="isIdNumberValid" [class.is-invalid]="isIdNumberInvalid">
             <ion-input type="text" placeholder="0000000" maxlength="7"
               [value]="userData.valid_id_number"
               (ionInput)="onPrcNumberInput($event.detail.value)">
             </ion-input>
+            <app-icon name="check" *ngIf="isIdNumberValid" [size]="18" color="#2dd36f" slot="end"></app-icon>
+            <app-icon name="circle-alert" *ngIf="isIdNumberInvalid" [size]="18" color="#eb445a" slot="end"></app-icon>
           </div>
+          <p class="id-helper-text" [class.valid]="isIdNumberValid" [class.error]="isIdNumberInvalid" style="margin-bottom: 12px;">
+            <app-icon [name]="isIdNumberValid ? 'check' : (isIdNumberInvalid ? 'circle-alert' : 'info')" [size]="12" [color]="isIdNumberValid ? '#2dd36f' : (isIdNumberInvalid ? '#eb445a' : 'var(--ion-color-medium)')"></app-icon>
+            <span>{{ getIdNumberFeedback() }}</span>
+          </p>
           <label style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
             License Valid Until (Expiry Date)
           </label>

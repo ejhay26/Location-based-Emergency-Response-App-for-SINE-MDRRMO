@@ -35,11 +35,31 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
   isLoadingSuggestions = false;
 
   private usernameDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-  private emailDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-
   ngOnInit(): void {
+    if (this.userData) {
+      if (this.userData._usernameAvailable !== undefined && this.userData._usernameAvailable !== null) {
+        this.usernameAvailable = this.userData._usernameAvailable;
+      }
+      if (this.userData._emailAvailable !== undefined && this.userData._emailAvailable !== null) {
+        this.emailAvailable = this.userData._emailAvailable;
+      }
+    }
+
     this.generateClientSuggestions();
-    this.fetchProactiveSuggestions();
+
+    const username = (this.userData?.username ?? '').trim();
+    if (username.length > 0) {
+      if (this.usernameAvailable === null) {
+        this.onUsernameInput();
+      }
+    } else {
+      this.fetchProactiveSuggestions();
+    }
+
+    const email = (this.userData?.email ?? '').trim();
+    if (email.length > 0 && this.emailAvailable === null) {
+      this.onEmailInput();
+    }
   }
 
   ngOnDestroy(): void {
@@ -130,9 +150,11 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
     }
     if (!this.isUsernameFormatValid()) {
       this.usernameAvailable = false;
+      if (this.userData) this.userData._usernameAvailable = false;
       return;
     }
     this.usernameAvailable = null;
+    if (this.userData) this.userData._usernameAvailable = null;
     if (this.usernameDebounceTimer) clearTimeout(this.usernameDebounceTimer);
     this.usernameDebounceTimer = setTimeout(() => {
       this.api.checkUsername(username, {
@@ -142,12 +164,14 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
       }).subscribe({
         next: (res: any) => {
           this.usernameAvailable = res?.available ?? false;
+          if (this.userData) this.userData._usernameAvailable = this.usernameAvailable;
           if (res?.suggestions?.length) {
             this.usernameSuggestions = res.suggestions;
           }
         },
         error: () => {
           this.usernameAvailable = this.isUsernameFormatValid();
+          if (this.userData) this.userData._usernameAvailable = this.usernameAvailable;
         }
       });
     }, 300);
@@ -160,14 +184,29 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
 
   onEmailInput(): void {
     const email = (this.userData.email ?? '').trim();
-    if (!email) { this.emailAvailable = null; return; }
-    if (!this.isEmailFormatValid()) { this.emailAvailable = false; return; }
+    if (!email) {
+      this.emailAvailable = null;
+      if (this.userData) this.userData._emailAvailable = null;
+      return;
+    }
+    if (!this.isEmailFormatValid()) {
+      this.emailAvailable = false;
+      if (this.userData) this.userData._emailAvailable = false;
+      return;
+    }
     this.emailAvailable = null;
+    if (this.userData) this.userData._emailAvailable = null;
     if (this.emailDebounceTimer) clearTimeout(this.emailDebounceTimer);
     this.emailDebounceTimer = setTimeout(() => {
       this.api.checkEmail(email).subscribe({
-        next: (res: any) => { this.emailAvailable = res?.available ?? false; },
-        error: () => { this.emailAvailable = this.isEmailFormatValid(); }
+        next: (res: any) => {
+          this.emailAvailable = res?.available ?? false;
+          if (this.userData) this.userData._emailAvailable = this.emailAvailable;
+        },
+        error: () => {
+          this.emailAvailable = this.isEmailFormatValid();
+          if (this.userData) this.userData._emailAvailable = this.emailAvailable;
+        }
       });
     }, 350);
   }
@@ -175,6 +214,7 @@ export class RegisterAccountDetailsComponent implements OnInit, OnDestroy {
   applySuggestion(name: string): void {
     this.userData.username = name;
     this.usernameAvailable = true;
+    if (this.userData) this.userData._usernameAvailable = true;
     this.onUsernameInput();
   }
 }

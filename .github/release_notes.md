@@ -3,6 +3,7 @@
 - **Security & IDOR Elimination**: Resolved Insecure Direct Object References across passwords, profiles, emergencies, hazards, and user settings; strictly bound to authenticated Sanctum tokens (`$request->user()->user_id`).
 - **Registration Lifecycle & ID Locking**: Enforced database uniqueness on `valid_id_number` to prevent duplicate registrations; implemented `pending_otp` status transition with automated cleanup of unverified files.
 - **Registration Validation & ID Whitelist**: Aligned username regex with handle suggestions (`^[a-zA-Z0-9._]+$`) and added pre-query format validation; enforced strict `Rule::in` whitelist for 10 Philippine government ID types preventing conditional expiration bypasses.
+- **Registration UX & State Persistence**: Preserved multi-step form credentials across Back/Next navigation; added Apple HIG inset styling and real-time regex format validation with live character count helpers for all 6 Philippine government ID types.
 - **Dedicated Public Route Rate Limiting**: Added strict throttles across registration (5/min), OTP verification (10/min), identity checks (20/min), password reset (5/min), and feedback (10/min).
 - **Map Tile Architecture**: Deployed high-performance server-side disk caching proxy with weekly pre-warming; eliminated upstream OSM fallbacks, CORS errors, and WebView2 Range header truncation.
 - **High-Concurrency Backend**: Containerized Redis with AOF disk persistence in Podman, ulimit 65,536 file descriptors, and lifecycle-aware WebSocket pause/resume reducing idle connections by ~90%.
