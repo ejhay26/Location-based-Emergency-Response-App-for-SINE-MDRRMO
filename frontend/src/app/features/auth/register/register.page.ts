@@ -344,6 +344,9 @@ export class RegisterPage implements OnDestroy {
         return;
       }
       this.currentStep = 2;
+      setTimeout(() => {
+        this.accountDetailsCmp?.onStepActivated();
+      }, 0);
       return;
     }
 
@@ -353,15 +356,27 @@ export class RegisterPage implements OnDestroy {
         this.showToast('Please enter both username and email.');
         return;
       }
-      const usernameOk = this.accountDetailsCmp?.usernameAvailable === true || this.userData._usernameAvailable === true;
+      let usernameOk = this.accountDetailsCmp?.usernameAvailable === true || this.userData._usernameAvailable === true;
       if (!usernameOk) {
-        this.showToast('Please choose an available username.');
-        return;
+        if (this.accountDetailsCmp?.isUsernameFormatValid() && this.accountDetailsCmp?.usernameAvailable !== false && this.userData._usernameAvailable !== false) {
+          usernameOk = true;
+          if (this.accountDetailsCmp) this.accountDetailsCmp.usernameAvailable = true;
+          this.userData._usernameAvailable = true;
+        } else {
+          this.showToast('Please choose an available username.');
+          return;
+        }
       }
-      const emailOk = this.accountDetailsCmp?.emailAvailable === true || this.userData._emailAvailable === true;
+      let emailOk = this.accountDetailsCmp?.emailAvailable === true || this.userData._emailAvailable === true;
       if (!emailOk) {
-        this.showToast('Please enter a valid, available email address.');
-        return;
+        if (this.accountDetailsCmp?.isEmailFormatValid() && this.accountDetailsCmp?.emailAvailable !== false && this.userData._emailAvailable !== false) {
+          emailOk = true;
+          if (this.accountDetailsCmp) this.accountDetailsCmp.emailAvailable = true;
+          this.userData._emailAvailable = true;
+        } else {
+          this.showToast('Please enter a valid, available email address.');
+          return;
+        }
       }
       if (!this.accountDetailsCmp?.isPasswordValid) {
         this.showToast('Password must meet all 5 security requirements.');
@@ -418,6 +433,11 @@ export class RegisterPage implements OnDestroy {
   prevStep(): void {
     if (this.currentStep > 1 && this.currentStep <= 3) {
       this.currentStep--;
+      if (this.currentStep === 2) {
+        setTimeout(() => {
+          this.accountDetailsCmp?.onStepActivated();
+        }, 0);
+      }
     }
   }
 
