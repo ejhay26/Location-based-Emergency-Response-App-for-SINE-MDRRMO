@@ -1,0 +1,45 @@
+.citizen-card {
+  position: relative;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.24s ease;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.09) !important;
+  }
+
+  .citizen-actions-wrapper {
+    opacity: 0;
+    max-height: 0;
+    margin-top: 0 !important;
+    overflow: hidden;
+    transform: translateY(16px);
+    pointer-events: none;
+    transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+                max-height 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+                margin-top 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &:hover .citizen-actions-wrapper,
+  &:focus-within .citizen-actions-wrapper {
+    opacity: 1;
+    max-height: 52px;
+    margin-top: 12px !important;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+}
+
+// Fallback for touch / mobile screen environments where hover is not present
+@media (hover: none) {
+  .citizen-card .citizen-actions-wrapper {
+    opacity: 1 !important;
+    max-height: 52px !important;
+    margin-top: 12px !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+}

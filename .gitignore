@@ -21,3 +21,6 @@ release/
 
 # Experimental Flutter Port
 frontend2/
+
+# Experimental Go Fiber Backend
+backend2/

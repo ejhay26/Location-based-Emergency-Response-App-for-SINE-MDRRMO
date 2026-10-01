@@ -31,6 +31,7 @@ import { CustomTooltipDirective } from '../../../../../shared/directives/custom-
     FilterDropdownComponent, CustomTooltipDirective
   ],
   templateUrl: './citizens.panel.html',
+  styleUrls: ['./citizens.panel.scss'],
 })
 export class CitizensPanel implements OnInit, OnDestroy {
 
