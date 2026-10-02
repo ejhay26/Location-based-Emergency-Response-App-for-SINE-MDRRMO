@@ -35,7 +35,6 @@
           <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
           <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
         </ion-label>
-        <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:8px;">{{ s.value ? 'ON' : 'OFF' }}</span>
         <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
       </ion-item>
       <div *ngFor="let s of mapSettings" style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:var(--inset-divider, 1px solid rgba(0,0,0,0.06));">
@@ -63,7 +62,6 @@
           <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
           <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
         </ion-label>
-        <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:8px;">{{ s.value ? 'ON' : 'OFF' }}</span>
         <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
       </ion-item>
     </div>
@@ -78,7 +76,6 @@
           <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
           <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
         </ion-label>
-        <span slot="end" [style.color]="s.value ? 'var(--ion-color-danger)' : 'var(--ion-color-medium)'" style="font-size:11px;font-weight:800;min-width:26px;text-align:right;margin-right:8px;">{{ s.value ? 'ON' : 'OFF' }}</span>
         <ion-toggle mode="ios" slot="end" color="danger" [(ngModel)]="s.value" (ionChange)="onToggle(s)"></ion-toggle>
       </ion-item>
     </div>

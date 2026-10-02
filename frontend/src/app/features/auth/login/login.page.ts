@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuController } from '@ionic/angular/standalone';
@@ -270,6 +270,7 @@ export class LoginPage {
     private tour: TourService,
     private otpAutofill: OtpAutofillService,
     private deepLink: DeepLinkService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ionViewWillEnter() {
@@ -341,21 +342,38 @@ export class LoginPage {
     const now = Date.now();
     if (this.lockoutUntil > now) {
       const secs = Math.ceil((this.lockoutUntil - now) / 1000);
-      this.showToast(`Too many attempts. Try again in ${secs}s.`, 'warning'); return;
+      this.showToast(`Too many attempts. Try again in ${secs}s.`, 'warning');
+      return;
     }
-    if (!this.credentials.login || !this.credentials.password) {
-      this.showToast('Please enter both email/username and password.', 'warning'); return;
+    const cleanLogin = (this.credentials.login || '').trim().toLowerCase();
+    if (!cleanLogin || !this.credentials.password) {
+      this.showToast('Please enter both email/username and password.', 'warning');
+      return;
     }
     this.isLoggingIn = true;
+    this.cdr.markForCheck();
     const payload = {
-      ...this.credentials,
+      login: cleanLogin,
+      password: this.credentials.password,
       device_name: this.getDeviceName(),
     };
     this.api.login(payload).subscribe({
-      next: (res: any) => { this.isLoggingIn = false; this.handleLoginSuccess(res); },
+      next: (res: any) => {
+        this.isLoggingIn = false;
+        this.cdr.markForCheck();
+        this.handleLoginSuccess(res);
+      },
       error: (err: any) => {
         this.isLoggingIn = false;
-        if (err.status === 0 || err.status >= 500 || !navigator.onLine) return;
+        this.cdr.markForCheck();
+        if (err.status === 0 || !navigator.onLine) {
+          this.showToast('Unable to connect to server. Please check your network connection.', 'danger');
+          return;
+        }
+        if (err.status >= 500) {
+          this.showToast('Server error encountered during sign in. Please try again.', 'danger');
+          return;
+        }
         this.attemptCount++;
         const remaining = this.MAX_ATTEMPTS - this.attemptCount;
         if (this.attemptCount >= this.MAX_ATTEMPTS) {
@@ -368,12 +386,13 @@ export class LoginPage {
             const r = Math.ceil((this.lockoutUntil - Date.now()) / 1000);
             this.lockoutSecsRemaining = r > 0 ? r : 0;
             if (this.lockoutSecsRemaining === 0) clearInterval(this.lockoutInterval);
+            this.cdr.markForCheck();
           }, 500);
         } else if (err.status === 403) {
           if (err.error?.reason === 'unverified') {
-            this.router.navigate(['/pending-verification'], { queryParams: { login: this.credentials.login } });
+            this.router.navigate(['/pending-verification'], { queryParams: { login: cleanLogin } });
           } else if (err.error?.reason === 'pending_otp') {
-            const targetEmail = err.error?.email || this.credentials.login;
+            const targetEmail = err.error?.email || cleanLogin;
             this.showToast('Please verify the OTP sent to your email to complete registration.', 'warning');
             this.router.navigate(['/register'], { queryParams: { step: 4, email: targetEmail } });
           } else {
