@@ -4,46 +4,44 @@ Comprehensive documentation of authentication mechanisms, role enforcement, thre
 
 ---
 
-## 1. Authentication via Laravel Sanctum
+## 1. Authentication via Bearer Tokens
 
-All API endpoints are secured via **Laravel Sanctum Bearer Tokens**. The frontend stores the token in secure client-side storage and passes it via the `Authorization: Bearer <token>` HTTP header on every authenticated request.
+All API endpoints are secured via **SHA-256 Hashed Bearer Tokens**. The frontend stores the token in secure client-side storage and passes it via the `Authorization: Bearer <token>` HTTP header on every authenticated request.
 
 ### Token Lifecycle
 1. **Multi-Device Concurrent Staff Sessions:** Administrative and dispatcher accounts maintain concurrent sessions across native desktop workstations (Tauri) and mobile devices without prematurely invalidating active session tokens.
-2. A new plain-text token is minted with specific **abilities** tied directly to the user's role:
-   - **`admin`**: Granted abilities `['admin', 'dispatcher', 'citizen']`
-   - **`dispatcher`**: Granted ability `['dispatcher']`
-   - **`citizen`**: Granted ability `['citizen']`
+2. A new token is minted with specific **abilities** tied directly to the user's role:
+   - **`admin`**: Granted abilities `["admin", "dispatcher", "citizen"]`
+   - **`dispatcher`**: Granted ability `["dispatcher"]`
+   - **`citizen`**: Granted ability `["citizen"]`
 3. On explicit logout, the current session token is permanently revoked from the database (`personal_access_tokens` table).
 
 ---
 
 ## 2. Role-Based Token Ability Enforcement
 
-Routes in `routes/api.php` use Sanctum's `ability:` middleware to guard sensitive administrative and dispatch actions:
+Routes use middleware guards to enforce granular role-based capabilities:
 
-```php
-// Admin-only management routes
-Route::middleware('ability:admin')->group(function () {
-    Route::get('/pending-verifications',  [CitizenController::class, 'getPendingVerifications']);
-    Route::post('/approve-user',          [CitizenController::class, 'approveUser']);
-    Route::post('/reject-user',           [CitizenController::class, 'rejectUser']);
-    Route::get('/citizens',               [CitizenController::class, 'getCitizens']);
-    Route::post('/suspend-citizen',       [CitizenController::class, 'suspendCitizen']);
-    Route::post('/reactivate-citizen',    [CitizenController::class, 'reactivateCitizen']);
-    Route::post('/create-dispatcher',     [DispatcherController::class, 'createDispatcher']);
-    Route::get('/feedback',               [FeedbackController::class, 'index']);
-});
+```go
+// Admin-only management endpoints
+adminRoutes := api.Group("/", middleware.RequireRole("admin"))
+adminRoutes.Get("/pending-verifications", adminHandler.GetPendingVerifications)
+adminRoutes.Post("/approve-user", adminHandler.ApproveUser)
+adminRoutes.Post("/reject-user", adminHandler.RejectUser)
+adminRoutes.Get("/citizens", adminHandler.GetCitizens)
+adminRoutes.Post("/suspend-citizen", adminHandler.SuspendCitizen)
+adminRoutes.Post("/reactivate-citizen", adminHandler.ReactivateCitizen)
+adminRoutes.Post("/create-dispatcher", adminHandler.CreateDispatcher)
+adminRoutes.Get("/feedback", feedbackHandler.GetFeedback)
 
-// Dispatcher-operational routes (Admin tokens pass automatically)
-Route::middleware('ability:dispatcher')->group(function () {
-    Route::post('/dispatch-emergency',    [DispatchController::class, 'dispatchEmergency']);
-    Route::post('/resolve-emergency',     [DispatchController::class, 'resolveEmergency']);
-    Route::post('/mark-false-alarm',      [DispatchController::class, 'markFalseAlarm']);
-    Route::post('/resolve-hazard',        [HazardController::class, 'resolveHazard']);
-    Route::post('/create-broadcast',      [BroadcastController::class, 'createBroadcast']);
-    Route::post('/clear-broadcast',       [BroadcastController::class, 'clearBroadcast']);
-});
+// Dispatcher-operational endpoints (Admin tokens pass automatically)
+dispatchRoutes := api.Group("/", middleware.RequireRole("dispatcher"))
+dispatchRoutes.Post("/dispatch-emergency", dispatchHandler.DispatchEmergency)
+dispatchRoutes.Post("/resolve-emergency", dispatchHandler.ResolveEmergency)
+dispatchRoutes.Post("/mark-false-alarm", dispatchHandler.MarkFalseAlarm)
+dispatchRoutes.Post("/resolve-hazard", hazardHandler.ResolveHazard)
+dispatchRoutes.Post("/create-broadcast", broadcastHandler.CreateBroadcast)
+dispatchRoutes.Post("/clear-broadcast", broadcastHandler.ClearBroadcast)
 ```
 
 ---

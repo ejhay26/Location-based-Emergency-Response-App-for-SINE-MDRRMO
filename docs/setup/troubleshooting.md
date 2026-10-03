@@ -7,27 +7,30 @@ Common issues, error codes, and step-by-step solutions when developing, running,
 ## 1. Backend & Server Issues
 
 <details>
-<summary><b>1.1 Laravel Reverb WebSocket Connection Refused or Failing</b></summary>
+<summary><b>1.1 Embedded WebSocket Connection Refused or Failing</b></summary>
 
 **Symptoms:** Frontend console shows `WebSocket connection to 'ws://...' failed` or `Echo could not connect`.
 
 **Solutions:**
-1. **Check Reverb Process:** Ensure the Reverb worker is running:
+1. **Check Backend Process:** Ensure the Go Fiber service is running:
    ```bash
-   php artisan reverb:start --host=0.0.0.0 --port=6001
+   # On VPS
+   systemctl status backend.service
+
+   # In Local Development
+   go run main.go
    ```
-2. **Key Mismatch:** Confirm `REVERB_APP_KEY` in `backend/.env` matches `environment.reverbKey` in `frontend/src/environments/environment.ts` exactly.
-3. **Nginx Proxy Config:** In production or containerized environments, ensure Nginx forwards WebSocket upgrade headers:
-   ```nginx
-   location /app/ {
-       proxy_pass http://mdrrmo_reverb:6001;
-       proxy_http_version 1.1;
-       proxy_set_header Upgrade $http_upgrade;
-       proxy_set_header Connection "upgrade";
-       proxy_set_header Host $host;
-   }
+2. **Key Mismatch:** Confirm `REVERB_APP_KEY` in `backend/.env` matches `environment.reverbKey` in `frontend/src/environments/environment.ts` (`6bc0e7b80b37c8d8d8f8`).
+3. **Firewall / Port Access:** Ensure port `3000` is open on your VPS firewall:
+   ```bash
+   sudo ufw allow 3000/tcp
+   sudo ufw status
    ```
-4. **Firewall:** If reaching Reverb directly, ensure port `6001` is open on your firewall (`ufw allow 6001/tcp` on Ubuntu/Debian).
+4. **WebSocket Endpoint Verification:** You can verify the WebSocket endpoint using curl:
+   ```bash
+   curl -i "http://159.223.42.159:3000/app/6bc0e7b80b37c8d8d8f8?protocol=7&client=js&version=8.4.0"
+   ```
+   A response of `HTTP/1.1 426 Upgrade Required` confirms the WebSocket server is active and awaiting client handshake.
 
 </details>
 
@@ -39,18 +42,22 @@ Common issues, error codes, and step-by-step solutions when developing, running,
 **Solutions:**
 1. **API Token:** Verify `PHILSMS_API_TOKEN` is configured in `backend/.env` without leading `Bearer` keyword (the service adds the Bearer header automatically).
 2. **Account Credits:** Log in to [dashboard.philsms.com](https://dashboard.philsms.com) and check your available SMS credit balance.
-3. **Number Format:** The system automatically normalizes Philippine mobile numbers (`0917...` or `+63917...` to `63917...`). Check `backend/storage/logs/laravel.log` for any PhilSMS gateway rejection messages.
+3. **Number Format:** The system automatically normalizes Philippine mobile numbers (`0917...` or `+63917...` to `63917...`). Check the backend service logs via `journalctl -u backend -f` for any PhilSMS gateway rejection messages.
 
 </details>
 
 <details>
-<summary><b>1.3 Email OTP Never Arrives</b></summary>
+<summary><b>1.3 Email OTP Delivery via Resend</b></summary>
 
 **Symptoms:** Verification code email does not appear in the user's inbox.
 
 **Solutions:**
-1. **Google App Password:** For Gmail SMTP (`smtp.gmail.com`), you **must** use a 16-character **Google App Password** (generated under *Google Account → Security → 2-Step Verification → App Passwords*), not your standard account password.
-2. **Check Logs:** Inspect `backend/storage/logs/laravel.log` for SMTP authentication failure stack traces.
+1. **Resend API Key:** Ensure `RESEND_API_KEY` is populated in `backend/.env`.
+2. **Sandbox Recipient Restrictions:** When using Resend's default free test domain (`onboarding@resend.dev`), Resend only permits sending to the account owner's registered email. To send to arbitrary email addresses (e.g. citizens), verify a custom sending domain at [resend.com/domains](https://resend.com/domains) and update `MAIL_FROM_ADDRESS` in `.env`.
+3. **Test CLI:** You can test email delivery directly from the command line:
+   ```bash
+   ./server test-mail recipient@example.com
+   ```
 
 </details>
 
@@ -60,29 +67,29 @@ Common issues, error codes, and step-by-step solutions when developing, running,
 **Symptoms:** Valid ID photos, SOS evidence, or user avatars fail to load in the browser or dashboard.
 
 **Solutions:**
-1. **Symlink:** Recreate the public storage symlink:
+1. **Storage Path:** Verify `STORAGE_PATH` in `backend/.env` points to the directory where uploads are stored (e.g. `/var/www/sine-storage/app/public` in production).
+2. **Permissions:** Ensure the storage folder is readable and writable by the backend process:
    ```bash
-   php artisan storage:link
+   sudo chown -R root:www-data /var/www/sine-storage
+   sudo chmod -R 775 /var/www/sine-storage
    ```
-   *(On Windows, run terminal as Administrator if symlink creation fails).*
-2. **S3 / Cloud Storage:** If using Cloudflare R2 or AWS S3 (`FILESYSTEM_DISK=s3`), ensure `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET`, and `AWS_ENDPOINT` are set in `.env` and the bucket has public read permissions enabled for the `reports/` and `profiles/` paths.
+3. **Storage Route:** Go Fiber automatically serves files located under the public storage path via `http://host:3000/storage/...` and `http://host:3000/storage-proxy/...`.
 
 </details>
 
 <details>
-<summary><b>1.5 Missing Reference Data or Fresh Database Setup Errors</b></summary>
+<summary><b>1.5 Database Migrations & Initial Seed Data</b></summary>
 
-**Symptoms:** Registration or dispatch fails because `barangay_id`, `incident_type_id`, responders, or default admin accounts are missing on a fresh database installation.
+**Symptoms:** Fresh database installation is missing schema tables or reference lookup records (Barangays, Incident Types, Responders, Vehicles).
 
 **Solutions:**
-1. Populate all reference lookup tables (Barangays, Incident Types, Responders, Vehicles, and initial Admin/Dispatcher accounts) using Laravel's database seeder:
+1. The Go Fiber backend automatically executes `AutoMigrate()` and runs `Seed()` on startup.
+2. If running locally against an empty database:
    ```bash
-   php artisan db:seed
+   cd backend
+   go run main.go
    ```
-2. For a complete fresh database initialization:
-   ```bash
-   php artisan migrate --seed
-   ```
+   All 16 tables are created and seeded with San Isidro barangays, default responders, incident types, and fleet vehicles immediately.
 
 </details>
 

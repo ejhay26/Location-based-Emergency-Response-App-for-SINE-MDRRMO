@@ -40,15 +40,15 @@ The MDRRMO Operations Dashboard runs as a lightweight, standalone portable execu
 
 ## 3. Backend & Cloud Infrastructure (Linux VPS / Municipal Server)
 
-The backend runs containerized on **Podman / Docker** with **Laravel 13 (PHP 8.4-FPM)**, **MariaDB 10.11+**, and **Laravel Reverb (WebSocket Engine)**.
+The backend runs as a high-performance native Go micro-daemon on **Go Fiber v2**, backed by **MariaDB 10.11+**, and an embedded high-throughput **WebSocket Engine**.
 
 ### Server Requirements
 
 | Component | Minimum Specification (Pilot / Staging) | Recommended Specification (Production Municipal Deployment) |
 |---|---|---|
 | **Operating System** | **Ubuntu Server 22.04 / 24.04 LTS** (64-bit) or **Debian 12** | **Ubuntu Server 24.04 LTS** (64-bit) |
-| **Processor (vCPU)** | 2 vCPUs @ 2.0 GHz | **4 Dedicated vCPUs @ 2.8 GHz+** |
-| **Memory (RAM)** | **2 GB RAM** + 2 GB Swap | **8 GB ECC RAM** |
-| **Storage (Disk)** | **25 GB SSD** | **80 GB – 150 GB Enterprise SSD** |
+| **Processor (vCPU)** | 1-2 vCPUs @ 2.0 GHz | **2-4 Dedicated vCPUs @ 2.8 GHz+** |
+| **Memory (RAM)** | **1 GB RAM** (Go micro-daemon uses ~30–60 MB RAM) | **4 GB – 8 GB ECC RAM** |
+| **Storage (Disk)** | **20 GB SSD** | **80 GB – 150 GB Enterprise SSD** (for media & tile storage) |
 | **Network Uplink** | 50 Mbps bandwidth | **500 Mbps – 1 Gbps unmetered uplink** |
-| **Software Stack** | PHP 8.4-FPM, MariaDB 10.11+, Nginx, Reverb | PHP 8.4-FPM, MariaDB 11+, Redis Cache, Supervisor, Reverb |
+| **Software Stack** | Go 1.24, MariaDB 10.11+, Systemd | Go 1.24+, MariaDB 11+, Systemd, Resend API, PhilSMS Gateway |

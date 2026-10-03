@@ -2,13 +2,12 @@
 
 ![License](https://img.shields.io/badge/license-Proprietary-red)
 ![Version](https://img.shields.io/badge/version-v0.80.8-blue)
-![Laravel](https://img.shields.io/badge/backend-Laravel%2013-FF2D20?logo=laravel&logoColor=white)
-![PHP](https://img.shields.io/badge/php-8.4-777BB4?logo=php&logoColor=white)
+![Backend](https://img.shields.io/badge/backend-Go%20Fiber%20v2-00ADD8?logo=go&logoColor=white)
+![Language](https://img.shields.io/badge/go-1.24-00ADD8?logo=go&logoColor=white)
 ![Angular](https://img.shields.io/badge/frontend-Angular%2020%20%2F%20Ionic%208-DD0031?logo=angular&logoColor=white)
 ![Tauri](https://img.shields.io/badge/desktop-Tauri%20v2%20(Rust)-24C8D8?logo=tauri&logoColor=white)
 ![Database](https://img.shields.io/badge/database-MariaDB-003545?logo=mariadb&logoColor=white)
-![Cache](https://img.shields.io/badge/cache-Redis%207-DC382D?logo=redis&logoColor=white)
-![Broadcasting](https://img.shields.io/badge/realtime-Laravel%20Reverb-FF2D20?logo=laravel&logoColor=white)
+![Broadcasting](https://img.shields.io/badge/realtime-WebSockets-010101?logo=socketdotio&logoColor=white)
 ![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20Windows%20%7C%20macOS%20%7C%20Linux-3DDC84?logo=android&logoColor=white)
 
 A full-stack, location-based emergency response ecosystem engineered for the **Municipal Disaster Risk Reduction and Management Office (MDRRMO)** of San Isidro, Nueva Ecija. It connects citizens facing crises with local emergency responders through sub-second dispatching, anti-prank verification checks, offline resilient reporting, and live geospatial tracking.
@@ -48,7 +47,7 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 - **Admin & Dispatcher Operations Dashboard (Tauri v2 Desktop & Mobile Admin UI)** — 
   - **Desktop:** High-performance native desktop application powered by **Tauri v2 (Rust)** for Windows, macOS, and Linux with lightweight resource usage (~30MB RAM), frameless custom titlebar controls, and native OS audio/push notifications.
   - **Mobile:** Adaptive mobile interface featuring a dedicated bottom navigation bar (`Incident Map`, `Broadcast`, `Menu`), interactive draggable active incidents bottom sheet (peek, half, and full expansion), quick touch-friendly filter sheets, and full access to staff management, ID verifications, and analytics on the go.
-- **Backend API & Real-Time Engine (Laravel 13 & Reverb)** — Containerized via Podman / Docker on a cloud Linux VPS, providing REST APIs, Sanctum token authentication, authoritative geospatial point-in-polygon resolution, transactional SMS via PhilSMS, and sub-second WebSocket broadcasting via Laravel Reverb.
+- **Backend API & Real-Time Engine (Go Fiber v2 & Native WebSockets)** — High-performance Go micro-daemon running on Linux VPS, providing REST APIs, SHA-256 hashed bearer token authentication, authoritative geospatial point-in-polygon resolution, transactional SMS via PhilSMS, transactional email via Resend, and sub-second real-time WebSocket broadcasting.
 
 ---
 
@@ -64,20 +63,20 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/apple/000000" width="40" height="40" alt="iOS" pointer-events="none"/><br/><sub><b>iOS</b></sub></td>
 </tr>
 <tr>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/laravel/FF2D20" width="40" height="40" alt="Laravel" pointer-events="none"/><br/><sub><b>Laravel 13</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/php/777BB4" width="40" height="40" alt="PHP" pointer-events="none"/><br/><sub><b>PHP 8.4</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/go/00ADD8" width="40" height="40" alt="Go" pointer-events="none"/><br/><sub><b>Go 1.24</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/fastapi/fastapi-original.svg" width="40" height="40" alt="Fiber" pointer-events="none"/><br/><sub><b>Fiber v2</b></sub></td>
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/mariadb/003545" width="40" height="40" alt="MariaDB" pointer-events="none"/><br/><sub><b>MariaDB</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/podman/892CA0" width="40" height="40" alt="Podman" pointer-events="none"/><br/><sub><b>Podman / Docker</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/nginx/009639" width="40" height="40" alt="Nginx" pointer-events="none"/><br/><sub><b>Nginx</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/resend/000000" width="40" height="40" alt="Resend" pointer-events="none"/><br/><sub><b>Resend</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/gnubash/4EAA25" width="40" height="40" alt="PhilSMS" pointer-events="none"/><br/><sub><b>PhilSMS API</b></sub></td>
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/leaflet/199900" width="40" height="40" alt="Leaflet" pointer-events="none"/><br/><sub><b>Leaflet.js</b></sub></td>
 </tr>
 <tr>
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/chartdotjs/FF6384" width="40" height="40" alt="Chart.js" pointer-events="none"/><br/><sub><b>Chart.js</b></sub></td>
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/firebase/FFCA28" width="40" height="40" alt="Firebase" pointer-events="none"/><br/><sub><b>Firebase (FCM)</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/gnubash/4EAA25" width="40" height="40" alt="PhilSMS" pointer-events="none"/><br/><sub><b>PhilSMS API</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/socketdotio/010101" width="40" height="40" alt="Reverb" pointer-events="none"/><br/><sub><b>Reverb (WS)</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/socketdotio/010101" width="40" height="40" alt="WebSocket" pointer-events="none"/><br/><sub><b>WebSockets</b></sub></td>
 <td align="center" width="110"><img src="https://cdn.simpleicons.org/rust/000000" width="40" height="40" alt="Rust" pointer-events="none"/><br/><sub><b>Rust Engine</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/redis/FF4438" width="40" height="40" alt="Redis" pointer-events="none"/><br/><sub><b>Redis 7</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/linux/FCC624" width="40" height="40" alt="Linux" pointer-events="none"/><br/><sub><b>Linux VPS</b></sub></td>
+<td align="center" width="110"><img src="https://cdn.simpleicons.org/git/F05032" width="40" height="40" alt="Git" pointer-events="none"/><br/><sub><b>Git</b></sub></td>
 </tr>
 </table>
 
@@ -85,8 +84,8 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 
 ## Core Features
 
-- **Real-Time WebSocket Synchronization** — Powered by Laravel Reverb and Laravel Echo; incidents, unit assignments, hazard updates, and broadcast alerts appear instantaneously across devices without manual refresh.
-- **High-Performance In-Memory Caching & Synced AOF Storage** — Containerized Redis 7 in Podman with Append-Only File (AOF) persistence mapped to host storage, caching geospatial query data and active session state with sub-millisecond retrieval.
+- **Real-Time WebSocket Synchronization** — Powered by Go Fiber's native embedded WebSocket engine; incidents, unit assignments, hazard updates, and broadcast alerts appear instantaneously across devices without manual refresh.
+- **High-Performance In-Memory Synchronization & State Engine** — Native concurrent Go synchronization and isolated persistent storage mapping, serving geospatial data and active session state with sub-millisecond retrieval.
 - **Role-Based Access Control (RBAC)** — Granular permission tiers and token abilities for Citizens, Dispatchers, and Master Administrators.
 - **Anti-Prank Verification System** — Requires live camera photo or 10-second video evidence (with duration capping and MP4/PNG/JPEG magic byte verification) combined with locked GPS coordinates.
 - **Dual-Sided Government ID Verification** — Guided registration with clear photo tips, front & back ID capture, selfie with ID, and simplified Terms of Service & Privacy Policy (RA 10173 compliance).

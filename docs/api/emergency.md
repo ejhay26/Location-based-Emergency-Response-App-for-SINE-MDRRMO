@@ -184,9 +184,9 @@ Provides statistical breakdowns for Chart.js dashboard visualizations (7, 30, or
 
 ---
 
-## 6. Real-Time WebSocket Events Reference (Laravel Reverb)
+## 6. Real-Time WebSocket Events Reference
 
-The client subscribes to public Reverb channels using **Laravel Echo**:
+The client subscribes to public broadcast channels using WebSockets (Echo-compatible protocol):
 
 | Channel | Event Name | Payload | Trigger Event |
 |---|---|---|---|

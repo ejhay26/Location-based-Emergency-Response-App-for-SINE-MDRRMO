@@ -6,25 +6,23 @@ Comprehensive documentation of the SINE MDRRMO high-level Database Disaster Reco
 
 ## 1. Overview
 
-The SINE MDRRMO Disaster Recovery Engine is a self-contained, high-performance database protection system built natively inside Laravel (`backend/app/Services/DatabaseBackupService.php` and `backend/app/Console/Commands/DatabaseBackupCommand.php`).
+The SINE MDRRMO Disaster Recovery Engine is a self-contained, high-performance database protection system built natively inside the Go backend (`backend/internal/backup/backup.go` and `backend/internal/cron/cron.go`).
 
 ### Core Highlights:
-- **Zero External Dependencies:** 100% native PHP and MySQL integration. No third-party containers or extra background daemons required.
-- **Automated 2-Hour Intraday Snapshots:** Automatically generates lightweight, Gzip-compressed `.sql.gz` archives every 2 hours during operational hours.
-- **Smart Retention Manager:** Keeps the last **12 intraday snapshots** and **7 daily archives**, automatically purging older backups to maintain minimal disk footprint.
-- **Human-Friendly CLI Commands:** Simple commands (`backup create`, `backup list`, `backup desc`, `backup restore`, `backup salvage`, `backup notify`) with smart typo suggestion.
-- **Pre-Restore Safety Shield:** Automatically creates a safety snapshot of the live database *before* executing any restore operation.
-- **Delta Gap Salvaging:** Scans storage files (`storage/app/public/`) and audit logs (`storage/logs/laravel.log`) for registrations and proof files created after the snapshot, preventing unbacked citizen data loss.
-- **Automated Citizen Re-Notification:** Automatically dispatches polite transactional SMS (PhilSMS) and emails to citizens who signed up during the recovery gap.
+- **Zero External Dependencies:** Native Go and MySQL integration with streaming Gzip compression.
+- **Automated 2-Hour Intraday Snapshots:** High-concurrency cron scheduler runs automatically inside the micro-daemon (`@every 2h`), generating lightweight compressed `.sql.gz` archives.
+- **Smart Retention Manager:** Automatically prunes snapshots older than 7 days, maintaining minimal disk footprint.
+- **Pre-Restore Safety Shield:** Automatically creates a safety snapshot of the live database before executing any restore operation.
+- **Delta Gap Salvaging:** Scans storage files (`storage/app/public/`) for uploads and registrations created after the snapshot, preventing unbacked citizen data loss.
+- **Automated Citizen Re-Notification:** Dispatches transactional SMS (PhilSMS) and emails (Resend) to citizens who signed up during the recovery gap.
 
 ---
 
-## 2. CLI Command Suite
+## 2. CLI Command Suite & Operations
 
-Executable wrappers are located in `backend/bin/` for self-contained deployment:
-- **Linux / Docker / VPS:** `backend/bin/backup <action>` (or symlinked to `/usr/local/bin/backup`)
-- **Windows:** `backend\bin\backup.bat <action>`
-- **Artisan direct:** `php artisan backup <action>` (from `backend/`)
+The backup engine provides unified management commands:
+- **Server CLI:** `./server backup` or systemd automated cron
+- **Local Dev:** `go run main.go backup`
 
 | Command | Action | Description |
 |---|---|---|
@@ -191,28 +189,30 @@ backup notify
 
 ---
 
-### 3.6 Polite Recovery Email Template (Blade Mailable)
-When `backup notify` is executed, affected citizens receive a responsive, styled email created via `App\Mail\DisasterRecoveryNoticeMail` and rendered through [disaster-recovery.blade.php](file:///c:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/backend/resources/views/emails/disaster-recovery.blade.php):
-- **Branding:** Official MDRRMO Emergency Red header (`#D32F2F`) and card layout.
+### 3.6 Polite Recovery Email Template
+
+When `backup notify` is executed, affected citizens receive a responsive, styled email dispatched via the native Resend mailer service:
+- **Branding:** Official MDRRMO Emergency Red header (`#D32F2F`) and clean card layout.
 - **Tone:** Empathetic apology and transparent explanation of the system synchronization.
 - **Call to Action:** Simple steps for citizens to log in or complete verification if their session was unbacked.
-- **24/7 Hotlines:** Direct Globe, Smart, and Landline contact numbers for immediate emergency dispatch.
+- **24/7 Hotlines:** Direct contact numbers for immediate emergency dispatch.
 
 ---
 
 ## 4. Automated Interval Scheduling
 
-The engine is scheduled via Laravel's task runner in `backend/routes/console.php`:
+The engine is scheduled via the embedded cron engine in `backend/internal/cron/cron.go`:
 
-```php
-use Illuminate\Support\Facades\Schedule;
-
+```go
 // SINE MDRRMO Automated Disaster Recovery Schedule
 // Takes a compressed database snapshot every 2 hours and auto-prunes older snapshots
-Schedule::command('backup create')->everyTwoHours();
+cronSpec := fmt.Sprintf("@every %dh", interval)
+c.AddFunc(cronSpec, func() {
+    runBackup()
+})
 ```
 
-When running in containerized production (via Podman/Docker), Laravel's scheduler worker automatically fires `backup create` every 2 hours in the background with zero performance impact.
+When running in production, the background goroutine automatically fires `runBackup()` every 2 hours with zero performance impact.
 
 ---
 

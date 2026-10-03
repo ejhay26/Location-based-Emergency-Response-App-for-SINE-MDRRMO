@@ -4,9 +4,9 @@ A comprehensive, in-depth breakdown of all core features and technical implement
 
 ---
 
-## 1. Real-Time WebSocket Infrastructure (Laravel Reverb)
+## 1. Real-Time WebSocket Infrastructure (Embedded WebSocket Engine)
 
-The platform utilizes **Laravel Reverb** as its primary real-time synchronization engine.
+The platform utilizes a high-performance **embedded WebSocket engine** as its primary real-time synchronization engine.
 - **Sub-Second Updates:** Incoming SOS requests, unit dispatches, hazard reports, and alert broadcasts appear instantaneously on connected citizen and dispatcher screens without polling.
 - **Dedicated Channels:** `emergencies`, `hazards`, `broadcasts`, and `users` stream lightweight trigger events; clients re-fetch authenticated REST endpoints upon receipt to prevent leaking sensitive data over public socket payloads.
 

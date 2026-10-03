@@ -12,8 +12,7 @@ Before starting, ensure you have the following software installed:
 
 | Tool | Version | Purpose |
 |---|---|---|
-| **PHP** | 8.4+ | Backend runtime (with `pdo_mysql`, `mbstring`, `curl`, `zip`, `intl`, `xml`, `gd`, `bcmath`, `exif`) |
-| **Composer** | 2.x | PHP dependency manager |
+| **Go** | 1.24+ | High-performance backend runtime |
 | **Node.js** | 20.x or 22.x LTS | JavaScript runtime for Angular/Ionic |
 | **Rust & Cargo** | 1.80+ (Optional) | Required only if compiling Tauri v2 desktop packages (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`) |
 | **MariaDB / MySQL** | 10.6+ / 8.0+ | Relational database server |
@@ -30,17 +29,6 @@ Create a new database named `emergencydb`:
 ```sql
 CREATE DATABASE emergencydb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
-
-Import the initial database schema and seed data from the project root:
-```bash
-# Windows (PowerShell/Command Prompt)
-mysql -u root -p emergencydb < database/emergencydb.sql
-
-# Linux / macOS
-mysql -u root -p emergencydb < database/emergencydb.sql
-```
-
-*(Alternatively, import `database/emergencydb.sql` using phpMyAdmin, HeidiSQL, or DBeaver).*
 
 ---
 
@@ -60,50 +48,39 @@ copy .env.example .env
 cp .env.example .env
 ```
 
-Install Composer dependencies:
-```bash
-composer install
-```
-
-Generate the unique application key:
-```bash
-php artisan key:generate
-```
-
 Configure your `backend/.env` with your database credentials:
 ```env
-DB_CONNECTION=mysql
+APP_PORT=3000
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=emergencydb
 DB_USERNAME=your_db_username
 DB_PASSWORD=your_db_password
 
-BROADCAST_CONNECTION=reverb
+REVERB_APP_KEY=6bc0e7b80b37c8d8d8f8
+REVERB_PORT=3000
 FILESYSTEM_DISK=public
 ```
 
-Run migrations and create the storage symlink:
+Download Go dependencies:
 ```bash
-php artisan migrate
-php artisan storage:link
+go mod tidy
 ```
 
-Start the backend API server:
+Start the unified backend API & WebSocket server:
 ```bash
-php artisan serve --port=8000
+go run main.go
 ```
 
-In a **second terminal**, start the **Laravel Reverb WebSocket server**:
-```bash
-php artisan reverb:start --host=0.0.0.0 --port=6001
-```
+> **Automated Migrations & Seeders:** On startup, the Go Fiber engine automatically applies schema migrations (`AutoMigrate`) for all 16 core data models and idempotently seeds initial incident types, San Isidro barangays, emergency responders, and response vehicles.
+
+The backend service runs concurrently on `http://localhost:3000` (serving REST endpoints, tile caching, media storage, and real-time WebSockets).
 
 ---
 
 ### 3. Frontend Setup (Citizen Mobile & Dispatcher Dashboard)
 
-Open a **third terminal** and navigate to `frontend/`:
+Open a **second terminal** and navigate to `frontend/`:
 ```bash
 cd frontend
 npm install
@@ -113,10 +90,12 @@ Verify `frontend/src/environments/environment.ts` points to your local backend:
 ```typescript
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000/api',
-  reverbKey: 'xlq16kh4sisuz0kwe3sq',
+  apiUrl: 'http://localhost:3000/api',
+  mapTileUrl: 'http://localhost:3000/tiles/osm/{z}/{x}/{y}.png',
+  satelliteTileUrl: 'http://localhost:3000/tiles/satellite/{z}/{y}/{x}.jpg',
+  reverbKey: '6bc0e7b80b37c8d8d8f8',
   reverbHost: 'localhost',
-  reverbPort: 6001,
+  reverbPort: 3000,
   reverbScheme: 'http',
 };
 ```
@@ -148,14 +127,15 @@ npx cap open android
 
 ---
 
-## Method B: Containerized Docker / Podman Setup
+## Method B: Containerized Docker Setup
 
-For a containerized environment running Nginx, PHP 8.4-FPM, and Laravel Reverb:
+For a containerized backend environment:
 
 ```bash
 cd backend
-docker compose up -d --build
+docker build -t sine-backend .
+docker run -d --name sine_backend -p 3000:3000 --env-file .env sine-backend
 ```
 
-- **App & API**: `http://localhost:8080`
-- **Reverb WebSocket**: `http://localhost:6001` (proxied via `http://localhost:8080/app/`)
+- **Unified API & WebSocket Server**: `http://localhost:3000`
+- **Health Check**: `http://localhost:3000/health`

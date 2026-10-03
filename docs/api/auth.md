@@ -1,7 +1,7 @@
 # API Reference — Authentication & Accounts
 
 Base Path: `/api`  
-Security: Laravel Sanctum (`Bearer <token>`)
+Security: Bearer Token (`Bearer <token>`)
 
 ---
 

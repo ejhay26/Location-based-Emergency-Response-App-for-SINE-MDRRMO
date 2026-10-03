@@ -10,53 +10,44 @@ Complete guide for `backend/.env`. Copy `backend/.env.example` to `backend/.env`
 
 | Variable | Default / Example | Purpose | Notes |
 |---|---|---|---|
-| `APP_NAME` | `Laravel` | Display name of the application | Used in emails and logs |
+| `APP_NAME` | `"SINE-MDRRMO"` | Display name of the application | Used in emails and logs |
 | `APP_ENV` | `local` / `production` | Environment mode | Set to `production` on live servers |
-| `APP_KEY` | `base64:...` | Application encryption key | Generate via `php artisan key:generate` |
-| `APP_DEBUG` | `true` (dev) / `false` (prod) | Stack trace & debug mode | **Must be `false` in production** to avoid leaking environment variables and system paths |
-| `APP_URL` | `http://localhost:8000` / `https://api.yourdomain.com` | Base backend URL | Point to your domain, ngrok tunnel, or VPS IP |
-| `BCRYPT_ROUNDS` | `12` | Password hashing cost | Standard bcrypt workload |
+| `APP_DEBUG` | `true` (dev) / `false` (prod) | Verbose logging & debug mode | **Must be `false` in production** |
+| `APP_URL` | `http://localhost:3000` / `http://159.223.42.159:3000` | Base backend URL | Point to your domain or VPS IP |
+| `APP_PORT` | `3000` | Port on which the Go micro-daemon listens | Default unified port |
 
 ---
 
-## 2. Database Connection
+## 2. Database Connection (MySQL / MariaDB)
 
 | Variable | Default / Example | Purpose |
 |---|---|---|
-| `DB_CONNECTION` | `mysql` | MySQL / MariaDB connection driver |
 | `DB_HOST` | `127.0.0.1` (local) / `localhost` | Database host IP or hostname |
 | `DB_PORT` | `3306` | MariaDB / MySQL default port |
 | `DB_DATABASE` | `emergencydb` | Database name |
-| `DB_USERNAME` | `ejhay` (dedicated user) | Database user (**Never use `root` in production**) |
+| `DB_USERNAME` | `root` / `sine_user` | Database user |
 | `DB_PASSWORD` | `your_secure_password` | Database user password |
 
 ---
 
-## 3. Real-Time Broadcasting (Laravel Reverb WebSockets)
+## 3. Real-Time Broadcasting (Embedded WebSocket Engine)
 
 | Variable | Default / Example | Purpose |
 |---|---|---|
-| `BROADCAST_CONNECTION` | `reverb` (or `log` in tests) | Broadcast driver for real-time events |
-| `REVERB_APP_ID` | `mdrrmo_sine_app` | Reverb application ID |
-| `REVERB_APP_KEY` | `xlq16kh4sisuz0kwe3sq` | Public WebSocket connection key (mirrored in `frontend/src/environments/environment.ts`) |
-| `REVERB_APP_SECRET` | `your_reverb_secret` | Secret key used by backend to sign broadcast packets |
-| `REVERB_HOST` | `0.0.0.0` (server) / `localhost` | Host interface for Reverb server |
-| `REVERB_PORT` | `6001` | Dedicated WebSocket port (proxied via Nginx on port 80/443) |
-| `REVERB_SCHEME` | `http` (local) / `https` (prod) | Connection protocol scheme |
+| `REVERB_APP_ID` | `sine` | WebSocket application ID |
+| `REVERB_APP_KEY` | `6bc0e7b80b37c8d8d8f8` | Public WebSocket connection key (mirrored in `frontend/src/environments/environment.ts`) |
+| `REVERB_APP_SECRET` | `sine_secret` | Secret key used to sign broadcast packets |
+| `REVERB_HOST` | `0.0.0.0` (server) / `localhost` | Host interface for WebSocket server |
+| `REVERB_PORT` | `3000` | Port for WebSocket traffic (unified on port 3000) |
 
 ---
 
-## 4. Filesystem & Object Storage
+## 4. Filesystem & Storage
 
 | Variable | Default / Example | Purpose |
 |---|---|---|
-| `FILESYSTEM_DISK` | `s3` (prod) / `public` (local disk) | Primary storage disk for uploads (SOS photos/videos, Valid IDs, Avatars) |
-| `AWS_ACCESS_KEY_ID` | `your_access_key` | S3 / Cloudflare R2 Access Key |
-| `AWS_SECRET_ACCESS_KEY` | `your_secret_key` | S3 / Cloudflare R2 Secret Key |
-| `AWS_DEFAULT_REGION` | `auto` / `us-east-1` | Storage bucket region |
-| `AWS_BUCKET` | `mdrrmo-sine-storage` | Bucket name |
-| `AWS_ENDPOINT` | `https://<account_id>.r2.cloudflarestorage.com` | Custom endpoint for S3-compatible providers (Cloudflare R2, AWS S3, MinIO) |
-| `AWS_USE_PATH_STYLE_ENDPOINT` | `true` | Required for path-style S3-compatible endpoints |
+| `FILESYSTEM_DISK` | `public` | Storage disk mode |
+| `STORAGE_PATH` | `/var/www/sine-storage/app/public` | Optional isolated directory path for uploaded media & documents |
 
 ---
 
@@ -71,39 +62,33 @@ Used for transactional OTP verification during registration, login, and password
 
 ---
 
-## 6. Email Service (SMTP / OTP Delivery)
+## 6. Email Service (Resend API)
 
 | Variable | Default / Example | Purpose |
 |---|---|---|
-| `MAIL_MAILER` | `smtp` | Mail driver |
-| `MAIL_HOST` | `smtp.gmail.com` | SMTP server host |
-| `MAIL_PORT` | `465` (SSL) / `587` (TLS) | SMTP server port |
-| `MAIL_USERNAME` | `ejcp2005@gmail.com` | Sender email address |
-| `MAIL_PASSWORD` | `xxxx xxxx xxxx xxxx` | **Google App Password** (16 characters, not personal password) |
-| `MAIL_ENCRYPTION` | `ssl` / `tls` | Encryption protocol |
-| `MAIL_FROM_ADDRESS` | `"no-reply@sinemdrrmo.gov.ph"` | Sender email header |
-| `MAIL_FROM_NAME` | `"MDRRMO SAN ISIDRO NUEVA ECIJA"` | Display name shown to recipients |
+| `RESEND_API_KEY` | `re_xxxxxxxxx` | Resend API key for fast, reliable transactional email |
+| `MAIL_FROM_ADDRESS` | `"onboarding@resend.dev"` / `"no-reply@sinemdrrmo.gov.ph"` | Sender email address |
+| `MAIL_FROM_NAME` | `"MDRRMO SAN ISIDRO NUEVA ECIJA EMERGENCY RESPONSE APP"` | Display name shown to recipients |
 
 ---
 
-## 7. Push Notifications (Firebase Cloud Messaging)
+## 7. Push Notifications (Firebase Cloud Messaging v1)
 
 | Variable | Default / Example | Purpose |
 |---|---|---|
 | `FIREBASE_PROJECT_ID` | `mdrrmo-sine-response-app` | Firebase project identifier |
-| `FIREBASE_CREDENTIALS` | `storage/app/firebase-service-account.json` | Path to Firebase Admin SDK service account JSON file (**Must be gitignored**) |
+| `FIREBASE_CREDENTIALS` | `storage/app/mdrrmo-sine-response-app-firebase-adminsdk-fbsvc-73bd4e4846.json` | Path to Firebase Admin SDK service account JSON file (**Gitignored**) |
 
 ---
 
-## 8. Session, Cache & Queue (Redis In-Memory Engine)
+## 8. Automated Backups & CORS
 
 | Variable | Default / Example | Purpose |
 |---|---|---|
-| `SESSION_DRIVER` | `redis` (prod) / `file` (local) | Session storage driver |
-| `CACHE_STORE` | `redis` (prod) / `file` (local) | Application cache driver (powers Sanctum token caching & rate limits) |
-| `QUEUE_CONNECTION` | `redis` (prod) / `database` (local) | Queue driver for asynchronous notifications and emails |
-| `REDIS_CLIENT` | `phpredis` | PHP Redis driver (`phpredis` native C extension or `predis`) |
-| `REDIS_HOST` | `redis` (container stack) / `127.0.0.1` (local) | Redis host address (resolves via container bridge DNS) |
-| `REDIS_PASSWORD` | `YourRedisPassword123!` | Redis authentication password |
-| `REDIS_PORT` | `6379` | Dedicated Redis port |
+| `BACKUP_AUTO_ENABLED` | `true` | Enables background periodic database snapshots |
+| `BACKUP_INTERVAL_HOURS` | `2` | Interval between intraday snapshots |
+| `BACKUP_MAX_INTRADAY` | `12` | Maximum retained intraday backups |
+| `BACKUP_MAX_DAILY` | `7` | Maximum retained daily backups |
+| `CORS_ALLOW_ORIGINS` | `*` | Allowed CORS origins for web & mobile clients |
+| `DEV_SUPPORT_EMAIL` | `ejcp2005@gmail.com` | Developer contact for automated alert reports |
 

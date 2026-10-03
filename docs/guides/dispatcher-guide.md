@@ -8,7 +8,7 @@ How to monitor emergencies, review incoming alerts, dispatch responder teams, an
 
 1. Open the **SINE MDRRMO Operations Dashboard** on your desktop workstation (Tauri Desktop App) or mobile device.
 2. Sign in using the dispatcher credentials provided by your Administrator.
-3. Upon login, the application connects to **Laravel Reverb WebSockets** for live incident streaming and real-time updates.
+3. Upon login, the application connects to **real-time WebSockets** for live incident streaming and instant updates.
 
 ---
 
