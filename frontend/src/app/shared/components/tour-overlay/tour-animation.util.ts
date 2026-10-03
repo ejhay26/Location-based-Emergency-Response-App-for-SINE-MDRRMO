@@ -26,20 +26,17 @@ export class TourSpringAnimator {
     const from = { ...currentHole };
     const to = TourGeometryUtil.computeHole(targetEl);
     const startTime = performance.now();
-    const durationMs = 750;
-    const zeta = 0.85;
-    const omega = 8.5;
-    const omegaD = omega * Math.sqrt(1 - zeta * zeta);
+    const durationMs = 380;
+    const omega = 12.0;
 
     const tick = (now: number) => {
       const elapsed = Math.max(0, (now - startTime) / 1000);
       let progress = 1;
 
       if (elapsed * 1000 < durationMs) {
-        const decay = Math.exp(-zeta * omega * elapsed);
-        const oscillation = Math.cos(omegaD * elapsed) +
-          ((zeta * omega) / omegaD) * Math.sin(omegaD * elapsed);
-        progress = 1 - decay * oscillation;
+        // Critically damped spring (zeta = 1.0): strictly monotonic, zero overshoot
+        const decay = Math.exp(-omega * elapsed);
+        progress = Math.max(0, Math.min(1, 1 - (1 + omega * elapsed) * decay));
       }
 
       const interpolated: Hole = {

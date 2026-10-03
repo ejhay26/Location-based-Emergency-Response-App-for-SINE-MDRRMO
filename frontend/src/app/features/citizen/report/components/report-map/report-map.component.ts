@@ -120,6 +120,11 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   private resizeObserver?: ResizeObserver;
   private locationSub?: Subscription;
 
+  /** Preserved coordinates & zoom to guarantee zero-flinch state across fullscreen transitions */
+  private savedCenterLat: number = 15.3014;
+  private savedCenterLng: number = 120.9274;
+  private savedZoom: number = 14;
+
   get pinColor(): string { return this.reportType === 'hazard' ? '#ffc409' : '#eb445a'; }
   get crosshairColor(): string { return this.pinColor; }
 
@@ -281,6 +286,13 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
 
     this.tryInit(); // Ensure map is initialized
 
+    if (this.map) {
+      const c = this.map.getCenter();
+      this.savedCenterLat = c.lat;
+      this.savedCenterLng = c.lng;
+      this.savedZoom = this.map.getZoom();
+    }
+
     // Capture the small map's rect BEFORE the overlay mounts and steals
     // layout — this seeds the curtain's closed (starting) clip band.
     const srcRect = this.smallMapRect();
@@ -324,7 +336,9 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       this.mapCanvasOriginalNextSibling = mapEl.nextSibling;
       this.renderer.appendChild(slotEl, mapEl);
       if (this.map) {
-        this.map.invalidateSize();
+        this.map.invalidateSize({ pan: false });
+        this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
+        this.updateCoords();
       }
     }
 
@@ -336,13 +350,30 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     });
 
     this.playCurtainReveal(curtainEl, srcRect, 'in')
-      .then(() => { if (this.map) this.map.invalidateSize(); })
-      .catch(() => { if (this.map) this.map.invalidateSize(); });
+      .then(() => {
+        if (this.map) {
+          this.map.invalidateSize({ pan: false });
+          this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
+        }
+      })
+      .catch(() => {
+        if (this.map) {
+          this.map.invalidateSize({ pan: false });
+          this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
+        }
+      });
   }
 
   private collapseMap(): void {
     if (this.mapCollapsing) return; // a close tween is already playing — don't restart it on a duplicate tap
     this.mapCollapsing = true;
+
+    if (this.map) {
+      const c = this.map.getCenter();
+      this.savedCenterLat = c.lat;
+      this.savedCenterLng = c.lng;
+      this.savedZoom = this.map.getZoom();
+    }
 
     const node = this.fullscreenOverlayRef?.nativeElement;
     const curtainEl = this.mapCurtainWrapRef?.nativeElement;
@@ -369,7 +400,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     if (!rect || window.innerHeight <= 0 || !this.userSettings.shouldAnimate()) {
       if (direction === 'in') {
         node.style.clipPath = '';
-        if (this.map) this.map.invalidateSize();
+        if (this.map) {
+          this.map.invalidateSize({ pan: false });
+          this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
+        }
       } else {
         node.style.clipPath = rect ? `inset(${Math.max(0, (rect.top / window.innerHeight) * 100)}% 0% ${Math.max(0, ((window.innerHeight - rect.bottom) / window.innerHeight) * 100)}% 0%)` : '';
       }
@@ -398,7 +432,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       node.style.contain = '';
       if (direction === 'in') {
         node.style.clipPath = '';
-        if (this.map) this.map.invalidateSize();
+        if (this.map) {
+          this.map.invalidateSize({ pan: false });
+          this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
+        }
       }
     }, (durationSec * 1000) + 100);
 
@@ -415,7 +452,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
               node.style.contain = '';
               if (direction === 'in') {
                 node.style.clipPath = '';
-                if (this.map) this.map.invalidateSize();
+                if (this.map) {
+                  this.map.invalidateSize({ pan: false });
+                  this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
+                }
               }
               resolve();
             })
@@ -426,7 +466,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
               node.style.contain = '';
               if (direction === 'in') {
                 node.style.clipPath = '';
-                if (this.map) this.map.invalidateSize();
+                if (this.map) {
+                  this.map.invalidateSize({ pan: false });
+                  this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
+                }
               }
               resolve();
             });
@@ -437,7 +480,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
           node.style.contain = '';
           if (direction === 'in') {
             node.style.clipPath = '';
-            if (this.map) this.map.invalidateSize();
+            if (this.map) {
+              this.map.invalidateSize({ pan: false });
+              this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
+            }
           }
           resolve();
         }
@@ -462,7 +508,13 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       this.mapCanvasOriginalNextSibling = null;
       // Deferred one frame purely so invalidateSize() reads the box's final,
       // committed layout rather than racing the just-applied DOM move.
-      requestAnimationFrame(() => { if (this.map) this.map.invalidateSize(); });
+      requestAnimationFrame(() => {
+        if (this.map) {
+          this.map.invalidateSize({ pan: false });
+          this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
+          this.updateCoords();
+        }
+      });
     }
     const node = this.fullscreenOverlayRef?.nativeElement;
     const curtainEl = this.mapCurtainWrapRef?.nativeElement;
@@ -511,7 +563,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     // own internal element lookup can't hit the same duplicate-id collision
     // this class's other lookups were fixed for — see mapCanvasRef's doc
     // comment above. tryInit() already guards this truthy before calling here.
-    this.map = L.map(this.mapCanvasRef!.nativeElement, { minZoom: 13, zoomControl: false }).setView([15.3014, 120.9274], 14);
+    this.map = L.map(this.mapCanvasRef!.nativeElement, { minZoom: 12, zoomControl: false }).setView([15.3014, 120.9274], 14);
     const osmTileUrl = (environment as any).mapTileUrl || 'http://159.223.42.159/tiles/osm/{z}/{x}/{y}.png';
     const satelliteTileUrl = (environment as any).satelliteTileUrl || 'http://159.223.42.159/tiles/satellite/{z}/{y}/{x}.jpg';
 
@@ -567,7 +619,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       const hole = this.sanIsidroPolygon.map((c: any[]) => [c[1], c[0]]);
       L.polygon([[[-90, -180], [90, -180], [90, 180], [-90, 180]], hole], { color: 'transparent', fillColor: '#888', fillOpacity: 0.6 }).addTo(this.map);
       const bounds = boundaryLayer.getBounds();
-      this.map.fitBounds(bounds); this.map.setMaxBounds(bounds.pad(0.1)); this.map.options.maxBoundsViscosity = 1.0;
+      this.map.fitBounds(bounds); this.map.setMaxBounds(bounds.pad(0.4)); this.map.options.maxBoundsViscosity = 0.65;
       this.updateCoords();
 
       if (this.userSettings.getBool('location_auto_fetch')) {

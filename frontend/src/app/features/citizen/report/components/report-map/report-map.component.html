@@ -95,7 +95,7 @@
     </button>
 
     <!-- Floating Submit Button in Fullscreen -->
-    <div *ngIf="submitLabel" style="position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:1002;">
+    <div *ngIf="submitLabel" class="fullscreen-submit-container" style="position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:1002;">
       <button type="button" appPressFeedback [disabled]="submitDisabled" (click)="submitRequested.emit()"
         [style.background]="submitLoading ? '#666' : (submitDisabled ? '#888' : (reportType === 'hazard' ? 'linear-gradient(135deg, #d97706, #f59e0b)' : 'var(--ion-color-danger)'))"
         [style.box-shadow]="(submitDisabled || submitLoading) ? 'none' : '0 6px 24px rgba(0,0,0,0.35)'"

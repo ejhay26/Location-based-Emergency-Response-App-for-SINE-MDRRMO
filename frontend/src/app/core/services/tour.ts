@@ -30,11 +30,18 @@ const STEPS: TourStep[] = [
     subtext: 'This opens your primary emergency response dashboard.',
     waitForInteraction: true, interactionHint: 'Tap the Home tab'
   },
-  // ── HOME: intro ───────────────────────────────────────────────────────────
+  // ── HOME: intro (informational for Home chapter) ──────────────────────────
   {
-    id: 'tour-sos-button', page: '/tabs/home', chapters: ['all', 'home'],
+    id: 'tour-sos-button', page: '/tabs/home', chapters: ['home'],
     callout: 'This is your Emergency SOS button.',
-    subtext: 'Use this when you need immediate help — fire, flood, medical emergency, or crime. Tap it to see how it works.',
+    subtext: 'Use this when you need immediate help — fire, flood, medical emergency, or crime. In an actual emergency, pressing this alerts MDRRMO immediately.',
+    waitForInteraction: false
+  },
+  // ── HOME: intro (interactive for Full Walkthrough) ────────────────────────
+  {
+    id: 'tour-sos-button', page: '/tabs/home', chapters: ['all'],
+    callout: 'This is your Emergency SOS button.',
+    subtext: 'Use this when you need immediate help — fire, flood, medical emergency, or crime. Tap it to see how the report form works.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted button'
   },
   // ── EMERGENCY REPORT ──────────────────────────────────────────────────────
@@ -74,9 +81,16 @@ const STEPS: TourStep[] = [
     subtext: 'In a real emergency this immediately alerts the dispatch team. We won\'t submit anything during this tutorial — tap Next to continue.',
     waitForInteraction: false
   },
-  // ── HOME: hazard ──────────────────────────────────────────────────────────
+  // ── HOME: hazard (informational for Home chapter) ─────────────────────────
   {
-    id: 'tour-hazard-button', page: '/tabs/home', chapters: ['all', 'home', 'hazard'],
+    id: 'tour-hazard-button', page: '/tabs/home', chapters: ['home'],
+    callout: 'This is the Public Hazard button.',
+    subtext: 'Report non-emergency dangers — like fallen trees, road damage, flooded streets, or loose electrical wires — to warn your community.',
+    waitForInteraction: false
+  },
+  // ── HOME: hazard (interactive for Full Walkthrough & Hazard chapter) ──────
+  {
+    id: 'tour-hazard-button', page: '/tabs/home', chapters: ['all', 'hazard'],
     callout: 'This is the Public Hazard button.',
     subtext: 'Report non-emergency dangers — like fallen trees, road damage, flooded streets, or loose electrical wires — to warn your community.',
     waitForInteraction: true, interactionHint: 'Tap the highlighted button'

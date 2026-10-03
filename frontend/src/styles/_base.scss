@@ -47,7 +47,7 @@ ion-card {
   border: var(--card-border, 1px solid rgba(0, 0, 0, 0.09)) !important;
   box-shadow: var(--card-shadow, 0 2px 10px rgba(0, 0, 0, 0.05)) !important;
   background: var(--ion-card-background, #ffffff);
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.25s cubic-bezier(0.2, 0.9, 0.3, 1), border-color 0.25s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
 /* Inset Grouped Container Classes (Authentic iOS TableView/List Grouped Style) */
@@ -59,7 +59,7 @@ ion-card {
   box-shadow: var(--card-shadow, 0 2px 10px rgba(0, 0, 0, 0.05));
   overflow: hidden;
   margin-bottom: 14px;
-  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: background-color 0.25s cubic-bezier(0.2, 0.9, 0.3, 1), border-color 0.25s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
 
   ion-item {
     --background: transparent !important;
@@ -141,10 +141,21 @@ html.reduce-animations *::after {
 }
 
 /* =========================================
-   FALLBACK SMOOTH DARK MODE (NON-VIEW-TRANSITION)
+   SYNCHRONIZED THEME TRANSITIONING
+   Neutralize child CSS transitions during View Transitions
+   so root snapshot takes instantly with zero container lag
    ========================================= */
-html:not(.theme-transitioning) body {
-  transition: background-color 0.25s ease, color 0.25s ease;
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: none !important;
+}
+
+/* Fallback smooth dark mode (non-view-transition) */
+html:not(.theme-transitioning) body,
+html:not(.theme-transitioning) ion-content {
+  transition: background-color 0.25s cubic-bezier(0.2, 0.9, 0.3, 1), color 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
 /* =========================================
@@ -219,12 +230,12 @@ ion-content .inset-group:nth-of-type(n+5),
    SYNCHRONIZED DARK/LIGHT MODE CROSS-DISSOLVE (UNIFIED CROSS-PLATFORM)
    =========================================================================== */
 ::view-transition-old(root) {
-  animation: sine-theme-fade-out 250ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+  animation: sine-theme-fade-out 260ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
   mix-blend-mode: normal !important;
 }
 
 ::view-transition-new(root) {
-  animation: sine-theme-fade-in 250ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+  animation: sine-theme-fade-in 260ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
   mix-blend-mode: normal !important;
 }
 

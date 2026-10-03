@@ -9,8 +9,8 @@ export interface Hole {
 
 export class TourGeometryUtil {
 
-  /** Measures the element with generous padding and detects circle shapes */
-  static computeHole(el: HTMLElement, padding = 12): Hole {
+  /** Measures the element with generous padding, strict screen boundary clamping, and detects circle shapes */
+  static computeHole(el: HTMLElement, padding = 8): Hole {
     const r = el.getBoundingClientRect();
     const cs = getComputedStyle(el);
     const brPx = parseFloat(cs.borderTopLeftRadius) || 0;
@@ -18,15 +18,30 @@ export class TourGeometryUtil {
     const inlineStyle = el.getAttribute('style') || '';
     const isCircle = inlineStyle.includes('border-radius:50%') ||
                      inlineStyle.includes('border-radius: 50%') ||
+                     inlineStyle.includes('border-radius: 9999px') ||
+                     inlineStyle.includes('border-radius: 999px') ||
                      brPx >= minDim * 0.4;
 
+    const screenW = typeof window !== 'undefined' ? window.innerWidth : 400;
+    const screenH = typeof window !== 'undefined' ? window.innerHeight : 800;
+
+    // Strict clamp: highlight box can NEVER overflow any edge of the screen (especially right border!)
+    const MARGIN = 8;
+    const left = Math.max(MARGIN, r.left - padding);
+    const right = Math.min(screenW - MARGIN, r.right + padding);
+    const top = Math.max(MARGIN, r.top - padding);
+    const bottom = Math.min(screenH - MARGIN, r.bottom + padding);
+
+    const width = Math.max(0, right - left);
+    const height = Math.max(0, bottom - top);
+
     return {
-      top:    r.top    - padding,
-      left:   r.left   - padding,
-      width:  r.width  + padding * 2,
-      height: r.height + padding * 2,
+      top,
+      left,
+      width,
+      height,
       isCircle,
-      radius: isCircle ? 0 : brPx + padding,
+      radius: isCircle ? 0 : Math.max(8, Math.min(brPx + padding, width / 2, height / 2)),
     };
   }
 
