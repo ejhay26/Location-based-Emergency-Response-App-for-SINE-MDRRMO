@@ -4,9 +4,22 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
+
+// PhilippineTZ represents Asia/Manila (UTC+8)
+var PhilippineTZ *time.Location
+
+func init() {
+	loc, err := time.LoadLocation("Asia/Manila")
+	if err != nil {
+		loc = time.FixedZone("PST", 8*3600)
+	}
+	PhilippineTZ = loc
+	time.Local = loc
+}
 
 // Config holds all application configuration loaded from .env
 type Config struct {
@@ -124,7 +137,7 @@ func Load() {
 
 // DSN returns the MySQL connection string
 func (c *Config) DSN() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&time_zone=%%27%%2B08%%3A00%%27",
 		c.DBUsername, c.DBPassword, c.DBHost, c.DBPort, c.DBDatabase)
 }
 

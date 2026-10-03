@@ -19,7 +19,6 @@ import (
 
 	fiberws "github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
@@ -37,6 +36,7 @@ func main() {
 	if len(os.Args) > 2 && os.Args[1] == "test-mail" {
 		targetEmail := os.Args[2]
 		mailer := services.NewMailer()
+		sentAtFormatted := time.Now().In(time.Local).Format("Monday, January 02, 2006 at 03:04:05 PM MST (GMT+8)")
 		err := mailer.Send(targetEmail, "SINE-MDRRMO Go Fiber Mailer Verification Test", `
 <!DOCTYPE html>
 <html>
@@ -45,7 +45,7 @@ func main() {
   <div style="max-width: 500px; margin: auto; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 24px;">
     <h2 style="color: #059669;">SINE-MDRRMO Go Fiber Live Mailer Test</h2>
     <p>This email confirms that the <strong>Go Fiber backend</strong> running on your VPS is successfully integrated with the Resend transactional email API.</p>
-    <p style="color: #666; font-size: 13px;">Sent at: `+time.Now().Format(time.RFC1123)+`</p>
+    <p style="color: #333; font-size: 13px;"><strong>Sent at:</strong> `+sentAtFormatted+`</p>
   </div>
 </body>
 </html>`)
@@ -53,7 +53,7 @@ func main() {
 			fmt.Printf("FAIL: %v\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("SUCCESS: Sent test email to %s\n", targetEmail)
+		fmt.Printf("SUCCESS: Sent test email to %s (Time: %s)\n", targetEmail, sentAtFormatted)
 		return
 	}
 
@@ -83,13 +83,33 @@ func main() {
 		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))
 
-	// CORS configuration matching Laravel cors.php
-	app.Use(cors.New(cors.Config{
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-Socket-ID",
-		AllowMethods:     "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS",
-		AllowCredentials: true,
-		AllowOriginsFunc: func(origin string) bool { return true },
-	}))
+	// Permissive CORS middleware for cross-origin Angular / Ionic / Capacitor / mobile web requests
+	app.Use(func(c *fiber.Ctx) error {
+		origin := c.Get("Origin")
+		if origin != "" {
+			c.Set("Access-Control-Allow-Origin", origin)
+			c.Set("Access-Control-Allow-Credentials", "true")
+		} else {
+			c.Set("Access-Control-Allow-Origin", "*")
+		}
+
+		reqHeaders := c.Get("Access-Control-Request-Headers")
+		if reqHeaders != "" {
+			c.Set("Access-Control-Allow-Headers", reqHeaders)
+		} else {
+			c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-Socket-ID, ngrok-skip-browser-warning, Cache-Control, Pragma, X-CSRF-TOKEN")
+		}
+
+		c.Set("Access-Control-Allow-Methods", "GET, POST, HEAD, PUT, DELETE, PATCH, OPTIONS")
+		c.Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization, Content-Disposition")
+		c.Set("Access-Control-Max-Age", "86400")
+
+		if c.Method() == fiber.MethodOptions {
+			return c.SendStatus(fiber.StatusNoContent)
+		}
+
+		return c.Next()
+	})
 
 	// Static Storage Directory (equivalent to php artisan storage:link)
 	storageDir := os.Getenv("STORAGE_PATH")
