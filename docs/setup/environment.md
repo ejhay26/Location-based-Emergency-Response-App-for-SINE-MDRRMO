@@ -25,7 +25,7 @@ Complete guide for `backend/.env`. Copy `backend/.env.example` to `backend/.env`
 | `DB_HOST` | `127.0.0.1` (local) / `localhost` | Database host IP or hostname |
 | `DB_PORT` | `3306` | MariaDB / MySQL default port |
 | `DB_DATABASE` | `emergencydb` | Database name |
-| `DB_USERNAME` | `root` / `sine_user` | Database user |
+| `DB_USERNAME` | `your_db_username` | Database user |
 | `DB_PASSWORD` | `your_secure_password` | Database user password |
 
 ---
