@@ -373,10 +373,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     // Fade chrome in smoothly after the map curtain starts expanding
     if (this.userSettings.shouldAnimate()) {
       if (chromeEl) {
-        animate(chromeEl, { opacity: [0, 1], transform: ['scale(0.96)', 'scale(1)'] }, { duration: 0.22, delay: 0.08, ease: 'easeOut' });
+        (animate as any)(chromeEl, { opacity: [0, 1], transform: ['scale(0.96)', 'scale(1)'] }, { duration: 0.22, delay: 0.08, ease: 'easeOut' });
       }
       if (toggleEl) {
-        animate(toggleEl, { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0px)'] }, { duration: 0.22, delay: 0.08, ease: 'easeOut' });
+        (animate as any)(toggleEl, { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0px)'] }, { duration: 0.22, delay: 0.08, ease: 'easeOut' });
       }
     } else {
       if (chromeEl) {
@@ -411,11 +411,11 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     if (this.userSettings.shouldAnimate()) {
       if (chromeEl) {
         chromeEl.style.pointerEvents = 'none';
-        animate(chromeEl, { opacity: [1, 0], transform: ['scale(1)', 'scale(0.95)'] }, { duration: 0.15, ease: 'easeIn' });
+        (animate as any)(chromeEl, { opacity: [1, 0], transform: ['scale(1)', 'scale(0.95)'] }, { duration: 0.15, ease: 'easeIn' });
       }
       if (toggleEl) {
         toggleEl.style.pointerEvents = 'none';
-        animate(toggleEl, { opacity: [1, 0], transform: ['translateY(0px)', 'translateY(10px)'] }, { duration: 0.15, ease: 'easeIn' });
+        (animate as any)(toggleEl, { opacity: [1, 0], transform: ['translateY(0px)', 'translateY(10px)'] }, { duration: 0.15, ease: 'easeIn' });
       }
     } else {
       if (chromeEl) chromeEl.style.opacity = '0';
@@ -486,8 +486,8 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       requestAnimationFrame(() => {
         const target = direction === 'in' ? { clipPath: openClip } : { clipPath: closedClip };
         try {
-          this.overlayAnimControls = animate(node, target, { duration: durationSec, ease: easeCurve });
-          this.overlayAnimControls.finished
+          this.overlayAnimControls = (animate as any)(node, target, { duration: durationSec, ease: easeCurve });
+          this.overlayAnimControls?.finished
             .then(() => {
               clearTimeout(safetyTimer);
               node.style.willChange = '';

@@ -1,14 +1,16 @@
 # Location-Based Emergency Response App — SINE MDRRMO
 
-![License](https://img.shields.io/badge/license-Proprietary-red)
-![Version](https://img.shields.io/badge/version-v0.84.7-blue)
-![Backend](https://img.shields.io/badge/backend-Go%20Fiber%20v2-00ADD8?logo=go&logoColor=white)
-![Language](https://img.shields.io/badge/go-1.24-00ADD8?logo=go&logoColor=white)
-![Angular](https://img.shields.io/badge/frontend-Angular%2020%20%2F%20Ionic%208-DD0031?logo=angular&logoColor=white)
-![Tauri](https://img.shields.io/badge/desktop-Tauri%20v2%20(Rust)-24C8D8?logo=tauri&logoColor=white)
-![Database](https://img.shields.io/badge/database-MariaDB-003545?logo=mariadb&logoColor=white)
-![Broadcasting](https://img.shields.io/badge/realtime-WebSockets-010101?logo=socketdotio&logoColor=white)
-![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20Windows%20%7C%20macOS%20%7C%20Linux-3DDC84?logo=android&logoColor=white)
+<p>
+  <a href="#_"><img src="https://img.shields.io/badge/license-Proprietary-red" alt="License" style="pointer-events: none;" /></a>
+  <a href="#_"><img src="https://img.shields.io/badge/version-v0.84.7-blue" alt="Version" style="pointer-events: none;" /></a>
+  <a href="#_"><img src="https://img.shields.io/badge/backend-Go%20Fiber%20v2-00ADD8?logo=go&logoColor=white" alt="Backend" style="pointer-events: none;" /></a>
+  <a href="#_"><img src="https://img.shields.io/badge/go-1.24-00ADD8?logo=go&logoColor=white" alt="Language" style="pointer-events: none;" /></a>
+  <a href="#_"><img src="https://img.shields.io/badge/frontend-Angular%2020%20%2F%20Ionic%208-DD0031?logo=angular&logoColor=white" alt="Angular" style="pointer-events: none;" /></a>
+  <a href="#_"><img src="https://img.shields.io/badge/desktop-Tauri%20v2%20(Rust)-24C8D8?logo=tauri&logoColor=white" alt="Tauri" style="pointer-events: none;" /></a>
+  <a href="#_"><img src="https://img.shields.io/badge/database-MariaDB-003545?logo=mariadb&logoColor=white" alt="Database" style="pointer-events: none;" /></a>
+  <a href="#_"><img src="https://img.shields.io/badge/realtime-WebSockets-010101?logo=socketdotio&logoColor=white" alt="Broadcasting" style="pointer-events: none;" /></a>
+  <a href="#_"><img src="https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20Windows%20%7C%20macOS%20%7C%20Linux-3DDC84?logo=android&logoColor=white" alt="Platforms" style="pointer-events: none;" /></a>
+</p>
 
 A full-stack, location-based emergency response ecosystem engineered for the **Municipal Disaster Risk Reduction and Management Office (MDRRMO)** of San Isidro, Nueva Ecija. It connects citizens facing crises with local emergency responders through sub-second dispatching, anti-prank verification checks, offline resilient reporting, and live geospatial tracking.
 
@@ -26,16 +28,16 @@ Official pre-compiled application packages and installers for all supported oper
 
 | Platform | Target Architecture | Direct Download Link | Format |
 |:---:|:---|:---|:---:|
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg" width="20" height="20" alt="Android" /> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_v0.84.7_android.apk) | `.apk` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_x64-setup.exe) | `.exe` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_v0.84.7_x64-portable.exe) | `.exe` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_universal.dmg) | `.dmg` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_aarch64.dmg) | `.dmg` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_x64.dmg) | `.dmg` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_amd64.deb) | `.deb` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_amd64.AppImage) | `.AppImage` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_arm64.deb) | `.deb` |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_aarch64.AppImage) | `.AppImage` |
+| <a href="#_"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg" width="20" height="20" alt="Android" style="pointer-events: none;" /></a> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_v0.84.7_android.apk) | `.apk` |
+| <a href="#_"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" style="pointer-events: none;" /></a> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_x64-setup.exe) | `.exe` |
+| <a href="#_"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" style="pointer-events: none;" /></a> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_v0.84.7_x64-portable.exe) | `.exe` |
+| <a href="#_"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" style="pointer-events: none;" /></a> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_universal.dmg) | `.dmg` |
+| <a href="#_"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" style="pointer-events: none;" /></a> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_aarch64.dmg) | `.dmg` |
+| <a href="#_"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" style="pointer-events: none;" /></a> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_x64.dmg) | `.dmg` |
+| <a href="#_"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" style="pointer-events: none;" /></a> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_amd64.deb) | `.deb` |
+| <a href="#_"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" style="pointer-events: none;" /></a> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_amd64.AppImage) | `.AppImage` |
+| <a href="#_"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" style="pointer-events: none;" /></a> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_arm64.deb) | `.deb` |
+| <a href="#_"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" style="pointer-events: none;" /></a> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.84.7/MDRRMO.EMERGENCY.RESPONSE.APP_0.84.7_aarch64.AppImage) | `.AppImage` |
 
 ---
 
@@ -55,28 +57,27 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 
 <table>
 <tr>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/ionic/3880FF" width="40" height="40" alt="Ionic" pointer-events="none"/><br/><sub><b>Ionic 8</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/angular/DD0031" width="40" height="40" alt="Angular" pointer-events="none"/><br/><sub><b>Angular 20</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/capacitor/119EFF" width="40" height="40" alt="Capacitor" pointer-events="none"/><br/><sub><b>Capacitor 8</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/tauri/24C8D8" width="40" height="40" alt="Tauri" pointer-events="none"/><br/><sub><b>Tauri v2</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/android/3DDC84" width="40" height="40" alt="Android" pointer-events="none"/><br/><sub><b>Android</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/apple/000000" width="40" height="40" alt="iOS" pointer-events="none"/><br/><sub><b>iOS</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/ionic/3880FF" width="40" height="40" alt="Ionic" style="pointer-events: none;" /></a><br/><sub><b>Ionic 8</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/angular/DD0031" width="40" height="40" alt="Angular" style="pointer-events: none;" /></a><br/><sub><b>Angular 20</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/capacitor/119EFF" width="40" height="40" alt="Capacitor" style="pointer-events: none;" /></a><br/><sub><b>Capacitor 8</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/tauri/24C8D8" width="40" height="40" alt="Tauri" style="pointer-events: none;" /></a><br/><sub><b>Tauri v2</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/android/3DDC84" width="40" height="40" alt="Android" style="pointer-events: none;" /></a><br/><sub><b>Android</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/apple/000000" width="40" height="40" alt="iOS" style="pointer-events: none;" /></a><br/><sub><b>iOS</b></sub></td>
 </tr>
 <tr>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/go/00ADD8" width="40" height="40" alt="Go" pointer-events="none"/><br/><sub><b>Go 1.24</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/fastapi/fastapi-original.svg" width="40" height="40" alt="Fiber" pointer-events="none"/><br/><sub><b>Fiber v2</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/mariadb/003545" width="40" height="40" alt="MariaDB" pointer-events="none"/><br/><sub><b>MariaDB</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/resend/000000" width="40" height="40" alt="Resend" pointer-events="none"/><br/><sub><b>Resend</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/gnubash/4EAA25" width="40" height="40" alt="PhilSMS" pointer-events="none"/><br/><sub><b>PhilSMS API</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/leaflet/199900" width="40" height="40" alt="Leaflet" pointer-events="none"/><br/><sub><b>Leaflet.js</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/go/00ADD8" width="40" height="40" alt="Go" style="pointer-events: none;" /></a><br/><sub><b>Go 1.24</b></sub></td>
+<td align="center" width="110"><a href="#_"><picture><source height="30" media="(prefers-color-scheme: dark)" srcset="https://gofiber.io/img/logo-dark.svg"><img src="https://gofiber.io/img/logo.svg" height="30" alt="Fiber" style="pointer-events: none;" /></picture></a><br/><sub><b>Fiber v2</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/mariadb/003545" width="40" height="40" alt="MariaDB" style="pointer-events: none;" /></a><br/><sub><b>MariaDB</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/resend/000000" width="40" height="40" alt="Resend" style="pointer-events: none;" /></a><br/><sub><b>Resend</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/gnubash/4EAA25" width="40" height="40" alt="PhilSMS" style="pointer-events: none;" /></a><br/><sub><b>PhilSMS API</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/leaflet/199900" width="40" height="40" alt="Leaflet" style="pointer-events: none;" /></a><br/><sub><b>Leaflet.js</b></sub></td>
 </tr>
 <tr>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/chartdotjs/FF6384" width="40" height="40" alt="Chart.js" pointer-events="none"/><br/><sub><b>Chart.js</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/firebase/FFCA28" width="40" height="40" alt="Firebase" pointer-events="none"/><br/><sub><b>Firebase (FCM)</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/socketdotio/010101" width="40" height="40" alt="WebSocket" pointer-events="none"/><br/><sub><b>WebSockets</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/rust/000000" width="40" height="40" alt="Rust" pointer-events="none"/><br/><sub><b>Rust Engine</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/linux/FCC624" width="40" height="40" alt="Linux" pointer-events="none"/><br/><sub><b>Linux VPS</b></sub></td>
-<td align="center" width="110"><img src="https://cdn.simpleicons.org/git/F05032" width="40" height="40" alt="Git" pointer-events="none"/><br/><sub><b>Git</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/chartdotjs/FF6384" width="40" height="40" alt="Chart.js" style="pointer-events: none;" /></a><br/><sub><b>Chart.js</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/firebase/FFCA28" width="40" height="40" alt="Firebase" style="pointer-events: none;" /></a><br/><sub><b>Firebase (FCM)</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/socketdotio/010101" width="40" height="40" alt="WebSocket" style="pointer-events: none;" /></a><br/><sub><b>WebSockets</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/rust/000000" width="40" height="40" alt="Rust" style="pointer-events: none;" /></a><br/><sub><b>Rust Engine</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/linux/FCC624" width="40" height="40" alt="Linux" style="pointer-events: none;" /></a><br/><sub><b>Linux VPS</b></sub></td>
 </tr>
 </table>
 
