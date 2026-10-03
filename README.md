@@ -24,6 +24,10 @@ Official pre-compiled application packages and installers for all supported oper
 
 [**Download Latest Release (v0.84.7)**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/latest) &bull; [**Browse All Releases and Past Versions**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases)
 
+> [!IMPORTANT]
+> **Compatibility Notice for Older Releases:**
+> Older application releases (prior to `v0.84.7`) were configured for the legacy PHP/Laravel backend infrastructure, which has been permanently decommissioned and shut down. Earlier versions will fail to connect or authenticate. Please install or upgrade to **`v0.84.7`** or later to connect to the active Go Fiber v2 production server.
+
 ### Direct Application Downloads
 
 | Platform | Target Architecture | Direct Download Link | Format |
