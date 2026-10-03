@@ -19,8 +19,17 @@ release/
 *.keystore
 *.jks
 
+# Compiled Binaries & Bundles
+server_linux
+backend/server_linux
+*.bin
+
+# Environment & Secrets
+.env
+backend/.env
+old-backend/.env
+*.env
+!.env.example
+
 # Experimental Flutter Port
 frontend2/
-
-# Experimental Go Fiber Backend
-backend2/
