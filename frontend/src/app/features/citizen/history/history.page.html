@@ -7,8 +7,9 @@
 <ion-content class="ion-padding tab-page-content">
   <ion-refresher slot="fixed" (ionRefresh)="load($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
 
-  <div id="tour-history-page" [class.tour-highlight]="tour.targetId() === 'tour-history-page'" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;">
-    <app-date-range-filter [value]="dateFilter" (valueChange)="onDateFilterChange($event)"></app-date-range-filter>
+  <div id="tour-history-page" [class.tour-highlight]="tour.targetId() === 'tour-history-page'">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;">
+      <app-date-range-filter [value]="dateFilter" (valueChange)="onDateFilterChange($event)"></app-date-range-filter>
     <button *ngFor="let s of statusFilters" (click)="setStatusFilter(s.value)"
       [style.background]="statusFilter===s.value?'var(--ion-color-danger)':'var(--ion-card-background, white)'"
       [style.color]="statusFilter===s.value?'white':'var(--ion-text-color)'"
@@ -102,5 +103,6 @@
         </ion-button>
       </ion-card>
     </ion-list>
+  </div>
   </div>
 </ion-content>

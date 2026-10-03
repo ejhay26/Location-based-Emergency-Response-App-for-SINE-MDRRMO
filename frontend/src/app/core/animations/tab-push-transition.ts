@@ -38,6 +38,12 @@ export function tabPushTransition(_baseEl: HTMLElement, opts: any): Animation {
     const fromX = isBack ? '-100%' : '100%';
     const enteringAnimation = createAnimation()
       .addElement(enteringEl)
+      .beforeStyles({
+        'z-index': isBack ? '1' : '2',
+        'visibility': 'visible',
+        'opacity': '1',
+        'pointer-events': 'auto'
+      })
       .beforeRemoveClass('ion-page-invisible')
       .afterClearStyles(['transform'])
       .fromTo('transform', `translateX(${fromX})`, 'translateX(0%)');
@@ -48,7 +54,14 @@ export function tabPushTransition(_baseEl: HTMLElement, opts: any): Animation {
     const toX = isBack ? '100%' : '-100%';
     const leavingAnimation = createAnimation()
       .addElement(leavingEl)
-      .afterClearStyles(['transform'])
+      .beforeStyles({
+        'z-index': isBack ? '2' : '1'
+      })
+      .afterStyles({
+        'visibility': 'hidden',
+        'opacity': '0',
+        'pointer-events': 'none'
+      })
       .fromTo('transform', 'translateX(0%)', `translateX(${toX})`);
     rootAnimation.addAnimation(leavingAnimation);
   }

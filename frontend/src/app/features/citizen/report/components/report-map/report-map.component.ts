@@ -84,6 +84,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   @ViewChild('smallExpandBtn') private smallExpandBtnRef?: ElementRef<HTMLElement>;
   /** The curtain-clipped map-visual layer inside the fullscreen overlay — NOT the whole overlay. */
   @ViewChild('mapCurtainWrap') private mapCurtainWrapRef?: ElementRef<HTMLElement>;
+  /** The floating chrome layer (buttons, hints) inside fullscreen view */
+  @ViewChild('fullscreenChrome') private fullscreenChromeRef?: ElementRef<HTMLElement>;
+  /** The Street | Satellite segment bar at bottom of fullscreen view */
+  @ViewChild('fullscreenToggleBar') private fullscreenToggleBarRef?: ElementRef<HTMLElement>;
   private renderer = inject(Renderer2);
   /** Where the overlay node originally lived in the DOM, so close can put it back before Angular removes it via *ngIf. */
   private overlayOriginalParent: Node | null = null;
@@ -270,15 +274,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   private smallMapRect(): DOMRect | null {
     const mapEl = this.mapSlotRef?.nativeElement;
     if (!mapEl) return null;
-    const mapRect = mapEl.getBoundingClientRect();
-    const toggleEl = this.toggleSlotRef?.nativeElement;
-    if (!toggleEl) return mapRect; // defensive fallback — toggle bar should always be present alongside the map
-    const toggleRect = toggleEl.getBoundingClientRect();
-    const top = Math.min(mapRect.top, toggleRect.top);
-    const left = Math.min(mapRect.left, toggleRect.left);
-    const bottom = Math.max(mapRect.bottom, toggleRect.bottom);
-    const right = Math.max(mapRect.right, toggleRect.right);
-    return new DOMRect(left, top, right - left, bottom - top);
+    return mapEl.getBoundingClientRect();
   }
 
   private expandMap(): void {
@@ -349,6 +345,17 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       L.DomEvent.disableScrollPropagation(btn as HTMLElement);
     });
 
+    const chromeEl = this.fullscreenChromeRef?.nativeElement;
+    const toggleEl = this.fullscreenToggleBarRef?.nativeElement;
+    if (chromeEl) {
+      chromeEl.style.opacity = '0';
+      chromeEl.style.transform = 'scale(0.96)';
+    }
+    if (toggleEl) {
+      toggleEl.style.opacity = '0';
+      toggleEl.style.transform = 'translateY(10px)';
+    }
+
     this.playCurtainReveal(curtainEl, srcRect, 'in')
       .then(() => {
         if (this.map) {
@@ -362,6 +369,25 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
           this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
         }
       });
+
+    // Fade chrome in smoothly after the map curtain starts expanding
+    if (this.userSettings.shouldAnimate()) {
+      if (chromeEl) {
+        animate(chromeEl, { opacity: [0, 1], transform: ['scale(0.96)', 'scale(1)'] }, { duration: 0.22, delay: 0.08, ease: 'easeOut' });
+      }
+      if (toggleEl) {
+        animate(toggleEl, { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0px)'] }, { duration: 0.22, delay: 0.08, ease: 'easeOut' });
+      }
+    } else {
+      if (chromeEl) {
+        chromeEl.style.opacity = '1';
+        chromeEl.style.transform = '';
+      }
+      if (toggleEl) {
+        toggleEl.style.opacity = '1';
+        toggleEl.style.transform = '';
+      }
+    }
   }
 
   private collapseMap(): void {
@@ -377,11 +403,26 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
 
     const node = this.fullscreenOverlayRef?.nativeElement;
     const curtainEl = this.mapCurtainWrapRef?.nativeElement;
+    const chromeEl = this.fullscreenChromeRef?.nativeElement;
+    const toggleEl = this.fullscreenToggleBarRef?.nativeElement;
     if (!node || !curtainEl) { this.finishCollapse(); return; }
 
-    // Target is the small map's CURRENT rect — it's still sitting in its
-    // normal place behind the overlay the whole time, so this reads its
-    // real live position rather than a value cached from expand time.
+    // Dissolve controls immediately so buttons NEVER linger on screen during collapse
+    if (this.userSettings.shouldAnimate()) {
+      if (chromeEl) {
+        chromeEl.style.pointerEvents = 'none';
+        animate(chromeEl, { opacity: [1, 0], transform: ['scale(1)', 'scale(0.95)'] }, { duration: 0.15, ease: 'easeIn' });
+      }
+      if (toggleEl) {
+        toggleEl.style.pointerEvents = 'none';
+        animate(toggleEl, { opacity: [1, 0], transform: ['translateY(0px)', 'translateY(10px)'] }, { duration: 0.15, ease: 'easeIn' });
+      }
+    } else {
+      if (chromeEl) chromeEl.style.opacity = '0';
+      if (toggleEl) toggleEl.style.opacity = '0';
+    }
+
+    // Target is the small map's CURRENT rect
     const destRect = this.smallMapRect();
 
     this.playCurtainReveal(curtainEl, destRect, 'out')
@@ -390,14 +431,13 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Plays the curtain clip-path tween for one direction and returns a
-   * Promise the caller can await/settle on. Guaranteed never to leave
-   * the overlay in a clipped or stuck state.
+   * Plays the curtain clip-path tween with 4-sided inset and rounded corners.
+   * Seamlessly morphs between fullscreen and the small card's exact geometry.
    */
   private playCurtainReveal(node: HTMLElement, rect: DOMRect | null, direction: 'in' | 'out'): Promise<void> {
     this.overlayAnimControls?.stop();
 
-    if (!rect || window.innerHeight <= 0 || !this.userSettings.shouldAnimate()) {
+    if (!rect || window.innerHeight <= 0 || window.innerWidth <= 0 || !this.userSettings.shouldAnimate()) {
       if (direction === 'in') {
         node.style.clipPath = '';
         if (this.map) {
@@ -405,16 +445,21 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
           this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
         }
       } else {
-        node.style.clipPath = rect ? `inset(${Math.max(0, (rect.top / window.innerHeight) * 100)}% 0% ${Math.max(0, ((window.innerHeight - rect.bottom) / window.innerHeight) * 100)}% 0%)` : '';
+        node.style.clipPath = rect
+          ? `inset(${Math.max(0, (rect.top / window.innerHeight) * 100)}% ${Math.max(0, ((window.innerWidth - rect.right) / window.innerWidth) * 100)}% ${Math.max(0, ((window.innerHeight - rect.bottom) / window.innerHeight) * 100)}% ${Math.max(0, (rect.left / window.innerWidth) * 100)}% round 18px)`
+          : '';
       }
       return Promise.resolve();
     }
 
     const topPct    = Math.max(0, Math.min(100, (rect.top / window.innerHeight) * 100));
     const bottomPct = Math.max(0, Math.min(100, ((window.innerHeight - rect.bottom) / window.innerHeight) * 100));
-    const closedClip = `inset(${topPct}% 0% ${bottomPct}% 0%)`;
-    const openClip   = 'inset(0% 0% 0% 0%)';
-    const durationSec = direction === 'in' ? 0.30 : 0.25;
+    const leftPct   = Math.max(0, Math.min(100, (rect.left / window.innerWidth) * 100));
+    const rightPct  = Math.max(0, Math.min(100, ((window.innerWidth - rect.right) / window.innerWidth) * 100));
+    const closedClip = `inset(${topPct}% ${rightPct}% ${bottomPct}% ${leftPct}% round 18px)`;
+    const openClip   = 'inset(0% 0% 0% 0% round 0px)';
+    const durationSec = direction === 'in' ? 0.32 : 0.26;
+    const easeCurve = direction === 'in' ? [0.16, 1, 0.3, 1] : [0.25, 0.9, 0.3, 1];
 
     node.style.willChange = 'clip-path';
     node.style.transform = 'translateZ(0)';
@@ -424,8 +469,6 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       node.style.clipPath = closedClip;
     }
 
-    // Safety timeout: if WAAPI engine hangs or frame drops on cold start,
-    // forcefully release the clip-path so the overlay never stays stuck.
     const safetyTimer = setTimeout(() => {
       node.style.willChange = '';
       node.style.transform = '';
@@ -437,13 +480,13 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
           this.map.setView([this.savedCenterLat, this.savedCenterLng], this.savedZoom, { animate: false });
         }
       }
-    }, (durationSec * 1000) + 100);
+    }, (durationSec * 1000) + 120);
 
     return new Promise<void>((resolve) => {
       requestAnimationFrame(() => {
         const target = direction === 'in' ? { clipPath: openClip } : { clipPath: closedClip };
         try {
-          this.overlayAnimControls = animate(node, target, { duration: durationSec, ease: [0.2, 0.9, 0.3, 1] });
+          this.overlayAnimControls = animate(node, target, { duration: durationSec, ease: easeCurve });
           this.overlayAnimControls.finished
             .then(() => {
               clearTimeout(safetyTimer);
@@ -495,10 +538,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
    * Runs once the close tween has finished (or resolved instantly under
    * `reduce_animations`) — moves the single #report-map Leaflet container
    * back to its permanent small-view slot (#report-map-slot), restores the
-   * overlay node to its original DOM position, and unmounts it. The map's
-   * own content stays untouched throughout — reparenting + invalidateSize()
-   * only changes what's visible/laid out, never the underlying Leaflet
-   * instance, so there is nothing to re-render or flinch.
+   * overlay node to its original DOM position, and unmounts it.
    */
   private finishCollapse(): void {
     const mapEl = this.mapCanvasRef?.nativeElement;
@@ -518,16 +558,23 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     }
     const node = this.fullscreenOverlayRef?.nativeElement;
     const curtainEl = this.mapCurtainWrapRef?.nativeElement;
+    const chromeEl = this.fullscreenChromeRef?.nativeElement;
+    const toggleEl = this.fullscreenToggleBarRef?.nativeElement;
+    if (chromeEl) {
+      chromeEl.style.opacity = '';
+      chromeEl.style.transform = '';
+      chromeEl.style.pointerEvents = 'none';
+    }
+    if (toggleEl) {
+      toggleEl.style.opacity = '';
+      toggleEl.style.transform = '';
+      toggleEl.style.pointerEvents = '';
+    }
     if (curtainEl) {
-      // Clear inline animation styles before moving/unmounting so a stale
-      // clip-path value can never leak onto the next expand's fresh curtain
-      // (a brand-new element instance has no inline style of its own, but
-      // reusing the same DOM node — which Angular does here since it's only
-      // toggled by mapExpanded||mapCollapsing, not recreated — means
-      // whatever was left on it survives across cycles).
       curtainEl.style.clipPath = '';
       curtainEl.style.willChange = '';
       curtainEl.style.transform = '';
+      curtainEl.style.contain = '';
     }
     if (node && this.overlayOriginalParent) {
       this.renderer.insertBefore(this.overlayOriginalParent, node, this.overlayOriginalNextSibling);

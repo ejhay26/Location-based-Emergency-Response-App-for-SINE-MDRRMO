@@ -1,11 +1,11 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar id="tour-settings-page" [class.tour-highlight]="tour.targetId() === 'tour-settings-page'" color="danger">
+  <ion-toolbar color="danger">
     <ion-title style="color:white;font-weight:bold;">Settings</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="tab-page-content">
-  <div style="padding: 16px 16px 0;">
+  <div id="tour-settings-page" [class.tour-highlight]="tour.targetId() === 'tour-settings-page'" style="padding: 16px 16px 0;">
     <!-- Appearance Section -->
     <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:0 4px 8px;display:flex;align-items:center;gap:6px;">
       <app-icon name="moon" [size]="14" color="var(--ion-color-danger)"></app-icon>Appearance

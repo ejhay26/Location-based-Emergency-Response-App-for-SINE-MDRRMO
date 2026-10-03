@@ -38,30 +38,11 @@
 </div>
 
 <!-- Fullscreen Overlay with iOS Glassmorphism Layout -->
-<div *ngIf="mapExpanded || mapCollapsing" #fullscreenOverlay style="position:fixed;inset:0;z-index:99999;background:var(--ion-background-color,#fff);display:flex;flex-direction:column;">
-  <div id="report-map-fullscreen-wrap" style="position:relative;flex:1;min-height:0;">
+<div *ngIf="mapExpanded || mapCollapsing" #fullscreenOverlay style="position:fixed;inset:0;z-index:99999;background:transparent;display:flex;flex-direction:column;pointer-events:auto;">
+  <div id="report-map-fullscreen-wrap" style="position:relative;flex:1;min-height:0;overflow:hidden;">
 
-    <!-- Curtain-clipped map visual layer. Deliberately position:fixed —
-         both to escape #report-map-fullscreen-wrap's shorter (flex-item)
-         box so the clip-path percentage math (computed against
-         window.innerHeight in playCurtainReveal) stays correctly aligned,
-         AND to keep the compress/location/submit buttons below OUT of its
-         clip-path entirely. clip-path removes hit-testing for whatever
-         falls outside the clipped region, and those buttons used to be
-         descendants of the SAME node that got clipped — the compress
-         button (top:12px) sat outside the curtain's starting band (which
-         tracks the small map preview's real, lower on-screen position) for
-         most of the ~340ms open animation, making it genuinely untappable
-         during that window, not just visually cut off. Buttons now live as
-         direct children of #report-map-fullscreen-wrap instead (see below,
-         unchanged position/parent — zero risk to their bottom: offsets),
-         painting on top of this layer by DOM order, always fully
-         interactive regardless of the curtain's current clip state.
-         Trade-off: the Street/Satellite toggle bar below (a separate,
-         never-clipped flex row) now simply appears via *ngIf rather than
-         riding the curtain growth like it used to — a minor visual
-         simplification, not a functional regression. -->
-    <div id="report-map-fullscreen-mapvisual" #mapCurtainWrap style="position:absolute;inset:0;">
+    <!-- Curtain-clipped map visual layer. Clamped and smoothed with 4-sided inset and rounded corners. -->
+    <div id="report-map-fullscreen-mapvisual" #mapCurtainWrap style="position:absolute;inset:0;background:var(--ion-background-color,#1e1e1e);overflow:hidden;">
       <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:1000;pointer-events:none;display:flex;flex-direction:column;align-items:center;">
         <app-icon name="map-pin" [size]="44" [color]="pinColor" style="filter:drop-shadow(0 6px 14px rgba(0,0,0,0.5));"></app-icon>
         <div style="width:10px;height:5px;background:rgba(0,0,0,0.4);border-radius:50%;margin-top:-2px;filter:blur(1px);"></div>
@@ -81,36 +62,39 @@
       <div id="report-map-fullscreen-slot" #fullscreenSlot style="position:absolute;inset:0;width:100%;height:100%;"></div>
     </div>
 
-    <!-- Compress (Exit Fullscreen) Button -->
-    <button type="button" (click)="onFullscreenBtnClick($event)" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
-      style="position:absolute;top:max(12px,calc(env(safe-area-inset-top,12px) + 6px));right:14px;z-index:1002;width:44px;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(28,28,30,0.92);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.35);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto !important;transition:transform 0.15s ease;">
-      <app-icon name="compress" [size]="18" color="#ffffff"></app-icon>
-    </button>
-
-    <!-- Use My Location Floating Pill -->
-    <button type="button" (click)="getCurrentLocation()"
-      style="position:absolute;bottom:calc(88px + env(safe-area-inset-bottom,0px));right:16px;z-index:1002;background:var(--ion-card-background,#fff);color:var(--ion-text-color);border:var(--card-border, 1px solid rgba(0,0,0,0.1));box-shadow:0 4px 18px rgba(0,0,0,0.25);border-radius:24px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.15s ease;">
-      <app-icon name="map-pin" [size]="15" color="var(--ion-color-danger)"></app-icon>
-      <span>Use My Location</span>
-    </button>
-
-    <!-- Floating Submit Button in Fullscreen -->
-    <div *ngIf="submitLabel" class="fullscreen-submit-container" style="position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:1002;">
-      <button type="button" appPressFeedback [disabled]="submitDisabled" (click)="submitRequested.emit()"
-        [style.background]="submitLoading ? '#666' : (submitDisabled ? '#888' : (reportType === 'hazard' ? 'linear-gradient(135deg, #d97706, #f59e0b)' : 'var(--ion-color-danger)'))"
-        [style.box-shadow]="(submitDisabled || submitLoading) ? 'none' : '0 6px 24px rgba(0,0,0,0.35)'"
-        [style.cursor]="submitDisabled ? 'not-allowed' : 'pointer'"
-        style="width:100%;border:none;border-radius:18px;padding:15px;font-size:15px;font-weight:800;color:white;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;">
-        <ng-container *ngIf="!submitLoading">
-          <app-icon [name]="reportType === 'hazard' ? 'hazard' : 'alert'" [size]="18" color="#ffffff"></app-icon>{{ submitLabel }}
-        </ng-container>
-        <span *ngIf="submitLoading" class="dot-loader dot-loader-white"><span></span><span></span><span></span></span>
+    <!-- Fullscreen Floating Chrome: Exit button, Use My Location pill, Floating Submit button -->
+    <div #fullscreenChrome class="fullscreen-chrome-layer" style="position:absolute;inset:0;pointer-events:none;z-index:1002;transition:opacity 0.16s ease, transform 0.16s ease;">
+      <!-- Compress (Exit Fullscreen) Button -->
+      <button type="button" (click)="onFullscreenBtnClick($event)" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+        style="position:absolute;top:max(12px,calc(env(safe-area-inset-top,12px) + 6px));right:14px;z-index:1002;width:44px;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(28,28,30,0.92);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.35);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto;transition:transform 0.15s ease;">
+        <app-icon name="compress" [size]="18" color="#ffffff"></app-icon>
       </button>
+
+      <!-- Use My Location Floating Pill -->
+      <button type="button" (click)="getCurrentLocation()" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+        style="position:absolute;bottom:calc(88px + env(safe-area-inset-bottom,0px));right:16px;z-index:1002;background:var(--ion-card-background,#fff);color:var(--ion-text-color);border:var(--card-border, 1px solid rgba(0,0,0,0.1));box-shadow:0 4px 18px rgba(0,0,0,0.25);border-radius:24px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;pointer-events:auto;transition:all 0.15s ease;">
+        <app-icon name="map-pin" [size]="15" color="var(--ion-color-danger)"></app-icon>
+        <span>Use My Location</span>
+      </button>
+
+      <!-- Floating Submit Button in Fullscreen -->
+      <div *ngIf="submitLabel" class="fullscreen-submit-container" style="position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:1002;pointer-events:auto;">
+        <button type="button" appPressFeedback [disabled]="submitDisabled" (click)="submitRequested.emit()"
+          [style.background]="submitLoading ? '#666' : (submitDisabled ? '#888' : (reportType === 'hazard' ? 'linear-gradient(135deg, #d97706, #f59e0b)' : 'var(--ion-color-danger)'))"
+          [style.box-shadow]="(submitDisabled || submitLoading) ? 'none' : '0 6px 24px rgba(0,0,0,0.35)'"
+          [style.cursor]="submitDisabled ? 'not-allowed' : 'pointer'"
+          style="width:100%;border:none;border-radius:18px;padding:15px;font-size:15px;font-weight:800;color:white;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;">
+          <ng-container *ngIf="!submitLoading">
+            <app-icon [name]="reportType === 'hazard' ? 'hazard' : 'alert'" [size]="18" color="#ffffff"></app-icon>{{ submitLabel }}
+          </ng-container>
+          <span *ngIf="submitLoading" class="dot-loader dot-loader-white"><span></span><span></span><span></span></span>
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Fullscreen Street | Satellite Toggle Bar (same ion-segment as small view) -->
-  <div style="flex-shrink:0;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--ion-background-color,#fff);border-top:var(--inset-divider, 1px solid rgba(0,0,0,0.06));">
+  <!-- Fullscreen Street | Satellite Toggle Bar -->
+  <div #fullscreenToggleBar style="flex-shrink:0;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--ion-card-background,#fff);border-top:var(--inset-divider, 1px solid rgba(0,0,0,0.06));z-index:1002;transition:opacity 0.16s ease, transform 0.16s ease;">
     <ion-segment mode="ios" [value]="mapStyle" (ionChange)="onMapStyleChange($event)">
       <ion-segment-button value="street">
         <ion-label style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:700;">
