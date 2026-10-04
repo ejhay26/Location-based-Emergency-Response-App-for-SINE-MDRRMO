@@ -34,3 +34,4 @@ old-backend/.env
 # Experimental Native Ports
 frontend2/
 frontend3/
+replica/

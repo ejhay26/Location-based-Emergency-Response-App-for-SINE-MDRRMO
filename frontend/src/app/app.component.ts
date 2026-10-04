@@ -1,4 +1,4 @@
-import { Component, OnInit, isDevMode } from '@angular/core';
+import { Component, OnInit, AfterViewInit, isDevMode } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
@@ -15,7 +15,7 @@ import { KeyboardShortcutsService } from './core/services/keyboard-shortcuts.ser
   standalone: true,
   imports: [IonApp, IonRouterOutlet, TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent, QuickSearchPaletteComponent],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   isDesktop = false;
   isMac = false;
 
@@ -53,4 +53,36 @@ export class AppComponent implements OnInit {
     // of which page the app happens to cold-start on.
     this.deepLink.init();
   }
+
+  ngAfterViewInit() {
+    this.dismissSplash();
+  }
+
+  /**
+   * Gracefully sweeps the first-paint splash curtain upward with an arched
+   * bottom edge revealing the compiled dashboard underneath.
+   */
+  private dismissSplash() {
+    if (typeof document === 'undefined') return;
+    const splash = document.getElementById('sine-splash');
+    if (!splash) return;
+
+    const shouldAnimate = this.settings.shouldAnimate();
+    if (!shouldAnimate) {
+      splash.style.transition = 'opacity 200ms ease';
+      splash.style.opacity = '0';
+      setTimeout(() => splash.remove(), 220);
+      return;
+    }
+
+    // Allow initial paint of the underlying view to settle before curtain lift
+    setTimeout(() => {
+      splash.classList.add('splash-dismiss');
+      splash.addEventListener('animationend', () => {
+        splash.remove();
+      }, { once: true });
+      setTimeout(() => splash.remove(), 1200);
+    }, 280);
+  }
 }
+
