@@ -56,6 +56,11 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.dismissSplash();
+    if (this.isDesktop) {
+      import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
+        getCurrentWindow().show();
+      }).catch(() => {});
+    }
   }
 
   /**
