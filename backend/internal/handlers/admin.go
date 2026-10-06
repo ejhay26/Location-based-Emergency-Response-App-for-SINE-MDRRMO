@@ -329,41 +329,42 @@ func RejectUser(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := database.DB.Preload("Profile").Preload("Verification").Preload("MedicalProfile").
-		Where("user_id = ?", req.UserID).First(&user).Error; err == nil {
-
-		firstName := "Citizen"
-		if user.Profile != nil && user.Profile.FirstName != nil {
-			firstName = *user.Profile.FirstName
-		}
-		email := ""
-		if user.Email != nil {
-			email = *user.Email
-		}
-		username := ""
-		if user.Profile != nil && user.Profile.Username != nil {
-			username = *user.Profile.Username
-		}
-
-		go func() {
-			if email != "" {
-				_ = services.SendVerificationDeclinedEmail(firstName, email)
-			}
-		}()
-
-		// Clean up files
-		if username != "" {
-			_ = os.RemoveAll(filepath.Join(".", "storage", "app", "public", "verification_ids", username))
-		}
-		_ = os.RemoveAll(filepath.Join(".", "storage", "app", "public", "profiles", fmt.Sprintf("%d", user.UserID)))
-
-		database.DB.Where("user_id = ?", user.UserID).Delete(&models.UserVerification{})
-		database.DB.Where("user_id = ?", user.UserID).Delete(&models.UserMedicalProfile{})
-		database.DB.Where("user_id = ?", user.UserID).Delete(&models.UserProfile{})
-		database.DB.Where("tokenable_id = ?", user.UserID).Delete(&models.PersonalAccessToken{})
-		database.DB.Delete(&user)
-
-		websocket.BroadcastUser("rejected", req.UserID)
+		Where("user_id = ? AND role = 'citizen'", req.UserID).First(&user).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"message": "Citizen not found."})
 	}
+
+	firstName := "Citizen"
+	if user.Profile != nil && user.Profile.FirstName != nil {
+		firstName = *user.Profile.FirstName
+	}
+	email := ""
+	if user.Email != nil {
+		email = *user.Email
+	}
+	username := ""
+	if user.Profile != nil && user.Profile.Username != nil {
+		username = *user.Profile.Username
+	}
+
+	go func() {
+		if email != "" {
+			_ = services.SendVerificationDeclinedEmail(firstName, email)
+		}
+	}()
+
+	// Clean up files
+	if username != "" {
+		_ = os.RemoveAll(filepath.Join(".", "storage", "app", "public", "verification_ids", username))
+	}
+	_ = os.RemoveAll(filepath.Join(".", "storage", "app", "public", "profiles", fmt.Sprintf("%d", user.UserID)))
+
+	database.DB.Where("user_id = ?", user.UserID).Delete(&models.UserVerification{})
+	database.DB.Where("user_id = ?", user.UserID).Delete(&models.UserMedicalProfile{})
+	database.DB.Where("user_id = ?", user.UserID).Delete(&models.UserProfile{})
+	database.DB.Where("tokenable_id = ?", user.UserID).Delete(&models.PersonalAccessToken{})
+	database.DB.Delete(&user)
+
+	websocket.BroadcastUser("rejected", req.UserID)
 
 	return c.JSON(fiber.Map{"message": "User request rejected and deleted."})
 }

@@ -262,44 +262,50 @@ class CitizenController extends Controller
     public function rejectUser(Request $request)
     {
         $request->validate(['user_id' => 'required|integer']);
-        $user = User::with(['profile', 'verification', 'medicalProfile'])->where('user_id', $request->user_id)->first();
-        if ($user) {
-            $userEmail = $user->email;
-            $userFirstName = $user->first_name;
-            $username = $user->profile?->username;
-            $userId = $user->user_id;
-
-            // Send polite rejection email before deleting record
-            if (!empty($userEmail)) {
-                try {
-                    Mail::to($userEmail)->send(new VerificationDeclinedMail($userFirstName, $userEmail));
-                } catch (\Throwable $e) {
-                    Log::error('CitizenController: failed to send VerificationDeclinedMail on reject.', [
-                        'user_id' => $user->user_id,
-                        'email'   => $userEmail,
-                        'error'   => $e->getMessage(),
-                    ]);
-                }
-            }
-
-            // Clean up verification ID photos and selfies from storage
-            $disk = config('filesystems.default') ?: 'public';
-            if ($username) {
-                Storage::disk($disk)->deleteDirectory('verification_ids/' . $username);
-                if ($disk !== 'public') {
-                    Storage::disk('public')->deleteDirectory('verification_ids/' . $username);
-                }
-            }
-            Storage::disk($disk)->deleteDirectory('profiles/' . $userId);
-
-            // Delete child relational records and the user
-            $user->verification()?->delete();
-            $user->medicalProfile()?->delete();
-            $user->profile()?->delete();
-            $user->delete();
-
-            broadcast(new UserVerified('rejected', $userId));
+        $user = User::with(['profile', 'verification', 'medicalProfile'])
+            ->where('user_id', $request->user_id)
+            ->where('role', 'citizen')
+            ->first();
+        if (!$user) {
+            return response()->json(['message' => 'Citizen not found.'], 404);
         }
+
+        $userEmail = $user->email;
+        $userFirstName = $user->first_name;
+        $username = $user->profile?->username;
+        $userId = $user->user_id;
+
+        // Send polite rejection email before deleting record
+        if (!empty($userEmail)) {
+            try {
+                Mail::to($userEmail)->send(new VerificationDeclinedMail($userFirstName, $userEmail));
+            } catch (\Throwable $e) {
+                Log::error('CitizenController: failed to send VerificationDeclinedMail on reject.', [
+                    'user_id' => $user->user_id,
+                    'email'   => $userEmail,
+                    'error'   => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Clean up verification ID photos and selfies from storage
+        $disk = config('filesystems.default') ?: 'public';
+        if ($username) {
+            Storage::disk($disk)->deleteDirectory('verification_ids/' . $username);
+            if ($disk !== 'public') {
+                Storage::disk('public')->deleteDirectory('verification_ids/' . $username);
+            }
+        }
+        Storage::disk($disk)->deleteDirectory('profiles/' . $userId);
+
+        // Delete child relational records and the user
+        $user->verification()?->delete();
+        $user->medicalProfile()?->delete();
+        $user->profile()?->delete();
+        $user->delete();
+
+        broadcast(new UserVerified('rejected', $userId));
+
         return response()->json(['message' => 'User request rejected and deleted.']);
     }
 }

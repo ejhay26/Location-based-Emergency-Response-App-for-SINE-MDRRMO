@@ -51,7 +51,7 @@ func DispatchEmergency(c *fiber.Ctx) error {
 			return err
 		}
 
-		if err := tx.Model(&models.EmergencyRequest{}).Where("request_id = ?", req.RequestID).Update("status", "Dispatched").Error; err != nil {
+		if err := tx.Model(&models.EmergencyRequest{}).Where("request_id = ? AND deleted_at IS NULL", req.RequestID).Update("status", "Dispatched").Error; err != nil {
 			return err
 		}
 
@@ -71,7 +71,7 @@ func DispatchEmergency(c *fiber.Ctx) error {
 	}
 
 	var er models.EmergencyRequest
-	if err := database.DB.Where("request_id = ?", req.RequestID).First(&er).Error; err == nil && er.UserID != nil {
+	if err := database.DB.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err == nil && er.UserID != nil {
 		go func() {
 			_ = services.NotifyUser(*er.UserID, "Responders Dispatched", "Help is on the way to your location.", map[string]string{
 				"type": "dispatched",
@@ -93,7 +93,7 @@ func ResolveEmergency(c *fiber.Ctx) error {
 	}
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.EmergencyRequest{}).Where("request_id = ?", req.RequestID).Update("status", "Resolved").Error; err != nil {
+		if err := tx.Model(&models.EmergencyRequest{}).Where("request_id = ? AND deleted_at IS NULL", req.RequestID).Update("status", "Resolved").Error; err != nil {
 			return err
 		}
 
@@ -121,7 +121,7 @@ func ResolveEmergency(c *fiber.Ctx) error {
 	}
 
 	var er models.EmergencyRequest
-	if err := database.DB.Where("request_id = ?", req.RequestID).First(&er).Error; err == nil && er.UserID != nil {
+	if err := database.DB.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err == nil && er.UserID != nil {
 		go func() {
 			_ = services.NotifyUser(*er.UserID, "Emergency Resolved", "Your report has been resolved. Stay safe.", map[string]string{
 				"type": "resolved",
@@ -143,7 +143,7 @@ func MarkFalseAlarm(c *fiber.Ctx) error {
 	}
 
 	var emergency models.EmergencyRequest
-	if err := database.DB.Where("request_id = ?", req.RequestID).First(&emergency).Error; err != nil {
+	if err := database.DB.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&emergency).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"message": "Emergency not found."})
 	}
 

@@ -40,7 +40,7 @@ func SubmitSos(c *fiber.Ctx) error {
 	// Check if already active
 	var activeCount int64
 	database.DB.Model(&models.EmergencyRequest{}).
-		Where("user_id = ? AND status IN ('Pending', 'Dispatched')", user.UserID).
+		Where("user_id = ? AND status IN ('Pending', 'Dispatched') AND deleted_at IS NULL", user.UserID).
 		Count(&activeCount)
 	if activeCount > 0 {
 		return c.Status(429).JSON(fiber.Map{"message": "You already have an active emergency request!"})
@@ -116,7 +116,7 @@ func CancelEmergency(c *fiber.Ctx) error {
 	}
 
 	query := database.DB.Model(&models.EmergencyRequest{}).
-		Where("request_id = ? AND status = 'Pending'", req.RequestID)
+		Where("request_id = ? AND status = 'Pending' AND deleted_at IS NULL", req.RequestID)
 
 	if !middleware.TokenCan(c, "admin") && !middleware.TokenCan(c, "dispatcher") {
 		query = query.Where("user_id = ?", user.UserID)
@@ -167,7 +167,7 @@ func GetActiveEmergencies(c *fiber.Ctx) error {
 		Joins("JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
 		Joins("LEFT JOIN barangays ON emergency_requests.barangay_id = barangays.barangay_id").
 		Joins("LEFT JOIN user_medical_profiles ON users.user_id = user_medical_profiles.user_id").
-		Where("emergency_requests.status IN ('Pending', 'Dispatched')").
+		Where("emergency_requests.status IN ('Pending', 'Dispatched') AND emergency_requests.deleted_at IS NULL").
 		Order("emergency_requests.request_time DESC").
 		Scan(&rows).Error
 
@@ -188,7 +188,7 @@ func GetArchivedEmergencies(c *fiber.Ctx) error {
 		Joins("JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
 		Joins("LEFT JOIN barangays ON emergency_requests.barangay_id = barangays.barangay_id").
 		Joins("LEFT JOIN user_medical_profiles ON users.user_id = user_medical_profiles.user_id").
-		Where("emergency_requests.status IN ('Resolved', 'Cancelled')").
+		Where("emergency_requests.status IN ('Resolved', 'Cancelled') AND emergency_requests.deleted_at IS NULL").
 		Order("emergency_requests.request_time DESC").
 		Scan(&rows).Error
 
@@ -220,7 +220,7 @@ func GetMyEmergencies(c *fiber.Ctx) error {
 	err := database.DB.Table("emergency_requests").
 		Select("emergency_requests.*, incident_types.incident_name").
 		Joins("JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
-		Where("emergency_requests.user_id = ?", targetID).
+		Where("emergency_requests.user_id = ? AND emergency_requests.deleted_at IS NULL", targetID).
 		Order("emergency_requests.request_time DESC").
 		Scan(&rows).Error
 
