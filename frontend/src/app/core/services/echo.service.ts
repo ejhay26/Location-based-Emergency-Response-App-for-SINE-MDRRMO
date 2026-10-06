@@ -1,12 +1,10 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
-import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { environment } from '../../../environments/environment';
 
-/** Shape of each raw event payload arriving from Reverb. */
+/** Shape of each raw event payload arriving from the WebSocket server. */
 export interface ReverbEvent {
   channel: 'emergencies' | 'hazards' | 'broadcasts' | 'users';
   event: string;
@@ -20,32 +18,34 @@ export interface ReverbEvent {
 }
 
 /**
- * Manages the single Laravel Echo (Reverb) WebSocket connection for the
- * entire app lifetime. Exposes typed Observables for each public channel
- * so consumers never touch Echo or Pusher directly.
+ * Manages the native WebSocket connection for the entire app lifetime.
+ * Exposes typed Observables for each public channel so consumers never
+ * touch raw WebSocket mechanics directly.
  *
  * Lifecycle-Aware WebSocket Management:
  *   - On native mobile (Capacitor) and desktop/web tabs, pauses (disconnects)
  *     the WebSocket connection when the app is placed in the background or tab is hidden.
- *   - Automatically resumes and re-subscribes with jitter when foregrounded.
+ *   - Automatically resumes with jitter when foregrounded.
+ *   - Reconnects with exponential backoff on unexpected connection drops.
  *   - Background alerts are handled via Firebase Cloud Messaging (FCM) push notifications,
  *     drastically reducing idle TCP sockets and memory usage on the VPS.
  *
  * Channels:
- *   emergencies  — EmergencyUpdated   (SOS submit / dispatch / resolve / cancel / false_alarm)
- *   hazards      — HazardUpdated      (hazard submit / resolve)
+ *   emergencies  — EmergencyUpdated        (SOS submit / dispatch / resolve / cancel / false_alarm)
+ *   hazards      — HazardUpdated           (hazard submit / resolve)
  *   broadcasts   — BroadcastMessageUpdated (alert created / cleared)
- *   users        — UserVerified       (account approved / rejected / suspended / reinstated)
+ *   users        — UserVerified            (account approved / rejected / suspended / reinstated)
  */
 @Injectable({ providedIn: 'root' })
 export class EchoService implements OnDestroy {
-  // Typed as `any` to avoid the laravel-echo "reverb" vs "pusher" generic
-  // mismatch — the runtime behaviour is identical regardless of the type param.
-  private echo: any = null;
+  private socket: WebSocket | null = null;
 
   private shouldBeConnected = false;
   private isPaused = false;
   private pauseTimer: any = null;
+  private reconnectTimer: any = null;
+  private heartbeatTimer: any = null;
+  private reconnectAttempts = 0;
   private appStateListenerHandle: any = null;
   private visibilityListener: (() => void) | null = null;
 
@@ -68,6 +68,19 @@ export class EchoService implements OnDestroy {
 
   constructor() {
     this.initLifecycleListeners();
+  }
+
+  /**
+   * Resolves the WebSocket URL using environment configuration.
+   */
+  private getWebSocketUrl(): string {
+    if ((environment as any).wsUrl) {
+      return (environment as any).wsUrl;
+    }
+    const scheme = environment.reverbScheme === 'https' ? 'wss' : 'ws';
+    const host = environment.reverbHost || (typeof window !== 'undefined' ? window.location.hostname : '127.0.0.1');
+    const port = environment.reverbPort ? `:${environment.reverbPort}` : '';
+    return `${scheme}://${host}${port}/ws`;
   }
 
   /**
@@ -130,20 +143,15 @@ export class EchoService implements OnDestroy {
   }
 
   private pauseWebSocket(): void {
-    if (!this.echo) return;
     this.isPaused = true;
-    try {
-      this.echo.disconnect();
-    } catch (e) {
-      console.warn('EchoService: Error while disconnecting on pause', e);
-    }
-    this.echo = null;
+    this.cleanupSocket();
     this.connected$.next(false);
   }
 
   private resumeWebSocket(): void {
     this.isPaused = false;
-    this.initEcho();
+    this.reconnectAttempts = 0;
+    this.initSocket();
     this.resumed$.next();
   }
 
@@ -155,52 +163,145 @@ export class EchoService implements OnDestroy {
       this.pauseTimer = null;
     }
 
-    if (this.echo) return;
-    this.initEcho();
+    this.initSocket();
   }
 
-  private initEcho(): void {
-    if (this.echo) return;
+  private initSocket(): void {
+    if (this.socket) {
+      if (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING) {
+        return;
+      }
+      this.cleanupSocket();
+    }
 
-    (window as any).Pusher = Pusher;
+    const url = this.getWebSocketUrl();
+    try {
+      const ws = new WebSocket(url);
+      this.socket = ws;
 
-    const echo = new Echo({
-      broadcaster:       'reverb',
-      key:               environment.reverbKey,
-      wsHost:            environment.reverbHost,
-      wsPort:            environment.reverbPort,
-      wssPort:           environment.reverbPort,
-      forceTLS:          environment.reverbScheme === 'https',
-      enabledTransports: ['ws', 'wss'],
-      disableStats:      true,
-      // Ping interval of 60s and timeout of 30s aligned with server-side config
-      activityTimeout:   60000,
-      pongTimeout:       30000,
-    });
+      ws.onopen = () => {
+        this.reconnectAttempts = 0;
+        this.connected$.next(true);
+        this.startHeartbeat();
 
-    this.echo = echo;
+        // Register default channels upon connection
+        try {
+          ws.send(JSON.stringify({
+            action: 'subscribe',
+            channels: ['emergencies', 'hazards', 'broadcasts', 'users'],
+          }));
+        } catch {
+          // Socket write error handled on next lifecycle tick
+        }
+      };
 
-    echo.connector.pusher.connection.bind('connected',    () => this.connected$.next(true));
-    echo.connector.pusher.connection.bind('disconnected', () => this.connected$.next(false));
-    echo.connector.pusher.connection.bind('error',        () => this.connected$.next(false));
+      ws.onmessage = (event: MessageEvent) => {
+        try {
+          const payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+          this.handleIncomingMessage(payload);
+        } catch {
+          // Ignore malformed payloads
+        }
+      };
 
-    echo.channel('emergencies').listen('.EmergencyUpdated', (data: ReverbEvent['data']) => {
-      this.emergencyUpdated$.next(data);
-    });
+      ws.onerror = () => {
+        // Handled on close
+      };
 
-    echo.channel('hazards').listen('.HazardUpdated', (data: ReverbEvent['data']) => {
-      this.hazardUpdated$.next(data);
-    });
+      ws.onclose = () => {
+        this.cleanupSocket();
+        this.connected$.next(false);
+        this.scheduleReconnect();
+      };
+    } catch (err) {
+      console.warn('EchoService: Failed to establish WebSocket connection', err);
+      this.connected$.next(false);
+      this.scheduleReconnect();
+    }
+  }
 
-    echo.channel('broadcasts').listen('.BroadcastMessageUpdated', (data: ReverbEvent['data']) => {
-      this.broadcastUpdated$.next(data);
-    });
+  private handleIncomingMessage(msg: any): void {
+    if (!msg) return;
 
-    // `users` channel — account lifecycle events (approve / reject / suspend / reinstate).
-    // Used by: VerificationsPanel, CitizensPanel, DispatchersPanel, PendingVerificationPage.
-    echo.channel('users').listen('.UserVerified', (data: ReverbEvent['data']) => {
-      this.userVerified$.next(data);
-    });
+    // Ignore heartbeats and control acks
+    if (msg.action === 'pong' || msg.event === 'pong' || msg.event === 'connected') {
+      return;
+    }
+
+    const channel = msg.channel;
+    const data = msg.data;
+    if (!channel || !data) return;
+
+    switch (channel) {
+      case 'emergencies':
+        this.emergencyUpdated$.next(data);
+        break;
+      case 'hazards':
+        this.hazardUpdated$.next(data);
+        break;
+      case 'broadcasts':
+        this.broadcastUpdated$.next(data);
+        break;
+      case 'users':
+        this.userVerified$.next(data);
+        break;
+    }
+  }
+
+  private startHeartbeat(): void {
+    this.stopHeartbeat();
+    this.heartbeatTimer = setInterval(() => {
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        try {
+          this.socket.send(JSON.stringify({ action: 'ping' }));
+        } catch {
+          // Heartbeat send failed
+        }
+      }
+    }, 30000);
+  }
+
+  private stopHeartbeat(): void {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+  }
+
+  private scheduleReconnect(): void {
+    if (!this.shouldBeConnected || this.isPaused || this.reconnectTimer) {
+      return;
+    }
+
+    const delay = Math.min(1000 * Math.pow(1.5, this.reconnectAttempts), 10000) + Math.floor(Math.random() * 300);
+    this.reconnectAttempts++;
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (this.shouldBeConnected && !this.isPaused) {
+        this.initSocket();
+      }
+    }, delay);
+  }
+
+  private cleanupSocket(): void {
+    this.stopHeartbeat();
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.socket) {
+      try {
+        this.socket.onopen = null;
+        this.socket.onmessage = null;
+        this.socket.onerror = null;
+        this.socket.onclose = null;
+        this.socket.close();
+      } catch {
+        // Ignored
+      }
+      this.socket = null;
+    }
   }
 
   disconnect(): void {
@@ -210,13 +311,7 @@ export class EchoService implements OnDestroy {
       clearTimeout(this.pauseTimer);
       this.pauseTimer = null;
     }
-    if (!this.echo) return;
-    try {
-      this.echo.disconnect();
-    } catch (e) {
-      console.warn('EchoService: Error while disconnecting', e);
-    }
-    this.echo = null;
+    this.cleanupSocket();
     this.connected$.next(false);
   }
 
