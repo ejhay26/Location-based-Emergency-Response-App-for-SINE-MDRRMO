@@ -20,6 +20,8 @@ release/
 *.jks
 
 # Compiled Binaries & Bundles
+server
+backend/server
 server_linux
 backend/server_linux
 *.bin

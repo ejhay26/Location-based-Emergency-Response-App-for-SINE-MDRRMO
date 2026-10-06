@@ -83,12 +83,31 @@ func main() {
 		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
 	}))
 
-	// Permissive CORS middleware for cross-origin Angular / Ionic / Capacitor / mobile web requests
+	// Trusted CORS middleware for Angular / Ionic / Capacitor / Tauri / VPS clients
+	allowedOrigins := map[string]bool{
+		"http://localhost:8100":   true,
+		"http://localhost:4200":   true,
+		"http://localhost:3000":   true,
+		"http://127.0.0.1:8100":   true,
+		"http://127.0.0.1:4200":   true,
+		"http://127.0.0.1:3000":   true,
+		"capacitor://localhost":   true,
+		"http://localhost":        true,
+		"https://localhost":       true,
+		"tauri://localhost":       true,
+		"http://tauri.localhost":  true,
+		"https://tauri.localhost": true,
+	}
+
 	app.Use(func(c *fiber.Ctx) error {
 		origin := c.Get("Origin")
 		if origin != "" {
-			c.Set("Access-Control-Allow-Origin", origin)
-			c.Set("Access-Control-Allow-Credentials", "true")
+			if allowedOrigins[origin] || strings.HasPrefix(origin, "http://159.223.42.159") || strings.HasPrefix(origin, "https://159.223.42.159") {
+				c.Set("Access-Control-Allow-Origin", origin)
+				c.Set("Access-Control-Allow-Credentials", "true")
+			} else {
+				c.Set("Access-Control-Allow-Origin", origin)
+			}
 		} else {
 			c.Set("Access-Control-Allow-Origin", "*")
 		}
@@ -128,15 +147,19 @@ func main() {
 	app.Static("/storage", storageDir)
 	app.Static("/storage-proxy", storageDir)
 
-	// ─── WebSocket Route (Laravel Reverb / Pusher Compatible) ─────────────
-	// Checks if connection is a WebSocket upgrade
-	app.Use("/app", func(c *fiber.Ctx) error {
+	// ─── WebSocket Routes (Native & Reverb / Pusher Compatible) ───────────
+	wsUpgrade := func(c *fiber.Ctx) error {
 		if fiberws.IsWebSocketUpgrade(c) {
 			c.Locals("allowed", true)
 			return c.Next()
 		}
 		return fiber.ErrUpgradeRequired
-	})
+	}
+
+	app.Use("/ws", wsUpgrade)
+	app.Get("/ws", fiberws.New(websocket.Handler()))
+
+	app.Use("/app", wsUpgrade)
 	app.Get("/app/:app_key", fiberws.New(websocket.Handler()))
 
 	// Route registrar that registers endpoints under both "/" and "/api"
