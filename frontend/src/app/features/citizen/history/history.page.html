@@ -56,9 +56,8 @@
       </ion-button>
     </div>
 
-    <ion-list *ngIf="!isLoading && emergencies.length > 0" style="background:transparent;">
-      <ion-card *ngFor="let req of emergencies; trackBy: trackByReportId"
-                [appRevealAnimate]="matchesFilter(req)"
+    <ion-list *ngIf="!isLoading && filteredEmergencies.length > 0" style="background:transparent;">
+      <ion-card *ngFor="let req of filteredEmergencies; trackBy: trackByReportId"
                 style="margin:10px 0;border-radius:18px;">
         <div (click)="toggleExpand(getReportId(req))" style="cursor:pointer;">
           <ion-item lines="none">
