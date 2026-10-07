@@ -30,36 +30,15 @@
         <ng-container *ngIf="pendingRangeStart && pendingRangeEnd">{{ pendingRangeStart }} to {{ pendingRangeEnd }}</ng-container>
       </p>
 
-      <!-- Separate cleanly mounted calendars per mode to ensure Ionic's multiple property is initialized correctly -->
+      <!-- One persistent calendar for all three modes -->
       <div style="border-radius:14px;overflow:hidden;background:var(--ion-color-step-50, rgba(0,0,0,0.03));border:1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">
         <ion-datetime
-          *ngIf="pendingMode === 'single'"
           presentation="date"
           style="width: 100%; min-width: 300px; --background: transparent;"
           [max]="max ?? undefined"
-          [multiple]="false"
+          [multiple]="isMultipleCalendar"
           [value]="calendarValue"
-          (ionChange)="onCalendarChange($event)">
-        </ion-datetime>
-
-        <ion-datetime
-          *ngIf="pendingMode === 'multiple'"
-          presentation="date"
-          style="width: 100%; min-width: 300px; --background: transparent;"
-          [max]="max ?? undefined"
-          [multiple]="true"
-          [value]="calendarValue"
-          (ionChange)="onCalendarChange($event)">
-        </ion-datetime>
-
-        <ion-datetime
-          *ngIf="pendingMode === 'range'"
-          presentation="date"
-          style="width: 100%; min-width: 300px; --background: transparent;"
-          [max]="max ?? undefined"
-          [multiple]="true"
-          [value]="calendarValue"
-          [highlightedDates]="rangeHighlight"
+          [highlightedDates]="pendingMode === 'range' ? rangeHighlight : undefined"
           (ionChange)="onCalendarChange($event)">
         </ion-datetime>
       </div>

@@ -216,7 +216,10 @@ export class HistoryPage implements OnInit, OnDestroy {
   }
 
   get filteredEmergencies(): any[] {
-    return this.emergencies.filter(req => this.matchesFilter(req));
+    return this.emergencies.filter(req =>
+      (this.statusFilter === 'All' || req.status === this.statusFilter) &&
+      matchesDateFilter(req.request_time, this.dateFilter)
+    );
   }
 
   get emptyLabel(): string {

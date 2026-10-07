@@ -154,6 +154,8 @@ export class DateRangeFilterComponent {
     this.pendingRangeStart  = v?.mode === 'range'    ? (v.dates[0] ?? null) : null;
     this.pendingRangeEnd    = v?.mode === 'range'    ? (v.dates[1] ?? null) : null;
     this.syncCalendarValue();
+    // Navigate the view to whatever's applied (or today, if nothing is applied) without unmounting.
+    this.resetCalendar(this.pendingSingle ?? this.pendingRangeStart ?? this.pendingMultiple[0] ?? undefined);
   }
 
   /** Switching modes always starts from a clean slate - no leftover picks
@@ -167,14 +169,15 @@ export class DateRangeFilterComponent {
     this.pendingMode = mode;
     this.clearPendingSelection();
     this.syncCalendarValue();
+    this.resetCalendar();
   }
 
-  /** Single ionChange handler for the calendar; behavior branches on the active mode. */
+  /** Single ionChange handler for the one shared calendar; behavior branches on the active mode. */
   onCalendarChange(ev: CustomEvent): void {
     const raw = (ev.detail as { value: unknown }).value;
 
     if (this.pendingMode === 'single') {
-      this.pendingSingle = typeof raw === 'string' ? toDateOnly(raw) : (Array.isArray(raw) && raw.length > 0 ? toDateOnly(raw[0]) : null);
+      this.pendingSingle = typeof raw === 'string' ? toDateOnly(raw) : null;
       this.syncCalendarValue();
       return;
     }
@@ -182,32 +185,35 @@ export class DateRangeFilterComponent {
     const picked = normalizePicks(raw);
 
     if (this.pendingMode === 'multiple') {
+      const previouslyPicked = new Set(this.pendingMultiple);
+      // Whichever date wasn't already selected is the one just tapped; falls back
+      // to the last remaining date if this tap was a de-selection instead.
+      const justTapped = picked.find(d => !previouslyPicked.has(d)) ?? picked[picked.length - 1] ?? null;
       this.pendingMultiple = picked;
       this.syncCalendarValue();
+      if (justTapped) this.resetCalendar(justTapped);
       return;
     }
 
-    // Range mode:
-    const currentAnchors = new Set([this.pendingRangeStart, this.pendingRangeEnd].filter((d): d is string => !!d));
-    const justTapped = picked.find(d => !currentAnchors.has(d)) ?? (picked.length > 0 ? picked[picked.length - 1] : null);
+    // Range mode: the calendar always represents exactly the Start/End
+    // endpoints, however many days were tapped along the way - tapping a
+    // 3rd, outer day extends the range; tapping an inner day is dropped on
+    // the next render since only the two extremes are ever fed back in.
+    const previousAnchors = new Set([this.pendingRangeStart, this.pendingRangeEnd].filter((d): d is string => !!d));
+    const justTapped = picked.find(d => !previousAnchors.has(d)) ?? picked[picked.length - 1] ?? null;
 
-    if (!justTapped) {
+    if (picked.length === 0) {
       this.pendingRangeStart = null;
       this.pendingRangeEnd = null;
-    } else if (!this.pendingRangeStart || (this.pendingRangeStart && this.pendingRangeEnd)) {
-      // Step 1: Starting a new range
-      this.pendingRangeStart = justTapped;
-      this.pendingRangeEnd = null;
     } else {
-      // Step 2: Second date tapped - complete the range
-      if (justTapped >= this.pendingRangeStart) {
-        this.pendingRangeEnd = justTapped;
-      } else {
-        this.pendingRangeEnd = this.pendingRangeStart;
-        this.pendingRangeStart = justTapped;
-      }
+      this.pendingRangeStart = picked[0];
+      this.pendingRangeEnd = picked.length > 1 ? picked[picked.length - 1] : null;
     }
     this.syncCalendarValue();
+    // Explicitly navigate to the date the user just tapped - without this, ion-datetime
+    // seems to navigate based on array order, which meant editing an earlier Start date
+    // while a later End date already existed would jump the view back to End's month.
+    if (justTapped) this.resetCalendar(justTapped);
   }
 
   onApply(): void {
