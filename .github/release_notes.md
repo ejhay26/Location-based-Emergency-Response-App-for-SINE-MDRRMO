@@ -8,6 +8,7 @@
 - **Strict CORS & Process Protection**: Hardened CORS policy to strictly validate origins against whitelist entries and trusted IP patterns, eliminating arbitrary origin reflection. Wrapped background goroutines in `SafeGo` panic recovery and shielded database backup passwords from process table exposure (`ps`).
 - **Desktop Window Visibility & ACL Permissions Fix**: Resolved a startup issue where desktop builds remained hidden due to missing Tauri v2 window-show ACL capabilities. Restored default window visibility, granted `core:window:allow-show` permissions, and added Rust runtime window-focus guarantees.
 - **Frontend De-Monolithing & Performance**: Applied Angular `@defer` blocks across admin dashboard sub-panels and tour overlays to optimize initial chunk evaluation and reduce memory overhead.
+- **Citizen Emergency History & Multi-Date Filter**: Resolved history card rendering collapse caused by container directive wrappers and restored multi-date / date-range selection across citizen emergency logs.
 - **Documentation Alignment**: Updated API specifications, security whitepapers, and production deployment runbooks to reflect dedicated database credentials, rate limits, and cryptographic asset paths.
 
 ### Direct Application Downloads
