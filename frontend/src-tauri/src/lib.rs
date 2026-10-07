@@ -17,8 +17,13 @@ pub fn run() {
             {
                 use tauri::Manager;
                 if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
+                    let win = window.clone();
+                    // Safety net: JS in main.ts reveals the window as soon as the DOM splash is mounted (~200ms).
+                    // In case of an unexpected frontend freeze or crash, force-show after 2.5s so it never hangs.
+                    std::thread::spawn(move || {
+                        std::thread::sleep(std::time::Duration::from_millis(2500));
+                        let _ = win.show();
+                    });
                 }
             }
             Ok(())

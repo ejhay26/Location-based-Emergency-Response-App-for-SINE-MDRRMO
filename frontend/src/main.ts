@@ -9,6 +9,15 @@ import { bouncyPageTransition } from './app/core/animations/bouncy-page-transiti
 
 import { ErrorInterceptorService } from './app/core/services/error-interceptor';
 
+// Reveal the desktop window as soon as the JS runtime boots and the DOM splash is active
+if (typeof window !== 'undefined' && (!!(window as any).__TAURI_INTERNALS__ || !!(window as any).__TAURI__)) {
+  import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
+    const win = getCurrentWindow();
+    win.show().catch(() => {});
+    win.setFocus().catch(() => {});
+  }).catch(() => {});
+}
+
 bootstrapApplication(AppComponent, {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
