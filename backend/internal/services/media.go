@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -9,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"sine-mdrrmo-backend/internal/config"
 )
@@ -81,14 +81,11 @@ func CheckSize(binary []byte, category string) bool {
 	return len(binary) <= ceiling
 }
 
-// MakeFilename generates collision-proof filename
+// MakeFilename generates unguessable, collision-proof filename using crypto/rand
 func MakeFilename(fileType string, userId int, ext string) string {
-	timestamp := time.Now().Format("20060102150405")
-	uniquePart := hex.EncodeToString([]byte(fmt.Sprintf("%d_%d", time.Now().UnixNano(), userId)))
-	if len(uniquePart) > 12 {
-		uniquePart = uniquePart[:12]
-	}
-	return fmt.Sprintf("%s_%d_%s_%s.%s", fileType, userId, timestamp, uniquePart, ext)
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return fmt.Sprintf("%s_%d_%s.%s", fileType, userId, hex.EncodeToString(b), ext)
 }
 
 // StorePublic writes file into ./storage/app/public/<diskPath> and returns the public URL "/storage/<diskPath>"

@@ -43,7 +43,7 @@ func DispatchEmergency(c *fiber.Ctx) error {
 		if err := tx.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err != nil {
 			return fiber.NewError(404, "Emergency request not found.")
 		}
-		if er.Status == nil || *er.Status != "Pending" {
+		if er.Status == nil || (*er.Status != "Pending" && *er.Status != "Dispatched") {
 			curr := "unknown"
 			if er.Status != nil {
 				curr = *er.Status
@@ -128,7 +128,7 @@ func ResolveEmergency(c *fiber.Ctx) error {
 		if err := tx.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err != nil {
 			return fiber.NewError(404, "Emergency request not found.")
 		}
-		if er.Status == nil || *er.Status != "Dispatched" {
+		if er.Status == nil || (*er.Status != "Dispatched" && *er.Status != "Pending") {
 			curr := "unknown"
 			if er.Status != nil {
 				curr = *er.Status

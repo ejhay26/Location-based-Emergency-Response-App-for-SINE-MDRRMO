@@ -99,17 +99,35 @@ func main() {
 		"https://tauri.localhost": true,
 	}
 
+	isAllowedOrigin := func(origin string) bool {
+		if origin == "" {
+			return false
+		}
+		if allowedOrigins[origin] {
+			return true
+		}
+		if strings.HasPrefix(origin, "http://159.223.42.159") || strings.HasPrefix(origin, "https://159.223.42.159") {
+			return true
+		}
+		if strings.HasPrefix(origin, "capacitor://") || strings.HasPrefix(origin, "ionic://") || strings.HasPrefix(origin, "tauri://") || strings.HasPrefix(origin, "file://") {
+			return true
+		}
+		if strings.HasPrefix(origin, "http://localhost:") || strings.HasPrefix(origin, "https://localhost:") ||
+			strings.HasPrefix(origin, "http://127.0.0.1:") || strings.HasPrefix(origin, "https://127.0.0.1:") {
+			return true
+		}
+		return false
+	}
+
 	app.Use(func(c *fiber.Ctx) error {
 		origin := c.Get("Origin")
-		if origin != "" {
-			if allowedOrigins[origin] || strings.HasPrefix(origin, "http://159.223.42.159") || strings.HasPrefix(origin, "https://159.223.42.159") {
-				c.Set("Access-Control-Allow-Origin", origin)
-				c.Set("Access-Control-Allow-Credentials", "true")
-			} else {
-				c.Set("Access-Control-Allow-Origin", origin)
-			}
-		} else {
+		path := c.Path()
+
+		if strings.HasPrefix(path, "/tiles/") || path == "/health" || path == "/api/health" {
 			c.Set("Access-Control-Allow-Origin", "*")
+		} else if isAllowedOrigin(origin) {
+			c.Set("Access-Control-Allow-Origin", origin)
+			c.Set("Access-Control-Allow-Credentials", "true")
 		}
 
 		reqHeaders := c.Get("Access-Control-Request-Headers")
@@ -124,6 +142,9 @@ func main() {
 		c.Set("Access-Control-Max-Age", "86400")
 
 		if c.Method() == fiber.MethodOptions {
+			if origin != "" && !isAllowedOrigin(origin) && !strings.HasPrefix(path, "/tiles/") && path != "/health" && path != "/api/health" {
+				return c.SendStatus(fiber.StatusForbidden)
+			}
 			return c.SendStatus(fiber.StatusNoContent)
 		}
 

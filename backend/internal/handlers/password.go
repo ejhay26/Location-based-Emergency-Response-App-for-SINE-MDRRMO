@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"sine-mdrrmo-backend/internal/database"
 	"sine-mdrrmo-backend/internal/middleware"
 	"sine-mdrrmo-backend/internal/models"
 	"sine-mdrrmo-backend/internal/services"
+	"sine-mdrrmo-backend/internal/support"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
@@ -107,8 +107,11 @@ func UpdatePassword(c *fiber.Ctx) error {
 	}
 
 	var req UpdatePasswordRequest
-	if err := c.BodyParser(&req); err != nil || len(strings.TrimSpace(req.NewPassword)) < 8 {
-		return c.Status(422).JSON(fiber.Map{"message": "New password must be at least 8 characters."})
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(422).JSON(fiber.Map{"message": "Invalid request body."})
+	}
+	if err := support.ValidateStrongPassword(req.NewPassword); err != nil {
+		return c.Status(422).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	flagKey := fmt.Sprintf("pwd_change_verified_%d", user.UserID)

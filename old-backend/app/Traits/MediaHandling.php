@@ -94,8 +94,8 @@ trait MediaHandling
 
     protected function makeFilename(string $type, int $userId, string $ext): string
     {
-        return sprintf('%s_%d_%s_%s.%s',
-            $type, $userId, now()->format('YmdHis'), uniqid(), $ext
+        return sprintf('%s_%d_%s.%s',
+            $type, $userId, bin2hex(random_bytes(16)), $ext
         );
     }
 

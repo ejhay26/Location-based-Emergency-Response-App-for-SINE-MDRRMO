@@ -358,8 +358,8 @@ func Register(c *fiber.Ctx) error {
 		return c.Status(422).JSON(fiber.Map{"message": "Please enter a valid email address."})
 	}
 
-	if len(req.Password) < 8 {
-		return c.Status(422).JSON(fiber.Map{"message": "Password must be at least 8 characters."})
+	if err := support.ValidateStrongPassword(req.Password); err != nil {
+		return c.Status(422).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	normPhone := support.NormalizePhone(req.Phone)
@@ -880,6 +880,10 @@ func ResetPassword(c *fiber.Ctx) error {
 	flagKey := fmt.Sprintf("reset_verified_%s_%s", channel, identifier)
 	if ok, _ := services.CacheGet(flagKey); !ok {
 		return c.Status(403).JSON(fiber.Map{"message": "Identity verification required before resetting password."})
+	}
+
+	if err := support.ValidateStrongPassword(req.NewPassword); err != nil {
+		return c.Status(422).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)

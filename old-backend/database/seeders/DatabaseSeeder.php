@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
         $defaultUsers = [
             [
                 'email'               => 'admin_user@sine.gov.ph',
-                'password'            => Hash::make('Admin123!'),
+                'password'            => Hash::make(env('DEFAULT_ADMIN_PASSWORD', 'Admin123!')),
                 'role'                => 'admin',
                 'account_status'      => 'active',
                 'false_alarm_strikes' => 0,
@@ -83,7 +83,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'email'               => 'dis@mail.com',
-                'password'            => Hash::make('Dispatcher123!'),
+                'password'            => Hash::make(env('DEFAULT_DISPATCHER_PASSWORD', 'Dispatcher123!')),
                 'role'                => 'dispatcher',
                 'account_status'      => 'active',
                 'false_alarm_strikes' => 0,

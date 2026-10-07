@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"sine-mdrrmo-backend/internal/models"
 
@@ -105,10 +106,19 @@ func Seed() {
 		DB.Where("vehicle_id = ?", v.VehicleID).FirstOrCreate(&v)
 	}
 
-	// 5. Default Admin & Dispatcher Users
+	// 5. Default Admin & Dispatcher Users (configured via environment variables)
+	adminPass := os.Getenv("DEFAULT_ADMIN_PASSWORD")
+	if adminPass == "" {
+		adminPass = "Admin123!"
+	}
+	dispPass := os.Getenv("DEFAULT_DISPATCHER_PASSWORD")
+	if dispPass == "" {
+		dispPass = "Dispatcher123!"
+	}
+
 	seedUser(
 		"admin_user@sine.gov.ph",
-		"Admin123!",
+		adminPass,
 		"admin",
 		"Admin",
 		"MDRRMO",
@@ -119,7 +129,7 @@ func Seed() {
 
 	seedUser(
 		"dis@mail.com",
-		"Dispatcher123!",
+		dispPass,
 		"dispatcher",
 		"Dispatcher",
 		"One",

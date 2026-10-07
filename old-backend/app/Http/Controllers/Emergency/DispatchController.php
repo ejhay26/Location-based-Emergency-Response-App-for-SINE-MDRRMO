@@ -40,7 +40,7 @@ class DispatchController extends Controller
         if (!$req) {
             return response()->json(['message' => 'Emergency request not found.'], 404);
         }
-        if ($req->status !== 'Pending') {
+        if ($req->status !== 'Pending' && $req->status !== 'Dispatched') {
             return response()->json(['message' => "Emergency request cannot be dispatched; current status is {$req->status}."], 409);
         }
 
@@ -97,7 +97,7 @@ class DispatchController extends Controller
         if (!$req) {
             return response()->json(['message' => 'Emergency request not found.'], 404);
         }
-        if ($req->status !== 'Dispatched') {
+        if ($req->status !== 'Dispatched' && $req->status !== 'Pending') {
             return response()->json(['message' => "Emergency request cannot be resolved; current status is {$req->status}."], 409);
         }
 
