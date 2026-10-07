@@ -235,7 +235,9 @@
       <div class="admin-main-viewport" [class.is-mac]="isMac">
         <!-- incident-map renders its own flex layout -->
         <div *ngIf="isMapView" style="flex: 1; display: flex; min-width: 0; height: 100%; overflow: hidden;">
-          <app-incident-map-panel style="flex: 1; display: flex; min-width: 0;"></app-incident-map-panel>
+          @defer (when isMapView) {
+            <app-incident-map-panel style="flex: 1; display: flex; min-width: 0;"></app-incident-map-panel>
+          }
         </div>
 
         <!-- analytics renders its own scroll container -->
@@ -243,7 +245,9 @@
              class="admin-scroll-panel"
              [class.panel-slide-forward]="isSubPanel && navDirection === 'forward'"
              style="flex: 1; display: flex; min-width: 0; height: 100%; overflow: hidden;">
-          <app-analytics-panel style="flex: 1; display: flex; min-width: 0;"></app-analytics-panel>
+          @defer (when viewMode === 'analytics') {
+            <app-analytics-panel style="flex: 1; display: flex; min-width: 0;"></app-analytics-panel>
+          }
         </div>
 
         <!-- Dedicated Mobile Menu Panel (Hub) -->
@@ -264,14 +268,14 @@
              class="admin-scroll-panel"
              [class.panel-slide-forward]="isSubPanel && navDirection === 'forward'"
              style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
-          <app-verifications-panel *ngIf="viewMode === 'verifications'"></app-verifications-panel>
-          <app-log-archive-panel   *ngIf="viewMode === 'archive'"></app-log-archive-panel>
-          <app-broadcast-panel     *ngIf="viewMode === 'broadcast'"></app-broadcast-panel>
-          <app-dispatchers-panel   *ngIf="viewMode === 'dispatchers'"></app-dispatchers-panel>
-          <app-citizens-panel      *ngIf="viewMode === 'citizens'"></app-citizens-panel>
-          <app-feedback-panel      *ngIf="viewMode === 'feedback'"></app-feedback-panel>
-          <app-settings-panel      *ngIf="viewMode === 'settings'"></app-settings-panel>
-          <app-help-panel          *ngIf="viewMode === 'help'" [isAdmin]="currentRole === 'admin' || currentRole === 'Admin'"></app-help-panel>
+          @defer (when viewMode === 'verifications') { <app-verifications-panel *ngIf="viewMode === 'verifications'"></app-verifications-panel> }
+          @defer (when viewMode === 'archive') { <app-log-archive-panel   *ngIf="viewMode === 'archive'"></app-log-archive-panel> }
+          @defer (when viewMode === 'broadcast') { <app-broadcast-panel     *ngIf="viewMode === 'broadcast'"></app-broadcast-panel> }
+          @defer (when viewMode === 'dispatchers') { <app-dispatchers-panel   *ngIf="viewMode === 'dispatchers'"></app-dispatchers-panel> }
+          @defer (when viewMode === 'citizens') { <app-citizens-panel      *ngIf="viewMode === 'citizens'"></app-citizens-panel> }
+          @defer (when viewMode === 'feedback') { <app-feedback-panel      *ngIf="viewMode === 'feedback'"></app-feedback-panel> }
+          @defer (when viewMode === 'settings') { <app-settings-panel      *ngIf="viewMode === 'settings'"></app-settings-panel> }
+          @defer (when viewMode === 'help') { <app-help-panel          *ngIf="viewMode === 'help'" [isAdmin]="currentRole === 'admin' || currentRole === 'Admin'"></app-help-panel> }
         </div>
       </div>
 

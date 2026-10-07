@@ -4,6 +4,7 @@ import { filter } from 'rxjs/operators';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent, QuickSearchPaletteComponent } from './shared/components/index';
 import { isTauri, isMacDesktop } from './shared/utils/platform.util';
+import { TourService } from './core/services/tour';
 import { UserSettingsService } from './core/services/user-settings';
 import { LocationService } from './core/services/location';
 import { DeepLinkService } from './core/services/deep-link';
@@ -21,6 +22,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   constructor(
     private router: Router,
+    public tour: TourService,
     private settings: UserSettingsService,
     private locationSvc: LocationService,
     private deepLink: DeepLinkService,

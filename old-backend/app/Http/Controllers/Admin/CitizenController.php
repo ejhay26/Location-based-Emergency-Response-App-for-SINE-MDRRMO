@@ -265,9 +265,10 @@ class CitizenController extends Controller
         $user = User::with(['profile', 'verification', 'medicalProfile'])
             ->where('user_id', $request->user_id)
             ->where('role', 'citizen')
+            ->whereIn('account_status', ['unverified', 'pending_otp'])
             ->first();
         if (!$user) {
-            return response()->json(['message' => 'Citizen not found.'], 404);
+            return response()->json(['message' => 'Pending citizen verification not found.'], 404);
         }
 
         $userEmail = $user->email;

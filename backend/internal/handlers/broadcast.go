@@ -140,13 +140,13 @@ func CreateBroadcast(c *fiber.Ctx) error {
 			notifData["title"] = *req.Title
 		}
 
-		go func() {
+		services.SafeGo(func() {
 			if len(req.BarangayIDs) == 0 {
 				_ = services.NotifyAllCitizens(notifTitle, req.Message, notifData)
 			} else {
 				_ = services.NotifyCitizensInBarangays(req.BarangayIDs, notifTitle, req.Message, notifData)
 			}
-		}()
+		})
 	}
 
 	websocket.BroadcastMessage("created", broadcast.BroadcastID)

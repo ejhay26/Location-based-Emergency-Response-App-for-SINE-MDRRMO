@@ -50,7 +50,7 @@ func SendPasswordChangeOtp(c *fiber.Ctx) error {
 
 	otp, _ := res["otp"].(int)
 	otpStr := services.FormatOtp(otp)
-	log.Info().Int("user_id", user.UserID).Str("channel", channel).Str("otp", otpStr).Msg("Password change OTP generated")
+	log.Info().Int("user_id", user.UserID).Str("channel", channel).Msg("Password change OTP generated")
 
 	smsFailed := false
 	if channel == "phone" && user.Profile != nil && user.Profile.Phone != nil {

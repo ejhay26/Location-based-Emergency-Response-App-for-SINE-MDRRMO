@@ -48,7 +48,7 @@ class PasswordController extends Controller
             return response()->json(['message' => 'Too many code requests. Please try again later.'], 429);
         }
         $otp = $result['otp'];
-        Log::info("Password Change OTP generated for {$user->email} ({$user->phone}): {$otp} (Channel: {$request->channel})");
+        Log::info("Password Change OTP generated for {$user->email} ({$user->phone}) (Channel: {$request->channel})");
 
         $smsFailed = false;
         if ($request->channel === 'phone') {

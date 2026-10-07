@@ -149,14 +149,14 @@ func IssueStrike(c *fiber.Ctx) error {
 		})
 		database.DB.Where("tokenable_id = ?", user.UserID).Delete(&models.PersonalAccessToken{})
 
-		go func() {
+		services.SafeGo(func() {
 			_ = services.NotifyUser(user.UserID, "Account Suspended (3 False Alarm Strikes)",
 				fmt.Sprintf("Your account has been suspended due to repeated false alarm reports. Stated reason: %s", req.Reason),
 				map[string]string{"type": "suspended"})
 			if userEmail != "" {
 				_ = services.SendFalseAlarmStrikeEmail(userName, userEmail, newStrikes, 3, req.Reason, "banned")
 			}
-		}()
+		})
 
 		websocket.BroadcastUser("suspended", user.UserID)
 
@@ -176,14 +176,14 @@ func IssueStrike(c *fiber.Ctx) error {
 	database.DB.Model(&user).Update("false_alarm_strikes", newStrikes)
 	remaining := 3 - newStrikes
 
-	go func() {
+	services.SafeGo(func() {
 		_ = services.NotifyUser(user.UserID, fmt.Sprintf("False Alarm Strike %d of 3", newStrikes),
 			fmt.Sprintf("A false alarm strike was recorded on your account. Reason: %s. %d more strike(s) will result in automatic suspension.", req.Reason, remaining),
 			map[string]string{"type": "false_alarm_strike"})
 		if userEmail != "" {
 			_ = services.SendFalseAlarmStrikeEmail(userName, userEmail, newStrikes, 3, req.Reason, "active")
 		}
-	}()
+	})
 
 	websocket.BroadcastUser("updated", user.UserID)
 
@@ -221,11 +221,11 @@ func ResetStrikes(c *fiber.Ctx) error {
 	}
 	database.DB.Model(&user).Updates(updates)
 
-	go func() {
+	services.SafeGo(func() {
 		_ = services.NotifyUser(user.UserID, "False Alarm Strikes Cleared",
 			"Your false alarm strikes have been reset to 0 by MDRRMO administration.",
 			map[string]string{"type": "strikes_cleared"})
-	}()
+	})
 
 	websocket.BroadcastUser("reinstated", user.UserID)
 
@@ -303,14 +303,14 @@ func ApproveUser(c *fiber.Ctx) error {
 		email = *user.Email
 	}
 
-	go func() {
+	services.SafeGo(func() {
 		if email != "" {
 			_ = services.SendWelcomeEmail(firstName, email)
 		}
 		_ = services.NotifyUser(user.UserID, "Welcome to MDRRMO San Isidro!",
 			fmt.Sprintf("Hi %s, your account has been approved. You're all set to use the app.", firstName),
 			nil)
-	}()
+	})
 
 	user.AccountStatus = "active"
 	return c.JSON(fiber.Map{
@@ -329,8 +329,8 @@ func RejectUser(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := database.DB.Preload("Profile").Preload("Verification").Preload("MedicalProfile").
-		Where("user_id = ? AND role = 'citizen'", req.UserID).First(&user).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"message": "Citizen not found."})
+		Where("user_id = ? AND role = 'citizen' AND account_status IN ('unverified', 'pending_otp')", req.UserID).First(&user).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"message": "Pending citizen verification not found."})
 	}
 
 	firstName := "Citizen"
@@ -346,11 +346,11 @@ func RejectUser(c *fiber.Ctx) error {
 		username = *user.Profile.Username
 	}
 
-	go func() {
+	services.SafeGo(func() {
 		if email != "" {
 			_ = services.SendVerificationDeclinedEmail(firstName, email)
 		}
-	}()
+	})
 
 	// Clean up files
 	if username != "" {

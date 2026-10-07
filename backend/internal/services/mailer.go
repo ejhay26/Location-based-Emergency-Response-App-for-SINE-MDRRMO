@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"html"
 
 	"sine-mdrrmo-backend/internal/config"
 
@@ -50,14 +51,15 @@ func (m *Mailer) Send(to, subject, html string) error {
 
 // SendOtpEmail sends an OTP verification email
 func (m *Mailer) SendOtpEmail(to string, otp int, purpose string) error {
-	html := fmt.Sprintf(`
+	safePurpose := html.EscapeString(purpose)
+	htmlBody := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f7; padding: 40px 0;">
 <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
   <div style="background: linear-gradient(135deg, #1a56db, #7c3aed); padding: 32px; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">🔐 Verification Code</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Verification Code</h1>
   </div>
   <div style="padding: 32px;">
     <p style="color: #374151; font-size: 16px;">Your code for <strong>%s</strong>:</p>
@@ -70,21 +72,22 @@ func (m *Mailer) SendOtpEmail(to string, otp int, purpose string) error {
   </div>
 </div>
 </body>
-</html>`, purpose, otp)
+</html>`, safePurpose, otp)
 
-	return m.Send(to, fmt.Sprintf("SINE MDRRMO — Verification Code (%06d)", otp), html)
+	return m.Send(to, "SINE MDRRMO — Verification Code", htmlBody)
 }
 
 // SendWelcomeEmail sends the welcome email after account approval
 func (m *Mailer) SendWelcomeEmail(to, firstName string) error {
-	html := fmt.Sprintf(`
+	safeFirstName := html.EscapeString(firstName)
+	htmlBody := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f7; padding: 40px 0;">
 <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
   <div style="background: linear-gradient(135deg, #059669, #10b981); padding: 32px; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">✅ Welcome, %s!</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Welcome, %s!</h1>
   </div>
   <div style="padding: 32px;">
     <p style="color: #374151; font-size: 16px;">Your MDRRMO San Isidro account has been <strong>approved</strong>. You're all set to use the emergency response app.</p>
@@ -94,14 +97,15 @@ func (m *Mailer) SendWelcomeEmail(to, firstName string) error {
   </div>
 </div>
 </body>
-</html>`, firstName)
+</html>`, safeFirstName)
 
-	return m.Send(to, "Welcome to MDRRMO San Isidro! ✅", html)
+	return m.Send(to, "Welcome to MDRRMO San Isidro!", htmlBody)
 }
 
 // SendVerificationDeclinedEmail sends the rejection email
 func (m *Mailer) SendVerificationDeclinedEmail(to, firstName string) error {
-	html := fmt.Sprintf(`
+	safeFirstName := html.EscapeString(firstName)
+	htmlBody := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
@@ -118,13 +122,15 @@ func (m *Mailer) SendVerificationDeclinedEmail(to, firstName string) error {
   </div>
 </div>
 </body>
-</html>`, firstName)
+</html>`, safeFirstName)
 
-	return m.Send(to, "MDRRMO San Isidro — Verification Declined", html)
+	return m.Send(to, "MDRRMO San Isidro — Verification Declined", htmlBody)
 }
 
 // SendFalseAlarmStrikeEmail sends a false alarm warning/suspension email
 func (m *Mailer) SendFalseAlarmStrikeEmail(to, firstName string, strikes, maxStrikes int, reason, accountStatus string) error {
+	safeFirstName := html.EscapeString(firstName)
+	safeReason := html.EscapeString(reason)
 	statusColor := "#f59e0b"
 	statusText := fmt.Sprintf("Strike %d of %d", strikes, maxStrikes)
 	if accountStatus == "banned" {
@@ -132,14 +138,14 @@ func (m *Mailer) SendFalseAlarmStrikeEmail(to, firstName string, strikes, maxStr
 		statusText = "Account Suspended"
 	}
 
-	html := fmt.Sprintf(`
+	htmlBody := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f7; padding: 40px 0;">
 <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
   <div style="background: %s; padding: 32px; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ %s</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">%s</h1>
   </div>
   <div style="padding: 32px;">
     <p style="color: #374151; font-size: 16px;">Hi %s,</p>
@@ -151,26 +157,32 @@ func (m *Mailer) SendFalseAlarmStrikeEmail(to, firstName string, strikes, maxStr
   </div>
 </div>
 </body>
-</html>`, statusColor, statusText, firstName, reason, strikes, maxStrikes)
+</html>`, statusColor, statusText, safeFirstName, safeReason, strikes, maxStrikes)
 
-	return m.Send(to, fmt.Sprintf("MDRRMO San Isidro — %s", statusText), html)
+	return m.Send(to, fmt.Sprintf("MDRRMO San Isidro — %s", statusText), htmlBody)
 }
 
 // SendBugReportEmail forwards a bug report to the dev team
 func (m *Mailer) SendBugReportEmail(to string, feedbackID int, citizenName, citizenEmail, category, message, createdAt, adminNotes string) error {
+	safeCitizenName := html.EscapeString(citizenName)
+	safeCitizenEmail := html.EscapeString(citizenEmail)
+	safeCategory := html.EscapeString(category)
+	safeCreatedAt := html.EscapeString(createdAt)
+	safeMessage := html.EscapeString(message)
+
 	notesSection := ""
 	if adminNotes != "" {
-		notesSection = fmt.Sprintf(`<p><strong>Admin Notes:</strong> %s</p>`, adminNotes)
+		notesSection = fmt.Sprintf(`<p><strong>Admin Notes:</strong> %s</p>`, html.EscapeString(adminNotes))
 	}
 
-	html := fmt.Sprintf(`
+	htmlBody := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f7; padding: 40px 0;">
 <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
   <div style="background: #1e293b; padding: 24px; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 20px;">🐛 Technical Bug Report #%d</h1>
+    <h1 style="color: white; margin: 0; font-size: 20px;">Technical Bug Report #%d</h1>
   </div>
   <div style="padding: 24px;">
     <p><strong>From:</strong> %s (%s)</p>
@@ -183,9 +195,9 @@ func (m *Mailer) SendBugReportEmail(to string, feedbackID int, citizenName, citi
   </div>
 </div>
 </body>
-</html>`, feedbackID, citizenName, citizenEmail, category, createdAt, message, notesSection)
+</html>`, feedbackID, safeCitizenName, safeCitizenEmail, safeCategory, safeCreatedAt, safeMessage, notesSection)
 
-	return m.Send(to, fmt.Sprintf("SINE MDRRMO Bug Report #%d — %s", feedbackID, category), html)
+	return m.Send(to, fmt.Sprintf("SINE MDRRMO Bug Report #%d — %s", feedbackID, safeCategory), htmlBody)
 }
 
 var globalMailer *Mailer

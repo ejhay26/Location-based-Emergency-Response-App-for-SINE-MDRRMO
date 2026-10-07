@@ -18,6 +18,7 @@ type OtpService struct {
 type otpEntry struct {
 	Code      int
 	ExpiresAt time.Time
+	Attempts  int
 }
 
 const (
@@ -101,7 +102,8 @@ func (s *OtpService) RequestOtp(key string, minutes int) map[string]interface{} 
 }
 
 // Verify checks a submitted code against the cached one. On success, the entry
-// is deleted (single-use) and true is returned.
+// is deleted (single-use) and true is returned. After 5 incorrect attempts,
+// the code is invalidated immediately.
 func (s *OtpService) Verify(key string, submitted int) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -115,6 +117,11 @@ func (s *OtpService) Verify(key string, submitted int) bool {
 	if entry.Code == submitted {
 		delete(s.store, key)
 		return true
+	}
+
+	entry.Attempts++
+	if entry.Attempts >= 5 {
+		delete(s.store, key)
 	}
 
 	return false

@@ -124,6 +124,7 @@ export class ApiService {
   // Hazards
   submitHazard(data: any): Observable<any>        { return this.http.post(`${this.url}/submit-hazard`, data, this.opts(true)); }
   resolveHazard(data: any): Observable<any>       { return this.http.post(`${this.url}/resolve-hazard`, data, this.opts(true)); }
+  getMyHazards(userId?: number): Observable<any>  { return this.http.get(userId ? `${this.url}/my-hazards/${userId}` : `${this.url}/my-hazards`, this.opts(true)); }
 
   // Broadcasts
   createBroadcast(data: { broadcast_id?: number; title?: string; message: string; media_files?: string[]; barangay_ids?: number[]; scheduled_at?: string; is_draft?: boolean }): Observable<any> { return this.http.post(`${this.url}/create-broadcast`, data, this.opts(true)); }

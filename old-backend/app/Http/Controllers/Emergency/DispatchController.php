@@ -36,6 +36,30 @@ class DispatchController extends Controller
             'vehicle_id'   => 'required|integer',
         ]);
 
+        $req = EmergencyRequest::find($request->request_id);
+        if (!$req) {
+            return response()->json(['message' => 'Emergency request not found.'], 404);
+        }
+        if ($req->status !== 'Pending') {
+            return response()->json(['message' => "Emergency request cannot be dispatched; current status is {$req->status}."], 409);
+        }
+
+        $responder = Responder::find($request->responder_id);
+        if (!$responder) {
+            return response()->json(['message' => 'Responder not found.'], 404);
+        }
+        if ($responder->status !== 'Available') {
+            return response()->json(['message' => "Assigned responder is {$responder->status}."], 409);
+        }
+
+        $vehicle = Vehicle::find($request->vehicle_id);
+        if (!$vehicle) {
+            return response()->json(['message' => 'Vehicle not found.'], 404);
+        }
+        if ($vehicle->status !== 'Available') {
+            return response()->json(['message' => "Assigned vehicle is {$vehicle->status}."], 409);
+        }
+
         DB::transaction(function () use ($request) {
             Dispatch::create([
                 'request_id'    => $request->request_id,
@@ -56,7 +80,6 @@ class DispatchController extends Controller
                 ->update(['status' => 'In Use']);
         });
 
-        $req = EmergencyRequest::find($request->request_id);
         if ($req) {
             $this->notifications->notifyUser($req->user_id, 'Responders Dispatched', 'Help is on the way to your location.', ['type' => 'dispatched']);
         }
@@ -69,6 +92,14 @@ class DispatchController extends Controller
     public function resolveEmergency(Request $request)
     {
         $request->validate(['request_id' => 'required|integer']);
+
+        $req = EmergencyRequest::find($request->request_id);
+        if (!$req) {
+            return response()->json(['message' => 'Emergency request not found.'], 404);
+        }
+        if ($req->status !== 'Dispatched') {
+            return response()->json(['message' => "Emergency request cannot be resolved; current status is {$req->status}."], 409);
+        }
 
         DB::transaction(function () use ($request) {
             EmergencyRequest::where('request_id', $request->request_id)

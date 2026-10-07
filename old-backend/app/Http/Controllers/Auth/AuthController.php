@@ -88,7 +88,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'If that account exists, an OTP was sent.'], 200);
         }
         $otp = $result['otp'];
-        Log::info("Login OTP generated for {$user->email} ({$user->phone}): {$otp} (Channel: {$channel})");
+        Log::info("Login OTP generated for {$user->email} ({$user->phone}) (Channel: {$channel})");
 
         $smsFailed = false;
         if ($channel === 'phone') {
@@ -150,10 +150,10 @@ class AuthController extends Controller
         if (!$user) return response()->json(['message' => 'Invalid or expired code.'], 400);
 
         $deviceName = $request->input('device_name', 'app-token');
-        if ($deviceName !== 'app-token') {
-            $user->tokens()->where('name', $deviceName)->delete();
+        if ($user->role === 'citizen') {
+            $user->tokens()->delete();
         } else {
-            $tokenIds = $user->tokens()->latest()->take(5)->pluck('id');
+            $tokenIds = $user->tokens()->latest()->take(4)->pluck('id');
             $user->tokens()->whereNotIn('id', $tokenIds)->delete();
         }
         $abilities = match ($user->role) {
@@ -210,10 +210,10 @@ class AuthController extends Controller
 
         RateLimiter::clear($throttleKey);
         $deviceName = $request->input('device_name', 'app-token');
-        if ($deviceName !== 'app-token') {
-            $user->tokens()->where('name', $deviceName)->delete();
+        if ($user->role === 'citizen') {
+            $user->tokens()->delete();
         } else {
-            $tokenIds = $user->tokens()->latest()->take(5)->pluck('id');
+            $tokenIds = $user->tokens()->latest()->take(4)->pluck('id');
             $user->tokens()->whereNotIn('id', $tokenIds)->delete();
         }
 
@@ -476,7 +476,7 @@ class AuthController extends Controller
 
         $channel = $request->input('otp_channel', 'email');
         $otp     = $this->otp->generateAndStore('otp_' . $user->email);
-        Log::info("Registration OTP generated for {$user->email}: {$otp} (Channel: {$channel})");
+        Log::info("Registration OTP generated for {$user->email} (Channel: {$channel})");
         $smsFailed = false;
 
         if ($channel === 'sms') {
@@ -537,7 +537,7 @@ class AuthController extends Controller
         }
         $otp     = $result['otp'];
         $channel = $request->input('otp_channel', 'email');
-        Log::info("Resend OTP generated for {$user->email}: {$otp} (Channel: {$channel})");
+        Log::info("Resend OTP generated for {$user->email} (Channel: {$channel})");
         $smsFailed = false;
 
         if ($channel === 'sms') {
@@ -763,7 +763,7 @@ class AuthController extends Controller
         }
         $otp = $result['otp'];
         $recipient = $channel === 'email' ? $request->email : $normalizedPhone;
-        Log::info("Forgot Password OTP generated for {$recipient}: {$otp} (Channel: {$channel})");
+        Log::info("Forgot Password OTP generated for {$recipient} (Channel: {$channel})");
 
         $smsFailed = false;
         if ($channel === 'phone') {

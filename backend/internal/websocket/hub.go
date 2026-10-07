@@ -181,6 +181,13 @@ func Handler() func(*websocket.Conn) {
 			GlobalHub.Unregister <- client
 		}()
 
+		// Set initial read deadline and pong handler to detect dead connections
+		_ = c.SetReadDeadline(time.Now().Add(60 * time.Second))
+		c.SetPongHandler(func(string) error {
+			_ = c.SetReadDeadline(time.Now().Add(60 * time.Second))
+			return nil
+		})
+
 		// Send native WebSocket connected handshake
 		nativeConnMsg, _ := json.Marshal(map[string]interface{}{
 			"event": "connected",
@@ -194,7 +201,7 @@ func Handler() func(*websocket.Conn) {
 		// Send Pusher protocol connection_established handshake for legacy clients
 		connData, _ := json.Marshal(map[string]interface{}{
 			"socket_id":        socketID,
-			"activity_timeout": 120,
+			"activity_timeout": 60,
 		})
 		pusherInitMsg, _ := json.Marshal(map[string]interface{}{
 			"event": "pusher:connection_established",
@@ -202,11 +209,46 @@ func Handler() func(*websocket.Conn) {
 		})
 		_ = client.WriteSafe(websocket.TextMessage, pusherInitMsg)
 
+		// Active server heartbeat ticker (25s interval, 60s timeout)
+		ticker := time.NewTicker(25 * time.Second)
+		defer ticker.Stop()
+
+		done := make(chan struct{})
+		defer close(done)
+
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Error().Interface("panic", r).Msg("Recovered in websocket ping ticker")
+				}
+			}()
+			for {
+				select {
+				case <-done:
+					return
+				case <-ticker.C:
+					pingPayload, _ := json.Marshal(map[string]interface{}{
+						"event": "pusher:ping",
+						"data":  map[string]interface{}{},
+					})
+					if err := client.WriteSafe(websocket.PingMessage, []byte{}); err != nil {
+						_ = c.Close()
+						return
+					}
+					if err := client.WriteSafe(websocket.TextMessage, pingPayload); err != nil {
+						_ = c.Close()
+						return
+					}
+				}
+			}
+		}()
+
 		for {
 			msgType, rawMsg, err := c.ReadMessage()
 			if err != nil {
 				break
 			}
+			_ = c.SetReadDeadline(time.Now().Add(60 * time.Second))
 			if msgType != websocket.TextMessage {
 				continue
 			}

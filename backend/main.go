@@ -198,34 +198,34 @@ func registerRoutes(app *fiber.App) {
 		g.Get("/tiles/satellite/:z/:y/:x", handlers.SatelliteTileProxy)
 		g.Get("/tiles/satellite/:z/:y/:x.:ext", handlers.SatelliteTileProxy)
 
-		// Auth & Verification
-		g.Post("/register", handlers.Register)
-		g.Post("/login", handlers.Login)
-		g.Post("/login-send-otp", handlers.LoginSendOtp)
-		g.Post("/login-verify-otp", handlers.LoginVerifyOtp)
-		g.Post("/verify-otp", handlers.VerifyOtp)
-		g.Post("/resend-registration-otp", handlers.ResendRegistrationOtp)
-		g.Post("/check-verification-status", handlers.CheckVerificationStatus)
-		g.Get("/check-username", handlers.CheckUsername)
-		g.Get("/check-email", handlers.CheckEmail)
-		g.Post("/forgot-password", handlers.ForgotPassword)
-		g.Post("/verify-reset-otp", handlers.VerifyResetOtp)
-		g.Post("/reset-password", handlers.ResetPassword)
+		// Auth & Verification (Rate-limited per IP)
+		g.Post("/register", middleware.Throttle(5, 1), handlers.Register)
+		g.Post("/login", middleware.Throttle(10, 1), handlers.Login)
+		g.Post("/login-send-otp", middleware.Throttle(3, 1), handlers.LoginSendOtp)
+		g.Post("/login-verify-otp", middleware.Throttle(5, 1), handlers.LoginVerifyOtp)
+		g.Post("/verify-otp", middleware.Throttle(10, 1), handlers.VerifyOtp)
+		g.Post("/resend-registration-otp", middleware.Throttle(3, 1), handlers.ResendRegistrationOtp)
+		g.Post("/check-verification-status", middleware.Throttle(10, 1), handlers.CheckVerificationStatus)
+		g.Get("/check-username", middleware.Throttle(20, 1), handlers.CheckUsername)
+		g.Get("/check-email", middleware.Throttle(20, 1), handlers.CheckEmail)
+		g.Post("/forgot-password", middleware.Throttle(3, 1), handlers.ForgotPassword)
+		g.Post("/verify-reset-otp", middleware.Throttle(5, 1), handlers.VerifyResetOtp)
+		g.Post("/reset-password", middleware.Throttle(5, 1), handlers.ResetPassword)
 
-		// Authenticated feeds & session
-		g.Get("/active-emergencies", auth, handlers.GetActiveEmergencies)
-		g.Get("/active-hazards", auth, handlers.GetActiveHazards)
+		// Authenticated operational feeds (Restricted to Dispatchers & Admins to protect citizen PII)
+		g.Get("/active-emergencies", auth, dispAuth, handlers.GetActiveEmergencies)
+		g.Get("/active-hazards", auth, dispAuth, handlers.GetActiveHazards)
 		g.Get("/active-broadcast", auth, handlers.GetActiveBroadcast)
-		g.Get("/dispatch-assets", auth, handlers.GetDispatchAssets)
-		g.Get("/analytics", auth, handlers.GetAnalytics)
-		g.Get("/archived-emergencies", auth, handlers.GetArchivedEmergencies)
+		g.Get("/dispatch-assets", auth, dispAuth, handlers.GetDispatchAssets)
+		g.Get("/analytics", auth, dispAuth, handlers.GetAnalytics)
+		g.Get("/archived-emergencies", auth, dispAuth, handlers.GetArchivedEmergencies)
 		g.Post("/logout", auth, handlers.Logout)
 
 		// Profile & Account
 		g.Post("/update-profile-picture", auth, handlers.UpdateProfilePicture)
 		g.Post("/update-password", auth, handlers.UpdatePassword)
-		g.Post("/send-password-change-otp", auth, handlers.SendPasswordChangeOtp)
-		g.Post("/verify-password-change-otp", auth, handlers.VerifyPasswordChangeOtp)
+		g.Post("/send-password-change-otp", auth, middleware.Throttle(3, 1), handlers.SendPasswordChangeOtp)
+		g.Post("/verify-password-change-otp", auth, middleware.Throttle(5, 1), handlers.VerifyPasswordChangeOtp)
 		g.Post("/update-medical-profile", auth, handlers.UpdateMedicalProfile)
 		g.Post("/complete-account-setup", auth, handlers.CompleteAccountSetup)
 
@@ -239,14 +239,16 @@ func registerRoutes(app *fiber.App) {
 		g.Post("/delete-push-token", auth, handlers.DeletePushToken)
 
 		// Citizen Actions
-		g.Post("/submit-sos", auth, handlers.SubmitSos)
+		g.Post("/submit-sos", auth, middleware.Throttle(5, 1), handlers.SubmitSos)
 		g.Post("/cancel-sos", auth, handlers.CancelEmergency)
-		g.Post("/submit-hazard", auth, handlers.SubmitHazard)
+		g.Post("/submit-hazard", auth, middleware.Throttle(5, 1), handlers.SubmitHazard)
 		g.Get("/my-emergencies", auth, handlers.GetMyEmergencies)
 		g.Get("/my-emergencies/:user_id", auth, handlers.GetMyEmergencies)
+		g.Get("/my-hazards", auth, handlers.GetMyHazards)
+		g.Get("/my-hazards/:user_id", auth, handlers.GetMyHazards)
 
 		// Feedback
-		g.Post("/feedback", auth, handlers.StoreFeedback)
+		g.Post("/feedback", auth, middleware.Throttle(10, 1), handlers.StoreFeedback)
 
 		// Admin-Only Routes
 		g.Post("/create-dispatcher", auth, adminAuth, handlers.CreateDispatcher)

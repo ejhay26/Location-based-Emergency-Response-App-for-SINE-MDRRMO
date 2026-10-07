@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonItem,
   IonLabel, IonBadge, IonRefresher, IonRefresherContent, IonSkeletonText, IonList,
@@ -60,38 +61,22 @@ export class HistoryPage implements OnInit, OnDestroy {
   dateFilter: DateFilterValue | null = null;
 
   /** Accordion behavior — only one card expanded at a time. */
-  expandedId: number | null = null;
+  expandedId: string | number | null = null;
   /**
-   * Drives [appRevealAnimate] on the expanded content div. Deliberately
-   * separate from `expandedId`: the div is mounted (via *ngIf) the instant
-   * `expandedId` changes, but RevealAnimateDirective always treats an
-   * element's FIRST bound value (in ngAfterViewInit) as the resting state
-   * with no animation — by design, so permanently-mounted filtered lists
-   * don't animate on initial page load. If we bound [appRevealAnimate]
-   * straight to `expandedId === req.request_id`, a freshly-*ngIf-mounted
-   * card would mount already-open and skip the open animation entirely
-   * (this was the original "instantly expands" bug). Mounting with this
-   * flag still false, then flipping it true one frame later, makes the
-   * directive see a genuine change via ngOnChanges instead — which is the
-   * path that actually plays the animation.
+   * Drives [appRevealAnimate] on the expanded content div.
    */
-  openAnimateId: number | null = null;
+  openAnimateId: string | number | null = null;
   /** Card(s) still mounted and playing their close tween after being deselected (see toggleExpand). */
-  closingIds = new Set<number>();
+  closingIds = new Set<string | number>();
 
   /**
    * Fixing a visible bug: the "No reports match your filters" empty state
-   * used to appear the instant a filter changed, while the now-non-matching
-   * cards were still mid-collapse underneath it — so it read as the empty
-   * message "teleporting" as the still-tall card(s) beneath it kept shrinking
-   * for another ~200ms. Setting this true for the duration of the close
-   * animation keeps the empty state hidden until the collapse has actually
-   * finished, so nothing is left visibly resolving underneath it.
    */
   filterSettling = false;
   private filterSettleTimer?: ReturnType<typeof setTimeout>;
 
   private echoEmergencySub?: Subscription;
+  private echoHazardSub?: Subscription;
   private tourSub?: Subscription;
 
   readonly DEMO_EMERGENCY_HISTORY = {
@@ -127,6 +112,9 @@ export class HistoryPage implements OnInit, OnDestroy {
     this.echoEmergencySub = this.echo.onEmergencyUpdated.subscribe(() => {
       this.load();
     });
+    this.echoHazardSub = this.echo.onHazardUpdated.subscribe(() => {
+      this.load();
+    });
 
     this.tourSub = this.tour.stepChange$.subscribe(({ active }) => {
       if (active && this.emergencies.length === 0) {
@@ -139,6 +127,7 @@ export class HistoryPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.echoEmergencySub?.unsubscribe();
+    this.echoHazardSub?.unsubscribe();
     this.tourSub?.unsubscribe();
     clearTimeout(this.filterSettleTimer);
   }
@@ -148,10 +137,24 @@ export class HistoryPage implements OnInit, OnDestroy {
     if (!userStr) { event?.target.complete(); return; }
     const user = JSON.parse(userStr);
     this.isLoading = !event;
-    this.api.getMyEmergencies(user.user_id).subscribe({
-      next: (res: any) => {
-        if (Array.isArray(res) && res.length > 0) {
-          this.emergencies = res;
+
+    forkJoin({
+      emergencies: this.api.getMyEmergencies(user.user_id).pipe(catchError(() => of([]))),
+      hazards: this.api.getMyHazards(user.user_id).pipe(catchError(() => of([]))),
+    }).subscribe({
+      next: ({ emergencies, hazards }) => {
+        const combined = [
+          ...(Array.isArray(emergencies) ? emergencies : []),
+          ...(Array.isArray(hazards) ? hazards : []),
+        ];
+        combined.sort((a, b) => {
+          const tA = new Date(a.request_time || a.created_at || 0).getTime();
+          const tB = new Date(b.request_time || b.created_at || 0).getTime();
+          return tB - tA;
+        });
+
+        if (combined.length > 0) {
+          this.emergencies = combined;
         } else if (this.tour.isActive()) {
           this.emergencies = [this.DEMO_EMERGENCY_HISTORY];
         } else {
@@ -235,19 +238,25 @@ export class HistoryPage implements OnInit, OnDestroy {
    * of block layout, rather than vanishing instantly.
    */
   matchesFilter(req: any): boolean {
-    return (this.statusFilter === 'All' || req.status === this.statusFilter) &&
-      matchesDateFilter(req.request_time, this.dateFilter);
+    const matchesStatus = this.statusFilter === 'All' ||
+      req.status === this.statusFilter ||
+      (this.statusFilter === 'Pending' && req.status === 'Active');
+    return matchesStatus && matchesDateFilter(req.request_time, this.dateFilter);
   }
 
-  trackByRequestId(_index: number, req: any): number {
-    return req.request_id;
+  getReportId(req: any): string | number {
+    return req.request_id !== undefined ? req.request_id : ('h_' + req.hazard_id);
+  }
+
+  trackByReportId(_index: number, req: any): string | number {
+    return this.getReportId(req);
   }
 
   /** Tap the card body to expand/retract (toggle) — accordion, so expanding one collapses any other. */
-  toggleExpand(requestId: number) {
+  toggleExpand(reportId: string | number) {
     const previouslyExpanded = this.expandedId;
-    const opening = this.expandedId !== requestId;
-    this.expandedId = opening ? requestId : null;
+    const opening = this.expandedId !== reportId;
+    this.expandedId = opening ? reportId : null;
 
     // Whichever card just lost its expanded state (if any) stays mounted,
     // driven by [appRevealAnimate]="false", until its close tween finishes.
@@ -260,28 +269,17 @@ export class HistoryPage implements OnInit, OnDestroy {
       return;
     }
 
-    // Mount this tick with openAnimateId still null (=> [appRevealAnimate]
-    // false), so RevealAnimateDirective's ngAfterViewInit collapses it
-    // immediately with no animation — the correct "resting" starting point.
-    // Two rAFs later (matching the double-rAF pattern documented in
-    // flip-reflow.util.ts: first for Angular to commit the *ngIf mount +
-    // the directive's immediate-collapse, second for the browser to have
-    // actually painted that collapsed frame), flip openAnimateId to this
-    // card's id — a real isOpen change RevealAnimateDirective picks up via
-    // ngOnChanges, which is the path that plays the open tween.
     this.openAnimateId = null;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        // Guard: user may have tapped a different card again before this
-        // fired — only apply if this card is still the one being opened.
-        if (this.expandedId === requestId) this.openAnimateId = requestId;
+        if (this.expandedId === reportId) this.openAnimateId = reportId;
       });
     });
   }
 
   /** RevealAnimateDirective (closed) callback — safe to actually unmount now. */
-  onCardCollapsed(requestId: number) {
-    this.closingIds.delete(requestId);
+  onCardCollapsed(reportId: string | number) {
+    this.closingIds.delete(reportId);
   }
 
   isVideoFile(path: string): boolean {
@@ -345,7 +343,7 @@ export class HistoryPage implements OnInit, OnDestroy {
 
   statusColor(status: string): string {
     switch (status) {
-      case 'Pending': return 'warning'; case 'Dispatched': return 'primary';
+      case 'Pending': case 'Active': return 'warning'; case 'Dispatched': return 'primary';
       case 'Resolved': return 'success'; default: return 'medium';
     }
   }

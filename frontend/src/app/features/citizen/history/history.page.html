@@ -57,29 +57,29 @@
     </div>
 
     <ion-list *ngIf="!isLoading && emergencies.length > 0" style="background:transparent;">
-      <ion-card *ngFor="let req of emergencies; trackBy: trackByRequestId"
+      <ion-card *ngFor="let req of emergencies; trackBy: trackByReportId"
                 [appRevealAnimate]="matchesFilter(req)"
                 style="margin:10px 0;border-radius:18px;">
-        <div (click)="toggleExpand(req.request_id)" style="cursor:pointer;">
+        <div (click)="toggleExpand(getReportId(req))" style="cursor:pointer;">
           <ion-item lines="none">
-            <div slot="start" style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;" [style.background]="req.status==='Resolved'?'#2dd36f20':req.status==='Pending'?'#ffc40920':'#92949c20'">
-              <app-icon [name]="iconName(req)" [size]="18" [color]="req.status==='Resolved'?'#2dd36f':req.status==='Pending'?'#e0ac00':'#92949c'"></app-icon>
+            <div slot="start" style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;" [style.background]="req.status==='Resolved'?'#2dd36f20':(req.status==='Pending'||req.status==='Active')?'#ffc40920':'#92949c20'">
+              <app-icon [name]="iconName(req)" [size]="18" [color]="req.status==='Resolved'?'#2dd36f':(req.status==='Pending'||req.status==='Active')?'#e0ac00':'#92949c'"></app-icon>
             </div>
             <ion-label>
               <h2 style="font-weight:bold;color:var(--ion-text-color);margin:0 0 2px;">{{ req.incident_name ? req.incident_name + ' Emergency' : (req.hazard_type || 'Hazard Report') }}</h2>
               <p style="color:var(--ion-color-medium);font-size:12px;margin:0;">{{ req.request_time | date:'MMM d, y · h:mm a' }}</p>
-              <p *ngIf="req.description && expandedId !== req.request_id && !closingIds.has(req.request_id)" style="font-size:12px;color:var(--ion-color-medium);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ req.description }}</p>
+              <p *ngIf="req.description && expandedId !== getReportId(req) && !closingIds.has(getReportId(req))" style="font-size:12px;color:var(--ion-color-medium);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ req.description }}</p>
             </ion-label>
             <div slot="end" style="display:flex;align-items:center;gap:8px;margin:0;">
               <ion-badge [color]="statusColor(req.status)" style="font-weight:700;padding:6px 12px;border-radius:10px;font-size:11px;">{{ req.status }}</ion-badge>
-              <app-icon [name]="expandedId === req.request_id ? 'chevron-down' : 'chevron-right'" [size]="14" color="var(--ion-color-medium)"></app-icon>
+              <app-icon [name]="expandedId === getReportId(req) ? 'chevron-down' : 'chevron-right'" [size]="14" color="var(--ion-color-medium)"></app-icon>
             </div>
           </ion-item>
 
           <!-- Expanded state -->
-          <div *ngIf="expandedId === req.request_id || closingIds.has(req.request_id)"
-               [appRevealAnimate]="openAnimateId === req.request_id"
-               (closed)="onCardCollapsed(req.request_id)"
+          <div *ngIf="expandedId === getReportId(req) || closingIds.has(getReportId(req))"
+               [appRevealAnimate]="openAnimateId === getReportId(req)"
+               (closed)="onCardCollapsed(getReportId(req))"
                style="padding:12px 16px 14px;border-top:var(--inset-divider, 1px solid rgba(0,0,0,0.06));text-align:left;">
             <p *ngIf="req.description" style="font-size:13px;color:var(--ion-text-color);line-height:1.5;margin:0 0 8px;text-align:left;">{{ req.description }}</p>
             <p *ngIf="!req.description" style="font-size:12px;color:var(--ion-color-medium);font-style:italic;margin:0 0 8px;text-align:left;">No additional details provided.</p>
@@ -98,7 +98,7 @@
           </div>
         </div>
 
-        <ion-button *ngIf="req.status === 'Pending'" fill="clear" color="medium" expand="block" (click)="$event.stopPropagation(); cancelRequest(req.request_id)" style="font-weight:bold;border-top:1px solid var(--ion-color-step-100,#eee);margin-top:4px;">
+        <ion-button *ngIf="req.status === 'Pending' && req.request_id" fill="clear" color="medium" expand="block" (click)="$event.stopPropagation(); cancelRequest(req.request_id)" style="font-weight:bold;border-top:1px solid var(--ion-color-step-100,#eee);margin-top:4px;">
           <app-icon name="close" [size]="14" color="var(--ion-color-medium)" style="margin-right:6px;"></app-icon>Cancel Request
         </ion-button>
       </ion-card>

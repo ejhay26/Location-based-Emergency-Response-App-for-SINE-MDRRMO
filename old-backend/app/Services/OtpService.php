@@ -98,8 +98,18 @@ class OtpService
         $cached = Cache::get($key);
         if ($cached !== null && $cached == $submitted) {
             Cache::forget($key);
+            Cache::forget($key . ':attempts');
             return true;
         }
+
+        $attempts = (int) Cache::get($key . ':attempts', 0) + 1;
+        if ($attempts >= 5) {
+            Cache::forget($key);
+            Cache::forget($key . ':attempts');
+        } else {
+            Cache::put($key . ':attempts', $attempts, now()->addMinutes(15));
+        }
+
         return false;
     }
 

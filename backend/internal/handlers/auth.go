@@ -93,9 +93,22 @@ func Login(c *fiber.Ctx) error {
 		deviceName = "app-token"
 	}
 
-	// Enforce single-device login: revoke all prior access tokens so any other logged-in device is immediately logged off
-	database.DB.Where("tokenable_id = ?", user.UserID).Delete(&models.PersonalAccessToken{})
-	websocket.BroadcastUser("force-logout", user.UserID)
+	// For staff (admin/dispatcher), preserve concurrent sessions (keep up to 5 active sessions)
+	if user.Role == "admin" || user.Role == "dispatcher" {
+		var excessTokens []models.PersonalAccessToken
+		database.DB.Where("tokenable_id = ?", user.UserID).Order("created_at desc").Offset(4).Find(&excessTokens)
+		if len(excessTokens) > 0 {
+			ids := make([]uint64, len(excessTokens))
+			for i, t := range excessTokens {
+				ids[i] = t.ID
+			}
+			database.DB.Where("id IN ?", ids).Delete(&models.PersonalAccessToken{})
+		}
+	} else {
+		// Enforce single-device login for citizens: revoke all prior access tokens
+		database.DB.Where("tokenable_id = ?", user.UserID).Delete(&models.PersonalAccessToken{})
+		websocket.BroadcastUser("force-logout", user.UserID)
+	}
 
 	var abilities []string
 	switch user.Role {
@@ -188,7 +201,7 @@ func LoginSendOtp(c *fiber.Ctx) error {
 
 	otp, _ := res["otp"].(int)
 	otpStr := services.FormatOtp(otp)
-	log.Info().Str("channel", channel).Str("identifier", identifier).Str("otp", otpStr).Msg("Login OTP generated")
+	log.Info().Str("channel", channel).Str("identifier", identifier).Msg("Login OTP generated")
 
 	smsFailed := false
 	if channel == "phone" && user.Profile != nil && user.Profile.Phone != nil {
@@ -261,9 +274,22 @@ func LoginVerifyOtp(c *fiber.Ctx) error {
 		deviceName = "app-token"
 	}
 
-	// Enforce single-device login: revoke all prior access tokens so any other logged-in device is immediately logged off
-	database.DB.Where("tokenable_id = ?", user.UserID).Delete(&models.PersonalAccessToken{})
-	websocket.BroadcastUser("force-logout", user.UserID)
+	// For staff (admin/dispatcher), preserve concurrent sessions (keep up to 5 active sessions)
+	if user.Role == "admin" || user.Role == "dispatcher" {
+		var excessTokens []models.PersonalAccessToken
+		database.DB.Where("tokenable_id = ?", user.UserID).Order("created_at desc").Offset(4).Find(&excessTokens)
+		if len(excessTokens) > 0 {
+			ids := make([]uint64, len(excessTokens))
+			for i, t := range excessTokens {
+				ids[i] = t.ID
+			}
+			database.DB.Where("id IN ?", ids).Delete(&models.PersonalAccessToken{})
+		}
+	} else {
+		// Enforce single-device login for citizens: revoke all prior access tokens
+		database.DB.Where("tokenable_id = ?", user.UserID).Delete(&models.PersonalAccessToken{})
+		websocket.BroadcastUser("force-logout", user.UserID)
+	}
 
 	var abilities []string
 	switch user.Role {
@@ -509,7 +535,7 @@ func Register(c *fiber.Ctx) error {
 	}
 	otp := services.GetOtpService().GenerateAndStore("otp_"+req.Email, 15)
 	otpStr := services.FormatOtp(otp)
-	log.Info().Str("email", req.Email).Str("otp", otpStr).Msg("Registration OTP generated")
+	log.Info().Str("email", req.Email).Msg("Registration OTP generated")
 
 	smsFailed := false
 	if channel == "sms" && normPhone != nil {
@@ -754,7 +780,7 @@ func ForgotPassword(c *fiber.Ctx) error {
 
 	otp, _ := res["otp"].(int)
 	otpStr := services.FormatOtp(otp)
-	log.Info().Str("channel", channel).Str("identifier", identifier).Str("otp", otpStr).Msg("Forgot Password OTP generated")
+	log.Info().Str("channel", channel).Str("identifier", identifier).Msg("Forgot Password OTP generated")
 
 	smsFailed := false
 	if channel == "phone" && user.Profile != nil && user.Profile.Phone != nil {

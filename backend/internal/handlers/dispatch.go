@@ -39,6 +39,34 @@ func DispatchEmergency(c *fiber.Ctx) error {
 	}
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
+		var er models.EmergencyRequest
+		if err := tx.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err != nil {
+			return fiber.NewError(404, "Emergency request not found.")
+		}
+		if er.Status == nil || *er.Status != "Pending" {
+			curr := "unknown"
+			if er.Status != nil {
+				curr = *er.Status
+			}
+			return fiber.NewError(409, fmt.Sprintf("Emergency request cannot be dispatched; current status is %s.", curr))
+		}
+
+		var responder models.Responder
+		if err := tx.Where("responder_id = ?", req.ResponderID).First(&responder).Error; err != nil {
+			return fiber.NewError(404, "Responder not found.")
+		}
+		if responder.Status != "Available" {
+			return fiber.NewError(409, fmt.Sprintf("Assigned responder is %s.", responder.Status))
+		}
+
+		var vehicle models.Vehicle
+		if err := tx.Where("vehicle_id = ?", req.VehicleID).First(&vehicle).Error; err != nil {
+			return fiber.NewError(404, "Vehicle not found.")
+		}
+		if vehicle.Status != "Available" {
+			return fiber.NewError(409, fmt.Sprintf("Assigned vehicle is %s.", vehicle.Status))
+		}
+
 		now := time.Now()
 		dispatch := models.Dispatch{
 			RequestID:    &req.RequestID,
@@ -67,16 +95,19 @@ func DispatchEmergency(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
+		if fe, ok := err.(*fiber.Error); ok {
+			return c.Status(fe.Code).JSON(fiber.Map{"message": fe.Message})
+		}
 		return c.Status(500).JSON(fiber.Map{"message": "Failed to dispatch units."})
 	}
 
 	var er models.EmergencyRequest
 	if err := database.DB.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err == nil && er.UserID != nil {
-		go func() {
+		services.SafeGo(func() {
 			_ = services.NotifyUser(*er.UserID, "Responders Dispatched", "Help is on the way to your location.", map[string]string{
 				"type": "dispatched",
 			})
-		}()
+		})
 	}
 
 	websocket.BroadcastEmergency("dispatched", req.RequestID)
@@ -93,6 +124,18 @@ func ResolveEmergency(c *fiber.Ctx) error {
 	}
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
+		var er models.EmergencyRequest
+		if err := tx.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err != nil {
+			return fiber.NewError(404, "Emergency request not found.")
+		}
+		if er.Status == nil || *er.Status != "Dispatched" {
+			curr := "unknown"
+			if er.Status != nil {
+				curr = *er.Status
+			}
+			return fiber.NewError(409, fmt.Sprintf("Emergency request cannot be resolved; current status is %s.", curr))
+		}
+
 		if err := tx.Model(&models.EmergencyRequest{}).Where("request_id = ? AND deleted_at IS NULL", req.RequestID).Update("status", "Resolved").Error; err != nil {
 			return err
 		}
@@ -117,16 +160,19 @@ func ResolveEmergency(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
+		if fe, ok := err.(*fiber.Error); ok {
+			return c.Status(fe.Code).JSON(fiber.Map{"message": fe.Message})
+		}
 		return c.Status(500).JSON(fiber.Map{"message": "Failed to resolve emergency."})
 	}
 
 	var er models.EmergencyRequest
 	if err := database.DB.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err == nil && er.UserID != nil {
-		go func() {
+		services.SafeGo(func() {
 			_ = services.NotifyUser(*er.UserID, "Emergency Resolved", "Your report has been resolved. Stay safe.", map[string]string{
 				"type": "resolved",
 			})
-		}()
+		})
 	}
 
 	websocket.BroadcastEmergency("resolved", req.RequestID)
@@ -186,14 +232,14 @@ func MarkFalseAlarm(c *fiber.Ctx) error {
 		})
 		database.DB.Where("tokenable_id = ?", user.UserID).Delete(&models.PersonalAccessToken{})
 
-		go func() {
+		services.SafeGo(func() {
 			_ = services.NotifyUser(user.UserID, "Account Suspended", "Your account has been suspended due to repeated false emergency reports.", map[string]string{
 				"type": "suspended",
 			})
 			if userEmail != "" {
 				_ = services.SendFalseAlarmStrikeEmail(userName, userEmail, newStrikes, 3, "Emergency report marked as false alarm during responder on-site verification.", "banned")
 			}
-		}()
+		})
 
 		websocket.BroadcastEmergency("false_alarm", req.RequestID)
 
@@ -207,7 +253,7 @@ func MarkFalseAlarm(c *fiber.Ctx) error {
 	database.DB.Model(&user).Update("false_alarm_strikes", newStrikes)
 	remaining := 3 - newStrikes
 
-	go func() {
+	services.SafeGo(func() {
 		_ = services.NotifyUser(
 			user.UserID,
 			fmt.Sprintf("False Alarm Strike %d of 3", newStrikes),
@@ -217,7 +263,7 @@ func MarkFalseAlarm(c *fiber.Ctx) error {
 		if userEmail != "" {
 			_ = services.SendFalseAlarmStrikeEmail(userName, userEmail, newStrikes, 3, "Emergency report marked as false alarm during responder on-site verification.", "active")
 		}
-	}()
+	})
 
 	websocket.BroadcastEmergency("false_alarm", req.RequestID)
 

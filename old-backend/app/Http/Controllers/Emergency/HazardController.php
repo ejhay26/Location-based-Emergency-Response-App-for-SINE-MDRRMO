@@ -91,4 +91,27 @@ class HazardController extends Controller
             ->map(fn($r) => $this->decodeProofFiles($r));
         return response()->json($hazards);
     }
+
+    public function getMyHazards(Request $request, $user_id = null)
+    {
+        $authUser = $request->user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $targetId = $user_id ? (int)$user_id : $authUser->user_id;
+        if ($targetId !== $authUser->user_id && !$authUser->tokenCan('admin') && !$authUser->tokenCan('dispatcher')) {
+            return response()->json(['message' => 'Unauthorized to view hazards for another user.'], 403);
+        }
+
+        $hazards = DB::table('hazards')
+            ->leftJoin('barangays', 'hazards.barangay_id', '=', 'barangays.barangay_id')
+            ->where('hazards.user_id', $targetId)
+            ->orderBy('hazards.created_at', 'desc')
+            ->select('hazards.*', DB::raw('hazards.created_at AS request_time'), 'barangays.barangay_name')
+            ->get()
+            ->map(fn($r) => $this->decodeProofFiles($r));
+
+        return response()->json($hazards);
+    }
 }

@@ -50,22 +50,21 @@ class DatabaseBackupService
         $mysqldumpPath = $this->findBinary('mysqldump');
 
         if ($mysqldumpPath) {
-            $passParam = $dbPass !== '' ? "-p" . escapeshellarg($dbPass) : '';
             $cmd = sprintf(
-                '%s --host=%s --port=%s --user=%s %s --single-transaction --quick --routines --triggers %s',
+                '%s --host=%s --port=%s --user=%s --single-transaction --quick --routines --triggers %s',
                 escapeshellarg($mysqldumpPath),
                 escapeshellarg($dbHost),
                 escapeshellarg($dbPort),
                 escapeshellarg($dbUser),
-                $passParam,
                 escapeshellarg($dbName)
             );
 
+            $env = array_merge($_ENV, ['MYSQL_PWD' => (string) $dbPass]);
             $process = proc_open($cmd, [
                 0 => ['pipe', 'r'],
                 1 => ['pipe', 'w'],
                 2 => ['pipe', 'w'],
-            ], $pipes);
+            ], $pipes, null, $env);
 
             if (is_resource($process)) {
                 fclose($pipes[0]);

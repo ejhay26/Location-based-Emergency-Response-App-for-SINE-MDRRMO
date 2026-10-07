@@ -38,16 +38,8 @@ Route::post('/reset-password',   [AuthController::class, 'resetPassword'])->midd
 // ── Sanctum-protected routes ──────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Read-only feeds — moved behind auth. These are only ever reached after
-    // a frontend route guard has already confirmed login (app is online-only,
-    // no offline/pre-login screens use them), so the client always holds a
-    // token by the time it calls these.
-    Route::get('/active-emergencies',   [SosController::class, 'getActiveEmergencies']);
-    Route::get('/active-hazards',       [HazardController::class, 'getActiveHazards']);
-    Route::get('/active-broadcast',     [BroadcastController::class, 'getActiveBroadcast']);
-    Route::get('/dispatch-assets',      [DispatchController::class, 'getDispatchAssets']);
-    Route::get('/analytics',            [AnalyticsController::class, 'getAnalytics']);
-    Route::get('/archived-emergencies', [SosController::class, 'getArchivedEmergencies']);
+    // Public active broadcast announcement feed (safe for citizen home screen)
+    Route::get('/active-broadcast', [BroadcastController::class, 'getActiveBroadcast']);
 
     // Session
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -73,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cancel-sos',                 [SosController::class, 'cancelEmergency']);
     Route::post('/submit-hazard',              [HazardController::class, 'submitHazard'])->middleware('throttle:5,1');
     Route::get('/my-emergencies/{user_id?}',   [SosController::class, 'getMyEmergencies']);
+    Route::get('/my-hazards/{user_id?}',       [HazardController::class, 'getMyHazards']);
 
     // Feedback
     Route::post('/feedback',         [FeedbackController::class, 'store'])->middleware('throttle:10,1');
@@ -102,9 +95,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/feedback/purge',            [FeedbackController::class, 'purgeTrash']);
     });
 
-    // Dispatcher-operational actions (admin tokens include the 'dispatcher'
-    // ability too, so admins can still perform these)
+    // Dispatcher-operational actions & feeds (admin tokens include the 'dispatcher'
+    // ability too, so admins can still perform these; citizens are rejected with 403)
     Route::middleware('ability:dispatcher')->group(function () {
+        Route::get('/active-emergencies',     [SosController::class, 'getActiveEmergencies']);
+        Route::get('/active-hazards',         [HazardController::class, 'getActiveHazards']);
+        Route::get('/dispatch-assets',        [DispatchController::class, 'getDispatchAssets']);
+        Route::get('/analytics',              [AnalyticsController::class, 'getAnalytics']);
+        Route::get('/archived-emergencies',   [SosController::class, 'getArchivedEmergencies']);
+
         Route::post('/dispatch-emergency',    [DispatchController::class, 'dispatchEmergency']);
         Route::post('/resolve-emergency',     [DispatchController::class, 'resolveEmergency']);
         Route::post('/mark-false-alarm',      [DispatchController::class, 'markFalseAlarm']);

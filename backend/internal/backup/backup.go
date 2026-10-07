@@ -70,12 +70,12 @@ func CreateSnapshot(prefix string) (*BackupInfo, error) {
 		"--triggers",
 	}
 
-	if cfg.DBPassword != "" {
-		args = append(args, fmt.Sprintf("--password=%s", cfg.DBPassword))
-	}
 	args = append(args, cfg.DBDatabase)
 
 	cmd := exec.Command(dumpBin, args...)
+	if cfg.DBPassword != "" {
+		cmd.Env = append(os.Environ(), "MYSQL_PWD="+cfg.DBPassword)
+	}
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {

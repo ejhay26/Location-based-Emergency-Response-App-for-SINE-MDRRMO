@@ -33,8 +33,11 @@ func OsmTileProxy(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid tile coordinates"})
 	}
 
+	if z < 0 || z > 19 || x < 0 || y < 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid tile coordinates"})
+	}
 	maxCoord := (1 << z) - 1
-	if z < 0 || z > 19 || x < 0 || x > maxCoord || y < 0 || y > maxCoord {
+	if x > maxCoord || y > maxCoord {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid tile coordinates"})
 	}
 
@@ -97,8 +100,11 @@ func SatelliteTileProxy(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid tile coordinates"})
 	}
 
+	if z < 0 || z > 19 || x < 0 || y < 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid tile coordinates"})
+	}
 	maxCoord := (1 << z) - 1
-	if z < 0 || z > 19 || x < 0 || x > maxCoord || y < 0 || y > maxCoord {
+	if x > maxCoord || y > maxCoord {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid tile coordinates"})
 	}
 

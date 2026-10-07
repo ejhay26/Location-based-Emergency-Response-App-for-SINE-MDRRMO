@@ -68,7 +68,7 @@ func SubmitHazard(c *fiber.Ctx) error {
 
 	websocket.BroadcastHazard("submitted", hazard.HazardID)
 
-	go func() {
+	services.SafeGo(func() {
 		_ = services.NotifyAdminsAndDispatchers(
 			"⚠️ Public Hazard Reported",
 			"New public road hazard reported in San Isidro.",
@@ -77,7 +77,7 @@ func SubmitHazard(c *fiber.Ctx) error {
 				"hazard_id": strconv.Itoa(hazard.HazardID),
 			},
 		)
-	}()
+	})
 
 	return c.JSON(fiber.Map{"message": "Hazard reported successfully!"})
 }
@@ -138,3 +138,57 @@ func GetActiveHazards(c *fiber.Ctx) error {
 
 	return c.JSON(rows)
 }
+
+type MyHazardRow struct {
+	HazardID     int             `json:"hazard_id"`
+	UserID       *int            `json:"user_id"`
+	Description  *string         `json:"description"`
+	HazardType   *string         `json:"hazard_type"`
+	ProofFiles   json.RawMessage `json:"proof_files"`
+	Latitude     *float64        `json:"latitude"`
+	Longitude    *float64        `json:"longitude"`
+	BarangayID   *int            `json:"barangay_id"`
+	Status       *string         `json:"status"`
+	RequestTime  *time.Time      `json:"request_time"`
+	CreatedAt    *time.Time      `json:"created_at"`
+	UpdatedAt    *time.Time      `json:"updated_at"`
+	BarangayName *string         `json:"barangay_name"`
+}
+
+func GetMyHazards(c *fiber.Ctx) error {
+	user := middleware.GetUser(c)
+	if user == nil {
+		return c.Status(401).JSON(fiber.Map{"message": "Unauthenticated."})
+	}
+
+	targetID := user.UserID
+	if param := c.Params("user_id"); param != "" {
+		if id, err := strconv.Atoi(param); err == nil && id != 0 {
+			if id != user.UserID && !middleware.TokenCan(c, "admin") && !middleware.TokenCan(c, "dispatcher") {
+				return c.Status(403).JSON(fiber.Map{"message": "Unauthorized to view hazards for another user."})
+			}
+			targetID = id
+		}
+	}
+
+	rows := make([]MyHazardRow, 0)
+	err := database.DB.Table("hazards").
+		Select("hazards.*, hazards.created_at AS request_time, barangays.barangay_name").
+		Joins("LEFT JOIN barangays ON hazards.barangay_id = barangays.barangay_id").
+		Where("hazards.user_id = ?", targetID).
+		Order("hazards.created_at DESC").
+		Scan(&rows).Error
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"message": "Database query error."})
+	}
+
+	for i := range rows {
+		if len(rows[i].ProofFiles) == 0 || string(rows[i].ProofFiles) == "null" {
+			rows[i].ProofFiles = json.RawMessage("[]")
+		}
+	}
+
+	return c.JSON(rows)
+}
+

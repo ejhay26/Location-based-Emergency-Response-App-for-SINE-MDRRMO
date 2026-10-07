@@ -85,7 +85,7 @@ func SubmitSos(c *fiber.Ctx) error {
 	websocket.BroadcastEmergency("submitted", created.RequestID)
 
 	// Send Push Notification
-	go func() {
+	services.SafeGo(func() {
 		_ = services.NotifyAdminsAndDispatchers(
 			"🚨 Emergency SOS Received",
 			"New emergency request pending response in San Isidro.",
@@ -94,7 +94,7 @@ func SubmitSos(c *fiber.Ctx) error {
 				"request_id": strconv.Itoa(created.RequestID),
 			},
 		)
-	}()
+	})
 
 	return c.Status(201).JSON(fiber.Map{
 		"message":    "Emergency SOS sent!",
