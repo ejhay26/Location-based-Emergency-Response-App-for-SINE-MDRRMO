@@ -89,11 +89,11 @@ ufw status
 systemctl enable mariadb
 systemctl start mariadb
 
-# 2. Create database and application user
+# 2. Create database and dedicated application user
 mysql -u root -e "
 CREATE DATABASE IF NOT EXISTS emergencydb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'root'@'localhost' IDENTIFIED BY '';
-GRANT ALL PRIVILEGES ON emergencydb.* TO 'root'@'localhost';
+CREATE USER IF NOT EXISTS 'mdrrmo_user'@'localhost' IDENTIFIED BY 'YOUR_STRONG_DB_PASSWORD';
+GRANT ALL PRIVILEGES ON emergencydb.* TO 'mdrrmo_user'@'localhost';
 FLUSH PRIVILEGES;
 "
 ```
@@ -144,12 +144,16 @@ BACKUP_AUTO_ENABLED=true
 BACKUP_INTERVAL_HOURS=2
 BACKUP_MAX_INTRADAY=12
 BACKUP_MAX_DAILY=7
+
+DEFAULT_ADMIN_PASSWORD=your_initial_admin_password
+DEFAULT_DISPATCHER_PASSWORD=your_initial_dispatcher_password
 ```
 
 ### 5.3 Build Application Binary
 ```bash
 go build -ldflags="-s -w" -o server main.go
 chmod +x server
+chown -R www-data:www-data /var/www/backend
 ```
 
 ---
@@ -165,7 +169,8 @@ Wants=mariadb.service
 
 [Service]
 Type=simple
-User=root
+User=www-data
+Group=www-data
 WorkingDirectory=/var/www/backend
 ExecStart=/var/www/backend/server
 Restart=always
@@ -187,18 +192,21 @@ systemctl status backend.service
 
 ---
 
-## 7. Default Seeded Accounts
+## 7. Administrative Initial Accounts
 
-The Go Fiber engine automatically applies schema migrations and seeds initial reference data on startup:
+The database seeder configures the initial administrative accounts using the passwords defined in your `.env`:
 
-* 👑 **Super Admin Account:**
-  * **Username:** `admin` (or `admin_user@sine.gov.ph`)
-  * **Password:** `Admin123!`
+* **Super Admin Account:**
+  * **Email / Username:** `admin_user@sine.gov.ph` / `admin`
+  * **Configured Via:** `DEFAULT_ADMIN_PASSWORD` in `.env`
   * **Role:** `admin`
-* 🎧 **Dispatcher Account:**
-  * **Username:** `dispatcher1` (or `dis@mail.com`)
-  * **Password:** `Dispatcher123!`
+* **Dispatcher Account:**
+  * **Email / Username:** `dis@mail.com` / `dispatcher1`
+  * **Configured Via:** `DEFAULT_DISPATCHER_PASSWORD` in `.env`
   * **Role:** `dispatcher`
+
+> [!IMPORTANT]
+> Change all initial administrative and dispatcher passwords immediately after initial deployment. Never commit production passwords to version control.
 
 ---
 

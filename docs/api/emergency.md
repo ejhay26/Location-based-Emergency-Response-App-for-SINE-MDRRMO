@@ -89,7 +89,8 @@ Records a false alarm strike against the reporting citizen.
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | `POST` | `/api/submit-hazard` | Authenticated | Submits road hazard (floods, fallen trees, downed wires) with GPS & photo |
-| `GET` | `/api/active-hazards` | Authenticated | Retrieves all currently active hazards for map overlay |
+| `GET` | `/api/my-hazards` | Authenticated | Returns the authenticated citizen's personal submitted hazard history |
+| `GET` | `/api/active-hazards` | **[dispatcher]** | Retrieves all currently active hazards with reporter PII for map dispatch |
 | `POST` | `/api/resolve-hazard` | **[dispatcher]** | Acknowledges and clears a hazard report |
 
 ---
