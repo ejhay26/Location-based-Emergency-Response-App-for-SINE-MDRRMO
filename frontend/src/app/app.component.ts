@@ -60,8 +60,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.dismissSplash();
     if (this.isDesktop) {
       import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
-        getCurrentWindow().show();
-      }).catch(() => {});
+        const win = getCurrentWindow();
+        win.show().catch((err) => console.warn('Tauri window show error:', err));
+        win.setFocus().catch(() => {});
+      }).catch((err) => console.warn('Tauri window module load error:', err));
     }
   }
 

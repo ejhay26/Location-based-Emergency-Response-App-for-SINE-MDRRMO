@@ -1767,7 +1767,7 @@ dependencies = [
 
 [[package]]
 name = "mdrrmo-emergency-response-app"
-version = "0.78.0"
+version = "0.84.7"
 dependencies = [
  "serde",
  "serde_json",

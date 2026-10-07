@@ -19,7 +19,6 @@
         "minWidth": 1024,
         "minHeight": 650,
         "decorations": false,
-        "visible": false,
         "transparent": false,
         "dragDropEnabled": false,
         "devtools": false
