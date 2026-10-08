@@ -33,11 +33,8 @@ jobs:
           echo "Preparing draft release for $TARGET_TAG..."
           EXISTING_ID=$(gh api "repos/${{ github.repository }}/releases" --jq ".[] | select(.tag_name == \"$TARGET_TAG\") | .id" | head -n 1)
           if [ -n "$EXISTING_ID" ]; then
-            echo "Draft release already exists with ID: $EXISTING_ID. Updating body and title..."
-            gh api -X PATCH "repos/${{ github.repository }}/releases/$EXISTING_ID" \
-              -F name="$RELEASE_TITLE" \
-              -F draft:=true \
-              -F body=@.github/release_notes.md
+            echo "Draft release already exists with ID: $EXISTING_ID. Preserving existing body and title..."
+            # Not patching the name and body to preserve existing release info
           else
             echo "Creating new draft release for $TARGET_TAG..."
             gh api -X POST "repos/${{ github.repository }}/releases" \
@@ -82,7 +79,7 @@ jobs:
             args: '--target aarch64-apple-darwin'
 
           # Linux x64 (.deb & .AppImage)
-          - platform: 'ubuntu-22.04'
+          - platform: 'ubuntu-24.04'
             name: 'Linux x64'
             rust_targets: ''
             args: ''
