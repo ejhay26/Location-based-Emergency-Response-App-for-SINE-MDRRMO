@@ -214,4 +214,19 @@ export class DialogService {
     this.lightboxItems.set([]);
     this.lightboxIndex.set(0);
   }
+
+  /**
+   * Immediately closes any open confirm dialog or lightbox and cancels
+   * any pending confirm resolver without waiting for animations.
+   */
+  dismissAll() {
+    if (this.resolver) {
+      this.resolver(false);
+      this.resolver = null;
+    }
+    this.confirmLoading.set(false);
+    this.closingConfirm.set(false);
+    this.confirmDialog.set(CLOSED_STATE);
+    this.closeLightbox();
+  }
 }

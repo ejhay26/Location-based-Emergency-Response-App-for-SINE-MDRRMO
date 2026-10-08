@@ -1,6 +1,7 @@
-import { Component, OnInit, AfterViewInit, isDevMode } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, isDevMode } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent, QuickSearchPaletteComponent } from './shared/components/index';
 import { isTauri, isMacDesktop } from './shared/utils/platform.util';
@@ -9,6 +10,8 @@ import { UserSettingsService } from './core/services/user-settings';
 import { LocationService } from './core/services/location';
 import { DeepLinkService } from './core/services/deep-link';
 import { KeyboardShortcutsService } from './core/services/keyboard-shortcuts.service';
+import { EchoService } from './core/services/echo.service';
+import { AuthSessionService } from './core/services/auth-session.service';
 
 @Component({
   selector: 'app-root',
@@ -16,9 +19,10 @@ import { KeyboardShortcutsService } from './core/services/keyboard-shortcuts.ser
   standalone: true,
   imports: [IonApp, IonRouterOutlet, TourOverlayComponent, AppDialogsComponent, AppTitlebarComponent, QuickSearchPaletteComponent],
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   isDesktop = false;
   isMac = false;
+  private userVerifiedSub?: Subscription;
 
   constructor(
     private router: Router,
@@ -27,6 +31,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     private locationSvc: LocationService,
     private deepLink: DeepLinkService,
     private shortcuts: KeyboardShortcutsService,
+    private echo: EchoService,
+    private authSession: AuthSessionService,
   ) {}
 
   ngOnInit() {
@@ -41,19 +47,43 @@ export class AppComponent implements OnInit, AfterViewInit {
       document.addEventListener('contextmenu', (e) => e.preventDefault());
     }
 
-    // Only apply persisted DOM settings (dark mode, reduce animations) when
-    // the user is already logged in. This prevents dark mode from leaking
-    // onto the login/register pages on cold start.
+    // Only apply persisted DOM settings (dark mode, reduce animations) and
+    // initialize WebSocket connection when the user is already logged in.
     const user = localStorage.getItem('user');
     if (user) {
       this.settings.applyToDom();
       this.locationSvc.start();
+      this.echo.connect();
     }
+
+    // Single-device login enforcement listener:
+    // When a citizen logs in on another device, backend broadcasts 'force-logout'
+    // on the 'users' channel with the affected user_id.
+    this.userVerifiedSub = this.echo.onUserVerified.subscribe((data) => {
+      if (data?.action === 'force-logout') {
+        const rawUser = localStorage.getItem('user');
+        if (!rawUser) return;
+        try {
+          const currentUser = JSON.parse(rawUser);
+          if (currentUser && Number(currentUser.user_id) === Number(data.user_id)) {
+            void this.authSession.terminateSession(
+              'Your account was logged in from another device. You have been signed out on this device.'
+            );
+          }
+        } catch {
+          // JSON parse error ignored
+        }
+      }
+    });
 
     // Listens for widget/external-launch deep links (native only, no-op
     // elsewhere). Must be registered once at root so it's live regardless
     // of which page the app happens to cold-start on.
     this.deepLink.init();
+  }
+
+  ngOnDestroy() {
+    this.userVerifiedSub?.unsubscribe();
   }
 
   ngAfterViewInit() {

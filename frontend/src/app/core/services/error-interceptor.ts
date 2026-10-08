@@ -8,11 +8,16 @@ import { catchError } from 'rxjs/operators';
 import { ToastService } from './toast.service';
 import { Router } from '@angular/router';
 import { ApiService } from './api';
+import { AuthSessionService } from './auth-session.service';
 
 @Injectable({ providedIn: 'root' })
 export class ErrorInterceptorService implements HttpInterceptor {
 
-  constructor(private toastService: ToastService, private router: Router) {}
+  constructor(
+    private toastService: ToastService,
+    private router: Router,
+    private authSession: AuthSessionService
+  ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
@@ -31,11 +36,7 @@ export class ErrorInterceptorService implements HttpInterceptor {
             const isApiRequest = req.url.includes('/api/');
             const currentUrl = this.router.url || '';
             if (isApiRequest && !currentUrl.includes('/login') && !currentUrl.includes('/auth')) {
-              localStorage.removeItem('api_token');
-              localStorage.removeItem('user');
-              localStorage.removeItem('role');
-              this.router.navigate(['/login']);
-              message = 'Your session has expired. Please log in again to continue.';
+              void this.authSession.terminateSession('Your session has expired. Please log in again to continue.');
             }
           } else if (error.status === 403) {
             message = 'Access restricted. You do not have permission to perform this action.';

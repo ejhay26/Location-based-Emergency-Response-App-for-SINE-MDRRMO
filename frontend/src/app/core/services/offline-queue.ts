@@ -173,6 +173,7 @@ export class OfflineQueueService {
    */
   async flush(): Promise<void> {
     if (this.flushing) return; // already in progress — avoid overlapping flushes
+    if (!localStorage.getItem('api_token')) return; // skip flush if currently logged out
     this.flushing = true;
     try {
       const items = (await this.getAll()).sort((a, b) => a.createdAt - b.createdAt);
@@ -192,6 +193,10 @@ export class OfflineQueueService {
           // CORS-preflight failure) — a genuine network failure, distinct
           // from the server actually responding with a rejection.
           if (err?.status === 0) break; // stop the whole flush, retry later
+
+          // status 401 = session expired / unauthenticated. Stop the flush immediately
+          // and preserve queued items so they can sync once the user authenticates.
+          if (err?.status === 401) break;
 
           item.attempts += 1;
           item.lastError = err?.error?.message || err?.message || 'Unknown error';
