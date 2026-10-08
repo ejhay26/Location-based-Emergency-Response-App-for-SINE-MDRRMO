@@ -121,39 +121,100 @@ export class CustomTooltipDirective implements OnDestroy {
 
     // Measure after render to compute placement
     const tipRect = tooltip.getBoundingClientRect();
+    const placed = this.pickPlacement(rect, tipRect);
+
+    const gap = 9;
+    const pad = 8;
+    const W = window.innerWidth;
+    const H = window.innerHeight;
 
     let top = 0;
     let left = 0;
+    let arrowOffset = 0;
 
-    if (this.tooltipPlacement === 'right') {
-      left = rect.right + 9;
-      top = rect.top + (rect.height / 2) - (tipRect.height / 2);
-    } else if (this.tooltipPlacement === 'left') {
-      left = rect.left - tipRect.width - 9;
-      top = rect.top + (rect.height / 2) - (tipRect.height / 2);
-    } else if (this.tooltipPlacement === 'top') {
-      left = rect.left + (rect.width / 2) - (tipRect.width / 2);
-      top = rect.top - tipRect.height - 8;
+    if (placed === 'right') {
+      left = rect.right + gap;
+      const elemCenterY = rect.top + (rect.height / 2);
+      top = elemCenterY - (tipRect.height / 2);
+      top = Math.max(pad, Math.min(top, H - pad - tipRect.height));
+      arrowOffset = elemCenterY - top;
+      arrowOffset = Math.max(12, Math.min(arrowOffset, tipRect.height - 12));
+    } else if (placed === 'left') {
+      left = rect.left - gap - tipRect.width;
+      const elemCenterY = rect.top + (rect.height / 2);
+      top = elemCenterY - (tipRect.height / 2);
+      top = Math.max(pad, Math.min(top, H - pad - tipRect.height));
+      arrowOffset = elemCenterY - top;
+      arrowOffset = Math.max(12, Math.min(arrowOffset, tipRect.height - 12));
+    } else if (placed === 'top') {
+      top = rect.top - gap - tipRect.height;
+      const elemCenterX = rect.left + (rect.width / 2);
+      left = elemCenterX - (tipRect.width / 2);
+      left = Math.max(pad, Math.min(left, W - pad - tipRect.width));
+      arrowOffset = elemCenterX - left;
+      arrowOffset = Math.max(12, Math.min(arrowOffset, tipRect.width - 12));
     } else {
-      left = rect.left + (rect.width / 2) - (tipRect.width / 2);
-      top = rect.bottom + 8;
-    }
-
-    // Viewport edge collision guards
-    const padding = 8;
-    if (top < padding) top = padding;
-    if (top + tipRect.height > window.innerHeight - padding) {
-      top = window.innerHeight - padding - tipRect.height;
-    }
-    if (left < padding) left = padding;
-    if (left + tipRect.width > window.innerWidth - padding) {
-      left = window.innerWidth - padding - tipRect.width;
+      top = rect.bottom + gap;
+      const elemCenterX = rect.left + (rect.width / 2);
+      left = elemCenterX - (tipRect.width / 2);
+      left = Math.max(pad, Math.min(left, W - pad - tipRect.width));
+      arrowOffset = elemCenterX - left;
+      arrowOffset = Math.max(12, Math.min(arrowOffset, tipRect.width - 12));
     }
 
     tooltip.style.top = `${Math.round(top)}px`;
     tooltip.style.left = `${Math.round(left)}px`;
-    tooltip.classList.add(`custom-story-tooltip--${this.tooltipPlacement}`);
+    tooltip.style.setProperty('--arrow-offset', `${Math.round(arrowOffset)}px`);
+    tooltip.classList.add(`custom-story-tooltip--${placed}`);
     tooltip.classList.add('custom-story-tooltip--active');
+  }
+
+  /**
+   * Tests sides in priority order (preferred -> opposite -> other sides) and returns
+   * the first placement that fits cleanly in the viewport without covering the target element.
+   */
+  private pickPlacement(r: DOMRect, t: DOMRect): 'right' | 'left' | 'top' | 'bottom' {
+    const gap = 9;
+    const pad = 8;
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    const fits: Record<'right' | 'left' | 'top' | 'bottom', boolean> = {
+      right:  r.right + gap + t.width <= W - pad,
+      left:   r.left - gap - t.width >= pad,
+      top:    r.top - gap - t.height >= pad,
+      bottom: r.bottom + gap + t.height <= H - pad,
+    };
+
+    const opp: Record<'right' | 'left' | 'top' | 'bottom', 'right' | 'left' | 'top' | 'bottom'> = {
+      right: 'left',
+      left: 'right',
+      top: 'bottom',
+      bottom: 'top',
+    };
+
+    const order: Array<'right' | 'left' | 'top' | 'bottom'> = [
+      this.tooltipPlacement,
+      opp[this.tooltipPlacement],
+      'bottom',
+      'top',
+      'left',
+      'right',
+    ];
+
+    const match = order.find(p => fits[p]);
+    if (match) return match;
+
+    // Fallback: pick whichever placement has the greatest available clearance
+    const clearances: Record<'right' | 'left' | 'top' | 'bottom', number> = {
+      right:  W - pad - (r.right + gap),
+      left:   r.left - gap - pad,
+      top:    r.top - gap - pad,
+      bottom: H - pad - (r.bottom + gap),
+    };
+    return (Object.keys(clearances) as Array<'right' | 'left' | 'top' | 'bottom'>).reduce((best, curr) =>
+      clearances[curr] > clearances[best] ? curr : best
+    , this.tooltipPlacement);
   }
 
   private destroyTooltip(): void {

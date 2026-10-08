@@ -16,7 +16,11 @@
   font-family: var(--ion-family, system-ui, -apple-system, sans-serif);
   font-size: 12px;
   line-height: 1.35;
-  white-space: nowrap;
+  width: max-content;
+  max-width: min(280px, 90vw);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
   border: var(--card-border, 1px solid rgba(0, 0, 0, 0.09));
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
   transform-origin: left center;
@@ -90,13 +94,13 @@
 
   /* ── Right-positioned tooltip: Arrowhead pointing LEFT ── */
   &.custom-story-tooltip--right {
-    transform-origin: left center;
+    transform-origin: left var(--arrow-offset, center);
 
     &::before {
       content: '';
       position: absolute;
       left: -6px;
-      top: 50%;
+      top: var(--arrow-offset, 50%);
       transform: translateY(-50%);
       width: 0;
       height: 0;
@@ -110,7 +114,7 @@
       content: '';
       position: absolute;
       left: -7.5px;
-      top: 50%;
+      top: var(--arrow-offset, 50%);
       transform: translateY(-50%);
       width: 0;
       height: 0;
@@ -123,13 +127,13 @@
 
   /* ── Left-positioned tooltip: Arrowhead pointing RIGHT ── */
   &.custom-story-tooltip--left {
-    transform-origin: right center;
+    transform-origin: right var(--arrow-offset, center);
 
     &::before {
       content: '';
       position: absolute;
       right: -6px;
-      top: 50%;
+      top: var(--arrow-offset, 50%);
       transform: translateY(-50%);
       width: 0;
       height: 0;
@@ -143,7 +147,7 @@
       content: '';
       position: absolute;
       right: -7.5px;
-      top: 50%;
+      top: var(--arrow-offset, 50%);
       transform: translateY(-50%);
       width: 0;
       height: 0;
@@ -156,13 +160,13 @@
 
   /* ── Top-positioned tooltip: Arrowhead pointing DOWN ── */
   &.custom-story-tooltip--top {
-    transform-origin: center bottom;
+    transform-origin: var(--arrow-offset, center) bottom;
 
     &::before {
       content: '';
       position: absolute;
       bottom: -6px;
-      left: 50%;
+      left: var(--arrow-offset, 50%);
       transform: translateX(-50%);
       width: 0;
       height: 0;
@@ -176,7 +180,7 @@
       content: '';
       position: absolute;
       bottom: -7.5px;
-      left: 50%;
+      left: var(--arrow-offset, 50%);
       transform: translateX(-50%);
       width: 0;
       height: 0;
@@ -189,13 +193,13 @@
 
   /* ── Bottom-positioned tooltip: Arrowhead pointing UP ── */
   &.custom-story-tooltip--bottom {
-    transform-origin: center top;
+    transform-origin: var(--arrow-offset, center) top;
 
     &::before {
       content: '';
       position: absolute;
       top: -6px;
-      left: 50%;
+      left: var(--arrow-offset, 50%);
       transform: translateX(-50%);
       width: 0;
       height: 0;
@@ -209,7 +213,7 @@
       content: '';
       position: absolute;
       top: -7.5px;
-      left: 50%;
+      left: var(--arrow-offset, 50%);
       transform: translateX(-50%);
       width: 0;
       height: 0;
@@ -324,21 +328,21 @@ body.dark .workstation-kbd,
 @keyframes tooltipSpringPop {
   0% {
     opacity: 0;
-    transform: translateX(-6px) scale(0.92);
+    transform: scale(0.92);
   }
   100% {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: scale(1);
   }
 }
 
 @keyframes tooltipSpringFadeOut {
   0% {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: scale(1);
   }
   100% {
     opacity: 0;
-    transform: translateX(-3px) scale(0.96);
+    transform: scale(0.96);
   }
 }
