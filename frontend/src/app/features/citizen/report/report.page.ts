@@ -13,6 +13,7 @@ import { OfflineQueueService } from '../../../core/services/offline-queue';
 import { DialogService } from '../../../core/services/dialog.service';
 import { TourService } from '../../../core/services/tour';
 import { LocationService } from '../../../core/services/location';
+import { AuthSessionService } from '../../../core/services/auth-session.service';
 import { PressFeedbackDirective } from '../../../shared/directives/press-feedback.directive';
 import { ReportTypeSelectorComponent } from './components/report-type-selector/report-type-selector.component';
 import type { ConfirmDialogDetail } from '../../../core/services/dialog.service';
@@ -42,6 +43,7 @@ export class ReportPage implements OnDestroy {
   private offlineQueue = inject(OfflineQueueService);
   private modalCtrl    = inject(ModalController);
   public  tour        = inject(TourService);
+  private authSession = inject(AuthSessionService);
   /**
    * Perf: continuous high-accuracy GPS tracking (LocationService.start())
    * is now scoped to exactly the lifetime of this page/modal being open,
@@ -68,9 +70,11 @@ export class ReportPage implements OnDestroy {
   @Input() reportType: 'emergency' | 'hazard' = 'emergency';
 
   ngOnInit() {
-    if (this.presentedAsModal) return; // reportType already set via componentProps
-    const type = this.route.snapshot.queryParamMap.get('type');
-    this.reportType = type === 'hazard' ? 'hazard' : 'emergency';
+    if (!this.presentedAsModal) {
+      const type = this.route.snapshot.queryParamMap.get('type');
+      this.reportType = type === 'hazard' ? 'hazard' : 'emergency';
+    }
+    this.restoreDraftIfPresent();
   }
 
   mediaFiles: MediaFile[] = [];
@@ -82,6 +86,7 @@ export class ReportPage implements OnDestroy {
   });
 
   isSubmitting = false;
+  private isSubmitted = false;
   /** Captured from ReportMapComponent's live preview via onCoordsChanged — shown in the pre-submit confirmation dialog. Preview only: never sent to the backend, which resolves barangay_id independently (see BarangayResolver) before persisting. */
   resolvedBarangayName: string | null = null;
 
@@ -92,6 +97,77 @@ export class ReportPage implements OnDestroy {
   }
 
   constructor() {}
+
+  /** Checks if any report details or media were provided by the user. */
+  private hasDraftContent(): boolean {
+    const val = this.reportForm.value;
+    const hasDetails = !!(val?.description && val.description.trim().length > 0);
+    const hasType = !!(val?.incident_type_id || val?.hazard_type);
+    const hasLocation = !!(val?.latitude && val?.longitude);
+    const hasMedia = this.mediaFiles.length > 0;
+    return hasDetails || hasType || hasLocation || hasMedia;
+  }
+
+  /** Saves active report input fields to sessionStorage so they are preserved across auth bounces. */
+  saveDraft(): void {
+    const val = this.reportForm.value;
+    const draft = {
+      reportType: this.reportType,
+      incident_type_id: val.incident_type_id || '',
+      hazard_type: val.hazard_type || '',
+      description: val.description || '',
+      latitude: val.latitude || '',
+      longitude: val.longitude || '',
+      resolvedBarangayName: this.resolvedBarangayName,
+      mediaFiles: this.mediaFiles,
+      savedAt: Date.now(),
+    };
+    try {
+      sessionStorage.setItem('pending_report_draft', JSON.stringify(draft));
+    } catch {
+      try {
+        sessionStorage.setItem('pending_report_draft', JSON.stringify({ ...draft, mediaFiles: [] }));
+      } catch {
+        // Storage quota error ignored
+      }
+    }
+  }
+
+  /** Clears persisted draft upon successful submission. */
+  clearDraft(): void {
+    sessionStorage.removeItem('pending_report_draft');
+  }
+
+  /** Restores any draft found in sessionStorage. */
+  private restoreDraftIfPresent(): void {
+    try {
+      const raw = sessionStorage.getItem('pending_report_draft');
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft && typeof draft === 'object') {
+        if (draft.reportType === 'hazard' || draft.reportType === 'emergency') {
+          this.reportType = draft.reportType;
+        }
+        this.reportForm.patchValue({
+          incident_type_id: draft.incident_type_id || '',
+          hazard_type: draft.hazard_type || '',
+          description: draft.description || '',
+          latitude: draft.latitude || '',
+          longitude: draft.longitude || '',
+        });
+        if (draft.resolvedBarangayName) {
+          this.resolvedBarangayName = draft.resolvedBarangayName;
+        }
+        if (Array.isArray(draft.mediaFiles) && draft.mediaFiles.length > 0) {
+          this.mediaFiles = draft.mediaFiles;
+        }
+        this.clearDraft();
+        this.showToast('Your unsent report draft has been restored.', 'primary');
+      }
+    } catch {
+      // Draft parse error ignored
+    }
+  }
 
   ionViewDidEnter() {
     this.locationSvc.start();
@@ -106,6 +182,9 @@ export class ReportPage implements OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.authSession.isTerminatingSession && !this.isSubmitted && this.hasDraftContent()) {
+      this.saveDraft();
+    }
     this.reportMapCmp?.cleanup();
     this.locationSvc.stop();
   }
@@ -161,6 +240,8 @@ export class ReportPage implements OnDestroy {
 
   /** Same dismiss-vs-navigate branch, used after a successful submission. */
   private goHome() {
+    this.isSubmitted = true;
+    this.clearDraft();
     if (this.presentedAsModal) { this.modalCtrl.dismiss({ submitted: true }, 'submitted'); }
     else { this.router.navigate(['/tabs/home']); }
   }
@@ -184,8 +265,24 @@ export class ReportPage implements OnDestroy {
       details: this.buildConfirmDetails(),
     });
     if (!confirmed) return;
+
+    const rawUser = localStorage.getItem('user');
+    const token = localStorage.getItem('api_token');
+    if (!rawUser || !token) {
+      this.saveDraft();
+      void this.authSession.terminateSession('Please log in again to submit your report.');
+      return;
+    }
+    let user: any;
+    try {
+      user = JSON.parse(rawUser);
+    } catch {
+      this.saveDraft();
+      void this.authSession.terminateSession('Please log in again to submit your report.');
+      return;
+    }
+
     this.isSubmitting = true;
-    const user       = JSON.parse(localStorage.getItem('user')!);
     const proofFiles = this.mediaFiles.map(m => m.preview);
     const payload = this.reportType === 'emergency'
       ? { user_id: user.user_id, incident_type_id: this.reportForm.value.incident_type_id, description: this.reportForm.value.description, latitude: this.reportForm.value.latitude, longitude: this.reportForm.value.longitude, proof_files: proofFiles }
@@ -212,6 +309,14 @@ export class ReportPage implements OnDestroy {
     const reachable = this.network.isOnline() ? await this.network.recheck() : false;
 
     if (!reachable) {
+      const user = localStorage.getItem('user');
+      const token = localStorage.getItem('api_token');
+      if (!user || !token) {
+        this.saveDraft();
+        this.isSubmitting = false;
+        this.showToast('Authentication required. Please reconnect and log in to send your report.', 'warning');
+        return;
+      }
       await this.queueAndNotify(kind, payload);
       return;
     }
@@ -219,6 +324,8 @@ export class ReportPage implements OnDestroy {
     const submit$ = kind === 'sos' ? this.api.submitSos(payload) : this.api.submitHazard(payload);
     submit$.subscribe({
       next: () => {
+        this.isSubmitted = true;
+        this.clearDraft();
         this.isSubmitting = false;
         this.showToast(kind === 'sos' ? 'Emergency SOS sent!' : 'Hazard reported!', 'success');
         this.goHome();
@@ -232,6 +339,12 @@ export class ReportPage implements OnDestroy {
         // already told us is invalid.
         if (err?.status === 0) {
           await this.queueAndNotify(kind, payload);
+          return;
+        }
+        if (err?.status === 401) {
+          // Token expired or revoked: keep form data, do NOT queue report, tell user to log in again
+          this.saveDraft();
+          this.isSubmitting = false;
           return;
         }
         this.isSubmitting = false;

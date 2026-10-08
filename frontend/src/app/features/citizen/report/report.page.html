@@ -16,6 +16,8 @@
   <form #reportFormEl [formGroup]="reportForm" (ngSubmit)="submitReport()">
     <app-report-type-selector
       [reportType]="reportType"
+      [selectedIncidentIdInput]="reportForm.get('incident_type_id')?.value"
+      [selectedHazardIdInput]="reportForm.get('hazard_type')?.value"
       (incidentTypeChange)="reportForm.patchValue({ incident_type_id: $event })"
       (hazardTypeChange)="reportForm.patchValue({ hazard_type: $event })">
     </app-report-type-selector>
@@ -27,6 +29,7 @@
 
       <app-report-media
         [reportType]="reportType"
+        [initialMediaFiles]="mediaFiles"
         (mediaFilesChange)="mediaFiles = $event">
       </app-report-media>
 

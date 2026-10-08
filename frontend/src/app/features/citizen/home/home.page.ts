@@ -147,6 +147,19 @@ export class HomePage implements OnInit, OnDestroy {
     this.widgetPin.isAvailable().then(available => {
       this.showWidgetBanner = available && !localStorage.getItem(WIDGET_PROMPT_DISMISSED_KEY);
     });
+
+    const pendingDraftRaw = sessionStorage.getItem('pending_report_draft');
+    if (pendingDraftRaw) {
+      try {
+        const draft = JSON.parse(pendingDraftRaw);
+        const type = draft?.reportType === 'hazard' ? 'hazard' : 'emergency';
+        setTimeout(() => {
+          this.openReport(type);
+        }, 350);
+      } catch {
+        // Parse error ignored
+      }
+    }
   }
 
   ionViewWillEnter() {

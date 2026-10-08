@@ -41,6 +41,15 @@ export class ReportMediaComponent {
   @Output() mediaFilesChange = new EventEmitter<MediaFile[]>();
 
   mediaFiles: MediaFile[] = [];
+
+  @Input() set initialMediaFiles(files: MediaFile[] | null | undefined) {
+    if (files && Array.isArray(files)) {
+      this.mediaFiles = [...files];
+    } else if (!files) {
+      this.mediaFiles = [];
+    }
+  }
+
   get canAddMore(): boolean { return this.mediaFiles.length < 2; }
   get hasMedia(): boolean   { return this.mediaFiles.length > 0; }
 

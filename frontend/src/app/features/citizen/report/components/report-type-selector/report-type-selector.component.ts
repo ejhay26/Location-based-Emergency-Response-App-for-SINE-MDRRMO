@@ -47,8 +47,38 @@ export class ReportTypeSelectorComponent {
   selectedIncidentId: number | '' = '';
   selectedIncidentName = 'None';
 
+  @Input() set selectedIncidentIdInput(id: number | '' | null | undefined) {
+    if (id !== undefined && id !== null && id !== '') {
+      const match = this.incidentTypes.find(t => t.id === Number(id));
+      if (match) {
+        this.selectedIncidentId = match.id;
+        this.selectedIncidentName = match.name;
+        return;
+      }
+    }
+    if (id === '') {
+      this.selectedIncidentId = '';
+      this.selectedIncidentName = 'None';
+    }
+  }
+
   selectedHazardId: string | '' = '';
   selectedHazardName = 'None';
+
+  @Input() set selectedHazardIdInput(id: string | '' | null | undefined) {
+    if (id) {
+      const match = this.hazardCategories.find(c => c.id === id);
+      if (match) {
+        this.selectedHazardId = match.id;
+        this.selectedHazardName = match.name;
+        return;
+      }
+    }
+    if (id === '') {
+      this.selectedHazardId = '';
+      this.selectedHazardName = 'None';
+    }
+  }
 
   selectIncident(type: IncidentType) {
     this.selectedIncidentId = type.id;
