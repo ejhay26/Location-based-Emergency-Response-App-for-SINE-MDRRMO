@@ -131,3 +131,11 @@ All administrative panels share two modular components:
 - **Skeleton Shimmer Loading States:** Replaces static loading text with responsive placeholder shimmer animations across metrics, queues, and verification cards.
 - **Performance-Capped Radar Ripples:** High-visibility map radar pulses restricted strictly to active, pending emergencies (<10 minutes old) with an automatic 8-cycle cutoff to safeguard client GPU resources.
 
+---
+
+## 15. Aggregated Citizen History & Multi-Type Incident Timeline
+
+- **Dual-Stream Concurrency:** Concurrently queries `GET /api/my-emergencies` and `GET /api/my-hazards` via RxJS `forkJoin`, consolidating high-priority SOS emergency incidents and non-emergency community road hazards into a unified, chronologically sorted timeline.
+- **Robust Differential Rendering:** Employs a detached-safe `trackByReportId` comparator (`req?.request_id != null ? req.request_id : 'h_' + req?.hazard_id`) that maintains component context integrity and ensures reliable Angular DOM updates across list mutations.
+- **Offline Queue Visual Synchronization:** Integrates with `OfflineQueueService` to surface unsynced reports persisted in IndexedDB directly above historical entries, automatically transitioning them into authoritative logs once network connectivity triggers an automated flush.
+

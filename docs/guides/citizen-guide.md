@@ -122,7 +122,22 @@ For non-emergency community hazards (flooded streets, fallen trees, downed power
 
 ---
 
-## 8. App Settings & Customization
+## 8. Tracking Emergency & Hazard History
+
+Access the **History** tab from the bottom navigation to review your personal emergency and hazard response activity:
+- **Unified Chronological Feed:** Concurrently fetches and sorts both personal emergency SOS requests and public road hazard reports into a single chronological timeline.
+- **Incident Lifecycle Badges:**
+  - `Pending`: Logged at the operations center; undergoing dispatcher triage.
+  - `Dispatched`: First responder units (BFP, PNP, Rescue, or RHU) and assigned vehicles deployed to your coordinates.
+  - `Resolved`: Emergency handled and closed, or road hazard cleared.
+  - `Cancelled`: Request revoked by user or flagged as false alarm.
+- **Accordion Card Inspection:** Tap any report card to expand full incident details, including registered barangay, exact submission timestamp, status history, and captured photo/video proof.
+- **Multi-Date Range Filtering:** Filter reports using the calendar picker by **Single Day**, **Several Days**, or a **Custom Date Range**.
+- **Offline Synchronization Queue:** When reports are saved during connectivity loss, an alert banner displays pending queue items stored in IndexedDB and updates automatically as soon as reconnection triggers synchronization.
+
+---
+
+## 9. App Settings & Customization
  
 - **Appearance:** Toggle Dark Theme or Reduce Animations for faster rendering.
 - **Location:** Enable or disable automatic continuous background location fetching.
@@ -135,7 +150,7 @@ For non-emergency community hazards (flooded streets, fallen trees, downed power
 
 ---
 
-## 9. Help Center & Direct Hotlines
+## 10. Help Center & Direct Hotlines
 
 The **Help** tab provides:
 - **Direct Dial Hotlines:** One-tap calling to MDRRMO Globe and Smart emergency numbers.

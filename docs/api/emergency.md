@@ -89,9 +89,73 @@ Records a false alarm strike against the reporting citizen.
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | `POST` | `/api/submit-hazard` | Authenticated | Submits road hazard (floods, fallen trees, downed wires) with GPS & photo |
-| `GET` | `/api/my-hazards` | Authenticated | Returns the authenticated citizen's personal submitted hazard history |
+| `GET` | `/api/my-hazards/{user_id?}` | Authenticated | Returns the authenticated citizen's personal submitted hazard history |
 | `GET` | `/api/active-hazards` | **[dispatcher]** | Retrieves all currently active hazards with reporter PII for map dispatch |
 | `POST` | `/api/resolve-hazard` | **[dispatcher]** | Acknowledges and clears a hazard report |
+
+---
+
+### 3.1 `POST /api/submit-hazard`
+Submits a community hazard report (road obstruction, localized flooding, fallen tree, power line hazard).
+- **Request Body:**
+  ```json
+  {
+    "hazard_type": "Flooding",
+    "description": "Knee-deep floodwaters near boundary bridge; impassable to light vehicles.",
+    "latitude": 15.31201500,
+    "longitude": 120.90544200,
+    "proof_files": ["data:image/jpeg;base64,..."]
+  }
+  ```
+  *(Note: `user_id` is automatically extracted from Sanctum token).*
+- **Backend Action:** Automatically resolves `barangay_id` via boundary polygon lookup, persists the hazard record, and broadcasts the event across the `hazards` WebSocket channel.
+- **Response (201):** `{ "message": "Hazard reported successfully!", "hazard_id": 14 }`
+
+---
+
+### 3.2 `GET /api/my-hazards/{user_id?}`
+Returns the authenticated citizen's submitted road hazard history, including pending, acknowledged, and resolved reports.
+- **Authentication:** `auth:sanctum`
+- **Route Parameters:** `{user_id}` *(optional)*: Defaults to the authenticated user's ID.
+- **Authorization:** Regular citizens can only query their own hazard history. Accessing records for other user IDs requires `dispatcher` or `admin` abilities.
+- **Soft-Delete Filtering:** Records with soft-delete timestamps (`deleted_at IS NOT NULL`) are automatically excluded.
+- **Response (200 OK):**
+  ```json
+  [
+    {
+      "hazard_id": 14,
+      "user_id": 12,
+      "hazard_type": "Flooding",
+      "description": "Knee-deep floodwaters near boundary bridge; impassable to light vehicles.",
+      "latitude": 15.312015,
+      "longitude": 120.905442,
+      "barangay_id": 3,
+      "barangay_name": "Malapit",
+      "status": "Resolved",
+      "proof_files": ["https://assets.mdrrmo.sine.gov.ph/media/hazard_f8b1c4e2.jpg"],
+      "request_time": "2026-10-07T08:30:00.000Z",
+      "created_at": "2026-10-07T08:30:00.000Z",
+      "updated_at": "2026-10-07T09:15:00.000Z"
+    }
+  ]
+  ```
+- **Real-Time Synchronization:** The mobile/PWA frontend listens on the `hazards` WebSocket channel. When a hazard is modified or resolved by dispatchers, an automated trigger re-fetches this endpoint to keep citizen logs in sync without page reloads.
+- **Client Aggregation:** The citizen `HistoryPage` concurrently calls `GET /api/my-emergencies` and `GET /api/my-hazards` via `forkJoin`, unifying both emergency calls and public hazard filings into a single chronological timeline.
+
+---
+
+### 3.3 `GET /api/active-hazards` **[dispatcher]**
+Retrieves all unresolved community hazard reports across San Isidro with full metadata, reporter contact details, and proof files for display on the Operations Dashboard live map.
+- **Security:** Requires `dispatcher` or `admin` token abilities.
+- **Response (200 OK):** Array of active hazard objects with joined citizen identity and barangay details.
+
+---
+
+### 3.4 `POST /api/resolve-hazard` **[dispatcher]**
+Marks an active community hazard as cleared or resolved.
+- **Request Body:** `{ "hazard_id": 14 }`
+- **Response (200 OK):** `{ "message": "Hazard cleared and resolved." }`
+- **Action:** Updates record status to `Resolved`, sets `resolved_at` timestamp, and broadcasts real-time update event over the `hazards` WebSocket channel.
 
 ---
 
