@@ -245,12 +245,12 @@ export class HistoryPage implements OnInit, OnDestroy {
   }
 
   getReportId(req: any): string | number {
-    return req.request_id !== undefined ? req.request_id : ('h_' + req.hazard_id);
+    return req?.request_id != null ? req.request_id : ('h_' + req?.hazard_id);
   }
 
-  trackByReportId(_index: number, req: any): string | number {
-    return this.getReportId(req);
-  }
+  trackByReportId = (_index: number, req: any): string | number => {
+    return req?.request_id != null ? req.request_id : (req?.hazard_id != null ? 'h_' + req.hazard_id : _index);
+  };
 
   /** Tap the card body to expand/retract (toggle) — accordion, so expanding one collapses any other. */
   toggleExpand(reportId: string | number) {

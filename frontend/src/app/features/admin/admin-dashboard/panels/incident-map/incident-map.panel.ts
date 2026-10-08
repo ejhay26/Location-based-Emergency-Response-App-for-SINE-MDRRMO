@@ -103,8 +103,25 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   isDateMenuOpen = false;
   barangaySearchQuery = '';
 
-  @HostListener('document:click')
-  onDocumentClick() {
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event?: MouseEvent) {
+    if (event) {
+      const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+      const isInsideProtectedOverlay = path.some((el: any) => {
+        if (!el || !el.tagName) return false;
+        const tag = el.tagName.toLowerCase();
+        return tag === 'ion-popover' ||
+               tag === 'ion-modal' ||
+               tag === 'ion-alert' ||
+               tag === 'ion-datetime' ||
+               tag === 'ion-segment' ||
+               tag === 'ion-segment-button' ||
+               (el.classList && (el.classList.contains('mac-frosted-menu') || el.classList.contains('mac-popover-btn') || el.classList.contains('popover-anchor')));
+      });
+      if (isInsideProtectedOverlay) {
+        return;
+      }
+    }
     this.closeAllMenus();
   }
 

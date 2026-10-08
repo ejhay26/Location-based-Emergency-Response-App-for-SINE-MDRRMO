@@ -235,9 +235,7 @@
       <div class="admin-main-viewport" [class.is-mac]="isMac">
         <!-- incident-map renders its own flex layout -->
         <div *ngIf="isMapView" style="flex: 1; display: flex; min-width: 0; height: 100%; overflow: hidden;">
-          @defer (when isMapView) {
-            <app-incident-map-panel style="flex: 1; display: flex; min-width: 0;"></app-incident-map-panel>
-          }
+          <app-incident-map-panel style="flex: 1; display: flex; min-width: 0;"></app-incident-map-panel>
         </div>
 
         <!-- analytics renders its own scroll container -->
