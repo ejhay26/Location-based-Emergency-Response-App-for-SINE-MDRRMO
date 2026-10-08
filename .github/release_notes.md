@@ -13,6 +13,7 @@
 - **Centralized Force-Logout & Overlay Teardown**: Introduced `AuthSessionService` to systematically dismiss all open Ionic overlays (modals, popovers, alerts, loading indicators) and root dialogs upon remote session termination (single-device citizen enforcement) or HTTP 401 expiration, preventing orphaned modals from persisting over the login screen.
 - **Resilient Citizen Report Draft Recovery**: Added automatic report draft serialization in `sessionStorage` preserving selected incident types, descriptions, coordinates, and media attachments across unexpected logouts or session expirations. Prevented unauthenticated reports from polluting the offline sync queue.
 - **Admin Incident Map Stability**: Hardened the Admin Incident Map date filter against accidental dismissals during popover and calendar interactions by filtering backdrop clicks through composed event paths.
+- **Independent Card Hover & Upward Button Flight Animation**: Resolved grid row height stretching in the Citizens and Dispatchers admin panels by anchoring cards to track start. Hovered cards now lift, scale gracefully, and reveal action buttons with a smooth staggered upward flight animation, keeping unhovered cards compact without whitespace gaps.
 - **Documentation Alignment**: Updated API specifications, security whitepapers, and production deployment runbooks to reflect dedicated database credentials, rate limits, and cryptographic asset paths.
 
 ### Direct Application Downloads

@@ -1,4 +1,4 @@
-.citizen-card {
+.dispatcher-card {
   position: relative;
   align-self: start;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
@@ -13,7 +13,7 @@
     z-index: 5;
   }
 
-  .citizen-actions-wrapper {
+  .dispatcher-actions-wrapper {
     opacity: 0;
     max-height: 0;
     margin-top: 0 !important;
@@ -32,8 +32,8 @@
     }
   }
 
-  &:hover .citizen-actions-wrapper,
-  &:focus-within .citizen-actions-wrapper {
+  &:hover .dispatcher-actions-wrapper,
+  &:focus-within .dispatcher-actions-wrapper {
     opacity: 1;
     max-height: 56px;
     margin-top: 14px !important;
@@ -55,10 +55,10 @@
 
 // Fallback for touch / mobile screen environments where hover is not present
 @media (hover: none) {
-  .citizen-card {
+  .dispatcher-card {
     transform: none !important;
 
-    .citizen-actions-wrapper {
+    .dispatcher-actions-wrapper {
       opacity: 1 !important;
       max-height: 56px !important;
       margin-top: 14px !important;

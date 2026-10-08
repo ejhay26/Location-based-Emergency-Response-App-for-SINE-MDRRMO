@@ -39,6 +39,7 @@ interface DispatcherForm {
     AppIconComponent, FilterDropdownComponent, CustomTooltipDirective
   ],
   templateUrl: './dispatchers.panel.html',
+  styleUrls: ['./dispatchers.panel.scss'],
 })
 export class DispatchersPanel implements OnInit, OnDestroy {
 
