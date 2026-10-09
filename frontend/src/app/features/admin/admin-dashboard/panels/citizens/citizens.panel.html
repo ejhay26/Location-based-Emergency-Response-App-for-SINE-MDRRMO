@@ -48,56 +48,59 @@
   <div #citizensGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;">
     <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="c.user_id" [appAnnouncementEnter]="i" class="citizen-card" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)));" [style.border-color]="c.account_status === 'banned' ? '#eb445a' : 'var(--ion-color-step-150, rgba(0,0,0,0.07))'">
       
-      <!-- Top Row: User Avatar & Status Badge -->
-      <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
-        <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
-          <app-icon name="user" [size]="24" color="var(--ion-color-medium)"></app-icon>
-          <img *ngIf="ui.getProxyUrl(c.profile_picture)"
-               [proxySrc]="c.profile_picture"
-               style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
-        </div>
-        <div style="flex: 1; min-width: 0;">
-          <p style="margin: 0; font-weight: 800; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.first_name }} {{ c.last_name }}</p>
-          <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--ion-color-medium); font-weight: 500;">&#64;{{ c.username }}</p>
-        </div>
-        <span style="border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 800; white-space: nowrap; flex-shrink: 0;" [style.background]="c.account_status === 'banned' ? 'rgba(235,68,90,0.12)' : (c.account_status === 'active' ? 'rgba(45,211,111,0.12)' : 'rgba(255,196,9,0.12)')" [style.color]="c.account_status === 'banned' ? '#eb445a' : (c.account_status === 'active' ? '#2dd36f' : '#e0ac00')" [style.border]="c.account_status === 'banned' ? '1px solid rgba(235,68,90,0.3)' : (c.account_status === 'active' ? '1px solid rgba(45,211,111,0.3)' : '1px solid rgba(255,196,9,0.3)')">{{ c.account_status === 'banned' ? 'Suspended' : (c.account_status === 'active' ? 'Active' : 'Pending') }}</span>
-      </div>
-
-      <!-- False Alarm Strikes Badge & Dots Bar -->
-      <div [attr.id]="i === 0 ? 'citizen-strike-badge-0' : null" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 10px; margin-bottom: 12px;"
-           [style.background]="(c.false_alarm_strikes || 0) >= 3 ? 'rgba(235,68,90,0.12)' : ((c.false_alarm_strikes || 0) > 0 ? 'rgba(255,196,9,0.14)' : 'rgba(45,211,111,0.08)')"
-           [style.border]="(c.false_alarm_strikes || 0) >= 3 ? '1px solid rgba(235,68,90,0.3)' : ((c.false_alarm_strikes || 0) > 0 ? '1px solid rgba(255,196,9,0.35)' : '1px solid rgba(45,211,111,0.2)')">
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <app-icon [name]="(c.false_alarm_strikes || 0) > 0 ? 'alert-triangle' : 'shield'" [size]="14" [color]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : ((c.false_alarm_strikes || 0) > 0 ? '#d99000' : '#2dd36f')"></app-icon>
-          <span style="font-weight: 800; font-size: 12px;" [style.color]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : ((c.false_alarm_strikes || 0) > 0 ? '#c68400' : '#28a745')">
-            {{ (c.false_alarm_strikes || 0) }} of 3 Strikes {{ (c.false_alarm_strikes || 0) >= 3 ? '(Auto-Banned)' : ((c.false_alarm_strikes || 0) > 0 ? '(Warning)' : '(Clean)') }}
-          </span>
+      <!-- Inner Card Content (Moves upward on hover) -->
+      <div class="citizen-card-content">
+        <!-- Top Row: User Avatar & Status Badge -->
+        <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
+          <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
+            <app-icon name="user" [size]="24" color="var(--ion-color-medium)"></app-icon>
+            <img *ngIf="ui.getProxyUrl(c.profile_picture)"
+                 [proxySrc]="c.profile_picture"
+                 style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <p style="margin: 0; font-weight: 800; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.first_name }} {{ c.last_name }}</p>
+            <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--ion-color-medium); font-weight: 500;">&#64;{{ c.username }}</p>
+          </div>
+          <span style="border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 800; white-space: nowrap; flex-shrink: 0;" [style.background]="c.account_status === 'banned' ? 'rgba(235,68,90,0.12)' : (c.account_status === 'active' ? 'rgba(45,211,111,0.12)' : 'rgba(255,196,9,0.12)')" [style.color]="c.account_status === 'banned' ? '#eb445a' : (c.account_status === 'active' ? '#2dd36f' : '#e0ac00')" [style.border]="c.account_status === 'banned' ? '1px solid rgba(235,68,90,0.3)' : (c.account_status === 'active' ? '1px solid rgba(45,211,111,0.3)' : '1px solid rgba(255,196,9,0.3)')">{{ c.account_status === 'banned' ? 'Suspended' : (c.account_status === 'active' ? 'Active' : 'Pending') }}</span>
         </div>
 
-        <!-- 3-Dot Strike Indicator Pips -->
-        <div style="display: flex; align-items: center; gap: 5px;">
-          <span appTooltip="Strike 1" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
-                [style.background]="(c.false_alarm_strikes || 0) >= 1 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
-                [style.box-shadow]="(c.false_alarm_strikes || 0) >= 1 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
-          <span appTooltip="Strike 2" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
-                [style.background]="(c.false_alarm_strikes || 0) >= 2 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
-                [style.box-shadow]="(c.false_alarm_strikes || 0) >= 2 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
-          <span appTooltip="Strike 3 (Ban)" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
-                [style.background]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
-                [style.box-shadow]="(c.false_alarm_strikes || 0) >= 3 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
-        </div>
-      </div>
+        <!-- False Alarm Strikes Badge & Dots Bar -->
+        <div [attr.id]="i === 0 ? 'citizen-strike-badge-0' : null" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 10px; margin-bottom: 12px;"
+             [style.background]="(c.false_alarm_strikes || 0) >= 3 ? 'rgba(235,68,90,0.12)' : ((c.false_alarm_strikes || 0) > 0 ? 'rgba(255,196,9,0.14)' : 'rgba(45,211,111,0.08)')"
+             [style.border]="(c.false_alarm_strikes || 0) >= 3 ? '1px solid rgba(235,68,90,0.3)' : ((c.false_alarm_strikes || 0) > 0 ? '1px solid rgba(255,196,9,0.35)' : '1px solid rgba(45,211,111,0.2)')">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <app-icon [name]="(c.false_alarm_strikes || 0) > 0 ? 'alert-triangle' : 'shield'" [size]="14" [color]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : ((c.false_alarm_strikes || 0) > 0 ? '#d99000' : '#2dd36f')"></app-icon>
+            <span style="font-weight: 800; font-size: 12px;" [style.color]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : ((c.false_alarm_strikes || 0) > 0 ? '#c68400' : '#28a745')">
+              {{ (c.false_alarm_strikes || 0) }} of 3 Strikes {{ (c.false_alarm_strikes || 0) >= 3 ? '(Auto-Banned)' : ((c.false_alarm_strikes || 0) > 0 ? '(Warning)' : '(Clean)') }}
+            </span>
+          </div>
 
-      <!-- Info Details List -->
-      <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 12px; margin-bottom: 0; font-size: 13px; border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.04));">
-        <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="phone" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ c.phone }}</span></div>
-        <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;"><app-icon name="mail" [size]="13" color="var(--ion-color-danger)"></app-icon><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.email }}</span></div>
-        <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ ui.getBarangayName(c.barangay_id) }}</span></div>
-        <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="calendar" [size]="13" color="var(--ion-color-danger)"></app-icon><span>Joined {{ c.created_at | utcDate:'mediumDate' }}</span></div>
+          <!-- 3-Dot Strike Indicator Pips -->
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <span appTooltip="Strike 1" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
+                  [style.background]="(c.false_alarm_strikes || 0) >= 1 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
+                  [style.box-shadow]="(c.false_alarm_strikes || 0) >= 1 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
+            <span appTooltip="Strike 2" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
+                  [style.background]="(c.false_alarm_strikes || 0) >= 2 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
+                  [style.box-shadow]="(c.false_alarm_strikes || 0) >= 2 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
+            <span appTooltip="Strike 3 (Ban)" style="width: 9px; height: 9px; border-radius: 50%; display: inline-block; transition: all 0.2s ease;"
+                  [style.background]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"
+                  [style.box-shadow]="(c.false_alarm_strikes || 0) >= 3 ? '0 0 6px rgba(235,68,90,0.5)' : 'none'"></span>
+          </div>
+        </div>
+
+        <!-- Info Details List -->
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 12px; margin-bottom: 0; font-size: 13px; border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.04));">
+          <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="phone" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ c.phone }}</span></div>
+          <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;"><app-icon name="mail" [size]="13" color="var(--ion-color-danger)"></app-icon><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.email }}</span></div>
+          <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ ui.getBarangayName(c.barangay_id) }}</span></div>
+          <div style="display: flex; align-items: center; gap: 8px;"><app-icon name="calendar" [size]="13" color="var(--ion-color-danger)"></app-icon><span>Joined {{ c.created_at | utcDate:'mediumDate' }}</span></div>
+        </div>
       </div>
 
       <!-- Action Buttons Grid (Reveals upward on hover) -->
-      <div class="citizen-actions-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto;">
+      <div class="citizen-actions-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
         <!-- Manage Strikes Button -->
         <ion-button [attr.id]="i === 0 ? 'citizen-manage-strikes-btn-0' : null" color="warning" fill="outline" size="small" (click)="openStrikeModal(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
           <app-icon name="gavel" [size]="13" color="#ffc409" style="margin-right: 6px;"></app-icon>
