@@ -1,11 +1,11 @@
 .citizen-card {
   position: relative;
   align-self: start;
-  height: 275px;
+  height: 256px;
   overflow: hidden;
-  transition: height 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
-              transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
-              box-shadow 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+  transition: height 0.36s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.36s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.36s cubic-bezier(0.2, 0.8, 0.2, 1),
               border-color 0.24s ease;
   will-change: height, transform, box-shadow;
 
@@ -13,24 +13,28 @@
     width: 100%;
     display: flex;
     flex-direction: column;
+    transform: translateY(0);
+    transition: transform 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: transform;
   }
 
   .citizen-actions-wrapper {
-    margin-top: 14px;
-    opacity: 0;
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 16px;
     pointer-events: none;
-    transition: opacity 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
 
     ion-button {
       transform: translateY(22px);
       opacity: 0;
-      transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1),
+      transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1),
                   opacity 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
       will-change: transform, opacity;
 
-      // Downward exit stagger: second button begins exit immediately, first follows
+      // Downward exit stagger: second button exits immediately, first follows
       &:nth-child(1) {
-        transition-delay: 0.05s;
+        transition-delay: 0.04s;
       }
       &:nth-child(2) {
         transition-delay: 0s;
@@ -40,13 +44,16 @@
 
   &:hover,
   &:focus-within {
-    height: 340px;
-    transform: translateY(-3px) scale(1.015);
+    height: 300px;
+    transform: scale(1.018);
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.05) !important;
     z-index: 5;
 
+    .citizen-card-content {
+      transform: translateY(-10px);
+    }
+
     .citizen-actions-wrapper {
-      opacity: 1;
       pointer-events: auto;
 
       ion-button {
@@ -55,10 +62,10 @@
 
         // Upward enter stagger: first button enters first, second follows
         &:nth-child(1) {
-          transition-delay: 0.06s;
+          transition-delay: 0.05s;
         }
         &:nth-child(2) {
-          transition-delay: 0.14s;
+          transition-delay: 0.12s;
         }
       }
     }
@@ -77,7 +84,6 @@
 
     .citizen-actions-wrapper {
       position: static !important;
-      opacity: 1 !important;
       margin-top: 14px !important;
       pointer-events: auto !important;
 
