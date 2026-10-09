@@ -74,16 +74,18 @@
   to   { opacity: 1; }
 }
 
-.lightbox-toolbar {
+.lightbox-top-bar {
   width: 100%;
   max-width: 1200px;
-  height: 52px;
+  height: 44px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 8px;
+  justify-content: flex-start;
+  padding: 0 16px;
+  margin-top: max(36px, env(safe-area-inset-top, 12px));
   z-index: 20;
   flex-shrink: 0;
+  pointer-events: none;
 }
 
 .lightbox-counter {
@@ -97,61 +99,97 @@
   border-radius: 20px;
   letter-spacing: 0.5px;
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: auto;
+  -webkit-app-region: no-drag !important;
 }
 
-.lightbox-tools {
+/* ── Floating Controls Dock (Zoom Out, Zoom In, Reset, Exit Viewer) ── */
+.lightbox-dock-container {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  width: 100%;
+  z-index: 30;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
-.lightbox-tool-btn {
-  width: 38px;
-  height: 38px;
+.lightbox-dock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(24, 24, 28, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  pointer-events: auto;
+  -webkit-app-region: no-drag !important;
+  user-select: none;
+}
+
+.lightbox-dock-btn {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #fff;
-  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease;
-  backdrop-filter: blur(8px);
+  transition: background-color 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  outline: none;
+  -webkit-app-region: no-drag !important;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.06);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  &.lightbox-dock-btn--exit {
+    width: auto;
+    padding: 0 14px 0 10px;
+    border-radius: 9999px;
+    background: var(--ion-color-danger, #d32f2f);
+    border-color: var(--ion-color-danger, #d32f2f);
+    gap: 6px;
+
+    .lightbox-dock-btn-text {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: #ffffff;
+    }
+
+    &:hover {
+      background: #e53935;
+      border-color: #e53935;
+      transform: scale(1.04);
+    }
+  }
 }
 
-.lightbox-tool-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.25);
-  transform: scale(1.05);
-}
-
-.lightbox-tool-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.lightbox-close-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: #fff;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.lightbox-close-btn:hover {
-  background: var(--ion-color-danger, #d32f2f);
-  border-color: var(--ion-color-danger, #d32f2f);
-  transform: scale(1.05);
+.lightbox-dock-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 2px;
 }
 
 .lightbox-stage {
@@ -219,7 +257,9 @@
   cursor: pointer;
   z-index: 25;
   backdrop-filter: blur(8px);
-  transition: all 0.15s ease;
+  -webkit-backdrop-filter: blur(8px);
+  transition: background-color 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  -webkit-app-region: no-drag !important;
 }
 
 .lightbox-nav-btn:hover {
@@ -245,6 +285,7 @@
   padding: 8px 0;
   z-index: 20;
   flex-shrink: 0;
+  -webkit-app-region: no-drag !important;
 }
 
 .lightbox-dots {
@@ -260,7 +301,7 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, width 0.2s ease, box-shadow 0.2s ease;
 }
 
 .lightbox-dot.active {

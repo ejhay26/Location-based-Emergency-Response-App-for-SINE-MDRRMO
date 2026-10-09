@@ -61,32 +61,11 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
          [style.opacity]="backdropOpacity"
          (click)="onBackdropClick($event)">
 
-      <!-- Top Toolbar (Counter, Zoom Tools, Close) -->
-      <div class="lightbox-toolbar" (click)="$event.stopPropagation()">
-        <!-- Counter Badge (for multiple images) -->
+      <!-- Top Bar: Media Counter Badge (safely offset below titlebar) -->
+      <div class="lightbox-top-bar" (click)="$event.stopPropagation()">
         <div class="lightbox-counter" *ngIf="dialog.totalMediaCount > 1">
           <app-icon name="camera" [size]="12" color="#ffffff" style="margin-right: 6px;"></app-icon>
           <span>{{ dialog.lightboxIndex() + 1 }} / {{ dialog.totalMediaCount }}</span>
-        </div>
-        <div *ngIf="dialog.totalMediaCount <= 1"></div>
-
-        <!-- Controls: Zoom In, Zoom Out, Reset, Close -->
-        <div class="lightbox-tools">
-          <ng-container *ngIf="!dialog.lightboxIsVideo()">
-            <button type="button" class="lightbox-tool-btn" (click)="zoomOut()" [disabled]="scale <= 1" [appTooltip]="'Zoom Out'" tooltipPlacement="bottom">
-              <app-icon name="compress" [size]="16" color="#ffffff"></app-icon>
-            </button>
-            <button type="button" class="lightbox-tool-btn" (click)="zoomIn()" [disabled]="scale >= 4" [appTooltip]="'Zoom In'" tooltipPlacement="bottom">
-              <app-icon name="expand" [size]="16" color="#ffffff"></app-icon>
-            </button>
-            <button type="button" class="lightbox-tool-btn" *ngIf="scale > 1" (click)="resetZoom()" [appTooltip]="'Reset Zoom'" tooltipPlacement="bottom">
-              <app-icon name="history" [size]="16" color="#ffffff"></app-icon>
-            </button>
-          </ng-container>
-
-          <button type="button" class="lightbox-close-btn" (click)="closeLightbox()" [appTooltip]="'Close Viewer'" [tooltipKbd]="'ESC'" tooltipPlacement="bottom">
-            <app-icon name="close" [size]="18" color="#ffffff"></app-icon>
-          </button>
         </div>
       </div>
 
@@ -142,6 +121,29 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
               tooltipPlacement="left">
         <app-icon name="chevron-right" [size]="20" color="#ffffff"></app-icon>
       </button>
+
+      <!-- Bottom Floating Controls Dock (Zoom Out, Zoom In, Reset, Exit Viewer) -->
+      <div class="lightbox-dock-container" (click)="$event.stopPropagation()">
+        <div class="lightbox-dock">
+          <ng-container *ngIf="!dialog.lightboxIsVideo()">
+            <button type="button" class="lightbox-dock-btn" (click)="zoomOut()" [disabled]="scale <= 1" [appTooltip]="'Zoom Out'" tooltipPlacement="top">
+              <app-icon name="compress" [size]="15" color="#ffffff"></app-icon>
+            </button>
+            <button type="button" class="lightbox-dock-btn" (click)="zoomIn()" [disabled]="scale >= 4" [appTooltip]="'Zoom In'" tooltipPlacement="top">
+              <app-icon name="expand" [size]="15" color="#ffffff"></app-icon>
+            </button>
+            <button type="button" class="lightbox-dock-btn" *ngIf="scale > 1" (click)="resetZoom()" [appTooltip]="'Reset Zoom'" tooltipPlacement="top">
+              <app-icon name="history" [size]="15" color="#ffffff"></app-icon>
+            </button>
+            <div class="lightbox-dock-divider"></div>
+          </ng-container>
+
+          <button type="button" class="lightbox-dock-btn lightbox-dock-btn--exit" (click)="closeLightbox()" [appTooltip]="'Exit Viewer'" [tooltipKbd]="'ESC'" tooltipPlacement="top">
+            <app-icon name="close" [size]="16" color="#ffffff"></app-icon>
+            <span class="lightbox-dock-btn-text">Exit</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Bottom Gallery Dots Indicator & Gesture Hints -->
       <div class="lightbox-footer" (click)="$event.stopPropagation()">
