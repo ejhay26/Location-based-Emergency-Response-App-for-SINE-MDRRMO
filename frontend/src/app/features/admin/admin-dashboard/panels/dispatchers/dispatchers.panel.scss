@@ -1,49 +1,49 @@
 .dispatcher-card {
   position: relative;
   align-self: start;
-  height: 250px;
+  height: 205px;
   overflow: hidden;
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+  transition: height 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
               border-color 0.24s ease;
-  will-change: transform, box-shadow;
+  will-change: height, transform, box-shadow;
 
   .dispatcher-card-content {
     width: 100%;
     display: flex;
     flex-direction: column;
-    transform: translateY(22px);
-    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: transform;
   }
 
   .dispatcher-actions-wrapper {
-    position: absolute;
-    left: 20px;
-    right: 20px;
-    bottom: 18px;
+    margin-top: 14px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
 
     ion-button {
       transform: translateY(22px);
       opacity: 0;
-      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-                  opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1),
+                  opacity 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
       will-change: transform, opacity;
+
+      // Downward exit stagger
+      &:nth-child(1) {
+        transition-delay: 0.05s;
+      }
+      &:nth-child(2) {
+        transition-delay: 0s;
+      }
     }
   }
 
   &:hover,
   &:focus-within {
-    transform: scale(1.018);
+    height: 270px;
+    transform: translateY(-3px) scale(1.015);
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.05) !important;
     z-index: 5;
-
-    .dispatcher-card-content {
-      transform: translateY(-14px);
-    }
 
     .dispatcher-actions-wrapper {
       opacity: 1;
@@ -53,11 +53,12 @@
         transform: translateY(0);
         opacity: 1;
 
+        // Upward enter stagger
         &:nth-child(1) {
-          transition-delay: 0.03s;
+          transition-delay: 0.06s;
         }
         &:nth-child(2) {
-          transition-delay: 0.07s;
+          transition-delay: 0.14s;
         }
       }
     }
