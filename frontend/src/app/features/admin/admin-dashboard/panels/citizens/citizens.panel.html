@@ -103,14 +103,14 @@
         <!-- Action Buttons Grid (Reveals upward on hover) -->
         <div class="citizen-actions-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <!-- Manage Strikes Button -->
-          <ion-button [attr.id]="i === 0 ? 'citizen-manage-strikes-btn-0' : null" color="warning" fill="outline" size="small" (click)="openStrikeModal(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
-            <app-icon name="gavel" [size]="13" color="#ffc409" style="margin-right: 6px;"></app-icon>
+          <ion-button [attr.id]="i === 0 ? 'citizen-manage-strikes-btn-0' : null" color="warning" fill="solid" size="small" (click)="openStrikeModal(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px; color: #1c1c1c;">
+            <app-icon name="gavel" [size]="13" color="#1c1c1c" style="margin-right: 6px;"></app-icon>
             Strikes
           </ion-button>
 
           <!-- Suspend / Reinstate Button -->
-          <ion-button [attr.id]="i === 0 ? 'citizen-status-action-btn-0' : null" [color]="c.account_status === 'banned' ? 'success' : 'danger'" fill="outline" size="small" (click)="suspendCitizen(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
-            <app-icon [name]="c.account_status === 'banned' ? 'user-check' : 'user-xmark'" [size]="13" [color]="c.account_status === 'banned' ? 'var(--ion-color-success)' : 'var(--ion-color-danger)'" style="margin-right: 6px;"></app-icon>
+          <ion-button [attr.id]="i === 0 ? 'citizen-status-action-btn-0' : null" [color]="c.account_status === 'banned' ? 'success' : 'danger'" fill="solid" size="small" (click)="suspendCitizen(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px; color: #ffffff;">
+            <app-icon [name]="c.account_status === 'banned' ? 'user-check' : 'user-xmark'" [size]="13" color="#ffffff" style="margin-right: 6px;"></app-icon>
             {{ c.account_status === 'banned' ? 'Reinstate' : 'Suspend' }}
           </ion-button>
         </div>
