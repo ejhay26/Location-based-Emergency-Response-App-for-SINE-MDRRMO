@@ -46,7 +46,7 @@
   </div>
 
   <div #citizensGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;">
-    <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="c.user_id" [appAnnouncementEnter]="i" class="citizen-card" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)));" [style.border-color]="c.account_status === 'banned' ? '#eb445a' : 'var(--ion-color-step-150, rgba(0,0,0,0.07))'">
+    <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="c.user_id" [appAnnouncementEnter]="i" class="citizen-card" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 24px 20px 20px 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)));" [style.border-color]="c.account_status === 'banned' ? '#eb445a' : 'var(--ion-color-step-150, rgba(0,0,0,0.07))'">
       
       <!-- Inner Card Content (Moves upward on hover) -->
       <div class="citizen-card-content">
