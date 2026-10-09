@@ -49,33 +49,35 @@
   </div>
 
   <div #dispatchersGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;">
-    <div *ngFor="let d of filteredDispatchers; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="d.user_id" [appAnnouncementEnter]="i" class="dispatcher-card" style="background: var(--ion-card-background, #fff); border-radius: 16px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07))); padding: 24px 20px 20px 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
-      <!-- Inner Card Content (Moves upward on hover) -->
-      <div class="dispatcher-card-content">
-        <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;">
-          <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; font-weight: 800; color: white; overflow: hidden; position: relative;">
-            <img *ngIf="ui.getProxyUrl(d.profile_picture)" [proxySrc]="d.profile_picture" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
-            <span style="position:relative;z-index:1;">{{ (d.first_name?.[0]||'')+(d.last_name?.[0]||'') }}</span>
+    <div *ngFor="let d of filteredDispatchers; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="d.user_id" [appAnnouncementEnter]="i" style="display: contents;">
+      <div class="dispatcher-card" style="background: var(--ion-card-background, #fff); border-radius: 16px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07))); padding: 24px 20px 20px 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
+        <!-- Inner Card Content (Moves upward on hover) -->
+        <div class="dispatcher-card-content">
+          <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--ion-color-danger); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; font-weight: 800; color: white; overflow: hidden; position: relative;">
+              <img *ngIf="ui.getProxyUrl(d.profile_picture)" [proxySrc]="d.profile_picture" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
+              <span style="position:relative;z-index:1;">{{ (d.first_name?.[0]||'')+(d.last_name?.[0]||'') }}</span>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <p style="margin: 0; font-weight: 800; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.first_name }} {{ d.last_name }}</p>
+              <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--ion-color-medium); font-weight: 500;">&#64;{{ d.username }}</p>
+            </div>
+            <span style="background: rgba(45,211,111,0.12); color: #2dd36f; border: 1px solid rgba(45,211,111,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 800; white-space: nowrap; flex-shrink: 0;">Active</span>
           </div>
-          <div style="flex: 1; min-width: 0;">
-            <p style="margin: 0; font-weight: 800; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.first_name }} {{ d.last_name }}</p>
-            <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--ion-color-medium); font-weight: 500;">&#64;{{ d.username }}</p>
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 12px; margin-bottom: 0; border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.04));">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><app-icon name="phone" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ phoneDisplay(d.phone) }}</span></div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; overflow: hidden;"><app-icon name="mail" [size]="13" color="var(--ion-color-danger)"></app-icon><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.email }}</span></div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ ui.getBarangayName(d.barangay_id) }}</span></div>
           </div>
-          <span style="background: rgba(45,211,111,0.12); color: #2dd36f; border: 1px solid rgba(45,211,111,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 800; white-space: nowrap; flex-shrink: 0;">Active</span>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border-radius: 12px; margin-bottom: 0; border: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.04));">
-          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><app-icon name="phone" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ phoneDisplay(d.phone) }}</span></div>
-          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; overflow: hidden;"><app-icon name="mail" [size]="13" color="var(--ion-color-danger)"></app-icon><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.email }}</span></div>
-          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;"><app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon><span>{{ ui.getBarangayName(d.barangay_id) }}</span></div>
+        <div class="dispatcher-actions-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <ion-button fill="outline" color="danger" size="small" (click)="openDispatcherModal(d)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
+            <app-icon name="pen" [size]="13" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon> Edit
+          </ion-button>
+          <ion-button fill="outline" color="medium" size="small" (click)="confirmDeactivateDispatcher(d)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
+            <app-icon name="user-xmark" [size]="13" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Remove
+          </ion-button>
         </div>
-      </div>
-      <div class="dispatcher-actions-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <ion-button fill="outline" color="danger" size="small" (click)="openDispatcherModal(d)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
-          <app-icon name="pen" [size]="13" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon> Edit
-        </ion-button>
-        <ion-button fill="outline" color="medium" size="small" (click)="confirmDeactivateDispatcher(d)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px;">
-          <app-icon name="user-xmark" [size]="13" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Remove
-        </ion-button>
       </div>
     </div>
   </div>
