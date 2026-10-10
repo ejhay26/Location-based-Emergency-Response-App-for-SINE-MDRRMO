@@ -130,7 +130,7 @@
           <app-icon name="alert-triangle" [size]="17" color="var(--ion-color-danger, #eb445a)"></app-icon>
         </div>
         <div style="min-width: 0;">
-          <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">False Alarm Strike Manager</h3>
+          <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Review Strikes</h3>
           <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--ion-color-medium); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
             {{ selectedCitizen?.first_name }} {{ selectedCitizen?.last_name }} &bull; &#64;{{ selectedCitizen?.username }}
           </p>
@@ -181,8 +181,8 @@
       </div>
 
       <!-- Info Banner -->
-      <div style="background: rgba(235,68,90,0.07); border-left: 3px solid #eb445a; border-radius: 6px; padding: 9px 12px; font-size: 11.5px; color: var(--ion-text-color); line-height: 1.45; margin-bottom: 18px;">
-        <strong>Automated Notice:</strong> Formal warning email will be sent to <em>{{ selectedCitizen?.email }}</em> with push notification. Strike 3 triggers automatic account suspension.
+      <div style="background: var(--ion-color-step-50, rgba(0,0,0,0.025)); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); border-radius: 10px; padding: 10px 14px; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.45; margin-bottom: 18px;">
+        <span style="font-weight: 700; color: var(--ion-text-color);">Automated Notice:</span> Formal warning email will be sent to <em>{{ selectedCitizen?.email }}</em> with push notification. Strike 3 triggers automatic account suspension.
       </div>
 
       <!-- Actions -->

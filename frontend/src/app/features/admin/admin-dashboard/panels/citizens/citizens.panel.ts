@@ -173,6 +173,7 @@ export class CitizensPanel implements OnInit, OnDestroy {
 
   // ── Strike Management Modal ──────────────────────────────────────────
   openStrikeModal(citizen: any) {
+    (document.activeElement as HTMLElement)?.blur();
     this.selectedCitizen = citizen;
     this.selectedStrikeReason = this.STRIKE_PRESET_REASONS[0];
     this.customStrikeReason = '';
@@ -180,6 +181,7 @@ export class CitizensPanel implements OnInit, OnDestroy {
   }
 
   closeStrikeModal() {
+    (document.activeElement as HTMLElement)?.blur();
     this.isStrikeModalOpen = false;
     this.selectedCitizen = null;
     this.customStrikeReason = '';
@@ -249,6 +251,7 @@ export class CitizensPanel implements OnInit, OnDestroy {
   }
 
   suspendCitizen(citizen: any) {
+    (document.activeElement as HTMLElement)?.blur();
     const isSuspended = citizen.account_status === 'banned';
     this.ui.showConfirm({
       title: `${isSuspended ? 'Reinstate' : 'Suspend'} Account`,

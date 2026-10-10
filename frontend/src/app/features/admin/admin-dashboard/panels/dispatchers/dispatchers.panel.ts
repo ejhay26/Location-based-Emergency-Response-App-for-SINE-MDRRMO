@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
   IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-  IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
+  IonModal, IonContent
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -34,7 +34,7 @@ interface DispatcherForm {
   imports: [
     CommonModule, FormsModule,
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-    IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
+    IonModal, IonContent,
     ProxyImageDirective, DateRangeFilterComponent, FilterSummaryBarComponent, ListEnterDirective,
     AppIconComponent, FilterDropdownComponent, CustomTooltipDirective
   ],
@@ -146,6 +146,7 @@ export class DispatchersPanel implements OnInit, OnDestroy {
   }
 
   openDispatcherModal(dispatcher: any | null) {
+    (document.activeElement as HTMLElement)?.blur();
     this.editingDispatcher = dispatcher;
     this.dispatcherForm = dispatcher
       ? { first_name: dispatcher.first_name, last_name: dispatcher.last_name, phone: dispatcher.phone, username: dispatcher.username, email: dispatcher.email, password: '', barangay_id: dispatcher.barangay_id }
@@ -156,6 +157,12 @@ export class DispatchersPanel implements OnInit, OnDestroy {
     this.isDispatcherModalOpen = true;
   }
 
+  closeDispatcherModal() {
+    (document.activeElement as HTMLElement)?.blur();
+    this.isDispatcherModalOpen = false;
+    this.editingDispatcher = null;
+  }
+
   saveDispatcherForm() {
     if (this.isSavingDispatcher) return;
     this.isSavingDispatcher = true;
@@ -163,18 +170,19 @@ export class DispatchersPanel implements OnInit, OnDestroy {
       const payload: any = { user_id: this.editingDispatcher.user_id, ...this.dispatcherForm };
       if (!payload.password) delete payload.password;
       this.api.updateDispatcher(payload).subscribe({
-        next: () => { this.isSavingDispatcher = false; this.ui.showToast('Dispatcher updated!', 'success'); this.isDispatcherModalOpen = false; this.loadDispatchers(); },
+        next: () => { this.isSavingDispatcher = false; this.ui.showToast('Dispatcher updated!', 'success'); this.closeDispatcherModal(); this.loadDispatchers(); },
         error: () => { this.isSavingDispatcher = false; this.ui.showToast('Update failed.', 'danger'); }
       });
     } else {
       this.api.createDispatcher(this.dispatcherForm).subscribe({
-        next: () => { this.isSavingDispatcher = false; this.ui.showToast('Dispatcher created!', 'success'); this.isDispatcherModalOpen = false; this.loadDispatchers(); },
+        next: () => { this.isSavingDispatcher = false; this.ui.showToast('Dispatcher created!', 'success'); this.closeDispatcherModal(); this.loadDispatchers(); },
         error: () => { this.isSavingDispatcher = false; this.ui.showToast('Creation failed.', 'danger'); }
       });
     }
   }
 
   confirmDeactivateDispatcher(dispatcher: any) {
+    (document.activeElement as HTMLElement)?.blur();
     this.ui.showConfirm({
       title: 'Remove Dispatcher',
       message: `Remove ${dispatcher.first_name} ${dispatcher.last_name}? They will no longer be able to log in.`,

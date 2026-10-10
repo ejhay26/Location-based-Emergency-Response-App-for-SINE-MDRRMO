@@ -99,7 +99,7 @@
 }
 
 /* =========================================
-   FALSE ALARM STRIKE MANAGER MODAL
+   FALSE ALARM STRIKE MODAL
    ========================================= */
 ion-modal.strike-manager-modal {
   --width: 480px;
@@ -120,6 +120,31 @@ ion-modal.strike-manager-modal {
   @media (max-width: 768px) {
     --width: 94vw;
     --height: 80vh;
+  }
+}
+
+/* =========================================
+   DISPATCHER FORM MODAL (POPUP DIALOG)
+   ========================================= */
+ion-modal.dispatcher-form-modal {
+  --width: 520px;
+  --max-width: 92vw;
+  --height: 640px;
+  --max-height: 90vh;
+  --border-radius: 20px;
+  --box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+
+  &::part(content) {
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--ion-card-background, #ffffff);
+    animation: heavyMetalDropIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    will-change: transform, opacity;
+  }
+
+  @media (max-width: 768px) {
+    --width: 94vw;
+    --height: 88vh;
   }
 }
 
