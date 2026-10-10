@@ -1,6 +1,6 @@
 <button
   type="button"
-  [id]="triggerId"
+  (click)="openPopover($event)"
   class="mac-popover-btn date-range-btn"
   [class.has-filter]="hasValue"
   [appTooltip]="displayLabel"
@@ -13,7 +13,14 @@
   </span>
 </button>
 
-<ion-popover [trigger]="triggerId" [dismissOnSelect]="false" side="bottom" alignment="center" (didPresent)="onOpen()"
+<ion-popover
+  [isOpen]="isPopoverOpen"
+  [event]="popoverEvent"
+  (didDismiss)="onPopoverDismiss()"
+  (didPresent)="onOpen()"
+  [dismissOnSelect]="false"
+  side="bottom"
+  alignment="center"
   style="--width: 360px; --min-width: 330px; --max-width: 95vw; --background: var(--ion-card-background, #1c1c1e); --border-radius: 16px; --box-shadow: 0 16px 40px rgba(0,0,0,0.45);">
   <ng-template>
     <div style="padding: 14px 12px 12px; width: 100%; box-sizing: border-box; background: var(--ion-card-background, #ffffff); border: var(--card-border, 1px solid rgba(255,255,255,0.15)); border-radius: 16px;">

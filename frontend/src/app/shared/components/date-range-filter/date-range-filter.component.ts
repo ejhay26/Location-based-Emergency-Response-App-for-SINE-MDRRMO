@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { IonButton, IonPopover, IonDatetime, IonSegment, IonSegmentButton, IonLabel } from '@ionic/angular/standalone';
 import { DateFilterMode, DateFilterValue, formatDateFilterLabel, toLocalDateKey } from '../../utils/date-filter.util';
 
-let instanceCounter = 0;
-
 /** Extracts the 'YYYY-MM-DD' portion from an ion-datetime ISO value string. */
 function toDateOnly(iso: string): string {
   return iso.split('T')[0];
@@ -74,10 +72,10 @@ export class DateRangeFilterComponent {
   @Output() valueChange = new EventEmitter<DateFilterValue | null>();
 
   @ViewChild(IonDatetime) datetimeRef?: IonDatetime;
+  @ViewChild(IonPopover) popoverRef?: IonPopover;
 
-  /** Unique per-instance trigger id - required by ion-popover's [trigger] and
-   *  safe even if this component is ever used more than once on the same page. */
-  readonly triggerId = `date-range-filter-trigger-${instanceCounter++}`;
+  isPopoverOpen = false;
+  popoverEvent: MouseEvent | null = null;
 
   // Draft state, edited inside the popover; only committed to `value` on Apply.
   pendingMode: DateFilterMode = 'single';
@@ -216,6 +214,23 @@ export class DateRangeFilterComponent {
     if (justTapped) this.resetCalendar(justTapped);
   }
 
+  openPopover(event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.isPopoverOpen) {
+      this.isPopoverOpen = false;
+      this.popoverRef?.dismiss().catch(() => {});
+      return;
+    }
+    this.popoverEvent = event;
+    this.isPopoverOpen = true;
+    this.onOpen();
+  }
+
+  onPopoverDismiss(): void {
+    this.isPopoverOpen = false;
+    this.popoverEvent = null;
+  }
+
   onApply(): void {
     if (!this.canApply) return;
 
@@ -226,6 +241,8 @@ export class DateRangeFilterComponent {
     } else {
       this.valueChange.emit({ mode: 'range', dates: [this.pendingRangeStart!, this.pendingRangeEnd!] });
     }
+    this.isPopoverOpen = false;
+    this.popoverRef?.dismiss().catch(() => {});
   }
 
   onClear(): void {
@@ -233,6 +250,8 @@ export class DateRangeFilterComponent {
     this.syncCalendarValue();
     this.resetCalendar();
     this.valueChange.emit(null);
+    this.isPopoverOpen = false;
+    this.popoverRef?.dismiss().catch(() => {});
   }
 
   onClearTrigger(event: MouseEvent): void {
@@ -242,5 +261,7 @@ export class DateRangeFilterComponent {
     this.clearPendingSelection();
     this.syncCalendarValue();
     this.valueChange.emit(null);
+    this.isPopoverOpen = false;
+    this.popoverRef?.dismiss().catch(() => {});
   }
 }
