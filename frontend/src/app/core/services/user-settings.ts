@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from './api';
-import { runThemeReveal } from '../utils/theme-reveal';
 
 export type SettingKey =
   | 'dark_mode'
@@ -213,25 +212,51 @@ export class UserSettingsService {
 
   private async runThemeReveal(isDark: boolean, x: number, y: number): Promise<void> {
     this.isThemeTransitioning = true;
+    const root = document.documentElement;
     try {
       // 1. Immediately update setting in memory for 0ms reactive UI toggle feedback
       this.cache['dark_mode'] = isDark ? 'true' : 'false';
 
-      const flip = (dark: boolean) => {
-        document.documentElement.classList.toggle('ion-palette-dark', dark);
-      };
+      const doc = document as any;
+      if (typeof doc.startViewTransition !== 'function' || !this.shouldAnimate()) {
+        root.classList.toggle('ion-palette-dark', isDark);
+        return;
+      }
 
-      if (!this.shouldAnimate()) {
-        flip(isDark);
-      } else {
-        // Run Telegram-style WAAPI circular reveal
-        await runThemeReveal(isDark, x, y, flip);
+      const vw = window.innerWidth || 360;
+      const vh = window.innerHeight || 640;
+      const originX = Number.isFinite(x) && x >= 0 ? x : Math.round(vw / 2);
+      const originY = Number.isFinite(y) && y >= 0 ? y : Math.round(vh / 2);
 
-        // Fallback note: To revert to the previous cross-dissolve fade, comment out the line above and uncomment:
-        // await this.runFadeReveal(isDark);
+      const endRadius = Math.ceil(
+        Math.hypot(
+          Math.max(originX, vw - originX),
+          Math.max(originY, vh - originY)
+        )
+      );
+
+      // Set CSS variables on root BEFORE startViewTransition so @keyframes evaluate on frame 0
+      root.style.setProperty('--reveal-x', `${originX}px`);
+      root.style.setProperty('--reveal-y', `${originY}px`);
+      root.style.setProperty('--reveal-r', `${endRadius}px`);
+      root.setAttribute('data-theme-anim', isDark ? 'to-dark' : 'to-light');
+
+      const transition = doc.startViewTransition(() => {
+        root.classList.toggle('ion-palette-dark', isDark);
+      });
+
+      try {
+        await transition.finished;
+      } catch {
+        root.classList.toggle('ion-palette-dark', isDark);
+      } finally {
+        root.removeAttribute('data-theme-anim');
+        root.style.removeProperty('--reveal-x');
+        root.style.removeProperty('--reveal-y');
+        root.style.removeProperty('--reveal-r');
       }
     } finally {
-      // 2. Defer disk I/O and network requests until AFTER the transition finishes
+      // 2. Defer disk I/O and server sync until AFTER transition finishes
       // so neither localStorage.setItem nor Angular HTTP request steals main thread cycles during animation
       this.persistSetting('dark_mode', isDark ? 'true' : 'false');
       this.isThemeTransitioning = false;

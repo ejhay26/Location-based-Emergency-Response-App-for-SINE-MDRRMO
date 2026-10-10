@@ -245,17 +245,15 @@ ion-content .inset-group:nth-of-type(n+5),
 }
 
 /* ===========================================================================
-   THEME TRANSITIONS: CIRCULAR WAAPI REVEAL WITH CROSS-DISSOLVE FALLBACK
+   THEME TRANSITIONS: CIRCULAR REVEAL WITH SYNCHRONIZED FADE FALLBACK
    =========================================================================== */
 /* Fallback: Synchronized cross-dissolve fade (when data-theme-anim is not active) */
 html:not([data-theme-anim]) ::view-transition-old(root) {
   animation: sine-theme-fade-out 260ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
-  mix-blend-mode: normal !important;
 }
 
 html:not([data-theme-anim]) ::view-transition-new(root) {
   animation: sine-theme-fade-in 260ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
-  mix-blend-mode: normal !important;
 }
 
 @keyframes sine-theme-fade-out {
@@ -268,36 +266,56 @@ html:not([data-theme-anim]) ::view-transition-new(root) {
   to   { opacity: 1; }
 }
 
-/* Telegram-style Circular Reveal (WAAPI driven with zero-flash initial clip) */
+/* Telegram-style Circular Reveal: Frame-0 Declarative Keyframes */
+@keyframes sine-theme-reveal-out {
+  from {
+    clip-path: circle(0px at var(--reveal-x, 50%) var(--reveal-y, 50%));
+  }
+  to {
+    clip-path: circle(var(--reveal-r, 150vmax) at var(--reveal-x, 50%) var(--reveal-y, 50%));
+  }
+}
+
+@keyframes sine-theme-reveal-in {
+  from {
+    clip-path: circle(var(--reveal-r, 150vmax) at var(--reveal-x, 50%) var(--reveal-y, 50%));
+  }
+  to {
+    clip-path: circle(0px at var(--reveal-x, 50%) var(--reveal-y, 50%));
+  }
+}
+
 html[data-theme-anim] {
   &::view-transition-group(root),
   &::view-transition-image-pair(root) {
     animation: none !important;
   }
-
-  &::view-transition-old(root),
-  &::view-transition-new(root) {
-    animation: none !important;
-    mix-blend-mode: normal !important;
-    display: block !important;
-  }
 }
 
+/* To-Dark: New dark view expands from toggle origin over the static old light view */
 html[data-theme-anim='to-dark'] {
   &::view-transition-old(root) {
+    animation: none !important;
     z-index: 1 !important;
   }
+
   &::view-transition-new(root) {
-    z-index: 2 !important;
-    clip-path: var(--reveal-zero, circle(0px at 50% 50%));
+    animation: sine-theme-reveal-out 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+    z-index: 999999 !important;
+    will-change: clip-path;
   }
 }
 
+/* To-Light: Old dark view retracts (negative reveal) into toggle origin revealing static new light view */
 html[data-theme-anim='to-light'] {
   &::view-transition-old(root) {
-    z-index: 2 !important;
+    animation: sine-theme-reveal-in 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+    z-index: 999999 !important;
+    will-change: clip-path;
   }
+
   &::view-transition-new(root) {
+    animation: none !important;
     z-index: 1 !important;
   }
 }
