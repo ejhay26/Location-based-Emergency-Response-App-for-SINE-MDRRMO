@@ -97,3 +97,31 @@
   }
 }
 
+// Respect reduced motion setting on admin side: suppress scaling and spatial shift
+:host-context(html.reduce-animations) {
+  .dispatcher-card {
+    transition: none !important;
+    transform: none !important;
+
+    .dispatcher-card-content {
+      transition: none !important;
+      transform: none !important;
+    }
+
+    &:hover {
+      transform: none !important;
+
+      .dispatcher-card-content {
+        transform: none !important;
+      }
+
+      .dispatcher-actions-wrapper {
+        ion-button {
+          transform: none !important;
+          transition: opacity 0.15s ease !important;
+        }
+      }
+    }
+  }
+}
+

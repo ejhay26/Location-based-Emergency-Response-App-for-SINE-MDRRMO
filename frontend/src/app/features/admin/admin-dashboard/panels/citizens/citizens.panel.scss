@@ -97,3 +97,31 @@
   }
 }
 
+// Respect reduced motion setting on admin side: suppress scaling and spatial shift
+:host-context(html.reduce-animations) {
+  .citizen-card {
+    transition: none !important;
+    transform: none !important;
+
+    .citizen-card-content {
+      transition: none !important;
+      transform: none !important;
+    }
+
+    &:hover {
+      transform: none !important;
+
+      .citizen-card-content {
+        transform: none !important;
+      }
+
+      .citizen-actions-wrapper {
+        ion-button {
+          transform: none !important;
+          transition: opacity 0.15s ease !important;
+        }
+      }
+    }
+  }
+}
+

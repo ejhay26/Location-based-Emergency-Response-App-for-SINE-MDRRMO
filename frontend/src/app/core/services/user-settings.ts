@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from './api';
+import { runThemeReveal } from '../utils/theme-reveal';
 
 export type SettingKey =
   | 'dark_mode'
@@ -62,13 +63,25 @@ export class UserSettingsService {
   /** Write a setting locally and fire-and-forget sync to the server. */
   set(key: SettingKey, value: string): void {
     this.cache[key] = value;
+    this.persistSetting(key, value);
+  }
+
+  /**
+   * Persists settings to localStorage and triggers server synchronization.
+   * Can be deferred after transition animations to avoid main-thread disk I/O lockup.
+   */
+  private persistSetting(key: SettingKey, value: string): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.cache));
     const userStr = localStorage.getItem('user');
     if (!userStr) return;
-    const user = JSON.parse(userStr);
-    this.api.saveSetting({ user_id: user.user_id, key, value }).subscribe({
-      error: () => { /* silent — local cache already updated */ }
-    });
+    try {
+      const user = JSON.parse(userStr);
+      this.api.saveSetting({ user_id: user.user_id, key, value }).subscribe({
+        error: () => { /* silent — local cache already updated */ }
+      });
+    } catch {
+      // Ignore JSON parse errors
+    }
   }
 
   getBool(key: SettingKey): boolean          { return this.get(key) === 'true'; }
@@ -198,36 +211,52 @@ export class UserSettingsService {
     this.queuedThemeRequest = null;
   }
 
-  private async runThemeReveal(isDark: boolean, _x: number, _y: number): Promise<void> {
+  private async runThemeReveal(isDark: boolean, x: number, y: number): Promise<void> {
     this.isThemeTransitioning = true;
     try {
-      // 1. Immediately update setting state for 0ms reactive UI feedback
-      this.setBool('dark_mode', isDark);
+      // 1. Immediately update setting in memory for 0ms reactive UI toggle feedback
+      this.cache['dark_mode'] = isDark ? 'true' : 'false';
 
-      const doc = document as any;
-      const supportsViewTransition = typeof doc.startViewTransition === 'function' && this.shouldAnimate();
+      const flip = (dark: boolean) => {
+        document.documentElement.classList.toggle('ion-palette-dark', dark);
+      };
 
-      if (!supportsViewTransition) {
-        document.documentElement.classList.toggle('ion-palette-dark', isDark);
-        return;
-      }
+      if (!this.shouldAnimate()) {
+        flip(isDark);
+      } else {
+        // Run Telegram-style WAAPI circular reveal
+        await runThemeReveal(isDark, x, y, flip);
 
-      const root = document.documentElement;
-      root.classList.add('theme-transitioning');
-
-      const transition = doc.startViewTransition(() => {
-        document.documentElement.classList.toggle('ion-palette-dark', isDark);
-      });
-
-      try {
-        await transition.finished;
-      } catch {
-        document.documentElement.classList.toggle('ion-palette-dark', isDark);
-      } finally {
-        root.classList.remove('theme-transitioning');
+        // Fallback note: To revert to the previous cross-dissolve fade, comment out the line above and uncomment:
+        // await this.runFadeReveal(isDark);
       }
     } finally {
+      // 2. Defer disk I/O and network requests until AFTER the transition finishes
+      // so neither localStorage.setItem nor Angular HTTP request steals main thread cycles during animation
+      this.persistSetting('dark_mode', isDark ? 'true' : 'false');
       this.isThemeTransitioning = false;
+    }
+  }
+
+  /**
+   * Preserved fallback: Cross-dissolve fade reveal.
+   * Available for immediate revert if circular reveal is bypassed or on non-supporting devices.
+   */
+  private async runFadeReveal(isDark: boolean): Promise<void> {
+    const doc = document as any;
+    if (typeof doc.startViewTransition !== 'function' || !this.shouldAnimate()) {
+      document.documentElement.classList.toggle('ion-palette-dark', isDark);
+      return;
+    }
+
+    const transition = doc.startViewTransition(() => {
+      document.documentElement.classList.toggle('ion-palette-dark', isDark);
+    });
+
+    try {
+      await transition.finished;
+    } catch {
+      document.documentElement.classList.toggle('ion-palette-dark', isDark);
     }
   }
 

@@ -53,6 +53,9 @@ export function captureFlipRects(
 ): Map<string, DOMRect> {
   const rects = new Map<string, DOMRect>();
   if (!container) return rects;
+  if (typeof document !== 'undefined' && document.documentElement.classList.contains('reduce-animations')) {
+    return rects;
+  }
   container.querySelectorAll<HTMLElement>(selector).forEach(el => {
     const id = el.dataset['flipId'];
     if (id) rects.set(id, el.getBoundingClientRect());
@@ -98,6 +101,9 @@ export function playFlipReorder(
   options: FlipReflowOptions = {},
 ): void {
   if (!container || before.size === 0) return;
+  if (typeof document !== 'undefined' && document.documentElement.classList.contains('reduce-animations')) {
+    return;
+  }
   const selector = options.selector ?? '[data-flip-id]';
   const durationMs = (options.duration ?? 0.32) * 1000;
   const easing = toCssEasing(options.ease ?? [0.34, 1.3, 0.64, 1]);

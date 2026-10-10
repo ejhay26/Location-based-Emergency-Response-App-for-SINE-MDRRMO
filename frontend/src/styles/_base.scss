@@ -140,21 +140,39 @@ html.reduce-animations *::after {
   scroll-behavior: auto !important;
 }
 
-/* =========================================
-   SYNCHRONIZED THEME TRANSITIONING
-   Neutralize child CSS transitions during View Transitions
-   so root snapshot takes instantly with zero container lag
-   ========================================= */
-html.theme-transitioning,
-html.theme-transitioning *,
-html.theme-transitioning *::before,
-html.theme-transitioning *::after {
-  transition: none !important;
+/* Suppress card hover scaling and translation under reduced motion */
+html.reduce-animations {
+  .dispatcher-card,
+  .citizen-card {
+    transition: none !important;
+    transform: none !important;
+
+    .dispatcher-card-content,
+    .citizen-card-content {
+      transition: none !important;
+      transform: none !important;
+    }
+
+    &:hover {
+      transform: none !important;
+
+      .dispatcher-card-content,
+      .citizen-card-content {
+        transform: none !important;
+      }
+
+      .dispatcher-actions-wrapper ion-button,
+      .citizen-actions-wrapper ion-button {
+        transform: none !important;
+        transition: opacity 0.15s ease !important;
+      }
+    }
+  }
 }
 
 /* Fallback smooth dark mode (non-view-transition) */
-html:not(.theme-transitioning) body,
-html:not(.theme-transitioning) ion-content {
+html:not([data-theme-anim]) body,
+html:not([data-theme-anim]) ion-content {
   transition: background-color 0.25s cubic-bezier(0.2, 0.9, 0.3, 1), color 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
@@ -227,14 +245,15 @@ ion-content .inset-group:nth-of-type(n+5),
 }
 
 /* ===========================================================================
-   SYNCHRONIZED DARK/LIGHT MODE CROSS-DISSOLVE (UNIFIED CROSS-PLATFORM)
+   THEME TRANSITIONS: CIRCULAR WAAPI REVEAL WITH CROSS-DISSOLVE FALLBACK
    =========================================================================== */
-::view-transition-old(root) {
+/* Fallback: Synchronized cross-dissolve fade (when data-theme-anim is not active) */
+html:not([data-theme-anim]) ::view-transition-old(root) {
   animation: sine-theme-fade-out 260ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
   mix-blend-mode: normal !important;
 }
 
-::view-transition-new(root) {
+html:not([data-theme-anim]) ::view-transition-new(root) {
   animation: sine-theme-fade-in 260ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
   mix-blend-mode: normal !important;
 }
@@ -247,6 +266,40 @@ ion-content .inset-group:nth-of-type(n+5),
 @keyframes sine-theme-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+/* Telegram-style Circular Reveal (WAAPI driven with zero-flash initial clip) */
+html[data-theme-anim] {
+  &::view-transition-group(root),
+  &::view-transition-image-pair(root) {
+    animation: none !important;
+  }
+
+  &::view-transition-old(root),
+  &::view-transition-new(root) {
+    animation: none !important;
+    mix-blend-mode: normal !important;
+    display: block !important;
+  }
+}
+
+html[data-theme-anim='to-dark'] {
+  &::view-transition-old(root) {
+    z-index: 1 !important;
+  }
+  &::view-transition-new(root) {
+    z-index: 2 !important;
+    clip-path: var(--reveal-zero, circle(0px at 50% 50%));
+  }
+}
+
+html[data-theme-anim='to-light'] {
+  &::view-transition-old(root) {
+    z-index: 2 !important;
+  }
+  &::view-transition-new(root) {
+    z-index: 1 !important;
+  }
 }
 
 /* =========================================
