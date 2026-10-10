@@ -127,10 +127,10 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
         <div class="lightbox-dock">
           <ng-container *ngIf="!dialog.lightboxIsVideo()">
             <button type="button" class="lightbox-dock-btn" (click)="zoomOut()" [disabled]="scale <= 1" [appTooltip]="'Zoom Out'" tooltipPlacement="top">
-              <app-icon name="compress" [size]="15" color="#ffffff"></app-icon>
+              <app-icon name="zoom-out" [size]="16" color="#ffffff"></app-icon>
             </button>
             <button type="button" class="lightbox-dock-btn" (click)="zoomIn()" [disabled]="scale >= 4" [appTooltip]="'Zoom In'" tooltipPlacement="top">
-              <app-icon name="expand" [size]="15" color="#ffffff"></app-icon>
+              <app-icon name="zoom-in" [size]="16" color="#ffffff"></app-icon>
             </button>
             <button type="button" class="lightbox-dock-btn" *ngIf="scale > 1" (click)="resetZoom()" [appTooltip]="'Reset Zoom'" tooltipPlacement="top">
               <app-icon name="history" [size]="15" color="#ffffff"></app-icon>
@@ -156,7 +156,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
           </span>
         </div>
         <p class="lightbox-hint">
-          <span *ngIf="!dialog.lightboxIsVideo()"><app-icon name="expand" [size]="12" color="#ffffff" style="margin-right: 4px;"></app-icon>Double-tap or pinch to zoom</span>
+          <span *ngIf="!dialog.lightboxIsVideo()"><app-icon name="zoom-in" [size]="12" color="#ffffff" style="margin-right: 4px;"></app-icon>Double-tap or pinch to zoom</span>
           <span *ngIf="dialog.lightboxIsVideo()"><app-icon name="play" [size]="12" color="#ffffff" style="margin-right: 4px;"></app-icon>Space to play / pause video</span>
           <span *ngIf="dialog.totalMediaCount > 1" style="margin-left: 8px;">• <app-icon name="chevron-right" [size]="12" color="#ffffff" style="margin: 0 4px;"></app-icon>Swipe to navigate</span>
         </p>

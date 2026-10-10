@@ -299,6 +299,22 @@ export class IconRegistryService {
       }
     ],
     [
+      'zoom-in',
+      {
+        name: 'zoom-in',
+        faClass: 'fa-solid fa-magnifying-glass-plus',
+        lucideSvg: '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/>'
+      }
+    ],
+    [
+      'zoom-out',
+      {
+        name: 'zoom-out',
+        faClass: 'fa-solid fa-magnifying-glass-minus',
+        lucideSvg: '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/>'
+      }
+    ],
+    [
       'map',
       {
         name: 'map',
@@ -995,8 +1011,10 @@ export class IconRegistryService {
       'road-barrier': 'hazard',
       'align-left': 'message-square',
       'hand-pointer': 'crosshairs',
-      'magnifying-glass-plus': 'expand',
-      'magnifying-glass-minus': 'compress',
+      'magnifying-glass-plus': 'zoom-in',
+      'magnifying-glass-minus': 'zoom-out',
+      'search-plus': 'zoom-in',
+      'search-minus': 'zoom-out',
       'rotate-left': 'history',
       'chevron-back': 'chevron-left',
       'mobile-screen': 'smartphone',
