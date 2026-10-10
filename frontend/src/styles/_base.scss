@@ -300,7 +300,7 @@ html[data-theme-anim='to-dark'] {
   }
 
   &::view-transition-new(root) {
-    animation: sine-theme-reveal-out 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+    animation: sine-theme-reveal-out 680ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
     z-index: 999999 !important;
     will-change: clip-path;
   }
@@ -309,7 +309,7 @@ html[data-theme-anim='to-dark'] {
 /* To-Light: Old dark view retracts (negative reveal) into toggle origin revealing static new light view */
 html[data-theme-anim='to-light'] {
   &::view-transition-old(root) {
-    animation: sine-theme-reveal-in 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+    animation: sine-theme-reveal-in 680ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
     z-index: 999999 !important;
     will-change: clip-path;
   }
@@ -318,6 +318,23 @@ html[data-theme-anim='to-light'] {
     animation: none !important;
     z-index: 1 !important;
   }
+}
+
+/* Keep the Dark Mode toggle switch on TOP of the view transition stack
+   so it is never clipped, obscured, or inverted by the circular wipe or negative sweep */
+.theme-toggle-live {
+  view-transition-name: theme-toggle-live;
+}
+
+::view-transition-group(theme-toggle-live) {
+  z-index: 2147483647 !important;
+  animation: none !important;
+}
+
+::view-transition-old(theme-toggle-live),
+::view-transition-new(theme-toggle-live) {
+  animation: none !important;
+  mix-blend-mode: normal !important;
 }
 
 /* =========================================
