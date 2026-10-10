@@ -290,6 +290,14 @@ html[data-theme-anim] {
   &::view-transition-image-pair(root) {
     animation: none !important;
   }
+
+  &::view-transition-old(root),
+  &::view-transition-new(root) {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    contain: paint;
+  }
 }
 
 /* To-Dark: New dark view expands from toggle origin over the static old light view */
@@ -300,7 +308,7 @@ html[data-theme-anim='to-dark'] {
   }
 
   &::view-transition-new(root) {
-    animation: sine-theme-reveal-out 680ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: sine-theme-reveal-out 850ms cubic-bezier(0.2, 0.95, 0.25, 1) forwards !important;
     z-index: 999999 !important;
     will-change: clip-path;
   }
@@ -309,7 +317,7 @@ html[data-theme-anim='to-dark'] {
 /* To-Light: Old dark view retracts (negative reveal) into toggle origin revealing static new light view */
 html[data-theme-anim='to-light'] {
   &::view-transition-old(root) {
-    animation: sine-theme-reveal-in 680ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: sine-theme-reveal-in 850ms cubic-bezier(0.2, 0.95, 0.25, 1) forwards !important;
     z-index: 999999 !important;
     will-change: clip-path;
   }
