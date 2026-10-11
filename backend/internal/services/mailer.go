@@ -235,3 +235,69 @@ func SendTechnicalBugReportEmail(feedbackID int, citizenName, citizenUsername, c
 	return GetMailer().SendBugReportEmail(devEmail, feedbackID, citizenName, citizenEmail, category, message, createdAt, adminNotes)
 }
 
+// SendDisasterRecoveryNotice sends polite recovery notifications to citizens identified during a restore gap.
+func (m *Mailer) SendDisasterRecoveryNotice(to string, snapshotTime string) error {
+	safeSnapshotTime := html.EscapeString(snapshotTime)
+	htmlBody := fmt.Sprintf(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MDRRMO System Synchronization Notice</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f5f8;font-family:Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f8;padding:32px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);max-width:92%%;">
+          <tr>
+            <td style="background-color:#D32F2F;padding:28px 32px;text-align:left;">
+              <span style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:0.5px;">SINE MDRRMO</span><br>
+              <span style="color:#ffebee;font-size:13px;opacity:0.9;">Municipal Disaster Risk Reduction & Management Office</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <div style="display:inline-block;background-color:#fff3e0;border-left:4px solid #ff9800;padding:8px 14px;border-radius:4px;margin-bottom:20px;">
+                <span style="color:#e65100;font-size:13px;font-weight:bold;">SYSTEM RECOVERY & SYNCHRONIZATION ADVISORY</span>
+              </div>
+              <p style="margin:0 0 16px 0;font-size:17px;font-weight:bold;color:#222428;line-height:1.4;">
+                Important Notice Regarding Your Account
+              </p>
+              <p style="margin:0 0 16px 0;font-size:14px;color:#444444;line-height:1.6;">
+                Dear Citizen,
+              </p>
+              <p style="margin:0 0 16px 0;font-size:14px;color:#444444;line-height:1.6;">
+                The San Isidro Municipal Disaster Risk Reduction and Management Office (MDRRMO) recently performed an automated database synchronization at <strong>%s</strong> to maintain high system availability and emergency data integrity.
+              </p>
+              <p style="margin:0 0 16px 0;font-size:14px;color:#444444;line-height:1.6;">
+                Our audit records indicate you initiated an account registration or profile update immediately prior to or during this synchronization. While we make every effort to preserve all transactions, there is a possibility that your recent registration status may require a quick re-verification.
+              </p>
+              <div style="background-color:#f8f9fa;border:1px solid #e9ecef;border-radius:8px;padding:16px 20px;margin:20px 0;">
+                <p style="margin:0 0 8px 0;font-size:14px;font-weight:bold;color:#222428;">What should you do?</p>
+                <p style="margin:0;font-size:13px;color:#555555;line-height:1.5;">
+                  • Open the <strong>SINE MDRRMO</strong> app on your device.<br>
+                  • If your account shows unverified, please sign in or re-submit your verification at your convenience.<br>
+                  • If everything looks normal, no further action is required.
+                </p>
+              </div>
+              <p style="margin:0 0 8px 0;font-size:14px;color:#444444;line-height:1.6;">
+                Thank you for your understanding and cooperation as we keep San Isidro safe.
+              </p>
+              <p style="margin:24px 0 0 0;font-size:13px;color:#888888;line-height:1.4;">
+                — San Isidro MDRRMO Technical & Emergency Operations Team
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`, safeSnapshotTime)
+
+	return m.Send(to, "Important Notice: SINE MDRRMO System Synchronization & Account Verification Update", htmlBody)
+}
+
+

@@ -34,6 +34,12 @@ func (s *PhilSmsService) SendOtp(phone string, otp string, purpose string) bool 
 	return s.send(phone, message)
 }
 
+// SendDirect sends an arbitrary SMS text message directly to the recipient.
+func (s *PhilSmsService) SendDirect(recipient string, message string) bool {
+	return s.send(recipient, message)
+}
+
+
 func (s *PhilSmsService) send(recipient string, message string) bool {
 	if s.token == "" {
 		log.Warn().Msg("PhilSMS: token is empty, skipping SMS")

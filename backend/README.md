@@ -69,3 +69,42 @@ The server will automatically:
 - Start the embedded real-time WebSocket server
 - Start the background cron scheduler
 - Listen on `http://localhost:3000` (or configured `APP_PORT`)
+
+---
+
+## Database Backups & Disaster Recovery CLI Suite
+
+The Go Fiber backend features an advanced, self-contained Disaster Recovery Engine with automated 2-hour intraday snapshots, smart typo detection, pre-restore safety shields, delta gap scanning, and notification dispatching:
+
+| Command | Action | Description |
+| :--- | :--- | :--- |
+| `backup create` | Snapshot | Immediately creates a gzip-compressed database snapshot in `storage/app/backups/` and auto-prunes |
+| `backup list [--all]` | List | Displays a formatted ASCII table of snapshots with sizes, human age, and types (Intraday vs Safety) |
+| `backup desc [target]` | Describe | Inspects metadata, raw/compressed size, compression ratio, table counts, and latest SOS without restoring |
+| `backup restore [target]` | Restore | Safely restores database with live vs. backup record diff preview, automatic safety snapshot, and confirmation |
+| `backup salvage [target]` | Salvage | Scans storage proof folders (`reports`, `ids`, `profiles`) and logs for gap data created since snapshot |
+| `backup notify [target]` | Notify | Sends polite recovery SMS (PhilSMS) and HTML email (Resend) notices to citizens identified during gap |
+| `backup status` | Health | Displays automated schedule status, backup intervals, retention limits, total archives, and latest snapshot |
+| `backup prune` | Clean | Enforces retention limits (12 intraday / 7 daily snapshots) and removes safety snapshots older than 48 hours |
+| `backup watch` | Daemon | Runs automated background schedule worker in the foreground |
+| `backup help` | Help | Displays interactive command reference, argument flags, and usage examples |
+
+### Smart Target Resolution Modes
+- **Numeric Shorthand:** `backup desc 1` (inspects newest snapshot #1), `backup restore 2` (restores snapshot #2)
+- **Keywords:** `backup restore latest`, `backup desc recent`
+- **Fuzzy / Substring Match:** `backup restore 150506` (matches snapshot timestamp `150506`)
+- **Interactive Menu:** Run `backup restore` or `backup desc` with no arguments to browse paginated lists (`[n] Next`, `[p] Prev`, `[c] Cancel`)
+- **Non-Interactive Bypass:** Append `--force` to bypass interactive confirmation prompts
+
+### Smart Typo Detection
+If an action is mistyped, the CLI calculates Levenshtein distance and immediately suggests the closest valid action:
+```text
+$ backup restor
+ ❌ Unknown action: "restor"
+ 💡 Did you mean: "restore"?
+```
+
+### Storage Location
+- **Local:** `backend/storage/app/backups/`
+- **VPS Host:** `/var/www/backend/storage/app/backups/` (symlinked to `/var/www/sine-storage/app/backups/`)
+

@@ -28,9 +28,9 @@ func main() {
 	config.Load()
 	cfg := config.AppConfig
 
-	// Check for CLI subcommands (e.g. ./server backup create / list / prune, ./server test-mail <email>)
+	// Check for CLI subcommands (e.g. ./server backup ..., ./server test-mail <email>)
 	if len(os.Args) > 1 && os.Args[1] == "backup" {
-		handleBackupCli()
+		backup.HandleCli(os.Args[2:])
 		return
 	}
 	if len(os.Args) > 2 && os.Args[1] == "test-mail" {
@@ -303,45 +303,3 @@ func registerRoutes(app *fiber.App) {
 	}
 }
 
-func handleBackupCli() {
-	action := "create"
-	if len(os.Args) > 2 {
-		action = os.Args[2]
-	}
-
-	switch action {
-	case "create", "snapshot":
-		fmt.Println("📦 Creating database backup snapshot...")
-		snap, err := backup.CreateSnapshot("emergencydb")
-		if err != nil {
-			fmt.Printf("❌ Backup failed: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("✅ Backup created: %s (%.2f MB)\n", snap.Filename, snap.SizeMB)
-
-	case "list":
-		list, err := backup.ListBackups()
-		if err != nil {
-			fmt.Printf("❌ Failed to list backups: %v\n", err)
-			os.Exit(1)
-		}
-		if len(list) == 0 {
-			fmt.Println("No backups found in storage/app/backups")
-			return
-		}
-		fmt.Printf("%-35s %-12s %-20s\n", "FILENAME", "SIZE", "CREATED AT")
-		fmt.Println(strings.Repeat("-", 70))
-		for _, b := range list {
-			fmt.Printf("%-35s %-12.2f MB %-20s\n", b.Filename, b.SizeMB, b.CreatedAt.Format("2006-01-02 15:04:05"))
-		}
-
-	case "prune":
-		fmt.Println("🧹 Pruning backups older than 7 days...")
-		pruned := backup.PruneOldBackups(7)
-		fmt.Printf("✅ Pruning complete. %d backup(s) removed.\n", pruned)
-
-	default:
-		fmt.Printf("Unknown backup command '%s'. Available: create, list, prune\n", action)
-		os.Exit(1)
-	}
-}
