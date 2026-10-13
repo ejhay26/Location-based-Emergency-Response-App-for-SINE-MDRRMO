@@ -267,3 +267,30 @@ ion-button.btn-success::part(native) {
     color: #ff6b81;
   }
 }
+
+/* =========================================
+   AUTHENTIC SINE BACK & MODAL DISMISS BUTTON WITH ACTIVE FEEDBACK
+   ========================================= */
+ion-button.sine-back-btn,
+button.sine-back-btn {
+  --padding-start: 6px;
+  --padding-end: 6px;
+  --border-radius: 50%;
+  min-width: 36px;
+  min-height: 36px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
+  transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.12s ease, opacity 0.12s ease !important;
+
+  &:active {
+    transform: scale(0.88) !important;
+    background-color: rgba(255, 255, 255, 0.28) !important;
+    --background: rgba(255, 255, 255, 0.28) !important;
+    opacity: 0.85;
+  }
+}
+

@@ -34,8 +34,7 @@
       <p style="font-size: 13px; color: var(--ion-color-medium); margin-bottom: 14px;">Drag to reposition. Pinch or use handles to crop.</p>
       <image-cropper
         [imageFile]="rawFile || undefined"
-        [maintainAspectRatio]="true"
-        [aspectRatio]="16 / 9"
+        [maintainAspectRatio]="false"
         format="jpeg"
         [output]="'base64'"
         [roundCropper]="false"

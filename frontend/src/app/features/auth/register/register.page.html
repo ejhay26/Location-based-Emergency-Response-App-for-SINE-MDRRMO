@@ -1,8 +1,8 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="danger">
     <ion-buttons slot="start">
-      <ion-button (click)="cancelRegistration()" style="color: white; font-weight: 700; --padding-start: 4px;">
-        <app-icon name="close" [size]="18" color="#ffffff" style="margin-right: 4px;"></app-icon> Cancel
+      <ion-button (click)="onHeaderBack()" class="sine-back-btn" style="--color: #ffffff; color: #ffffff;" aria-label="Back">
+        <app-icon name="chevron-left" [size]="22" color="#ffffff"></app-icon>
       </ion-button>
     </ion-buttons>
     <ion-title style="color: white; font-weight: 800; font-size: 16px;">Citizen Registration</ion-title>
@@ -457,6 +457,11 @@
             <app-icon name="rotate-cw" [size]="14" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon> Resend Code
           </ng-container>
         </ion-button>
+        <div style="margin-top: 14px;">
+          <ion-button fill="clear" color="medium" size="small" (click)="restartRegistration()" style="font-size: 12px; font-weight: 600; text-transform: none;">
+            Need to correct your details or start over? Tap here
+          </ion-button>
+        </div>
       </div>
     </div>
 

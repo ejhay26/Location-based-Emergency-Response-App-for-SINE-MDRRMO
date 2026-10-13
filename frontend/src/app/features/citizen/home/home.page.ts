@@ -400,7 +400,9 @@ export class HomePage implements OnInit, OnDestroy {
   async openAllAnnouncements() {
     const modal = await this.modalCtrl.create({
       component: AnnouncementsModalComponent,
-      componentProps: { broadcasts: this.activeBroadcasts }
+      componentProps: { broadcasts: this.activeBroadcasts },
+      enterAnimation: reportModalEnter,
+      leaveAnimation: reportModalLeave,
     });
     await modal.present();
   }

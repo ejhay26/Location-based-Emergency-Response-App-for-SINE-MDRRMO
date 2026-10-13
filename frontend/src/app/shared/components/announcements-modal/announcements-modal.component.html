@@ -1,13 +1,13 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="danger">
-    <ion-title style="color: white; font-weight: 800; font-size: 16px; text-align: start; padding-inline-start: 16px; padding-inline-end: 48px;">
-      MDRRMO Announcements
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismiss()" style="color: white; font-weight: bold;">
-        <app-icon name="close" [size]="20" color="#ffffff"></app-icon>
+    <ion-buttons slot="start">
+      <ion-button (click)="dismiss()" class="sine-back-btn" style="--color: #ffffff; color: #ffffff;" aria-label="Back">
+        <app-icon name="chevron-left" [size]="22" color="#ffffff"></app-icon>
       </ion-button>
     </ion-buttons>
+    <ion-title style="color: white; font-weight: 800; font-size: 16px; text-align: start;">
+      MDRRMO Announcements
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 

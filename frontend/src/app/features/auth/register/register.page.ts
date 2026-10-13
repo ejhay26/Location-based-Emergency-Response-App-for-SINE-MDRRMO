@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastController } from '@ionic/angular';
@@ -8,7 +8,7 @@ import {
   IonSelect, IonSelectOption, IonCheckbox, IonLabel,
   IonButton, ModalController
 } from '@ionic/angular/standalone';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../core/services/api';
 import { RegisterIdCaptureComponent } from './components/register-id-capture/register-id-capture.component';
 import { RegisterAccountDetailsComponent } from './components/register-account-details/register-account-details.component';
@@ -18,6 +18,7 @@ import { OtpAutofillService } from '../../../core/services/otp-autofill';
 import { BARANGAYS } from '../../../shared/constants/barangays';
 import { TermsModalComponent } from '../../../shared/components/terms-modal/terms-modal.component';
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
+import { reportModalEnter, reportModalLeave } from '../../../core/animations/report-modal-transition';
 
 /**
  * Modern Restructured 4-Step Registration Flow:
@@ -41,7 +42,7 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
     AppIconComponent
   ],
 })
-export class RegisterPage implements OnDestroy {
+export class RegisterPage implements OnInit, OnDestroy {
   readonly totalSteps = 4;
   currentStep = 1;
   otpCode = '';
@@ -100,15 +101,24 @@ export class RegisterPage implements OnDestroy {
   }
 
   onHeaderBack(): void {
-    if (this.currentStep > 1) {
+    if (this.currentStep === 4) {
+      this.router.navigate(['/login']);
+    } else if (this.currentStep > 1) {
       this.prevStep();
     } else {
       this.router.navigate(['/login']);
     }
   }
 
+  restartRegistration(): void {
+    localStorage.removeItem('sine_pending_registration');
+    this.otpCode = '';
+    this.currentStep = 1;
+    this.stopOtpCountdown();
+  }
+
   cancelRegistration(): void {
-    this.router.navigate(['/login']);
+    this.onHeaderBack();
   }
 
   get daysInSelectedMonth(): number[] {
@@ -305,6 +315,37 @@ export class RegisterPage implements OnDestroy {
   private modalCtrl = inject(ModalController);
   private otpAutofill = inject(OtpAutofillService);
   private cdr = inject(ChangeDetectorRef);
+  private route = inject(ActivatedRoute);
+
+  ngOnInit(): void {
+    const params = this.route.snapshot.queryParams;
+    let pendingData: any = null;
+    const pendingJson = localStorage.getItem('sine_pending_registration');
+    if (pendingJson) {
+      try { pendingData = JSON.parse(pendingJson); } catch {}
+    }
+
+    const stepParam = params['step'];
+    const emailParam = params['email'];
+
+    if (stepParam === '4' || stepParam === 4 || emailParam || pendingData) {
+      const email = emailParam || pendingData?.email;
+      if (email) {
+        this.userData.email = email;
+        if (pendingData?.phone) {
+          this.userData.phone = pendingData.phone;
+          this.phoneLocal = pendingData.phone.startsWith('63') ? pendingData.phone.slice(2) : pendingData.phone;
+        }
+        if (pendingData?.otp_channel) {
+          this.userData.otp_channel = pendingData.otp_channel;
+        }
+        this.currentStep = 4;
+        this.termsAccepted = true;
+        this.startOtpCountdown();
+        this.cdr.markForCheck();
+      }
+    }
+  }
 
   constructor(
     private router: Router,
@@ -360,6 +401,8 @@ export class RegisterPage implements OnDestroy {
     const modal = await this.modalCtrl.create({
       component: TermsModalComponent,
       componentProps: { activeTab: tab },
+      enterAnimation: reportModalEnter,
+      leaveAnimation: reportModalLeave,
     });
     await modal.present();
     const { data } = await modal.onDidDismiss();
@@ -368,15 +411,105 @@ export class RegisterPage implements OnDestroy {
     }
   }
 
+  getIdNumberValidationMessage(): string {
+    const type = this.userData.valid_id_type;
+    switch (type) {
+      case 'Philippine National ID (PhilSys)':
+        return 'PhilSys National ID number must be 16 digits (e.g. 0000-0000-0000-0000).';
+      case "Driver's License":
+        return "Driver's License number must follow format A00-00-000000 (e.g. N01-12-345678).";
+      case 'Philippine Passport':
+        return 'Passport number must start with a letter followed by 7 or 8 alphanumeric characters (e.g. P1234567A).';
+      case 'UMID / SSS ID':
+        return 'UMID / SSS CRN must be 12 digits (e.g. 0000-0000000-0).';
+      case 'Postal ID':
+        return 'Postal ID Reference Number must be 9 to 20 alphanumeric characters.';
+      case 'PRC License':
+        return 'PRC License number must be exactly 7 digits.';
+      default:
+        return 'Please enter a valid government ID number (minimum 4 characters).';
+    }
+  }
+
   nextStep(): void {
     // ── STEP 1: Personal Details & Residence ──
     if (this.currentStep === 1) {
-      if (!this.userData.first_name?.trim() || !this.userData.last_name?.trim()
-          || !isValidPhonePH(this.userData.phone) || !this.userData.birthdate?.trim()
-          || !this.userData.barangay_id) {
-        this.showToast('Please fill out all personal and residence details.');
+      const firstName = (this.userData.first_name ?? '').trim();
+      if (!firstName) {
+        this.showToast('Please enter your first name.');
         return;
       }
+      if (firstName.length < 2) {
+        this.showToast('First name must be at least 2 characters long.');
+        return;
+      }
+      if (!/^[a-zA-ZÀ-ÿ\s.\-']+$/.test(firstName)) {
+        this.showToast('First name contains invalid characters. Please use letters only.');
+        return;
+      }
+
+      const lastName = (this.userData.last_name ?? '').trim();
+      if (!lastName) {
+        this.showToast('Please enter your last name.');
+        return;
+      }
+      if (lastName.length < 2) {
+        this.showToast('Last name must be at least 2 characters long.');
+        return;
+      }
+      if (!/^[a-zA-ZÀ-ÿ\s.\-']+$/.test(lastName)) {
+        this.showToast('Last name contains invalid characters. Please use letters only.');
+        return;
+      }
+
+      const phoneLocal = (this.phoneLocal ?? '').trim();
+      if (!phoneLocal) {
+        this.showToast('Please enter your 10-digit mobile phone number.');
+        return;
+      }
+      if (!phoneLocal.startsWith('9')) {
+        this.showToast('Philippine mobile numbers must start with 9 (e.g. 917 123 4567).');
+        return;
+      }
+      if (phoneLocal.length < 10) {
+        this.showToast(`Phone number is incomplete (${phoneLocal.length}/10 digits). Please enter all 10 digits.`);
+        return;
+      }
+      if (!isValidPhonePH(this.userData.phone)) {
+        this.showToast('Invalid Philippine mobile number format. Please check your phone number.');
+        return;
+      }
+
+      if (!this.birthYear || !this.birthMonth || !this.birthDay || !this.userData.birthdate) {
+        this.showToast('Please select your complete date of birth (Month, Day, and Year).');
+        return;
+      }
+      if (this.birthdateError) {
+        this.showToast(this.birthdateError);
+        return;
+      }
+      const bDate = new Date(`${this.birthYear}-${this.birthMonth}-${String(this.birthDay).padStart(2, '0')}T00:00:00`);
+      const now = new Date();
+      if (bDate > now) {
+        this.showToast('Birthdate cannot be in the future.');
+        return;
+      }
+      const ageDiff = now.getTime() - bDate.getTime();
+      const age = Math.floor(ageDiff / (1000 * 60 * 60 * 24 * 365.25));
+      if (age < 12) {
+        this.showToast('You must be at least 12 years old to register an account.');
+        return;
+      }
+      if (age > 120) {
+        this.showToast('Please enter a valid birth year.');
+        return;
+      }
+
+      if (!this.userData.barangay_id) {
+        this.showToast('Please select your residence Barangay in San Isidro.');
+        return;
+      }
+
       this.currentStep = 2;
       setTimeout(() => {
         this.accountDetailsCmp?.onStepActivated();
@@ -386,40 +519,75 @@ export class RegisterPage implements OnDestroy {
 
     // ── STEP 2: Account Credentials & Security ──
     if (this.currentStep === 2) {
-      if (!this.userData.username?.trim() || !this.userData.email?.trim()) {
-        this.showToast('Please enter both username and email.');
+      const username = (this.userData.username ?? '').trim();
+      if (!username) {
+        this.showToast('Please enter a username.');
         return;
       }
-      let usernameOk = this.accountDetailsCmp?.usernameAvailable === true || this.userData._usernameAvailable === true;
-      if (!usernameOk) {
-        if (this.accountDetailsCmp?.isUsernameFormatValid() && this.accountDetailsCmp?.usernameAvailable !== false && this.userData._usernameAvailable !== false) {
-          usernameOk = true;
-          if (this.accountDetailsCmp) this.accountDetailsCmp.usernameAvailable = true;
-          this.userData._usernameAvailable = true;
-        } else {
-          this.showToast('Please choose an available username.');
-          return;
-        }
-      }
-      let emailOk = this.accountDetailsCmp?.emailAvailable === true || this.userData._emailAvailable === true;
-      if (!emailOk) {
-        if (this.accountDetailsCmp?.isEmailFormatValid() && this.accountDetailsCmp?.emailAvailable !== false && this.userData._emailAvailable !== false) {
-          emailOk = true;
-          if (this.accountDetailsCmp) this.accountDetailsCmp.emailAvailable = true;
-          this.userData._emailAvailable = true;
-        } else {
-          this.showToast('Please enter a valid, available email address.');
-          return;
-        }
-      }
-      if (!this.accountDetailsCmp?.isPasswordValid) {
-        this.showToast('Password must meet all 5 security requirements.');
+      if (username.length < 3 || username.length > 20) {
+        this.showToast('Username must be between 3 and 20 characters.');
         return;
       }
-      if (this.accountDetailsCmp?.passwordsMatch !== true) {
-        this.showToast('Passwords do not match.');
+      if (!/^[a-zA-Z0-9._]+$/.test(username)) {
+        this.showToast('Username can only contain letters, numbers, dots, and underscores.');
         return;
       }
+      if (this.accountDetailsCmp?.usernameAvailable === false || this.userData._usernameAvailable === false) {
+        this.showToast('Username is already taken. Please choose another or tap a suggestion.');
+        return;
+      }
+
+      const email = (this.userData.email ?? '').trim();
+      if (!email) {
+        this.showToast('Please enter your email address.');
+        return;
+      }
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        this.showToast('Please enter a valid email address (e.g. name@example.com).');
+        return;
+      }
+      if (this.accountDetailsCmp?.emailAvailable === false || this.userData._emailAvailable === false) {
+        this.showToast('This email is already registered. Please log in or use another email.');
+        return;
+      }
+
+      const pwd = this.userData.password ?? '';
+      if (!pwd) {
+        this.showToast('Please create a password for your account.');
+        return;
+      }
+      if (pwd.length < 8) {
+        this.showToast('Password must be at least 8 characters long.');
+        return;
+      }
+      if (!/[A-Z]/.test(pwd)) {
+        this.showToast('Password must include at least one uppercase letter (A-Z).');
+        return;
+      }
+      if (!/[a-z]/.test(pwd)) {
+        this.showToast('Password must include at least one lowercase letter (a-z).');
+        return;
+      }
+      if (!/\d/.test(pwd)) {
+        this.showToast('Password must include at least one number (0-9).');
+        return;
+      }
+      if (!/[@$!%*#?&]/.test(pwd)) {
+        this.showToast('Password must include at least one special symbol (@$!%*#?&).');
+        return;
+      }
+
+      const confirmPwd = this.userData.confirm_password ?? '';
+      if (!confirmPwd) {
+        this.showToast('Please re-enter your password to confirm.');
+        return;
+      }
+      if (pwd !== confirmPwd) {
+        this.showToast('Passwords do not match. Please verify both password fields.');
+        return;
+      }
+
       this.currentStep = 3;
       return;
     }
@@ -430,32 +598,37 @@ export class RegisterPage implements OnDestroy {
         this.showToast('Please select a Philippine Government ID type.');
         return;
       }
-      if (!this.userData.valid_id_number?.trim()) {
-        this.showToast('Please enter your valid ID number.');
+      const idNum = (this.userData.valid_id_number ?? '').trim();
+      if (!idNum) {
+        this.showToast(`Please enter your ${this.userData.valid_id_type} number.`);
         return;
       }
       if (!this.isIdNumberValid) {
-        this.showToast('Please enter a valid ID number matching the required format.');
+        this.showToast(this.getIdNumberValidationMessage());
         return;
       }
       const typesWithExpiry = ["Driver's License", 'Philippine Passport', 'Postal ID', 'PRC License'];
       if (typesWithExpiry.includes(this.userData.valid_id_type) && !this.userData.valid_id_expiry) {
-        this.showToast('Please select your ID expiration date.');
+        this.showToast(`Please specify the expiration date for your ${this.userData.valid_id_type}.`);
         return;
       }
-      if (this.userData.valid_id_type === 'PRC License' && this.idProfession.trim()) {
+      if (this.userData.valid_id_type === 'PRC License') {
+        if (!this.idProfession?.trim()) {
+          this.showToast('Please enter your professional title / field for PRC License.');
+          return;
+        }
         this.userData.valid_id_details = { profession: this.idProfession.trim() };
       }
       if (!this.userData.valid_id_image) {
-        this.showToast('A photo of the front of your ID is required.');
+        this.showToast('A clear photo of the FRONT of your valid ID is required.');
         return;
       }
       if (!this.userData.valid_id_image_back) {
-        this.showToast('A photo of the back of your ID is required.');
+        this.showToast('A clear photo of the BACK of your valid ID is required.');
         return;
       }
       if (!this.userData.selfie_with_id_image) {
-        this.showToast('A selfie holding your ID is required.');
+        this.showToast('A clear selfie holding your ID is required to verify identity.');
         return;
       }
 
@@ -500,6 +673,13 @@ export class RegisterPage implements OnDestroy {
     this.api.register(payload).subscribe({
       next: () => {
         this.isRegistering = false;
+        try {
+          localStorage.setItem('sine_pending_registration', JSON.stringify({
+            email: payload.email,
+            phone: payload.phone,
+            otp_channel: payload.otp_channel
+          }));
+        } catch {}
         const isSms = this.userData.otp_channel === 'sms';
         const msg = isSms
           ? `Verification code sent to your phone (${this.userData.phone}).`
@@ -573,6 +753,7 @@ export class RegisterPage implements OnDestroy {
     this.api.verifyOtp({ email: this.userData.email, otp: this.otpCode }).subscribe({
       next: () => {
         this.isVerifyingOtp = false;
+        localStorage.removeItem('sine_pending_registration');
         this.otpAutofill.stop();
         this.stopOtpCountdown();
         this.router.navigate(['/pending-verification'], { queryParams: { login: this.userData.email } });

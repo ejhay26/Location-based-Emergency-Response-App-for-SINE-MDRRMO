@@ -26,7 +26,7 @@
     </ion-item>
   </div>
 
-  <ion-button expand="block" color="danger" (click)="saveMedicalProfile()" [class.btn-loading]="isSavingMedical" style="font-weight:bold;height:46px;--border-radius:14px;box-shadow:0 4px 16px rgba(211,47,47,0.3);margin-top:12px;">
+  <ion-button expand="block" color="danger" (click)="saveMedicalProfile()" [class.btn-loading]="isSavingMedical" style="font-weight:bold;height:46px;--border-radius:14px;border-radius:14px;overflow:hidden;--box-shadow:0 4px 16px rgba(211,47,47,0.3);margin-top:12px;">
     <ng-container *ngIf="!isSavingMedical">
       <app-icon name="check" [size]="16" color="#ffffff" style="margin-right:8px;"></app-icon> Save Medical Profile
     </ng-container>

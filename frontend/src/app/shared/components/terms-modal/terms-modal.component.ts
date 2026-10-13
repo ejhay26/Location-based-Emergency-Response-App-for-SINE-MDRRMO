@@ -10,14 +10,14 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
   template: `
 <ion-header class="ion-no-border">
   <ion-toolbar color="danger">
-    <ion-title style="color: white; font-weight: 800; font-size: 16px;">
-      <app-icon name="shield-check" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon>Terms &amp; Policies
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismiss(false)" style="color: white; font-weight: 700;">
-        <app-icon name="close" [size]="18" color="#ffffff"></app-icon>
+    <ion-buttons slot="start">
+      <ion-button (click)="dismiss(false)" class="sine-back-btn" style="--color: #ffffff; color: #ffffff;" aria-label="Back">
+        <app-icon name="chevron-left" [size]="22" color="#ffffff"></app-icon>
       </ion-button>
     </ion-buttons>
+    <ion-title style="color: white; font-weight: 800; font-size: 16px;">
+      Terms &amp; Policies
+    </ion-title>
   </ion-toolbar>
 
   <ion-toolbar style="--background: var(--ion-card-background, white); border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08));">

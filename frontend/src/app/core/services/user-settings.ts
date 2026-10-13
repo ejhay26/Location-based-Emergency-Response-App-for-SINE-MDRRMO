@@ -176,9 +176,7 @@ export class UserSettingsService {
   }
 
   /**
-   * Telegram-style circular dark/light mode transition with authentic iOS physics.
-   * Light -> Dark: new dark theme expands OUTWARD from toggle coordinates.
-   * Dark -> Light: old dark theme retracts INWARD into toggle coordinates.
+   * Synchronized dark/light mode transition with unified cross-platform cross-dissolve fade.
    *
    * Spam-proof by LOCKING rather than interrupting: while a reveal is
    * playing, further calls are queued (latest wins) instead of restarting
@@ -192,106 +190,56 @@ export class UserSettingsService {
     const { x, y } = this.resolveThemeOrigin(event, origin);
 
     if (this.isThemeTransitioning) {
+      // Only queue if the requested state differs from the state actively being transitioned to
       if (isDark !== this.getBool('dark_mode')) {
         this.queuedThemeRequest = { isDark, x, y };
       }
       return;
     }
 
-    await this.runFadeReveal(isDark);
+    await this.runThemeReveal(isDark, x, y);
 
+    // Replay at most one follow-up transition if rapid tapping requested a different end-state
     if (this.queuedThemeRequest && this.queuedThemeRequest.isDark !== this.getBool('dark_mode')) {
       const next = this.queuedThemeRequest;
       this.queuedThemeRequest = null;
-      await this.runFadeReveal(next.isDark);
+      await this.runThemeReveal(next.isDark, next.x, next.y);
     }
     this.queuedThemeRequest = null;
   }
 
-  /**
-   * Synchronized cross-dissolve fade transition (fallback & stable mode).
-   */
-  private async runFadeReveal(isDark: boolean): Promise<void> {
+  private async runThemeReveal(isDark: boolean, _x: number, _y: number): Promise<void> {
     this.isThemeTransitioning = true;
-    const root = document.documentElement;
     try {
-      this.cache['dark_mode'] = isDark ? 'true' : 'false';
+      // 1. Immediately update setting state for 0ms reactive UI feedback
+      this.setBool('dark_mode', isDark);
 
       const doc = document as any;
-      if (typeof doc.startViewTransition !== 'function' || !this.shouldAnimate()) {
-        root.classList.toggle('ion-palette-dark', isDark);
+      const supportsViewTransition = typeof doc.startViewTransition === 'function' && this.shouldAnimate();
+
+      if (!supportsViewTransition) {
+        document.documentElement.classList.toggle('ion-palette-dark', isDark);
         return;
       }
 
+      const root = document.documentElement;
       root.classList.add('theme-transitioning');
 
       const transition = doc.startViewTransition(() => {
-        root.classList.toggle('ion-palette-dark', isDark);
+        document.documentElement.classList.toggle('ion-palette-dark', isDark);
       });
 
       try {
         await transition.finished;
       } catch {
-        root.classList.toggle('ion-palette-dark', isDark);
+        document.documentElement.classList.toggle('ion-palette-dark', isDark);
       } finally {
         root.classList.remove('theme-transitioning');
       }
     } finally {
-      this.persistSetting('dark_mode', isDark ? 'true' : 'false');
       this.isThemeTransitioning = false;
     }
   }
-
-  /*
-  // Circular Reveal implementation preserved for future reference:
-  private async runThemeReveal(isDark: boolean, x: number, y: number): Promise<void> {
-    this.isThemeTransitioning = true;
-    const root = document.documentElement;
-    try {
-      this.cache['dark_mode'] = isDark ? 'true' : 'false';
-
-      const doc = document as any;
-      if (typeof doc.startViewTransition !== 'function' || !this.shouldAnimate()) {
-        root.classList.toggle('ion-palette-dark', isDark);
-        return;
-      }
-
-      const vw = window.innerWidth || 360;
-      const vh = window.innerHeight || 640;
-      const originX = Number.isFinite(x) && x >= 0 ? x : Math.round(vw / 2);
-      const originY = Number.isFinite(y) && y >= 0 ? y : Math.round(vh / 2);
-      const endRadius = Math.ceil(
-        Math.hypot(
-          Math.max(originX, vw - originX),
-          Math.max(originY, vh - originY)
-        )
-      );
-
-      root.style.setProperty('--reveal-x', `${originX}px`);
-      root.style.setProperty('--reveal-y', `${originY}px`);
-      root.style.setProperty('--reveal-r', `${endRadius}px`);
-      root.setAttribute('data-theme-anim', isDark ? 'to-dark' : 'to-light');
-
-      const transition = doc.startViewTransition(() => {
-        root.classList.toggle('ion-palette-dark', isDark);
-      });
-
-      try {
-        await transition.finished;
-      } catch {
-        root.classList.toggle('ion-palette-dark', isDark);
-      } finally {
-        root.removeAttribute('data-theme-anim');
-        root.style.removeProperty('--reveal-x');
-        root.style.removeProperty('--reveal-y');
-        root.style.removeProperty('--reveal-r');
-      }
-    } finally {
-      this.persistSetting('dark_mode', isDark ? 'true' : 'false');
-      this.isThemeTransitioning = false;
-    }
-  }
-  */
 
   /** Apply all visual settings to the DOM. Call on app start and after login. */
   applyToDom(): void {
