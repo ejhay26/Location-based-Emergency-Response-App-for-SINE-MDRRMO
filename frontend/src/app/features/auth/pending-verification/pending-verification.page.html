@@ -7,12 +7,12 @@
 <ion-content class="ion-padding ion-text-center">
 
   <div class="ion-margin-vertical">
-    <img src="assets/icon/logo.jpg" alt="MDRRMO Logo"
+    <img src="/assets/icon/logo.jpg" alt="MDRRMO Logo"
          style="max-width: 90px; border-radius: 50%; box-shadow: var(--card-shadow, 0 8px 24px rgba(0,0,0,0.15));">
   </div>
 
   <!-- ── Still waiting ── -->
-  <div *ngIf="status === 'checking' || status === 'unverified' || status === 'error'" style="max-width: 360px; margin: 0 auto;">
+  <div *ngIf="status === 'checking' || status === 'unverified' || status === 'pending_otp' || status === 'error'" style="max-width: 360px; margin: 0 auto;">
     <div style="width: 76px; height: 76px; border-radius: 50%; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
       <app-icon name="hourglass" [size]="36" color="var(--ion-color-medium)"></app-icon>
     </div>

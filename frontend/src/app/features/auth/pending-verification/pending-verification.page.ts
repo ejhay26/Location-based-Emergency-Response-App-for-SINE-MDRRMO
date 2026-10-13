@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
@@ -7,7 +7,7 @@ import { ApiService } from '../../../core/services/api';
 import { EchoService } from '../../../core/services/echo.service';
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
-type VerificationStatus = 'checking' | 'unverified' | 'active' | 'banned' | 'not_found' | 'error';
+type VerificationStatus = 'checking' | 'unverified' | 'pending_otp' | 'active' | 'banned' | 'not_found' | 'error';
 
 /**
  * Shown after OTP verification during registration (account is created but
@@ -32,13 +32,22 @@ export class PendingVerificationPage implements OnInit, OnDestroy {
 
   private fallbackPollSub?: Subscription;
   private echoUserSub?: Subscription;
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private api: ApiService,
     private echo: EchoService,
-  ) {}
+  ) {
+    if (typeof window !== 'undefined') {
+      (window as any).__pendingVerificationPage = this;
+      (window as any).__setVerificationStatus = (st: VerificationStatus) => {
+        this.status = st;
+        this.cdr.detectChanges();
+      };
+    }
+  }
 
   ngOnInit() {
     this.identifier = this.route.snapshot.queryParamMap.get('login') || '';
@@ -66,6 +75,10 @@ export class PendingVerificationPage implements OnInit, OnDestroy {
     this.fallbackPollSub?.unsubscribe();
     this.echoUserSub?.unsubscribe();
     // Do NOT disconnect Echo — it is a root singleton.
+    if (typeof window !== 'undefined' && (window as any).__pendingVerificationPage === this) {
+      delete (window as any).__pendingVerificationPage;
+      delete (window as any).__setVerificationStatus;
+    }
   }
 
   checkStatus() {

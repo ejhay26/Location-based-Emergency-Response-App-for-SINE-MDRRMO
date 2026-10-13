@@ -54,6 +54,9 @@ Registration consists of four guided, streamlined steps:
 
 1. **Pending Verification Screen:**  
    Once your code is verified, your account is submitted to MDRRMO staff for identity review. You will see the Pending Verification screen, which automatically updates via real-time WebSockets the instant an admin approves your application.
+
+![Account Pending Verification](../assets/auth/pending-verification.png)
+
 2. **Account Setup Wizard:**  
    On your very first login after approval, the app guides you through an onboarding setup:
    - Uploading a profile avatar.

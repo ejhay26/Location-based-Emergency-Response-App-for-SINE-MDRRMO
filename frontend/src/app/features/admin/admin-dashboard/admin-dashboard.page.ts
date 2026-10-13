@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenuController } from '@ionic/angular';
 import { IonContent } from '@ionic/angular/standalone';
@@ -198,6 +198,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   private shortcutPanelSub?: Subscription;
   private shortcutActionSub?: Subscription;
   private shortcutBarangaySub?: Subscription;
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(
     private router: Router,
@@ -211,7 +212,15 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     public  ui: AdminUiService,
     private shortcuts: KeyboardShortcutsService,
     private dialog: DialogService,
-  ) {}
+  ) {
+    if (typeof window !== 'undefined') {
+      (window as any).__adminDashboard = this;
+      (window as any).__selectViewMode = (mode: ViewMode) => {
+        this.selectViewMode(mode);
+        this.cdr.detectChanges();
+      };
+    }
+  }
 
   ngOnInit() {
     this.echo.connect();
@@ -333,6 +342,10 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.desktopNotifications.stop();
     this.stopResizeListeners();
     window.removeEventListener('resize', this.boundWindowResize);
+    if (typeof window !== 'undefined' && (window as any).__adminDashboard === this) {
+      delete (window as any).__adminDashboard;
+      delete (window as any).__selectViewMode;
+    }
   }
 
   refreshAllCounts(): void {

@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnDestroy, inject } from '@angular/core';
+import { Component, ViewChild, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastController } from '@ionic/angular';
@@ -304,16 +304,50 @@ export class RegisterPage implements OnDestroy {
 
   private modalCtrl = inject(ModalController);
   private otpAutofill = inject(OtpAutofillService);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(
     private router: Router,
     private api: ApiService,
     private toastController: ToastController,
-  ) {}
+  ) {
+    if (typeof window !== 'undefined') {
+      (window as any).__registerPage = this;
+      (window as any).__setRegisterStep = (step: number) => {
+        this.currentStep = step;
+        if (step >= 2) {
+          if (!this.userData.first_name) this.userData.first_name = 'Juan';
+          if (!this.userData.last_name) this.userData.last_name = 'Dela Cruz';
+          if (!this.phoneLocal) this.phoneLocal = '9171234567';
+          if (!this.userData.phone) this.userData.phone = '639171234567';
+          if (!this.birthYear) this.birthYear = '1995';
+          if (!this.birthMonth) this.birthMonth = '05';
+          if (!this.birthDay) this.birthDay = '15';
+          if (!this.userData.birthdate) this.userData.birthdate = '1995-05-15';
+          if (!this.userData.barangay_id) this.userData.barangay_id = 1;
+        }
+        if (step >= 3) {
+          if (!this.userData.username) this.userData.username = 'juandelacruz';
+          if (!this.userData.email) this.userData.email = 'juan.delacruz@example.com';
+          if (!this.userData.valid_id_type) this.userData.valid_id_type = 'Philippine National ID (PhilSys)';
+          if (!this.userData.valid_id_number) this.userData.valid_id_number = '1234-5678-9012-3456';
+        }
+        if (step >= 4) {
+          if (!this.otpCode) this.otpCode = '824915';
+          this.termsAccepted = true;
+        }
+        this.cdr.detectChanges();
+      };
+    }
+  }
 
   ngOnDestroy(): void {
     this.otpAutofill.stop();
     this.stopOtpCountdown();
+    if (typeof window !== 'undefined' && (window as any).__registerPage === this) {
+      delete (window as any).__registerPage;
+      delete (window as any).__setRegisterStep;
+    }
   }
 
   selectOtpChannel(channel: 'email' | 'sms'): void {

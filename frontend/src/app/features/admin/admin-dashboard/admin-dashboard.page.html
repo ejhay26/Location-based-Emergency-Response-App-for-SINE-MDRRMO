@@ -13,7 +13,7 @@
         <h4 *ngIf="viewMode === 'menu'" class="mobile-header-menu-title">Menu</h4>
         <!-- On other main tabs (Broadcast, Archive): brand logo + title -->
         <div *ngIf="!isSubPanel && viewMode !== 'menu'" class="mobile-header-title">
-          <img src="assets/icon/logo.jpg" alt="MDRRMO logo" class="mobile-header-logo" />
+          <img src="/assets/icon/logo.jpg" alt="MDRRMO logo" class="mobile-header-logo" />
           <div style="min-width: 0;">
             <h5 class="mobile-title-main">{{ currentViewTitle }}</h5>
             <span class="mobile-role-tag">{{ currentRole === 'admin' ? 'Administrator' : 'Dispatcher' }}</span>
@@ -49,7 +49,7 @@
             <!-- Expanded Mode: Logo + Title + Collapse Toggle Button -->
             <ng-container *ngIf="!isSidebarCollapsed">
               <div class="brand-info">
-                <img src="assets/icon/logo.jpg" alt="MDRRMO San Isidro logo" class="brand-logo-img" />
+                <img src="/assets/icon/logo.jpg" alt="MDRRMO San Isidro logo" class="brand-logo-img" />
                 <h5 class="brand-title-text">MDRRMO SAN ISIDRO</h5>
               </div>
               <button (click)="toggleSidebar()"
@@ -70,7 +70,7 @@
                       aria-label="Expand Sidebar">
                 <!-- App Logo Layer (pops off on hover) -->
                 <div class="brand-logo-layer">
-                  <img src="assets/icon/logo.jpg" alt="MDRRMO San Isidro logo" class="compact-logo-img" />
+                  <img src="/assets/icon/logo.jpg" alt="MDRRMO San Isidro logo" class="compact-logo-img" />
                 </div>
                 <!-- Toggle Button Layer (pops up on hover) -->
                 <div class="toggle-btn-layer">
