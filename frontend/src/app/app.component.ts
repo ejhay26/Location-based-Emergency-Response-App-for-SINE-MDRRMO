@@ -10,6 +10,7 @@ import { UserSettingsService } from './core/services/user-settings';
 import { LocationService } from './core/services/location';
 import { DeepLinkService } from './core/services/deep-link';
 import { KeyboardShortcutsService } from './core/services/keyboard-shortcuts.service';
+import { BackNavigationService } from './core/services/back-navigation.service';
 import { EchoService } from './core/services/echo.service';
 import { AuthSessionService } from './core/services/auth-session.service';
 
@@ -31,6 +32,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private locationSvc: LocationService,
     private deepLink: DeepLinkService,
     private shortcuts: KeyboardShortcutsService,
+    private backNav: BackNavigationService,
     private echo: EchoService,
     private authSession: AuthSessionService,
   ) {}
@@ -41,6 +43,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Initialize global keyboard shortcuts (desktop power keys, quick search, etc.)
     this.shortcuts.init();
+
+    // Initialize hardware back button / back gesture (Android) & desktop back/modal dismissal
+    this.backNav.init();
 
     // Disable default browser context menu on production desktop builds
     if (this.isDesktop && !isDevMode()) {

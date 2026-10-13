@@ -30,6 +30,9 @@ export class KeyboardShortcutsService {
   /** Subject emitting barangay map jump requests */
   readonly barangayJump$ = new Subject<number | 'all'>();
 
+  /** Subject emitting back, forward, or escape navigation / modal dismissal requests */
+  readonly backAction$ = new Subject<'back' | 'forward' | 'escape'>();
+
   /** If a navigation occurred from outside admin-dashboard, preserve target panel */
   private pendingPanel: string | null = null;
 
@@ -209,15 +212,26 @@ export class KeyboardShortcutsService {
       return;
     }
 
-    // 4. Suppress Browser History Navigation (leaving app state):
-    // - Alt + Left / Right Arrow (Windows / Linux)
-    // - Cmd + [ or Cmd + ] (macOS)
+    // 4. Handle Alt + Arrow Keys & Desktop Modal Dismissal / Navigation:
+    // - Alt + Left / Down Arrow (Windows / Linux) or Cmd + [ (macOS): Dismiss open modal or Navigate Back
+    // - Alt + Right / Up Arrow (Windows / Linux) or Cmd + ] (macOS): Navigate Forward
     if (
-      (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) ||
-      (isMac && e.metaKey && (e.key === '[' || e.key === ']'))
+      (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowDown')) ||
+      (isMac && e.metaKey && e.key === '[')
     ) {
       e.preventDefault();
       e.stopPropagation();
+      this.backAction$.next('back');
+      return;
+    }
+
+    if (
+      (e.altKey && (e.key === 'ArrowRight' || e.key === 'ArrowUp')) ||
+      (isMac && e.metaKey && e.key === ']')
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.backAction$.next('forward');
       return;
     }
 
@@ -232,12 +246,15 @@ export class KeyboardShortcutsService {
       return;
     }
 
-    // 2. Escape handling: if Quick Search Palette is open, close it
-    if (e.key === 'Escape' && this.isQuickSearchOpen()) {
-      e.preventDefault();
-      e.stopPropagation();
-      this.closeQuickSearch();
-      return;
+    // 6. Escape handling: if Quick Search Palette is open, close it; otherwise dismiss top modal/overlay
+    if (e.key === 'Escape') {
+      if (this.isQuickSearchOpen()) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.closeQuickSearch();
+        return;
+      }
+      this.backAction$.next('escape');
     }
 
     // 3. F1 or Cmd + ? / Cmd + / -> Help & Procedures panel

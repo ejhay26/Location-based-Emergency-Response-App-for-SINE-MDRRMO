@@ -192,29 +192,62 @@ export class UserSettingsService {
     const { x, y } = this.resolveThemeOrigin(event, origin);
 
     if (this.isThemeTransitioning) {
-      // Only queue if the requested state differs from the state actively being transitioned to
       if (isDark !== this.getBool('dark_mode')) {
         this.queuedThemeRequest = { isDark, x, y };
       }
       return;
     }
 
-    await this.runThemeReveal(isDark, x, y);
+    await this.runFadeReveal(isDark);
 
-    // Replay at most one follow-up transition if rapid tapping requested a different end-state
     if (this.queuedThemeRequest && this.queuedThemeRequest.isDark !== this.getBool('dark_mode')) {
       const next = this.queuedThemeRequest;
       this.queuedThemeRequest = null;
-      await this.runThemeReveal(next.isDark, next.x, next.y);
+      await this.runFadeReveal(next.isDark);
     }
     this.queuedThemeRequest = null;
   }
 
+  /**
+   * Synchronized cross-dissolve fade transition (fallback & stable mode).
+   */
+  private async runFadeReveal(isDark: boolean): Promise<void> {
+    this.isThemeTransitioning = true;
+    const root = document.documentElement;
+    try {
+      this.cache['dark_mode'] = isDark ? 'true' : 'false';
+
+      const doc = document as any;
+      if (typeof doc.startViewTransition !== 'function' || !this.shouldAnimate()) {
+        root.classList.toggle('ion-palette-dark', isDark);
+        return;
+      }
+
+      root.classList.add('theme-transitioning');
+
+      const transition = doc.startViewTransition(() => {
+        root.classList.toggle('ion-palette-dark', isDark);
+      });
+
+      try {
+        await transition.finished;
+      } catch {
+        root.classList.toggle('ion-palette-dark', isDark);
+      } finally {
+        root.classList.remove('theme-transitioning');
+      }
+    } finally {
+      this.persistSetting('dark_mode', isDark ? 'true' : 'false');
+      this.isThemeTransitioning = false;
+    }
+  }
+
+  /*
+  // Circular Reveal implementation preserved for future reference:
   private async runThemeReveal(isDark: boolean, x: number, y: number): Promise<void> {
     this.isThemeTransitioning = true;
     const root = document.documentElement;
     try {
-      // 1. Immediately update setting in memory for 0ms reactive UI toggle feedback
       this.cache['dark_mode'] = isDark ? 'true' : 'false';
 
       const doc = document as any;
@@ -227,7 +260,6 @@ export class UserSettingsService {
       const vh = window.innerHeight || 640;
       const originX = Number.isFinite(x) && x >= 0 ? x : Math.round(vw / 2);
       const originY = Number.isFinite(y) && y >= 0 ? y : Math.round(vh / 2);
-
       const endRadius = Math.ceil(
         Math.hypot(
           Math.max(originX, vw - originX),
@@ -235,7 +267,6 @@ export class UserSettingsService {
         )
       );
 
-      // Set CSS variables on root BEFORE startViewTransition so @keyframes evaluate on frame 0
       root.style.setProperty('--reveal-x', `${originX}px`);
       root.style.setProperty('--reveal-y', `${originY}px`);
       root.style.setProperty('--reveal-r', `${endRadius}px`);
@@ -256,34 +287,11 @@ export class UserSettingsService {
         root.style.removeProperty('--reveal-r');
       }
     } finally {
-      // 2. Defer disk I/O and server sync until AFTER transition finishes
-      // so neither localStorage.setItem nor Angular HTTP request steals main thread cycles during animation
       this.persistSetting('dark_mode', isDark ? 'true' : 'false');
       this.isThemeTransitioning = false;
     }
   }
-
-  /**
-   * Preserved fallback: Cross-dissolve fade reveal.
-   * Available for immediate revert if circular reveal is bypassed or on non-supporting devices.
-   */
-  private async runFadeReveal(isDark: boolean): Promise<void> {
-    const doc = document as any;
-    if (typeof doc.startViewTransition !== 'function' || !this.shouldAnimate()) {
-      document.documentElement.classList.toggle('ion-palette-dark', isDark);
-      return;
-    }
-
-    const transition = doc.startViewTransition(() => {
-      document.documentElement.classList.toggle('ion-palette-dark', isDark);
-    });
-
-    try {
-      await transition.finished;
-    } catch {
-      document.documentElement.classList.toggle('ion-palette-dark', isDark);
-    }
-  }
+  */
 
   /** Apply all visual settings to the DOM. Call on app start and after login. */
   applyToDom(): void {
