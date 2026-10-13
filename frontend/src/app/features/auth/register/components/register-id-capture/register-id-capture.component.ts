@@ -5,6 +5,8 @@ import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
+import { enhanceIdCardImage } from '../../../../../core/utils/image-enhancer';
+
 /**
  * RegisterIdCaptureComponent — reusable capture+crop flow used for both the
  * "Valid ID" photo and the "Selfie with ID" photo during registration.
@@ -25,6 +27,7 @@ export class RegisterIdCaptureComponent {
   rawFile: File | null = null;
   showCropper = false;
   croppedBase64 = '';
+  isEnhancing = false;
 
   get config() {
     if (this.variant === 'selfie') {
@@ -83,9 +86,20 @@ export class RegisterIdCaptureComponent {
 
   onCropped(event: ImageCroppedEvent): void { this.croppedBase64 = event.base64 ?? ''; }
 
-  confirmCrop(): void {
+  async confirmCrop(): Promise<void> {
     if (!this.croppedBase64) { this.toast.emit('Please wait for the image to load.'); return; }
-    if (this.userData) this.userData[this.fieldName] = this.croppedBase64;
+    this.isEnhancing = true;
+    let finalBase64 = this.croppedBase64;
+    // Auto-enhance document legibility for front and back ID cards
+    if (this.variant === 'id' || this.variant === 'id-back') {
+      try {
+        finalBase64 = await enhanceIdCardImage(this.croppedBase64);
+      } catch {
+        finalBase64 = this.croppedBase64;
+      }
+    }
+    this.isEnhancing = false;
+    if (this.userData) this.userData[this.fieldName] = finalBase64;
     this.showCropper = false;
     this.rawFile = null;
   }

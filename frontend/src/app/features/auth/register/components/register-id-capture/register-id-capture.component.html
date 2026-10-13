@@ -8,8 +8,11 @@
       </ion-button>
     </div>
     <div *ngIf="preview" style="margin-top: 10px;">
-      <div style="border-radius: 14px; overflow: hidden; border: 2px solid #2dd36f; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(45,211,111,0.2);">
+      <div style="border-radius: 14px; overflow: hidden; border: 2px solid #2dd36f; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(45,211,111,0.2); position: relative;">
         <img [src]="preview" style="max-height: 160px; object-fit: contain; width: 100%; background: #000; display: block;" />
+        <div *ngIf="variant !== 'selfie'" style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); color: #2dd36f; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+          <app-icon name="sparkles" [size]="12" color="#2dd36f"></app-icon> Auto-Enhanced
+        </div>
       </div>
       <div style="display: flex; gap: 8px; justify-content: center;">
         <ion-button color="medium" fill="outline" size="small" (click)="clearImage()" style="font-weight: 700; --border-radius: 10px;">

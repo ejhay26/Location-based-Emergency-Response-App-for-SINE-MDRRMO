@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, firstValueFrom } from 'rxjs';
@@ -93,12 +93,12 @@ export class VerificationsPanel implements OnInit, OnDestroy {
     email: 'maria.santos@example.com',
     phone: '09171234567',
     barangay_id: 1,
-    valid_id_type: 'National ID (PhilID)',
+    valid_id_type: 'Philippine National ID (PhilSys)',
     valid_id_number: '1234-5678-9012-3456',
     valid_id_expiry: '2030-12-31',
-    valid_id_proof: 'assets/sample-id-front.jpg',
-    valid_id_proof_back: 'assets/sample-id-back.jpg',
-    selfie_with_id_proof: 'assets/sample-id-selfie.jpg',
+    valid_id_proof: '/assets/sample-id-front.svg',
+    valid_id_proof_back: '/assets/sample-id-back.svg',
+    selfie_with_id_proof: '/assets/sample-id-selfie.svg',
     created_at: new Date().toISOString(),
     is_demo: true
   };
@@ -108,7 +108,14 @@ export class VerificationsPanel implements OnInit, OnDestroy {
     public ui: AdminUiService,
     private echo: EchoService,
     public tour: TourService,
-  ) {}
+    private cdr: ChangeDetectorRef,
+  ) {
+    (window as any).__setDemoVerification = (enable = true) => {
+      this.pendingVerifications = enable ? [this.DEMO_VERIFICATION] : [];
+      this.selectedUserId = this.DEMO_VERIFICATION.user_id;
+      this.cdr.detectChanges();
+    };
+  }
 
   ngOnInit() {
     this.loadPendingVerifications();

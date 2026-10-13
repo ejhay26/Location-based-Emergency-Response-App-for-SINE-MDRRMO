@@ -187,3 +187,5 @@ The **Help** tab provides:
 - **Interactive Tour:** Step-by-step feature walkthroughs by chapter.
 - **Searchable FAQs:** Quick answers regarding privacy, response times, and account security.
 - **Feedback Form:** Direct line to submit bugs, questions, or suggestions to municipal administrators.
+
+![Citizen Help Center & Hotlines](../assets/citizen/help.png)

@@ -26,7 +26,7 @@ The **Incident Map** serves as the central operational hub:
 ## 3. Mobile Admin Interface & Menu Drawer
 
 On smartphones and tablets, the administrative dashboard transitions to an app-like layout:
-- **Bottom Navigation Bar:** Switch directly between **Incident Map**, **Alert Broadcast**, and **Menu**.
+- **Bottom Navigation Bar:** Switch directly between **Incident Map**, **Alert Broadcast**, **Log Archive**, and **Menu**.
 - **Mobile Menu Drawer:** Tap **Menu** to access:
   - **Personnel Management** (Staff accounts and dispatchers)
   - **ID Verifications** (Citizen review queue)
@@ -35,6 +35,10 @@ On smartphones and tablets, the administrative dashboard transitions to an app-l
   - **Log Archive** (Searchable incident history)
   - **System Settings & Preferences** (Themes, audio cues, map defaults)
   - **Help & Operations Guides** (Interactive guided tours)
+
+![Mobile Admin Incident Map and Drawer](../assets/admin/admin-mobile.png)
+
+![Mobile Admin Navigation Menu Hub](../assets/admin/admin-mobile-menu.png)
 
 ---
 
@@ -50,7 +54,7 @@ For each applicant in the verification queue, the admin can inspect:
 4. **Account Details:** Full name, phone number, birthdate, home barangay, and ID type.
 5. **Direct Verification Links:** Quick access to official government verification portals (PhilSys eVerify, LTO LTMS, DFA, PRC LERIS).
 
-![Citizen ID Verifications Queue](../assets/admin/verifications.png)
+![Citizen ID Verifications Queue with Pending Applicant](../assets/admin/verifications.png)
 
 ### Verification Actions
 - **Approve User:**  
