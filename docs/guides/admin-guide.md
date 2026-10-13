@@ -19,6 +19,8 @@ The **Incident Map** serves as the central operational hub:
 - **Mobile Bottom Sheet:** Interactive draggable drawer at the bottom of mobile screens supporting **Peek** (170px for quick glance), **Half** (50% screen for queue browsing), and **Full** expansion.
 - **Mobile Filter Drawer:** Tap the floating **Filter** button to filter by alert type pills (All, Emergency SOS, Hazards), date range, and target barangays.
 
+![Live Incident and Hazard Map](../assets/admin/admin-map.png)
+
 ---
 
 ## 3. Mobile Admin Interface & Menu Drawer
@@ -48,6 +50,8 @@ For each applicant in the verification queue, the admin can inspect:
 4. **Account Details:** Full name, phone number, birthdate, home barangay, and ID type.
 5. **Direct Verification Links:** Quick access to official government verification portals (PhilSys eVerify, LTO LTMS, DFA, PRC LERIS).
 
+![Citizen ID Verifications Queue](../assets/admin/verifications.png)
+
 ### Verification Actions
 - **Approve User:**  
   - Activates the account (`account_status = 'active'`).
@@ -68,6 +72,13 @@ The **Citizens** panel is a full directory of all registered residents across Sa
 - **Status Badges:** `Active`, `Pending`, or `Suspended`.
 - **Account Moderation:** Suspend abusive accounts (`banned`) or reinstate access with recorded reasons.
 
+![Citizens Directory](../assets/admin/citizens.png)
+
+### False Alarm Strike Manager
+Manage citizen false alarm strikes, issue automated warning notices, and enforce account suspensions directly from the dedicated popup dialog box:
+
+![False Alarm Strike Dialog](../assets/admin/citizens-strike-dialog.png)
+
 ---
 
 ## 6. Dispatchers Management Panel
@@ -76,6 +87,13 @@ Dispatchers cannot self-register; they are created and managed directly by admin
 - **Add Dispatcher:** Create a new staff account with Name, Mobile Number, Username, Email, Password, and Assigned Barangay.
 - **Edit Dispatcher:** Update contact details or change assigned information.
 - **Deactivate Dispatcher:** Revoke staff access and invalidate all active session tokens.
+
+![Staff Dispatchers Directory](../assets/admin/dispatchers.png)
+
+### Dispatcher Account Dialog
+Staff creation and assignment editing are presented via an accessible popup dialog box:
+
+![Create or Edit Dispatcher Dialog](../assets/admin/dispatchers-form-dialog.png)
 
 ---
 
@@ -90,9 +108,28 @@ Admins and dispatchers can compose town-wide or barangay-scoped push advisories:
 - **Drafts Management & Reviewal:** Supervisors and operators can review pending drafts, click **Review / Edit** to reload them into the composer, edit details, and publish or schedule them.
 - **Active, Scheduled, Drafts & Past Sections:** View running broadcasts, monitor queued scheduled alerts, inspect unreleased drafts, and review archived advisories.
 
+![Public Alert Broadcast Center](../assets/admin/broadcast.png)
+
 ---
 
-## 8. Dashboard Settings & Guided Operations Tours
+## 8. Incident Analytics, Archive & Feedback
+
+In addition to live response, administrators have deep visibility into historical operations:
+- **Analytics & Trends:** Real-time rolling metrics, category breakdowns, and barangay heatmaps:
+  
+  ![Analytics and Reporting](../assets/admin/analytics.png)
+
+- **Incident Archive:** Searchable archive with date range filtering and incident record logs:
+
+  ![Incident Archive Logs](../assets/admin/archive.png)
+
+- **Public Feedback & Bug Reports:** Community reviews, citizen ratings, and technical issue reports:
+
+  ![Public Feedback Panel](../assets/admin/feedback.png)
+
+---
+
+## 9. Dashboard Settings & Guided Operations Tours
 
 - **Dark Theme:** Toggle between High-Contrast Dark Mode and Clean Light Mode with a seamless 250ms cross-dissolve transition across desktop and mobile.
 - **Reduce Animations:** Minimize UI transition effects for maximum performance on lower-spec workstations.
@@ -102,14 +139,19 @@ Admins and dispatchers can compose town-wide or barangay-scoped push advisories:
 - **Concurrent Device Sessions:** Admin accounts support simultaneous logins across the native desktop workstation (Tauri) and mobile devices without expiring active sessions.
 - **Session Logout:** Safely terminate the administrative session and clear local credentials.
 
+![System Settings Suite](../assets/admin/settings.png)
+
 ---
 
-## 9. Desktop Keyboard Shortcuts & Quick Search
+## 10. Desktop Keyboard Shortcuts & Quick Search
 
 For fast incident response on administrative workstations, global hotkeys and a custom command palette are available:
 - <kbd>Ctrl</kbd> + <kbd>,</kbd> (<kbd>⌘</kbd> + <kbd>,</kbd> on macOS): Jump directly to Settings.
 - <kbd>F1</kbd> (<kbd>⌘</kbd> + <kbd>?</kbd> on macOS): Open Help & Guided Tours.
-- <kbd>Ctrl</kbd> + <kbd>F</kbd> / <kbd>Ctrl</kbd> + <kbd>K</kbd>: Open Apple Spotlight-style **Quick Search & Command Palette** to search panels, trigger actions, or zoom to barangays.
+- <kbd>Ctrl</kbd> + <kbd>F</kbd> / <kbd>Ctrl</kbd> + <kbd>K</kbd>: Open Apple Spotlight-style **Quick Search & Command Palette** to search panels, trigger actions, or zoom to barangays:
+
+![Spotlight Quick Search Palette](../assets/admin/quick-search.png)
+
 - <kbd>Ctrl</kbd> + <kbd>1</kbd> – <kbd>4</kbd>: Direct switch between Incident Map, Broadcast Center, ID Verifications, and Analytics.
 - <kbd>Ctrl</kbd> + <kbd>B</kbd>: Toggle sidebar collapse/expand.
 - <kbd>Ctrl</kbd> + <kbd>D</kbd>: Toggle dark/light theme.

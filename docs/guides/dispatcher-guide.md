@@ -23,6 +23,8 @@ How to monitor emergencies, review incoming alerts, dispatch responder teams, an
 
 The **Incident Map** is the primary operational dashboard:
 
+![Dispatcher Operations Map](../assets/dispatcher/dispatcher-map.png)
+
 ```
 [Incoming SOS or Hazard Alert]
         │ (Instant Pin Drop via WebSocket + Sound & Desktop Alert)
@@ -67,6 +69,8 @@ Hazard reports (e.g. fallen trees, downed electrical wires, flooded streets) app
 
 The **Log Archive** stores all completed, resolved, and cancelled emergency records.
 
+![Dispatcher Incident Archive](../assets/dispatcher/dispatcher-archive.png)
+
 ### Features
 - **Keyword Search:** Search by citizen name, username, phone number, or description.
 - **Date Range Filter:** Filter by Single Day, Multi-Day, or a custom Date Range using the calendar selector.
@@ -92,6 +96,9 @@ The **Analytics** panel presents interactive visualizations filterable by **7-da
 ## 7. Public Advisories, Scheduled Broadcasts & Drafts
 
 Dispatchers can compose and transmit public safety announcements directly to citizens' mobile phones:
+
+![Dispatcher Public Alert Broadcast](../assets/dispatcher/dispatcher-broadcast.png)
+
 1. Navigate to **Alert Broadcast**.
 2. If collapsed, tap the **"New Announcement"** button to expand the composer card.
 3. Enter an optional **Headline** (e.g. *"Heavy Rainfall Warning"*).
