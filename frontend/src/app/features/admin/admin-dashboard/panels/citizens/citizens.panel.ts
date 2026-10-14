@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
-  IonButton, IonModal, IonContent
+  IonButton, IonModal, IonContent, ActionSheetController
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -97,6 +97,7 @@ export class CitizensPanel implements OnInit, OnDestroy {
     private echo: EchoService,
     private settings: UserSettingsService,
     private tour: TourService,
+    private actionSheetCtrl: ActionSheetController,
   ) {}
 
   ngOnInit() {
@@ -145,6 +146,35 @@ export class CitizensPanel implements OnInit, OnDestroy {
       if (target.closest('ion-button') || target.closest('button')) return;
     }
     this.expandedListUserId = this.expandedListUserId === c.user_id ? null : c.user_id;
+  }
+
+  async openCitizenActions(c: any, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    const isBanned = c.account_status === 'banned';
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: `${c.first_name} ${c.last_name}`,
+      subHeader: `@${c.username} · ${c.false_alarm_strikes || 0} of 3 Strikes`,
+      buttons: [
+        {
+          text: 'Review & Issue Strikes',
+          handler: () => {
+            this.openStrikeModal(c);
+          }
+        },
+        {
+          text: isBanned ? 'Reinstate Citizen Account' : 'Suspend Citizen Account',
+          role: isBanned ? undefined : 'destructive',
+          handler: () => {
+            this.suspendCitizen(c);
+          }
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        }
+      ]
+    });
+    await actionSheet.present();
   }
 
   get filteredCitizens(): any[] {

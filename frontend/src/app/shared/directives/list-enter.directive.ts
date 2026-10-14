@@ -16,7 +16,7 @@ import { UserSettingsService } from '../../core/services/user-settings';
  * state to animate between, only an initial appearance.
  */
 @Directive({
-  selector: '[appAnnouncementEnter]',
+  selector: '[appAnnouncementEnter], [appListEnter]',
   standalone: true,
 })
 export class ListEnterDirective implements OnInit {
@@ -25,6 +25,9 @@ export class ListEnterDirective implements OnInit {
 
   /** Position in the list — used only to stagger the start time, capped so a long list doesn't leave the last items waiting seconds to appear. */
   @Input('appAnnouncementEnter') index = 0;
+  @Input('appListEnter') set setListIndex(val: number) {
+    if (val !== undefined && val !== null) this.index = val;
+  }
 
   ngOnInit(): void {
     if (!this.settings.shouldAnimate()) return;

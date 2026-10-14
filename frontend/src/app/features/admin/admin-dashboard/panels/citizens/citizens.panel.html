@@ -69,12 +69,14 @@
 
   <!-- ── GRID VIEW (ICONS) ── -->
   <div *ngIf="viewMode === 'grid'" #citizensGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;">
-    <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="c.user_id" [appAnnouncementEnter]="i" style="display: contents;">
-      <div [attr.id]="i === 0 ? 'citizen-item-0' : null"
-           class="citizen-card"
-           [class.is-active]="activeCardUserId === c.user_id"
-           (click)="toggleCardActive(c, $event)"
-           style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 24px 20px 20px 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)));" [style.border-color]="c.account_status === 'banned' ? '#eb445a' : 'var(--ion-color-step-150, rgba(0,0,0,0.07))'">
+    <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId"
+         [attr.id]="i === 0 ? 'citizen-item-0' : null"
+         [attr.data-flip-id]="c.user_id"
+         [appListEnter]="i"
+         class="citizen-card"
+         [class.is-active]="activeCardUserId === c.user_id"
+         (click)="toggleCardActive(c, $event)"
+         style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 24px 20px 20px 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)));" [style.border-color]="c.account_status === 'banned' ? '#eb445a' : 'var(--ion-color-step-150, rgba(0,0,0,0.07))'">
         
         <!-- Inner Card Content (Moves upward on hover) -->
         <div class="citizen-card-content">
@@ -142,7 +144,6 @@
           </ion-button>
         </div>
 
-      </div>
     </div>
   </div>
 
@@ -150,13 +151,13 @@
   <div *ngIf="viewMode === 'list' && filteredCitizens.length > 0" class="finder-list-container">
     <!-- Desktop Header -->
     <div class="finder-list-header">
-      <span>Citizen</span>
-      <span>Status</span>
-      <span>Strikes</span>
-      <span>Contact</span>
-      <span>Barangay</span>
-      <span>Joined</span>
-      <span style="text-align: right;">Actions</span>
+      <span class="col-head col-head-left">Citizen</span>
+      <span class="col-head col-head-center">Status</span>
+      <span class="col-head col-head-center">Strikes</span>
+      <span class="col-head col-head-left">Contact</span>
+      <span class="col-head col-head-center">Barangay</span>
+      <span class="col-head col-head-center">Joined</span>
+      <span class="col-head col-head-center">Action</span>
     </div>
 
     <!-- Rows -->
@@ -166,7 +167,7 @@
          [class.is-banned-row]="c.account_status === 'banned'"
          [class.is-expanded]="expandedListUserId === c.user_id"
          (click)="toggleListRow(c, $event)"
-         [appAnnouncementEnter]="i">
+         [appListEnter]="i">
 
       <!-- Column: User -->
       <div class="col-user">
@@ -183,7 +184,7 @@
       </div>
 
       <!-- Column: Status -->
-      <div class="col-status">
+      <div class="col-status col-center">
         <span class="status-badge"
               [style.background]="c.account_status === 'banned' ? 'rgba(235,68,90,0.12)' : (c.account_status === 'active' ? 'rgba(45,211,111,0.12)' : 'rgba(255,196,9,0.12)')"
               [style.color]="c.account_status === 'banned' ? '#eb445a' : (c.account_status === 'active' ? '#2dd36f' : '#e0ac00')"
@@ -193,7 +194,7 @@
       </div>
 
       <!-- Column: Strikes -->
-      <div class="col-strikes" [attr.id]="i === 0 && viewMode === 'list' ? 'citizen-strike-badge-0' : null">
+      <div class="col-strikes col-center" [attr.id]="i === 0 && viewMode === 'list' ? 'citizen-strike-badge-0' : null">
         <div class="strikes-pips">
           <span [style.background]="(c.false_alarm_strikes || 0) >= 1 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"></span>
           <span [style.background]="(c.false_alarm_strikes || 0) >= 2 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"></span>
@@ -217,31 +218,26 @@
       </div>
 
       <!-- Column: Barangay -->
-      <div class="col-barangay">
+      <div class="col-barangay col-center">
         <app-icon name="map-pin" [size]="12" color="var(--ion-color-danger)"></app-icon>
         <span>{{ ui.getBarangayName(c.barangay_id) }}</span>
       </div>
 
       <!-- Column: Joined Date -->
-      <div class="col-joined">
+      <div class="col-joined col-center">
         <span>{{ c.created_at | utcDate:'mediumDate' }}</span>
       </div>
 
       <!-- Column: Actions -->
-      <div class="col-actions">
-        <ion-button [attr.id]="i === 0 ? 'citizen-manage-strikes-btn-0' : null"
-                    color="warning" fill="solid" size="small"
-                    (click)="openStrikeModal(c); $event.stopPropagation()"
-                    style="color: #1c1c1c;">
-          <app-icon name="gavel" [size]="12" color="#1c1c1c" style="margin-right: 4px;"></app-icon>
-          Strikes
-        </ion-button>
-        <ion-button [color]="c.account_status === 'banned' ? 'success' : 'danger'"
-                    fill="solid" size="small"
-                    (click)="suspendCitizen(c); $event.stopPropagation()">
-          <app-icon [name]="c.account_status === 'banned' ? 'user-check' : 'user-xmark'" [size]="12" color="#ffffff" style="margin-right: 4px;"></app-icon>
-          {{ c.account_status === 'banned' ? 'Reinstate' : 'Suspend' }}
-        </ion-button>
+      <div class="col-actions col-center">
+        <button type="button"
+                [attr.id]="i === 0 && viewMode === 'list' ? 'citizen-manage-strikes-btn-0' : null"
+                class="finder-action-btn"
+                (click)="openCitizenActions(c, $event)"
+                title="Manage Citizen">
+          <span>Manage</span>
+          <app-icon name="chevron-down" [size]="11"></app-icon>
+        </button>
       </div>
 
       <!-- Mobile Expanded Drawer (Revealed on row tap on small screens) -->

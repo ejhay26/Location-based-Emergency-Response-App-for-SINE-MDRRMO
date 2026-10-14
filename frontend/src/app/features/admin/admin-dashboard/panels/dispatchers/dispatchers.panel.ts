@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
   IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-  IonModal, IonContent
+  IonModal, IonContent, ActionSheetController
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -81,6 +81,7 @@ export class DispatchersPanel implements OnInit, OnDestroy {
     public ui: AdminUiService,
     private echo: EchoService,
     private settings: UserSettingsService,
+    private actionSheetCtrl: ActionSheetController,
   ) {}
 
   ngOnInit() {
@@ -118,6 +119,34 @@ export class DispatchersPanel implements OnInit, OnDestroy {
       if (target.closest('ion-button') || target.closest('button')) return;
     }
     this.expandedListUserId = this.expandedListUserId === d.user_id ? null : d.user_id;
+  }
+
+  async openDispatcherActions(d: any, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: `${d.first_name} ${d.last_name}`,
+      subHeader: `@${d.username} · ${this.ui.getBarangayName(d.barangay_id)}`,
+      buttons: [
+        {
+          text: 'Edit Dispatcher Credentials',
+          handler: () => {
+            this.openDispatcherModal(d);
+          }
+        },
+        {
+          text: 'Remove / Deactivate Account',
+          role: 'destructive',
+          handler: () => {
+            this.confirmDeactivateDispatcher(d);
+          }
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        }
+      ]
+    });
+    await actionSheet.present();
   }
 
   loadDispatchers() {
