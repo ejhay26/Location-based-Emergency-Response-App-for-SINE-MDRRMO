@@ -98,147 +98,58 @@ export class UserSettingsService {
     return !this.getBool('reduce_animations');
   }
 
-  /** True while a circular reveal is currently mid-flight. */
-  private isThemeTransitioning = false;
   /**
-   * Holds at most the LATEST toggle request made while `isThemeTransitioning`
-   * is true. Spam-tapping never interrupts the circle already playing — it
-   * just overwrites this slot — so the animation reads as physically "held"
-   * rather than snapping/restarting on every tap. Once the in-flight reveal
-   * finishes, exactly one follow-up transition plays for whatever the user
-   * last asked for (if it still differs from the committed state).
-   */
-  private queuedThemeRequest: { isDark: boolean; x: number; y: number } | null = null;
-
-  /** Resolves click/touch/target coordinates from a toggle event, defaulting to viewport center. Callers can pass explicit { x, y } coordinates directly, or an HTMLElement origin. */
-  private resolveThemeOrigin(
-    event?: MouseEvent | TouchEvent | PointerEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any },
-    origin?: HTMLElement | { x: number; y: number }
-  ): { x: number; y: number } {
-    const vw = window.innerWidth || 360;
-    const vh = window.innerHeight || 640;
-    let x = Math.round(vw / 2);
-    let y = Math.round(vh / 2);
-
-    // 1. Direct explicit coordinates take highest precedence
-    if (origin && typeof (origin as any).x === 'number' && typeof (origin as any).y === 'number') {
-      const ox = (origin as any).x;
-      const oy = (origin as any).y;
-      if (ox >= 0 && ox <= vw && oy >= 0 && oy <= vh) {
-        return { x: Math.round(ox), y: Math.round(oy) };
-      }
-    }
-
-    // 2. Direct physical pointer / touch coordinates from the user's gesture
-    if (event) {
-      const clientX = (event as any).clientX ??
-        (event as TouchEvent).touches?.[0]?.clientX ??
-        (event as TouchEvent).changedTouches?.[0]?.clientX;
-      const clientY = (event as any).clientY ??
-        (event as TouchEvent).touches?.[0]?.clientY ??
-        (event as TouchEvent).changedTouches?.[0]?.clientY;
-
-      if (typeof clientX === 'number' && typeof clientY === 'number' && clientX > 0 && clientY > 0) {
-        return {
-          x: Math.max(0, Math.min(vw, Math.round(clientX))),
-          y: Math.max(0, Math.min(vh, Math.round(clientY))),
-        };
-      }
-    }
-
-    // 3. Element bounding rect relative to the active viewport
-    const originEl = (origin instanceof HTMLElement) ? origin : null;
-    if (originEl && typeof originEl.getBoundingClientRect === 'function') {
-      const rect = originEl.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        return {
-          x: Math.max(0, Math.min(vw, Math.round(rect.left + rect.width / 2))),
-          y: Math.max(0, Math.min(vh, Math.round(rect.top + rect.height / 2))),
-        };
-      }
-    }
-
-    // 4. Target element on the event itself
-    if (event) {
-      const targetEl = (event as any).target || (event as any).currentTarget;
-      if (targetEl && typeof targetEl.getBoundingClientRect === 'function') {
-        const rect = targetEl.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          return {
-            x: Math.max(0, Math.min(vw, Math.round(rect.left + rect.width / 2))),
-            y: Math.max(0, Math.min(vh, Math.round(rect.top + rect.height / 2))),
-          };
-        }
-      }
-    }
-
-    return { x, y };
-  }
-
-  /**
-   * Synchronized dark/light mode transition with unified cross-platform cross-dissolve fade.
-   *
-   * Spam-proof by LOCKING rather than interrupting: while a reveal is
-   * playing, further calls are queued (latest wins) instead of restarting
-   * the animation — see queuedThemeRequest above.
+   * Synchronous 0ms dark/light mode toggle.
+   * Guarantees that EVERY section, card, button, toolbar, and text element across
+   * the entire DOM flips theme colors at the exact same instant, with zero delayed
+   * transitions or lingering element animations.
    */
   async toggleDarkMode(
     isDark: boolean,
-    event?: MouseEvent | TouchEvent | PointerEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any },
-    origin?: HTMLElement | { x: number; y: number }
+    _event?: MouseEvent | TouchEvent | PointerEvent | CustomEvent | { clientX?: number; clientY?: number; target?: any },
+    _origin?: HTMLElement | { x: number; y: number }
   ): Promise<void> {
-    const { x, y } = this.resolveThemeOrigin(event, origin);
+    // 1. Immediately persist setting locally and sync to server
+    this.setBool('dark_mode', isDark);
 
-    if (this.isThemeTransitioning) {
-      // Only queue if the requested state differs from the state actively being transitioned to
-      if (isDark !== this.getBool('dark_mode')) {
-        this.queuedThemeRequest = { isDark, x, y };
-      }
-      return;
+    // 2. Temporarily inject global transition neutralization lock
+    // This suppresses all disparate CSS transitions (background, border, color, box-shadow)
+    // so every section, card, button, and container turns dark/light synchronously on the exact same frame.
+    const lockId = 'sine-theme-switch-lock';
+    let lockStyle = document.getElementById(lockId) as HTMLStyleElement | null;
+    if (!lockStyle) {
+      lockStyle = document.createElement('style');
+      lockStyle.id = lockId;
+      lockStyle.textContent = `
+        *, *::before, *::after {
+          -webkit-transition: none !important;
+          -moz-transition: none !important;
+          -o-transition: none !important;
+          -ms-transition: none !important;
+          transition: none !important;
+        }
+      `;
+      document.head.appendChild(lockStyle);
     }
 
-    await this.runThemeReveal(isDark, x, y);
+    // 3. Synchronously flip dark mode class on document element
+    document.documentElement.classList.toggle('ion-palette-dark', isDark);
 
-    // Replay at most one follow-up transition if rapid tapping requested a different end-state
-    if (this.queuedThemeRequest && this.queuedThemeRequest.isDark !== this.getBool('dark_mode')) {
-      const next = this.queuedThemeRequest;
-      this.queuedThemeRequest = null;
-      await this.runThemeReveal(next.isDark, next.x, next.y);
+    // 4. Force browser style recalculation across the entire DOM tree in this exact frame
+    if (typeof window !== 'undefined' && document.body) {
+      const _ = window.getComputedStyle(document.body).backgroundColor;
     }
-    this.queuedThemeRequest = null;
-  }
 
-  private async runThemeReveal(isDark: boolean, _x: number, _y: number): Promise<void> {
-    this.isThemeTransitioning = true;
-    try {
-      // 1. Immediately update setting state for 0ms reactive UI feedback
-      this.setBool('dark_mode', isDark);
-
-      const doc = document as any;
-      const supportsViewTransition = typeof doc.startViewTransition === 'function' && this.shouldAnimate();
-
-      if (!supportsViewTransition) {
-        document.documentElement.classList.toggle('ion-palette-dark', isDark);
-        return;
-      }
-
-      const root = document.documentElement;
-      root.classList.add('theme-transitioning');
-
-      const transition = doc.startViewTransition(() => {
-        document.documentElement.classList.toggle('ion-palette-dark', isDark);
+    // 5. Release the transition lock after paint settles (two animation frames)
+    // so interactive hover, active press feedback, and component animations are restored cleanly
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const existing = document.getElementById(lockId);
+        if (existing) {
+          existing.remove();
+        }
       });
-
-      try {
-        await transition.finished;
-      } catch {
-        document.documentElement.classList.toggle('ion-palette-dark', isDark);
-      } finally {
-        root.classList.remove('theme-transitioning');
-      }
-    } finally {
-      this.isThemeTransitioning = false;
-    }
+    });
   }
 
   /** Apply all visual settings to the DOM. Call on app start and after login. */
