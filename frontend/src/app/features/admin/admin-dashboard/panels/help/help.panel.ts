@@ -438,9 +438,17 @@ export class HelpPanel {
           waitForInteraction: false,
         },
         {
+          id: 'citizen-item-0',
+          panel: 'citizens',
+          callout: 'Step 13: Tap Card / Row to Reveal Actions',
+          subtext: 'Tap the resident card (in Grid view) or row (in List view) to reveal the disciplinary action buttons.',
+          waitForInteraction: true,
+          interactionHint: 'Tap the resident card or row',
+        },
+        {
           id: 'citizen-manage-strikes-btn-0',
           panel: 'citizens',
-          callout: 'Step 13: Manage Strikes & Issue Notices',
+          callout: 'Step 14: Manage Strikes & Issue Notices',
           subtext: 'Tap Strikes to record a false alarm violation with categorized reasons, dispatch automated warning emails, or reset strikes to 0.',
           waitForInteraction: false,
         },

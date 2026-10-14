@@ -961,6 +961,22 @@ export class IconRegistryService {
         faClass: 'fa-solid fa-code',
         lucideSvg: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>'
       }
+    ],
+    [
+      'finder-grid',
+      {
+        name: 'finder-grid',
+        faClass: 'fa-solid fa-table-cells-large',
+        lucideSvg: '<rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/>'
+      }
+    ],
+    [
+      'finder-list',
+      {
+        name: 'finder-list',
+        faClass: 'fa-solid fa-list',
+        lucideSvg: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>'
+      }
     ]
   ]);
 
@@ -1088,7 +1104,12 @@ export class IconRegistryService {
       'panel-left-open': 'sidebar-expand',
       'alert-circle': 'circle-alert',
       'x': 'close',
-      'sort': 'arrow-up-down'
+      'sort': 'arrow-up-down',
+      'grid': 'finder-grid',
+      'grid-view': 'finder-grid',
+      'layout-grid': 'finder-grid',
+      'list': 'finder-list',
+      'list-view': 'finder-list'
     };
 
     const alias = aliases[normalized];

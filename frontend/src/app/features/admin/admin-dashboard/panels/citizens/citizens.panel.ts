@@ -21,6 +21,8 @@ import { AppIconComponent } from '../../../../../shared/components/app-icon/app-
 import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../shared/components/filter-dropdown/filter-dropdown.component';
 import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 
+import { TourService } from '../../../../../core/services/tour';
+
 @Component({
   selector: 'app-citizens-panel',
   standalone: true,
@@ -40,6 +42,15 @@ export class CitizensPanel implements OnInit, OnDestroy {
   citizenFilterStatus: 'all' | 'active' | 'suspended' | 'has_strikes' | 'clean' = 'all';
   citizenBarangayFilter: number[] = [];
   citizenDateFilter: DateFilterValue | null = null;
+
+  /** macOS Finder view mode: 'grid' (Icons) or 'list' (Table) */
+  viewMode: 'grid' | 'list' = (localStorage.getItem('sine_admin_citizens_view') as 'grid' | 'list') || 'grid';
+
+  /** Active card on mobile/touch when user taps to reveal action buttons */
+  activeCardUserId: number | null = null;
+
+  /** Expanded list row on mobile view */
+  expandedListUserId: number | null = null;
 
   readonly statusDropdownOptions = [
     { value: 'all', label: 'All Status' },
@@ -78,12 +89,14 @@ export class CitizensPanel implements OnInit, OnDestroy {
   @ViewChild('citizensGrid') citizensGrid?: ElementRef<HTMLElement>;
 
   private echoUserSub?: Subscription;
+  private tourSub?: Subscription;
 
   constructor(
     public api: ApiService,
     public ui: AdminUiService,
     private echo: EchoService,
     private settings: UserSettingsService,
+    private tour: TourService,
   ) {}
 
   ngOnInit() {
@@ -93,10 +106,45 @@ export class CitizensPanel implements OnInit, OnDestroy {
     this.echoUserSub = this.echo.onUserVerified.subscribe(() => {
       this.loadCitizens();
     });
+
+    // When the interactive tour reaches action button or item steps, expand the target card
+    this.tourSub = this.tour.stepChange$.subscribe(step => {
+      if (step.id === 'citizen-manage-strikes-btn-0' || step.id === 'citizen-item-0') {
+        const first = this.filteredCitizens[0];
+        if (first) {
+          this.activeCardUserId = first.user_id;
+          this.expandedListUserId = first.user_id;
+        }
+      }
+    });
   }
 
   ngOnDestroy() {
     this.echoUserSub?.unsubscribe();
+    this.tourSub?.unsubscribe();
+  }
+
+  setViewMode(mode: 'grid' | 'list'): void {
+    this.viewMode = mode;
+    try {
+      localStorage.setItem('sine_admin_citizens_view', mode);
+    } catch {}
+  }
+
+  toggleCardActive(c: any, event?: Event): void {
+    if (event) {
+      const target = event.target as HTMLElement;
+      if (target.closest('ion-button') || target.closest('button')) return;
+    }
+    this.activeCardUserId = this.activeCardUserId === c.user_id ? null : c.user_id;
+  }
+
+  toggleListRow(c: any, event?: Event): void {
+    if (event) {
+      const target = event.target as HTMLElement;
+      if (target.closest('ion-button') || target.closest('button')) return;
+    }
+    this.expandedListUserId = this.expandedListUserId === c.user_id ? null : c.user_id;
   }
 
   get filteredCitizens(): any[] {

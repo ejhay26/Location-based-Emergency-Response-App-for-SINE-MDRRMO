@@ -48,6 +48,15 @@ export class DispatchersPanel implements OnInit, OnDestroy {
   dispatcherBarangayFilter: number[] = [];
   dispatcherDateFilter: DateFilterValue | null = null;
 
+  /** macOS Finder view mode: 'grid' (Icons) or 'list' (Table) */
+  viewMode: 'grid' | 'list' = (localStorage.getItem('sine_admin_dispatchers_view') as 'grid' | 'list') || 'grid';
+
+  /** Active card on mobile/touch when user taps to reveal action buttons */
+  activeCardUserId: number | null = null;
+
+  /** Expanded list row on mobile view */
+  expandedListUserId: number | null = null;
+
   readonly barangays = BARANGAYS;
 
   readonly barangayDropdownOptions: FilterDropdownOption[] = [
@@ -86,6 +95,29 @@ export class DispatchersPanel implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.echoUserSub?.unsubscribe();
+  }
+
+  setViewMode(mode: 'grid' | 'list'): void {
+    this.viewMode = mode;
+    try {
+      localStorage.setItem('sine_admin_dispatchers_view', mode);
+    } catch {}
+  }
+
+  toggleCardActive(d: any, event?: Event): void {
+    if (event) {
+      const target = event.target as HTMLElement;
+      if (target.closest('ion-button') || target.closest('button')) return;
+    }
+    this.activeCardUserId = this.activeCardUserId === d.user_id ? null : d.user_id;
+  }
+
+  toggleListRow(d: any, event?: Event): void {
+    if (event) {
+      const target = event.target as HTMLElement;
+      if (target.closest('ion-button') || target.closest('button')) return;
+    }
+    this.expandedListUserId = this.expandedListUserId === d.user_id ? null : d.user_id;
   }
 
   loadDispatchers() {

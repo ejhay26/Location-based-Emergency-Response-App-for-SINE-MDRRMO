@@ -32,6 +32,28 @@
       searchPlaceholder="Search barangay…">
     </app-filter-dropdown>
     <app-date-range-filter [value]="dispatcherDateFilter" (valueChange)="onDateFilterChange($event)"></app-date-range-filter>
+
+    <!-- macOS Finder View Mode Switcher (Grid vs List) -->
+    <div class="apple-segmented-control finder-view-switcher" role="group" aria-label="View Mode">
+      <button
+        type="button"
+        class="segmented-pill-btn"
+        [class.active]="viewMode === 'grid'"
+        (click)="setViewMode('grid')"
+        appTooltip="Icons Grid View"
+        tooltipPlacement="bottom">
+        <app-icon name="finder-grid" [size]="14"></app-icon>
+      </button>
+      <button
+        type="button"
+        class="segmented-pill-btn"
+        [class.active]="viewMode === 'list'"
+        (click)="setViewMode('list')"
+        appTooltip="List Table View"
+        tooltipPlacement="bottom">
+        <app-icon name="finder-list" [size]="14"></app-icon>
+      </button>
+    </div>
   </div>
 
   <app-filter-summary-bar [chips]="activeFilterChips" (clearAll)="clearAllFilters()"></app-filter-summary-bar>
@@ -48,9 +70,14 @@
     <p>No dispatchers match the current filters.</p>
   </div>
 
-  <div #dispatchersGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;">
+  <!-- ── GRID VIEW (ICONS) ── -->
+  <div *ngIf="viewMode === 'grid'" #dispatchersGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;">
     <div *ngFor="let d of filteredDispatchers; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="d.user_id" [appAnnouncementEnter]="i" style="display: contents;">
-      <div class="dispatcher-card" style="background: var(--ion-card-background, #fff); border-radius: 16px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07))); padding: 24px 20px 20px 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
+      <div [attr.id]="i === 0 ? 'dispatcher-item-0' : null"
+           class="dispatcher-card"
+           [class.is-active]="activeCardUserId === d.user_id"
+           (click)="toggleCardActive(d, $event)"
+           style="background: var(--ion-card-background, #fff); border-radius: 16px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07))); padding: 24px 20px 20px 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04));">
         <!-- Inner Card Content (Moves upward on hover) -->
         <div class="dispatcher-card-content">
           <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;">
@@ -71,14 +98,99 @@
           </div>
         </div>
         <div class="dispatcher-actions-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <ion-button fill="solid" color="danger" size="small" (click)="openDispatcherModal(d)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px; color: #ffffff;">
+          <ion-button fill="solid" color="danger" size="small" (click)="openDispatcherModal(d); $event.stopPropagation()" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px; color: #ffffff;">
             <app-icon name="pen" [size]="13" color="#ffffff" style="margin-right: 6px;"></app-icon> Edit
           </ion-button>
-          <ion-button fill="solid" color="medium" size="small" (click)="confirmDeactivateDispatcher(d)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px; color: #ffffff;">
+          <ion-button fill="solid" color="medium" size="small" (click)="confirmDeactivateDispatcher(d); $event.stopPropagation()" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px; color: #ffffff;">
             <app-icon name="user-xmark" [size]="13" color="#ffffff" style="margin-right: 6px;"></app-icon> Remove
           </ion-button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ── macOS FINDER LIST VIEW (TABLE) ── -->
+  <div *ngIf="viewMode === 'list' && filteredDispatchers.length > 0" class="finder-list-container">
+    <!-- Desktop Header -->
+    <div class="finder-list-header">
+      <span>Dispatcher</span>
+      <span>Status</span>
+      <span>Contact</span>
+      <span>Barangay</span>
+      <span style="text-align: right;">Actions</span>
+    </div>
+
+    <!-- Rows -->
+    <div *ngFor="let d of filteredDispatchers; let i = index; trackBy: trackByUserId"
+         [attr.id]="i === 0 ? 'dispatcher-item-0' : null"
+         class="finder-list-row"
+         [class.is-expanded]="expandedListUserId === d.user_id"
+         (click)="toggleListRow(d, $event)"
+         [appAnnouncementEnter]="i">
+
+      <!-- Column: Dispatcher -->
+      <div class="col-dispatcher">
+        <div class="dispatcher-avatar-sm">
+          <img *ngIf="ui.getProxyUrl(d.profile_picture)" [proxySrc]="d.profile_picture" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
+          <span style="position:relative;z-index:1;">{{ (d.first_name?.[0]||'')+(d.last_name?.[0]||'') }}</span>
+        </div>
+        <div class="dispatcher-info">
+          <p class="dispatcher-name">{{ d.first_name }} {{ d.last_name }}</p>
+          <p class="dispatcher-sub">&#64;{{ d.username }}</p>
+        </div>
+      </div>
+
+      <!-- Column: Status -->
+      <div class="col-status">
+        <span class="status-badge">Active</span>
+      </div>
+
+      <!-- Column: Contact -->
+      <div class="col-contact">
+        <div class="contact-line">
+          <app-icon name="phone" [size]="12" color="var(--ion-color-danger)"></app-icon>
+          <span>{{ phoneDisplay(d.phone) }}</span>
+        </div>
+        <div class="contact-line">
+          <app-icon name="mail" [size]="12" color="var(--ion-color-danger)"></app-icon>
+          <span class="truncate-text">{{ d.email }}</span>
+        </div>
+      </div>
+
+      <!-- Column: Barangay -->
+      <div class="col-barangay">
+        <app-icon name="map-pin" [size]="12" color="var(--ion-color-danger)"></app-icon>
+        <span>{{ ui.getBarangayName(d.barangay_id) }}</span>
+      </div>
+
+      <!-- Column: Actions -->
+      <div class="col-actions">
+        <ion-button fill="solid" color="danger" size="small" (click)="openDispatcherModal(d); $event.stopPropagation()" style="color: #ffffff;">
+          <app-icon name="pen" [size]="12" color="#ffffff" style="margin-right: 4px;"></app-icon> Edit
+        </ion-button>
+        <ion-button fill="solid" color="medium" size="small" (click)="confirmDeactivateDispatcher(d); $event.stopPropagation()" style="color: #ffffff;">
+          <app-icon name="user-xmark" [size]="12" color="#ffffff" style="margin-right: 4px;"></app-icon> Remove
+        </ion-button>
+      </div>
+
+      <!-- Mobile Expanded Drawer -->
+      <div *ngIf="expandedListUserId === d.user_id" class="mobile-list-drawer">
+        <div class="drawer-contact-grid">
+          <div><strong>Phone:</strong> {{ phoneDisplay(d.phone) }}</div>
+          <div><strong>Email:</strong> {{ d.email }}</div>
+          <div><strong>Barangay:</strong> {{ ui.getBarangayName(d.barangay_id) }}</div>
+          <div><strong>Role:</strong> MDRRMO Dispatcher</div>
+        </div>
+        <div class="drawer-actions-grid">
+          <ion-button fill="solid" color="danger" size="small" (click)="openDispatcherModal(d); $event.stopPropagation()" style="color: #ffffff; font-weight:700;">
+            <app-icon name="pen" [size]="13" color="#ffffff" style="margin-right: 5px;"></app-icon> Edit Credentials
+          </ion-button>
+          <ion-button fill="solid" color="medium" size="small" (click)="confirmDeactivateDispatcher(d); $event.stopPropagation()" style="color: #ffffff; font-weight:700;">
+            <app-icon name="user-xmark" [size]="13" color="#ffffff" style="margin-right: 5px;"></app-icon> Remove Account
+          </ion-button>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

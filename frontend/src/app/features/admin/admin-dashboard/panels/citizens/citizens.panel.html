@@ -28,6 +28,28 @@
         searchPlaceholder="Search barangay…">
       </app-filter-dropdown>
       <app-date-range-filter [value]="citizenDateFilter" (valueChange)="onDateFilterChange($event)"></app-date-range-filter>
+
+      <!-- macOS Finder View Mode Switcher (Grid vs List) -->
+      <div class="apple-segmented-control finder-view-switcher" role="group" aria-label="View Mode">
+        <button
+          type="button"
+          class="segmented-pill-btn"
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')"
+          appTooltip="Icons Grid View"
+          tooltipPlacement="bottom">
+          <app-icon name="finder-grid" [size]="14"></app-icon>
+        </button>
+        <button
+          type="button"
+          class="segmented-pill-btn"
+          [class.active]="viewMode === 'list'"
+          (click)="setViewMode('list')"
+          appTooltip="List Table View"
+          tooltipPlacement="bottom">
+          <app-icon name="finder-list" [size]="14"></app-icon>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -45,9 +67,14 @@
     <p>No citizens match the current filters.</p>
   </div>
 
-  <div #citizensGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;">
+  <!-- ── GRID VIEW (ICONS) ── -->
+  <div *ngIf="viewMode === 'grid'" #citizensGrid style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;">
     <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId" [attr.data-flip-id]="c.user_id" [appAnnouncementEnter]="i" style="display: contents;">
-      <div class="citizen-card" style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 24px 20px 20px 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)));" [style.border-color]="c.account_status === 'banned' ? '#eb445a' : 'var(--ion-color-step-150, rgba(0,0,0,0.07))'">
+      <div [attr.id]="i === 0 ? 'citizen-item-0' : null"
+           class="citizen-card"
+           [class.is-active]="activeCardUserId === c.user_id"
+           (click)="toggleCardActive(c, $event)"
+           style="background: var(--ion-card-background, #fff); border-radius: 16px; padding: 24px 20px 20px 20px; display: flex; flex-direction: column; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 8px rgba(0,0,0,0.04)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.07)));" [style.border-color]="c.account_status === 'banned' ? '#eb445a' : 'var(--ion-color-step-150, rgba(0,0,0,0.07))'">
         
         <!-- Inner Card Content (Moves upward on hover) -->
         <div class="citizen-card-content">
@@ -100,22 +127,142 @@
           </div>
         </div>
 
-        <!-- Action Buttons Grid (Reveals upward on hover) -->
+        <!-- Action Buttons Grid (Reveals upward on hover or tap) -->
         <div class="citizen-actions-wrapper" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <!-- Manage Strikes Button -->
-          <ion-button [attr.id]="i === 0 ? 'citizen-manage-strikes-btn-0' : null" color="warning" fill="solid" size="small" (click)="openStrikeModal(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px; color: #1c1c1c;">
+          <ion-button [attr.id]="i === 0 ? 'citizen-manage-strikes-btn-0' : null" color="warning" fill="solid" size="small" (click)="openStrikeModal(c); $event.stopPropagation()" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px; color: #1c1c1c;">
             <app-icon name="gavel" [size]="13" color="#1c1c1c" style="margin-right: 6px;"></app-icon>
             Strikes
           </ion-button>
 
           <!-- Suspend / Reinstate Button -->
-          <ion-button [attr.id]="i === 0 ? 'citizen-status-action-btn-0' : null" [color]="c.account_status === 'banned' ? 'success' : 'danger'" fill="solid" size="small" (click)="suspendCitizen(c)" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px; color: #ffffff;">
+          <ion-button [attr.id]="i === 0 ? 'citizen-status-action-btn-0' : null" [color]="c.account_status === 'banned' ? 'success' : 'danger'" fill="solid" size="small" (click)="suspendCitizen(c); $event.stopPropagation()" style="font-weight: 700; height: 38px; margin: 0; --border-radius: 10px; color: #ffffff;">
             <app-icon [name]="c.account_status === 'banned' ? 'user-check' : 'user-xmark'" [size]="13" color="#ffffff" style="margin-right: 6px;"></app-icon>
             {{ c.account_status === 'banned' ? 'Reinstate' : 'Suspend' }}
           </ion-button>
         </div>
 
       </div>
+    </div>
+  </div>
+
+  <!-- ── macOS FINDER LIST VIEW (TABLE) ── -->
+  <div *ngIf="viewMode === 'list' && filteredCitizens.length > 0" class="finder-list-container">
+    <!-- Desktop Header -->
+    <div class="finder-list-header">
+      <span>Citizen</span>
+      <span>Status</span>
+      <span>Strikes</span>
+      <span>Contact</span>
+      <span>Barangay</span>
+      <span>Joined</span>
+      <span style="text-align: right;">Actions</span>
+    </div>
+
+    <!-- Rows -->
+    <div *ngFor="let c of filteredCitizens; let i = index; trackBy: trackByUserId"
+         [attr.id]="i === 0 ? 'citizen-item-0' : null"
+         class="finder-list-row"
+         [class.is-banned-row]="c.account_status === 'banned'"
+         [class.is-expanded]="expandedListUserId === c.user_id"
+         (click)="toggleListRow(c, $event)"
+         [appAnnouncementEnter]="i">
+
+      <!-- Column: User -->
+      <div class="col-user">
+        <div class="user-avatar-sm">
+          <app-icon name="user" [size]="18" color="var(--ion-color-medium)"></app-icon>
+          <img *ngIf="ui.getProxyUrl(c.profile_picture)"
+               [proxySrc]="c.profile_picture"
+               style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" />
+        </div>
+        <div class="user-info">
+          <p class="user-name">{{ c.first_name }} {{ c.last_name }}</p>
+          <p class="user-sub">&#64;{{ c.username }}</p>
+        </div>
+      </div>
+
+      <!-- Column: Status -->
+      <div class="col-status">
+        <span class="status-badge"
+              [style.background]="c.account_status === 'banned' ? 'rgba(235,68,90,0.12)' : (c.account_status === 'active' ? 'rgba(45,211,111,0.12)' : 'rgba(255,196,9,0.12)')"
+              [style.color]="c.account_status === 'banned' ? '#eb445a' : (c.account_status === 'active' ? '#2dd36f' : '#e0ac00')"
+              [style.border]="c.account_status === 'banned' ? '1px solid rgba(235,68,90,0.3)' : (c.account_status === 'active' ? '1px solid rgba(45,211,111,0.3)' : '1px solid rgba(255,196,9,0.3)')">
+          {{ c.account_status === 'banned' ? 'Suspended' : (c.account_status === 'active' ? 'Active' : 'Pending') }}
+        </span>
+      </div>
+
+      <!-- Column: Strikes -->
+      <div class="col-strikes" [attr.id]="i === 0 && viewMode === 'list' ? 'citizen-strike-badge-0' : null">
+        <div class="strikes-pips">
+          <span [style.background]="(c.false_alarm_strikes || 0) >= 1 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"></span>
+          <span [style.background]="(c.false_alarm_strikes || 0) >= 2 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"></span>
+          <span [style.background]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : 'var(--ion-color-step-250, #d0d0d0)'"></span>
+        </div>
+        <span class="strikes-text" [style.color]="(c.false_alarm_strikes || 0) >= 3 ? '#eb445a' : ((c.false_alarm_strikes || 0) > 0 ? '#d99000' : 'var(--ion-color-medium)')">
+          {{ c.false_alarm_strikes || 0 }}/3
+        </span>
+      </div>
+
+      <!-- Column: Contact -->
+      <div class="col-contact">
+        <div class="contact-line">
+          <app-icon name="phone" [size]="12" color="var(--ion-color-danger)"></app-icon>
+          <span>{{ c.phone }}</span>
+        </div>
+        <div class="contact-line">
+          <app-icon name="mail" [size]="12" color="var(--ion-color-danger)"></app-icon>
+          <span class="truncate-text">{{ c.email }}</span>
+        </div>
+      </div>
+
+      <!-- Column: Barangay -->
+      <div class="col-barangay">
+        <app-icon name="map-pin" [size]="12" color="var(--ion-color-danger)"></app-icon>
+        <span>{{ ui.getBarangayName(c.barangay_id) }}</span>
+      </div>
+
+      <!-- Column: Joined Date -->
+      <div class="col-joined">
+        <span>{{ c.created_at | utcDate:'mediumDate' }}</span>
+      </div>
+
+      <!-- Column: Actions -->
+      <div class="col-actions">
+        <ion-button [attr.id]="i === 0 ? 'citizen-manage-strikes-btn-0' : null"
+                    color="warning" fill="solid" size="small"
+                    (click)="openStrikeModal(c); $event.stopPropagation()"
+                    style="color: #1c1c1c;">
+          <app-icon name="gavel" [size]="12" color="#1c1c1c" style="margin-right: 4px;"></app-icon>
+          Strikes
+        </ion-button>
+        <ion-button [color]="c.account_status === 'banned' ? 'success' : 'danger'"
+                    fill="solid" size="small"
+                    (click)="suspendCitizen(c); $event.stopPropagation()">
+          <app-icon [name]="c.account_status === 'banned' ? 'user-check' : 'user-xmark'" [size]="12" color="#ffffff" style="margin-right: 4px;"></app-icon>
+          {{ c.account_status === 'banned' ? 'Reinstate' : 'Suspend' }}
+        </ion-button>
+      </div>
+
+      <!-- Mobile Expanded Drawer (Revealed on row tap on small screens) -->
+      <div *ngIf="expandedListUserId === c.user_id" class="mobile-list-drawer">
+        <div class="drawer-contact-grid">
+          <div><strong>Phone:</strong> {{ c.phone }}</div>
+          <div><strong>Email:</strong> {{ c.email }}</div>
+          <div><strong>Barangay:</strong> {{ ui.getBarangayName(c.barangay_id) }}</div>
+          <div><strong>Joined:</strong> {{ c.created_at | utcDate:'mediumDate' }}</div>
+        </div>
+        <div class="drawer-actions-grid">
+          <ion-button color="warning" fill="solid" size="small" (click)="openStrikeModal(c); $event.stopPropagation()" style="color: #1c1c1c; font-weight:700;">
+            <app-icon name="gavel" [size]="13" color="#1c1c1c" style="margin-right: 5px;"></app-icon> Strikes
+          </ion-button>
+          <ion-button [color]="c.account_status === 'banned' ? 'success' : 'danger'" fill="solid" size="small" (click)="suspendCitizen(c); $event.stopPropagation()" style="font-weight:700;">
+            <app-icon [name]="c.account_status === 'banned' ? 'user-check' : 'user-xmark'" [size]="13" color="#ffffff" style="margin-right: 5px;"></app-icon>
+            {{ c.account_status === 'banned' ? 'Reinstate' : 'Suspend' }}
+          </ion-button>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

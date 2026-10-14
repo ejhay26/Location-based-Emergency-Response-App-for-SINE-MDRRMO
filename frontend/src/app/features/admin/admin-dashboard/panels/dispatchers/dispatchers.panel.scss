@@ -73,27 +73,277 @@
   }
 }
 
-// Fallback for touch / mobile screen environments where hover is not present
-@media (hover: none), (pointer: coarse) {
-  .dispatcher-card {
-    height: auto !important;
-    transform: none !important;
+// Active state: triggered on click/tap for touch & mobile
+.dispatcher-card.is-active {
+  transform: scale(1.02);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14), 0 3px 10px rgba(0, 0, 0, 0.06) !important;
+  z-index: 10;
 
-    .dispatcher-card-content {
-      transform: none !important;
-    }
+  .dispatcher-card-content {
+    transform: translateY(-14px);
+  }
 
-    .dispatcher-actions-wrapper {
-      position: static !important;
-      margin-top: 14px !important;
-      pointer-events: auto !important;
+  .dispatcher-actions-wrapper {
+    pointer-events: auto;
 
-      ion-button {
-        transform: none !important;
-        opacity: 1 !important;
-        transition: none !important;
+    ion-button {
+      transform: translateY(0);
+      opacity: 1;
+
+      &:nth-child(1) {
+        transition-delay: 0.05s;
+      }
+      &:nth-child(2) {
+        transition-delay: 0.10s;
       }
     }
+  }
+}
+
+// Touch / mobile screen environments: click to toggle active card
+@media (hover: none), (pointer: coarse) {
+  .dispatcher-card {
+    height: 228px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+    &.is-active {
+      transform: scale(1.015);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12) !important;
+      z-index: 10;
+
+      .dispatcher-card-content {
+        transform: translateY(-14px);
+      }
+
+      .dispatcher-actions-wrapper {
+        pointer-events: auto;
+
+        ion-button {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+    }
+  }
+}
+
+/* ── macOS Finder List View ── */
+.finder-list-container {
+  display: flex;
+  flex-direction: column;
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 16px;
+  border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08)));
+  box-shadow: var(--card-shadow, 0 2px 8px rgba(0, 0, 0, 0.04));
+  overflow: hidden;
+  margin-bottom: 20px;
+
+  .finder-list-header {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 2.5fr 1.8fr 1.8fr;
+    gap: 12px;
+    align-items: center;
+    padding: 11px 18px;
+    background: var(--ion-color-step-50, rgba(0, 0, 0, 0.025));
+    border-bottom: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.07));
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--ion-color-medium, #8e8e93);
+    user-select: none;
+  }
+
+  .finder-list-row {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 2.5fr 1.8fr 1.8fr;
+    gap: 12px;
+    align-items: center;
+    padding: 11px 18px;
+    border-bottom: 1px solid var(--ion-color-step-100, rgba(0, 0, 0, 0.04));
+    font-size: 13px;
+    color: var(--ion-text-color);
+    transition: background-color 0.15s ease;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: var(--ion-color-step-50, rgba(0, 0, 0, 0.03));
+    }
+  }
+
+  .col-dispatcher {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+
+    .dispatcher-avatar-sm {
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      background: var(--ion-color-danger);
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: white;
+      position: relative;
+    }
+
+    .dispatcher-info {
+      min-width: 0;
+      .dispatcher-name {
+        margin: 0;
+        font-weight: 800;
+        font-size: 13.5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .dispatcher-sub {
+        margin: 1px 0 0;
+        font-size: 11.5px;
+        color: var(--ion-color-medium);
+        font-weight: 500;
+      }
+    }
+  }
+
+  .col-status {
+    .status-badge {
+      display: inline-block;
+      border-radius: 20px;
+      padding: 2px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      background: rgba(45, 211, 111, 0.12);
+      color: #2dd36f;
+      border: 1px solid rgba(45, 211, 111, 0.3);
+    }
+  }
+
+  .col-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    min-width: 0;
+
+    .contact-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow: hidden;
+
+      .truncate-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+
+  .col-barangay {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .col-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-end;
+
+    ion-button {
+      height: 32px;
+      font-size: 11.5px;
+      font-weight: 700;
+      margin: 0;
+      --border-radius: 9px;
+    }
+  }
+
+  .mobile-list-drawer {
+    display: none;
+  }
+}
+
+/* Responsive Table for Mobile / Tablet < 960px */
+@media (max-width: 960px) {
+  .finder-list-container {
+    .finder-list-header {
+      display: none;
+    }
+
+    .finder-list-row {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 14px 16px;
+      gap: 10px;
+      cursor: pointer;
+
+      .col-dispatcher {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .col-status, .col-contact, .col-barangay, .col-actions {
+        display: none;
+      }
+
+      .mobile-list-drawer {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--ion-color-step-150, rgba(0,0,0,0.08));
+        animation: fadeInDrawer 0.2s ease forwards;
+
+        .drawer-contact-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 6px;
+          font-size: 12px;
+          color: var(--ion-color-medium);
+
+          strong {
+            color: var(--ion-text-color);
+          }
+        }
+
+        .drawer-actions-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-top: 4px;
+
+          ion-button {
+            height: 36px;
+            font-size: 12px;
+            margin: 0;
+            --border-radius: 9px;
+          }
+        }
+      }
+    }
+  }
+
+  @keyframes fadeInDrawer {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
 
