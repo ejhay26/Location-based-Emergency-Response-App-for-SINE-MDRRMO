@@ -74,9 +74,15 @@ The **Citizens** panel is a full directory of all registered residents across Sa
 - **Barangay Filter:** Filter residents by any of the 9 official barangays.
 - **Unified Date-Range Filter:** Filter by registration date using Single-Day, Multi-Day, or Custom Date Range.
 - **Status Badges:** `Active`, `Pending`, or `Suspended`.
+- **macOS Finder View Switcher:** Seamlessly switch between the **Grid Card View** and **List Table View** with consistent centered columns and animated card transitions.
+- **Action Menu:** Quick access to citizen actions via hover card controls or an anchored ellipsis button with a pointed popover menu.
 - **Account Moderation:** Suspend abusive accounts (`banned`) or reinstate access with recorded reasons.
 
-![Citizens Directory](../assets/admin/citizens.png)
+### Grid Card View
+![Citizens Directory Grid View](../assets/admin/citizens.png)
+
+### List Table View
+![Citizens Directory List View](../assets/admin/citizens-list.png)
 
 ### False Alarm Strike Manager
 Manage citizen false alarm strikes, issue automated warning notices, and enforce account suspensions directly from the dedicated popup dialog box:
@@ -91,8 +97,13 @@ Dispatchers cannot self-register; they are created and managed directly by admin
 - **Add Dispatcher:** Create a new staff account with Name, Mobile Number, Username, Email, Password, and Assigned Barangay.
 - **Edit Dispatcher:** Update contact details or change assigned information.
 - **Deactivate Dispatcher:** Revoke staff access and invalidate all active session tokens.
+- **macOS Finder View Switcher:** Seamlessly switch between **Grid Card View** and **List Table View** with centered table columns and anchored action dropdowns.
 
-![Staff Dispatchers Directory](../assets/admin/dispatchers.png)
+### Grid Card View
+![Staff Dispatchers Directory Grid View](../assets/admin/dispatchers.png)
+
+### List Table View
+![Staff Dispatchers Directory List View](../assets/admin/dispatchers-list.png)
 
 ### Dispatcher Account Dialog
 Staff creation and assignment editing are presented via an accessible popup dialog box:
