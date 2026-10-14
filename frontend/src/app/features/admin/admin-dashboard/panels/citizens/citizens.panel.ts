@@ -1,9 +1,9 @@
-import { Component, ElementRef, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
-  IonButton, IonModal, IonContent, ActionSheetController
+  IonButton, IonModal, IonContent
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -52,6 +52,9 @@ export class CitizensPanel implements OnInit, OnDestroy {
   /** Expanded list row on mobile view */
   expandedListUserId: number | null = null;
 
+  /** Currently open action dropdown menu user id */
+  openMenuUserId: number | null = null;
+
   readonly statusDropdownOptions = [
     { value: 'all', label: 'All Status' },
     { value: 'active', label: 'Active Only' },
@@ -97,7 +100,6 @@ export class CitizensPanel implements OnInit, OnDestroy {
     private echo: EchoService,
     private settings: UserSettingsService,
     private tour: TourService,
-    private actionSheetCtrl: ActionSheetController,
   ) {}
 
   ngOnInit() {
@@ -148,33 +150,44 @@ export class CitizensPanel implements OnInit, OnDestroy {
     this.expandedListUserId = this.expandedListUserId === c.user_id ? null : c.user_id;
   }
 
-  async openCitizenActions(c: any, event?: Event): Promise<void> {
+  toggleDropdown(userId: number, event?: Event): void {
     if (event) event.stopPropagation();
-    const isBanned = c.account_status === 'banned';
-    const actionSheet = await this.actionSheetCtrl.create({
-      header: `${c.first_name} ${c.last_name}`,
-      subHeader: `@${c.username} · ${c.false_alarm_strikes || 0} of 3 Strikes`,
-      buttons: [
-        {
-          text: 'Review & Issue Strikes',
-          handler: () => {
-            this.openStrikeModal(c);
-          }
-        },
-        {
-          text: isBanned ? 'Reinstate Citizen Account' : 'Suspend Citizen Account',
-          role: isBanned ? undefined : 'destructive',
-          handler: () => {
-            this.suspendCitizen(c);
-          }
-        },
-        {
-          text: 'Cancel',
-          role: 'cancel'
-        }
-      ]
-    });
-    await actionSheet.present();
+    this.openMenuUserId = this.openMenuUserId === userId ? null : userId;
+  }
+
+  closeDropdown(): void {
+    this.openMenuUserId = null;
+  }
+
+  onCitizenMenuStrikes(c: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.closeDropdown();
+    this.openStrikeModal(c);
+  }
+
+  onCitizenMenuSuspend(c: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.closeDropdown();
+    this.suspendCitizen(c);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.action-dropdown-anchor')) {
+      this.openMenuUserId = null;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    this.openMenuUserId = null;
+  }
+
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  onWindowChange(): void {
+    this.openMenuUserId = null;
   }
 
   get filteredCitizens(): any[] {

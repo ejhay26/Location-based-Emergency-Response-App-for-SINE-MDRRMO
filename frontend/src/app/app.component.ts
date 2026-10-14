@@ -94,8 +94,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.dismissSplash();
     if (this.isDesktop) {
-      import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
+      import('@tauri-apps/api/window').then(async ({ getCurrentWindow }) => {
         const win = getCurrentWindow();
+        try {
+          await win.center();
+        } catch {}
         win.show().catch((err) => console.warn('Tauri window show error:', err));
         win.setFocus().catch(() => {});
       }).catch((err) => console.warn('Tauri window module load error:', err));

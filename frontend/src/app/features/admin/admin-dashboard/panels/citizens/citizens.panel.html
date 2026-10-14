@@ -166,6 +166,7 @@
          class="finder-list-row"
          [class.is-banned-row]="c.account_status === 'banned'"
          [class.is-expanded]="expandedListUserId === c.user_id"
+         [class.has-open-menu]="openMenuUserId === c.user_id"
          (click)="toggleListRow(c, $event)"
          [appListEnter]="i">
 
@@ -230,14 +231,35 @@
 
       <!-- Column: Actions -->
       <div class="col-actions col-center">
-        <button type="button"
-                [attr.id]="i === 0 && viewMode === 'list' ? 'citizen-manage-strikes-btn-0' : null"
-                class="finder-action-btn"
-                (click)="openCitizenActions(c, $event)"
-                title="Manage Citizen">
-          <span>Manage</span>
-          <app-icon name="chevron-down" [size]="11"></app-icon>
-        </button>
+        <div class="action-dropdown-anchor" (click)="$event.stopPropagation()">
+          <button type="button"
+                  [attr.id]="i === 0 && viewMode === 'list' ? 'citizen-manage-strikes-btn-0' : null"
+                  class="finder-action-btn"
+                  [class.is-open]="openMenuUserId === c.user_id"
+                  [appTooltip]="'Manage'"
+                  tooltipPlacement="top"
+                  (click)="toggleDropdown(c.user_id, $event)"
+                  aria-label="Manage citizen actions">
+            <app-icon name="ellipsis" [size]="16"></app-icon>
+          </button>
+
+          <!-- Anchored Dropdown Menu with Arrow Tail -->
+          <div *ngIf="openMenuUserId === c.user_id" class="finder-dropdown-menu">
+            <div class="dropdown-item" (click)="onCitizenMenuStrikes(c, $event)">
+              <app-icon name="gavel" [size]="13" color="#e0ac00"></app-icon>
+              <span>Review Strikes</span>
+            </div>
+            <div class="dropdown-item"
+                 [class.danger]="c.account_status !== 'banned'"
+                 [class.success]="c.account_status === 'banned'"
+                 (click)="onCitizenMenuSuspend(c, $event)">
+              <app-icon [name]="c.account_status === 'banned' ? 'user-check' : 'user-xmark'"
+                        [size]="13"
+                        [color]="c.account_status === 'banned' ? '#2dd36f' : '#eb445a'"></app-icon>
+              <span>{{ c.account_status === 'banned' ? 'Reinstate Account' : 'Suspend Account' }}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Mobile Expanded Drawer (Revealed on row tap on small screens) -->

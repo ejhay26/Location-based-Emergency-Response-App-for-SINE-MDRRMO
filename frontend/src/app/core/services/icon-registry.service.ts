@@ -977,6 +977,22 @@ export class IconRegistryService {
         faClass: 'fa-solid fa-list',
         lucideSvg: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>'
       }
+    ],
+    [
+      'ellipsis',
+      {
+        name: 'ellipsis',
+        faClass: 'fa-solid fa-ellipsis',
+        lucideSvg: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>'
+      }
+    ],
+    [
+      'ellipsis-vertical',
+      {
+        name: 'ellipsis-vertical',
+        faClass: 'fa-solid fa-ellipsis-vertical',
+        lucideSvg: '<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>'
+      }
     ]
   ]);
 
@@ -1109,7 +1125,12 @@ export class IconRegistryService {
       'grid-view': 'finder-grid',
       'layout-grid': 'finder-grid',
       'list': 'finder-list',
-      'list-view': 'finder-list'
+      'list-view': 'finder-list',
+      'ellipse': 'ellipsis',
+      'more': 'ellipsis',
+      'more-horizontal': 'ellipsis',
+      'more-vertical': 'ellipsis-vertical',
+      'dots': 'ellipsis'
     };
 
     const alias = aliases[normalized];

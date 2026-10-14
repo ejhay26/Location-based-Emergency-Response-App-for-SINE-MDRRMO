@@ -9,10 +9,13 @@ import { bouncyPageTransition } from './app/core/animations/bouncy-page-transiti
 
 import { ErrorInterceptorService } from './app/core/services/error-interceptor';
 
-// Reveal the desktop window as soon as the JS runtime boots and the DOM splash is active
+// Reveal and center the desktop window as soon as the JS runtime boots and the DOM splash is active
 if (typeof window !== 'undefined' && (!!(window as any).__TAURI_INTERNALS__ || !!(window as any).__TAURI__)) {
-  import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
+  import('@tauri-apps/api/window').then(async ({ getCurrentWindow }) => {
     const win = getCurrentWindow();
+    try {
+      await win.center();
+    } catch {}
     win.show().catch(() => {});
     win.setFocus().catch(() => {});
   }).catch(() => {});

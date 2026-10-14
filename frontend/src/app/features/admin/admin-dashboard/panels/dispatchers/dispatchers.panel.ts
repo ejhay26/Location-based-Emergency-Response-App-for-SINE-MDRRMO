@@ -1,10 +1,10 @@
-import { Component, ElementRef, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
   IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-  IonModal, IonContent, ActionSheetController
+  IonModal, IonContent
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -57,6 +57,9 @@ export class DispatchersPanel implements OnInit, OnDestroy {
   /** Expanded list row on mobile view */
   expandedListUserId: number | null = null;
 
+  /** Currently open action dropdown menu user id */
+  openMenuUserId: number | null = null;
+
   readonly barangays = BARANGAYS;
 
   readonly barangayDropdownOptions: FilterDropdownOption[] = [
@@ -81,7 +84,6 @@ export class DispatchersPanel implements OnInit, OnDestroy {
     public ui: AdminUiService,
     private echo: EchoService,
     private settings: UserSettingsService,
-    private actionSheetCtrl: ActionSheetController,
   ) {}
 
   ngOnInit() {
@@ -121,32 +123,44 @@ export class DispatchersPanel implements OnInit, OnDestroy {
     this.expandedListUserId = this.expandedListUserId === d.user_id ? null : d.user_id;
   }
 
-  async openDispatcherActions(d: any, event?: Event): Promise<void> {
+  toggleDropdown(userId: number, event?: Event): void {
     if (event) event.stopPropagation();
-    const actionSheet = await this.actionSheetCtrl.create({
-      header: `${d.first_name} ${d.last_name}`,
-      subHeader: `@${d.username} · ${this.ui.getBarangayName(d.barangay_id)}`,
-      buttons: [
-        {
-          text: 'Edit Dispatcher Credentials',
-          handler: () => {
-            this.openDispatcherModal(d);
-          }
-        },
-        {
-          text: 'Remove / Deactivate Account',
-          role: 'destructive',
-          handler: () => {
-            this.confirmDeactivateDispatcher(d);
-          }
-        },
-        {
-          text: 'Cancel',
-          role: 'cancel'
-        }
-      ]
-    });
-    await actionSheet.present();
+    this.openMenuUserId = this.openMenuUserId === userId ? null : userId;
+  }
+
+  closeDropdown(): void {
+    this.openMenuUserId = null;
+  }
+
+  onDispatcherMenuEdit(d: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.closeDropdown();
+    this.openDispatcherModal(d);
+  }
+
+  onDispatcherMenuRemove(d: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.closeDropdown();
+    this.confirmDeactivateDispatcher(d);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.action-dropdown-anchor')) {
+      this.openMenuUserId = null;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    this.openMenuUserId = null;
+  }
+
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  onWindowChange(): void {
+    this.openMenuUserId = null;
   }
 
   loadDispatchers() {

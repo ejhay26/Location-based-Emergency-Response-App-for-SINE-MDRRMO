@@ -126,6 +126,7 @@
          [attr.id]="i === 0 ? 'dispatcher-item-0' : null"
          class="finder-list-row"
          [class.is-expanded]="expandedListUserId === d.user_id"
+         [class.has-open-menu]="openMenuUserId === d.user_id"
          (click)="toggleListRow(d, $event)"
          [appListEnter]="i">
 
@@ -166,10 +167,29 @@
 
       <!-- Column: Actions -->
       <div class="col-actions col-center">
-        <button type="button" class="finder-action-btn" (click)="openDispatcherActions(d, $event)" title="Manage Dispatcher">
-          <span>Manage</span>
-          <app-icon name="chevron-down" [size]="11"></app-icon>
-        </button>
+        <div class="action-dropdown-anchor" (click)="$event.stopPropagation()">
+          <button type="button"
+                  class="finder-action-btn"
+                  [class.is-open]="openMenuUserId === d.user_id"
+                  [appTooltip]="'Manage'"
+                  tooltipPlacement="top"
+                  (click)="toggleDropdown(d.user_id, $event)"
+                  aria-label="Manage dispatcher actions">
+            <app-icon name="ellipsis" [size]="16"></app-icon>
+          </button>
+
+          <!-- Anchored Dropdown Menu with Arrow Tail -->
+          <div *ngIf="openMenuUserId === d.user_id" class="finder-dropdown-menu">
+            <div class="dropdown-item" (click)="onDispatcherMenuEdit(d, $event)">
+              <app-icon name="pen" [size]="13" color="var(--ion-color-danger)"></app-icon>
+              <span>Edit Credentials</span>
+            </div>
+            <div class="dropdown-item danger" (click)="onDispatcherMenuRemove(d, $event)">
+              <app-icon name="user-xmark" [size]="13" color="#eb445a"></app-icon>
+              <span>Remove Account</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Mobile Expanded Drawer -->
