@@ -1,0 +1,1 @@
+import{e as c,h as r}from"./chunk-M5U6FIFB.js";var a,s=c(()=>{"use strict";a=()=>{let e;return{lock:()=>r(null,null,function*(){let o=e,t;return e=new Promise(n=>t=n),o!==void 0&&(yield o),t})}}});export{a,s as b};

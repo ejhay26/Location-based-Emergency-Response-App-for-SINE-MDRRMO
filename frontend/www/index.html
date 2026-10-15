@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" data-beasties-container>
+
+<head>
+  <meta charset="utf-8">
+  <title>MDRRMO EMERGENCY RESPONSE APP</title>
+
+  <base href="./">
+
+  <meta name="color-scheme" content="light dark">
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-tap-highlight" content="no">
+
+  <link rel="icon" type="image/png" href="/assets/icon/logo.jpg">
+
+  <!-- add to homescreen for ios -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <style>
+    /* ── Immediate First-Paint Splash Screen ──────────────────────────────── */
+    #sine-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh + 120px);
+      background: #ffffff;
+      z-index: 9999999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-user-select: none;
+      pointer-events: all;
+      /* Downward convex arc at bottom */
+      clip-path: ellipse(140% 100% at 50% 0%);
+      will-change: transform, clip-path, opacity;
+      transform: translateZ(0);
+    }
+
+    #sine-splash.splash-dismiss {
+      animation: splashArcFlyUp 720ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes splashArcFlyUp {
+      0% {
+        transform: translateY(0);
+        clip-path: ellipse(140% 100% at 50% 0%);
+      }
+      35% {
+        clip-path: ellipse(120% 95% at 50% -5%);
+      }
+      100% {
+        transform: translateY(-115%);
+        clip-path: ellipse(105% 90% at 50% -10%);
+        opacity: 0.98;
+      }
+    }
+
+    .splash-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 24px;
+      margin-top: -60px;
+    }
+
+    .splash-badge {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      padding: 3px;
+      background: #D32F2F;
+      box-shadow: 0 4px 20px rgba(211, 47, 47, 0.28);
+      margin-bottom: 20px;
+    }
+
+    .splash-logo {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .splash-headers {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .splash-org {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #D32F2F;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin-bottom: 6px;
+    }
+
+    .splash-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111113;
+      letter-spacing: 0.02em;
+      margin: 0 0 6px 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .splash-subtitle {
+      font-size: 12px;
+      font-weight: 500;
+      color: #5c5c60;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .splash-progress-track {
+      width: 180px;
+      height: 3px;
+      background: rgba(0, 0, 0, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .splash-progress-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 40%;
+      background: #D32F2F;
+      border-radius: 999px;
+      animation: splashIndeterminate 1.4s infinite ease-in-out;
+    }
+
+    @keyframes splashIndeterminate {
+      0% {
+        left: -40%;
+        width: 30%;
+      }
+      50% {
+        left: 35%;
+        width: 50%;
+      }
+      100% {
+        left: 100%;
+        width: 30%;
+      }
+    }
+
+    .splash-status-text {
+      font-size: 11px;
+      color: #8e8e93;
+      letter-spacing: 0.02em;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  </style>
+<style>:root{--ion-color-primary:#0054e9;--ion-color-primary-rgb:0, 84, 233;--ion-color-primary-contrast:#fff;--ion-color-primary-contrast-rgb:255, 255, 255;--ion-color-primary-shade:#004acd;--ion-color-primary-tint:#1a65eb;--ion-color-secondary:#0163aa;--ion-color-secondary-rgb:1, 99, 170;--ion-color-secondary-contrast:#fff;--ion-color-secondary-contrast-rgb:255, 255, 255;--ion-color-secondary-shade:#015796;--ion-color-secondary-tint:#1a73b3;--ion-color-tertiary:#6030ff;--ion-color-tertiary-rgb:96, 48, 255;--ion-color-tertiary-contrast:#fff;--ion-color-tertiary-contrast-rgb:255, 255, 255;--ion-color-tertiary-shade:#542ae0;--ion-color-tertiary-tint:#7045ff;--ion-color-success:#2dd55b;--ion-color-success-rgb:45, 213, 91;--ion-color-success-contrast:#000;--ion-color-success-contrast-rgb:0, 0, 0;--ion-color-success-shade:#28bb50;--ion-color-success-tint:#42d96b;--ion-color-warning:#ffc409;--ion-color-warning-rgb:255, 196, 9;--ion-color-warning-contrast:#000;--ion-color-warning-contrast-rgb:0, 0, 0;--ion-color-warning-shade:#e0ac08;--ion-color-warning-tint:#ffca22;--ion-color-danger:#c5000f;--ion-color-danger-rgb:197, 0, 15;--ion-color-danger-contrast:#fff;--ion-color-danger-contrast-rgb:255, 255, 255;--ion-color-danger-shade:#ad000d;--ion-color-danger-tint:#cb1a27;--ion-color-light:#f4f5f8;--ion-color-light-rgb:244, 245, 248;--ion-color-light-contrast:#000;--ion-color-light-contrast-rgb:0, 0, 0;--ion-color-light-shade:#d7d8da;--ion-color-light-tint:#f5f6f9;--ion-color-medium:#636469;--ion-color-medium-rgb:99, 100, 105;--ion-color-medium-contrast:#fff;--ion-color-medium-contrast-rgb:255, 255, 255;--ion-color-medium-shade:#57585c;--ion-color-medium-tint:#737478;--ion-color-dark:#222428;--ion-color-dark-rgb:34, 36, 40;--ion-color-dark-contrast:#fff;--ion-color-dark-contrast-rgb:255, 255, 255;--ion-color-dark-shade:#1e2023;--ion-color-dark-tint:#383a3e}html{--ion-dynamic-font:-apple-system-body;--ion-font-family:var(--ion-default-font)}body{background:var(--ion-background-color);color:var(--ion-text-color)}@supports (padding-top: 20px){html{--ion-safe-area-top:var(--ion-statusbar-padding)}}@supports (padding-top: env(safe-area-inset-top)){html{--ion-safe-area-top:var(--safe-area-inset-top, env(safe-area-inset-top));--ion-safe-area-bottom:var(--safe-area-inset-bottom, env(safe-area-inset-bottom));--ion-safe-area-left:var(--safe-area-inset-left, env(safe-area-inset-left));--ion-safe-area-right:var(--safe-area-inset-right, env(safe-area-inset-right))}}img{max-width:100%}*{box-sizing:border-box;-webkit-tap-highlight-color:rgba(0,0,0,0);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}html{width:100%;height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased;margin:0;padding:0;position:fixed;width:100%;max-width:100%;height:100%;max-height:100%;transform:translateZ(0);text-rendering:optimizeLegibility;overflow:hidden;touch-action:manipulation;-webkit-user-drag:none;-ms-content-zooming:none;word-wrap:break-word;overscroll-behavior-y:none;-webkit-text-size-adjust:none;text-size-adjust:none}html{font-family:var(--ion-font-family)}@supports (-webkit-touch-callout: none){html{font:var(--ion-dynamic-font, 16px var(--ion-font-family))}}h1{margin-top:16px;margin-bottom:10px;font-weight:500;line-height:1.2}h1{margin-top:20px;font-size:1.625rem}:root{--app-red:#D32F2F;--app-red-light:rgba(211, 47, 47, .12);--app-red-glow:rgba(211, 47, 47, .35);--app-yellow:#F9A825;--app-radius:18px;--app-radius-sm:12px;--app-shadow:0 2px 10px rgba(211, 47, 47, .18);--app-shadow-md:0 6px 24px rgba(0, 0, 0, .25);--ion-color-primary:#D32F2F;--ion-color-primary-rgb:211, 47, 47;--ion-color-primary-contrast:#ffffff;--ion-color-primary-contrast-rgb:255, 255, 255;--ion-color-primary-shade:#ba2929;--ion-color-primary-tint:#d74444;--ion-color-danger:#D32F2F;--ion-color-danger-rgb:211, 47, 47;--ion-color-danger-contrast:#ffffff;--ion-color-danger-shade:#ba2929;--ion-color-danger-tint:#d74444;--ion-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;font-family:var(--ion-family)}*,*:before,*:after{-webkit-user-drag:none}body{-webkit-user-select:none;user-select:none}img{-webkit-user-drag:none;-webkit-user-select:none;user-select:none}*{-webkit-tap-highlight-color:transparent!important;-webkit-touch-callout:none}*{scrollbar-width:thin;scrollbar-color:transparent transparent;transition:scrollbar-color .3s ease}*:hover{scrollbar-color:rgba(100,116,139,.35) transparent}*::-webkit-scrollbar,body::-webkit-scrollbar,div::-webkit-scrollbar{width:6px!important;height:6px!important;background:transparent!important}*::-webkit-scrollbar-track,body::-webkit-scrollbar-track,div::-webkit-scrollbar-track{background:transparent!important;border:none!important}*::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb,div::-webkit-scrollbar-thumb{background:transparent!important;border-radius:9999px!important;border:none!important;transition:background .3s ease}*:hover::-webkit-scrollbar-thumb,body:hover::-webkit-scrollbar-thumb,div:hover::-webkit-scrollbar-thumb{background:#64748b59!important}*::-webkit-scrollbar-thumb:hover,body::-webkit-scrollbar-thumb:hover,div::-webkit-scrollbar-thumb:hover{background:#64748ba6!important}*::-webkit-scrollbar-button,*::-webkit-scrollbar-corner{display:none!important;width:0!important;height:0!important}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}:root{--ion-border-radius:16px;--ion-color-success-contrast:#ffffff;--ion-color-success-contrast-rgb:255, 255, 255}</style><link rel="stylesheet" href="styles-DCGUBZ6Y.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-DCGUBZ6Y.css"></noscript></head>
+
+<body>
+  <div id="sine-splash">
+    <div class="splash-content">
+      <div class="splash-badge">
+        <img src="/assets/icon/logo.jpg" alt="MDRRMO SINE" class="splash-logo">
+      </div>
+      <div class="splash-headers">
+        <span class="splash-org">MUNICIPALITY OF SAN ISIDRO</span>
+        <h1 class="splash-title">MDRRMO EMERGENCY RESPONSE</h1>
+        <p class="splash-subtitle">San Isidro, Nueva Ecija</p>
+      </div>
+      <div class="splash-progress-track">
+        <div class="splash-progress-fill"></div>
+      </div>
+      <span class="splash-status-text">Getting things ready...</span>
+    </div>
+  </div>
+
+  <app-root></app-root>
+<link rel="modulepreload" href="chunk-23RETOPN.js"><link rel="modulepreload" href="chunk-3EKWR3WE.js"><link rel="modulepreload" href="chunk-XJKSOEBR.js"><link rel="modulepreload" href="chunk-NZWH4RAF.js"><link rel="modulepreload" href="chunk-YIG43SDK.js"><link rel="modulepreload" href="chunk-LDUKDDSW.js"><link rel="modulepreload" href="chunk-SPPW7RAO.js"><link rel="modulepreload" href="chunk-WKVC6BBB.js"><link rel="modulepreload" href="chunk-ZWQSDRQV.js"><link rel="modulepreload" href="chunk-4WDYORYK.js"><script src="polyfills-TDCRLYKL.js" type="module"></script><script src="main-JR7I4ZH3.js" type="module"></script></body>
+
+</html>
+

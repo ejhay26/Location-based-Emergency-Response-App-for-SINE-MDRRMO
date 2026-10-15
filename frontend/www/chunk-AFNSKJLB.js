@@ -1,0 +1,1 @@
+import{d as t,e as o}from"./chunk-CORLL4X3.js";import{e as m,h as e}from"./chunk-M5U6FIFB.js";var n,s=m(()=>{o();n=class extends t{requestPhoneNumber(){return e(this,null,function*(){throw this.unimplemented("Not implemented on web.")})}retrieveSms(){return e(this,null,function*(){throw this.unimplemented("Not implemented on web.")})}}});s();export{n as AndroidSmsRetrieverWeb};

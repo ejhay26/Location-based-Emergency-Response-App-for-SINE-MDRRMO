@@ -1,0 +1,1 @@
+import{e as n}from"./chunk-M5U6FIFB.js";function t(){return typeof window<"u"&&(!!window.__TAURI_INTERNALS__||!!window.__TAURI__)}function e(){return typeof navigator<"u"&&/Macintosh|MacIntel|MacPPC|Mac68K|Mac/i.test(navigator.userAgent||navigator.platform||"")}function i(){return t()&&e()}var o=n(()=>{"use strict"});export{t as a,i as b,o as c};

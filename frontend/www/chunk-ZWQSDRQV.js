@@ -1,0 +1,1 @@
+import{e as a}from"./chunk-M5U6FIFB.js";var i,n=a(()=>{"use strict";i=[{id:1,name:"Alua"},{id:2,name:"Calaba"},{id:3,name:"Malapit"},{id:4,name:"Mangga"},{id:5,name:"Poblacion"},{id:6,name:"Pulo"},{id:7,name:"San Roque"},{id:8,name:"Santo Cristo"},{id:9,name:"Tabon"}]});export{i as a,n as b};

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" width="600" height="380">
+  <defs>
+    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8f4f8"/>
+      <stop offset="50%" stop-color="#d4eaf2"/>
+      <stop offset="100%" stop-color="#c1dfea"/>
+    </linearGradient>
+    <pattern id="guilloche" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M0 20 Q10 0 20 20 T40 20" fill="none" stroke="rgba(0,102,153,0.08)" stroke-width="1"/>
+      <path d="M0 20 Q10 40 20 20 T40 20" fill="none" stroke="rgba(204,0,0,0.06)" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Card Body -->
+  <rect x="0" y="0" width="600" height="380" rx="16" fill="url(#cardBg)" stroke="#89b2c4" stroke-width="2"/>
+  <rect x="0" y="0" width="600" height="380" rx="16" fill="url(#guilloche)"/>
+
+  <!-- Top Blue / Red Republic Stripe -->
+  <rect x="0" y="0" width="600" height="10" fill="#0038a8" rx="16"/>
+  <rect x="300" y="0" width="300" height="10" fill="#ce1126" rx="16"/>
+
+  <!-- Official Header -->
+  <text x="300" y="42" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#0038a8" text-anchor="middle" letter-spacing="1.5">REPUBLIKA NG PILIPINAS</text>
+  <text x="300" y="58" font-family="Arial, sans-serif" font-size="10" font-weight="600" fill="#444" text-anchor="middle" letter-spacing="1">PAMBANSANG PAGKAKAKILANLAN</text>
+  <text x="300" y="72" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ce1126" text-anchor="middle" letter-spacing="2">PHILIPPINE IDENTIFICATION SYSTEM</text>
+
+  <!-- Gold Seal / Crest Placeholder -->
+  <circle cx="65" cy="52" r="26" fill="#fbc02d" stroke="#f57f17" stroke-width="2"/>
+  <circle cx="65" cy="52" r="21" fill="#fff" stroke="#f57f17" stroke-width="1"/>
+  <text x="65" y="56" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#f57f17" text-anchor="middle">PhilSys</text>
+
+  <!-- Microchip graphic -->
+  <rect x="42" y="105" width="55" height="42" rx="6" fill="#d4af37" stroke="#aa8c2c" stroke-width="1.5"/>
+  <line x1="56" y1="105" x2="56" y2="147" stroke="#aa8c2c" stroke-width="1"/>
+  <line x1="70" y1="105" x2="70" y2="147" stroke="#aa8c2c" stroke-width="1"/>
+  <line x1="84" y1="105" x2="84" y2="147" stroke="#aa8c2c" stroke-width="1"/>
+  <line x1="42" y1="126" x2="97" y2="126" stroke="#aa8c2c" stroke-width="1"/>
+
+  <!-- Photo Box -->
+  <rect x="40" y="165" width="135" height="175" rx="8" fill="#e0e0e0" stroke="#0038a8" stroke-width="2"/>
+  <!-- Portrait silhouette -->
+  <circle cx="107" cy="225" r="38" fill="#90a4ae"/>
+  <path d="M55 330 C55 275 80 265 107 265 C134 265 159 275 159 330 Z" fill="#90a4ae"/>
+
+  <!-- Field Details -->
+  <!-- Last Name -->
+  <text x="200" y="115" font-family="Arial, sans-serif" font-size="9" fill="#666" font-weight="bold">APELYIDO / LAST NAME</text>
+  <text x="200" y="135" font-family="Arial, sans-serif" font-size="18" fill="#111" font-weight="900" letter-spacing="1">SANTOS</text>
+
+  <!-- Given Names -->
+  <text x="200" y="160" font-family="Arial, sans-serif" font-size="9" fill="#666" font-weight="bold">MGA PANGALAN / GIVEN NAMES</text>
+  <text x="200" y="180" font-family="Arial, sans-serif" font-size="16" fill="#111" font-weight="800">MARIA CLARA</text>
+
+  <!-- Middle Name -->
+  <text x="200" y="205" font-family="Arial, sans-serif" font-size="9" fill="#666" font-weight="bold">GITNANG APELYIDO / MIDDLE NAME</text>
+  <text x="200" y="223" font-family="Arial, sans-serif" font-size="14" fill="#111" font-weight="700">DELA CRUZ</text>
+
+  <!-- Birthdate & Sex -->
+  <text x="200" y="248" font-family="Arial, sans-serif" font-size="9" fill="#666" font-weight="bold">KAPANGANAKAN / DATE OF BIRTH</text>
+  <text x="200" y="266" font-family="Arial, sans-serif" font-size="13" fill="#111" font-weight="700">MAY 26, 2005</text>
+
+  <text x="380" y="248" font-family="Arial, sans-serif" font-size="9" fill="#666" font-weight="bold">KASARIAN / SEX</text>
+  <text x="380" y="266" font-family="Arial, sans-serif" font-size="13" fill="#111" font-weight="700">FEMALE</text>
+
+  <!-- Address -->
+  <text x="200" y="291" font-family="Arial, sans-serif" font-size="9" fill="#666" font-weight="bold">TIRAHAN / ADDRESS</text>
+  <text x="200" y="309" font-family="Arial, sans-serif" font-size="12" fill="#111" font-weight="700">POBLACION, SAN ISIDRO, NUEVA ECIJA</text>
+
+  <!-- PhilSys Card Number (PCN) Footer -->
+  <rect x="200" y="325" width="370" height="35" rx="6" fill="#ffffff" stroke="#0038a8" stroke-width="1.5"/>
+  <text x="210" y="347" font-family="monospace, Courier" font-size="16" fill="#0038a8" font-weight="bold" letter-spacing="3">1234-5678-9012-3456</text>
+  <text x="560" y="346" font-family="Arial, sans-serif" font-size="9" fill="#00c853" font-weight="bold" text-anchor="end">VALID</text>
+</svg>
