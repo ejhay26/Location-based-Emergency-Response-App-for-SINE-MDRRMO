@@ -14,7 +14,7 @@ How to monitor emergencies, review incoming alerts, dispatch responder teams, an
 
 ## 2. Dispatcher Navigation Overview
 
-- **Desktop CAD Layout:** Full multi-panel workspace featuring an interactive map with resizable active queues, quick filter strips, and sidebar access.
+- **Desktop Operations Layout:** Full multi-panel workspace featuring an interactive map with resizable active queues, quick filter strips, and sidebar access.
 - **Mobile Dispatch Layout:** Optimized bottom navigation bar (`Incident Map`, `Alert Broadcast`, `Menu`) with an interactive slide-up bottom sheet for managing calls in the field.
 
 ---

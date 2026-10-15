@@ -131,6 +131,7 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 | | [Environment Variables](./docs/setup/environment.md) | `.env` reference for database, Reverb, PhilSMS, mail, and storage |
 | | [Troubleshooting](./docs/setup/troubleshooting.md) | Solutions for WebSockets, PhilSMS, Leaflet, Android, and Tauri Desktop |
 | **Architecture** | [Architecture Overview](./docs/architecture/overview.md) | System topology, Reverb WebSocket channels, and directory layouts |
+| | [Data Flow Diagrams (DFD)](./docs/architecture/data-flow-diagram.md) | Context Diagram (Level 0) and System Decomposition (Level 1) |
 | | [Database Schema](./docs/architecture/database-schema.md) | Entity-Relationship (ER) diagram, table schemas, and constraints |
 | | [Security Model](./docs/architecture/security.md) | Sanctum token abilities, anti-enumeration, OTP security, and rate limits |
 | | [Disaster Recovery & Backups](./docs/architecture/disaster-recovery.md) | Automated snapshots, high-level CLI (`backup list/desc/restore`), delta salvage |
