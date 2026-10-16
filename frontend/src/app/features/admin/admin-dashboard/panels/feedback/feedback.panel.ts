@@ -107,7 +107,7 @@ export class FeedbackPanel implements OnInit {
 
     this.ui.showConfirm({
       title: 'Forward to Technical Support',
-      message: `Forward this ${fb.category === 'bug' ? 'bug report' : 'feedback'} from @${fb.username} to the developer support team (ejcp2005@gmail.com)?`,
+      message: `Forward this ${fb.category === 'bug' ? 'bug report' : 'feedback'} from @${fb.username} to the developer support team (ejperez623@gmail.com)?`,
       icon: 'send',
       iconColor: '#3880ff',
       confirmLabel: 'Forward to Devs',
@@ -123,7 +123,7 @@ export class FeedbackPanel implements OnInit {
           },
           error: (err: any) => {
             this.isForwardingBug[fb.id] = false;
-            const msg = err?.error?.error || 'Failed to send bug report email.';
+            const msg = err?.error?.details || err?.error?.error || 'Failed to send bug report email.';
             this.ui.showToast(msg, 'danger');
           }
         });

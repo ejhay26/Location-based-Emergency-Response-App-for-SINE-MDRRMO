@@ -177,8 +177,8 @@ func ForwardBug(c *fiber.Ctx) error {
 		req.AdminNotes,
 	)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error":   "Could not send bug report email. Please verify mail configuration.",
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"error":   fmt.Sprintf("Could not send bug report email: %s", err.Error()),
 			"details": err.Error(),
 		})
 	}

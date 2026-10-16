@@ -129,7 +129,7 @@ func Load() {
 
 		FilesystemDisk: getEnv("FILESYSTEM_DISK", "public"),
 
-		DevSupportEmail: getEnv("DEV_SUPPORT_EMAIL", "ejcp2005@gmail.com"),
+		DevSupportEmail: getEnv("DEV_SUPPORT_EMAIL", "ejperez623@gmail.com"),
 
 		CORSAllowOrigins: getEnv("CORS_ALLOW_ORIGINS", "*"),
 	}

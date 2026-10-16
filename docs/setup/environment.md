@@ -90,5 +90,5 @@ Used for transactional OTP verification during registration, login, and password
 | `BACKUP_MAX_INTRADAY` | `12` | Maximum retained intraday backups |
 | `BACKUP_MAX_DAILY` | `7` | Maximum retained daily backups |
 | `CORS_ALLOW_ORIGINS` | `*` | Allowed CORS origins for web & mobile clients |
-| `DEV_SUPPORT_EMAIL` | `ejcp2005@gmail.com` | Developer contact for automated alert reports |
+| `DEV_SUPPORT_EMAIL` | `ejperez623@gmail.com` | Developer contact for automated alert reports |
 

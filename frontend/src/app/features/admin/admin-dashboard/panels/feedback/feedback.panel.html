@@ -208,7 +208,7 @@
                   type="button"
                   (click)="forwardBugToDev(fb)"
                   [disabled]="isForwardingBug[fb.id]"
-                  [appTooltip]="fb.is_forwarded ? 'Already forwarded to ejcp2005@gmail.com' : 'Forward this bug report to developer technical support (ejcp2005@gmail.com)'"
+                  [appTooltip]="fb.is_forwarded ? 'Already forwarded to ejperez623@gmail.com' : 'Forward this bug report to developer technical support (ejperez623@gmail.com)'"
                   style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid rgba(56,128,255,0.35); background: rgba(56,128,255,0.08); color: #3880ff; transition: all 0.15s ease;">
             <app-icon name="send" [size]="12" color="#3880ff"></app-icon>
             {{ fb.is_forwarded ? 'Re-send to Devs' : 'Forward to Dev Team' }}

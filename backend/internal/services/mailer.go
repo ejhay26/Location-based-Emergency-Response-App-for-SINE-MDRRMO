@@ -228,7 +228,7 @@ func SendFalseAlarmStrikeEmail(firstName, email string, strikes, maxStrikes int,
 }
 
 func SendTechnicalBugReportEmail(feedbackID int, citizenName, citizenUsername, citizenEmail, category string, rating int, message, createdAt string, devInfo map[string]interface{}, adminNotes string) error {
-	devEmail := "ejcp2005@gmail.com"
+	devEmail := "ejperez623@gmail.com"
 	if config.AppConfig != nil && config.AppConfig.DevSupportEmail != "" {
 		devEmail = config.AppConfig.DevSupportEmail
 	}
