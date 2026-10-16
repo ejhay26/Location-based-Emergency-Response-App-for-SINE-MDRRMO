@@ -14,28 +14,28 @@ import (
 )
 
 func GetDispatchAssets(c *fiber.Ctx) error {
-	var responders []models.Responder
-	var vehicles []models.Vehicle
-
-	database.DB.Where("status = 'Available'").Find(&responders)
-	database.DB.Where("status = 'Available'").Find(&vehicles)
+	agencies := []string{
+		"MDRRMO Rescue Team",
+		"San Isidro BFP (Firefighters)",
+		"San Isidro PNP (Police)",
+		"Rural Health Unit (RHU / Medical)",
+	}
 
 	return c.JSON(fiber.Map{
-		"responders": responders,
-		"vehicles":   vehicles,
+		"agencies": agencies,
 	})
 }
 
 type DispatchEmergencyRequest struct {
-	RequestID   int `json:"request_id"`
-	ResponderID int `json:"responder_id"`
-	VehicleID   int `json:"vehicle_id"`
+	RequestID int    `json:"request_id"`
+	Agency    string `json:"agency"`
+	Notes     string `json:"notes"`
 }
 
 func DispatchEmergency(c *fiber.Ctx) error {
 	var req DispatchEmergencyRequest
-	if err := c.BodyParser(&req); err != nil || req.RequestID <= 0 || req.ResponderID <= 0 || req.VehicleID <= 0 {
-		return c.Status(422).JSON(fiber.Map{"message": "request_id, responder_id, and vehicle_id are required."})
+	if err := c.BodyParser(&req); err != nil || req.RequestID <= 0 || req.Agency == "" {
+		return c.Status(422).JSON(fiber.Map{"message": "request_id and agency are required."})
 	}
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
@@ -51,43 +51,23 @@ func DispatchEmergency(c *fiber.Ctx) error {
 			return fiber.NewError(409, fmt.Sprintf("Emergency request cannot be dispatched; current status is %s.", curr))
 		}
 
-		var responder models.Responder
-		if err := tx.Where("responder_id = ?", req.ResponderID).First(&responder).Error; err != nil {
-			return fiber.NewError(404, "Responder not found.")
-		}
-		if responder.Status != "Available" {
-			return fiber.NewError(409, fmt.Sprintf("Assigned responder is %s.", responder.Status))
-		}
-
-		var vehicle models.Vehicle
-		if err := tx.Where("vehicle_id = ?", req.VehicleID).First(&vehicle).Error; err != nil {
-			return fiber.NewError(404, "Vehicle not found.")
-		}
-		if vehicle.Status != "Available" {
-			return fiber.NewError(409, fmt.Sprintf("Assigned vehicle is %s.", vehicle.Status))
-		}
-
 		now := time.Now()
+		var notesPtr *string
+		if req.Notes != "" {
+			notesPtr = &req.Notes
+		}
 		dispatch := models.Dispatch{
 			RequestID:    &req.RequestID,
-			ResponderID:  &req.ResponderID,
-			VehicleID:    &req.VehicleID,
+			Agency:       &req.Agency,
+			Notes:        notesPtr,
 			DispatchTime: &now,
-			Status:       strPtr("En Route"),
+			Status:       strPtr("Dispatched"),
 		}
 		if err := tx.Create(&dispatch).Error; err != nil {
 			return err
 		}
 
 		if err := tx.Model(&models.EmergencyRequest{}).Where("request_id = ? AND deleted_at IS NULL", req.RequestID).Update("status", "Dispatched").Error; err != nil {
-			return err
-		}
-
-		if err := tx.Model(&models.Responder{}).Where("responder_id = ?", req.ResponderID).Update("status", "Dispatched").Error; err != nil {
-			return err
-		}
-
-		if err := tx.Model(&models.Vehicle{}).Where("vehicle_id = ?", req.VehicleID).Update("status", "In Use").Error; err != nil {
 			return err
 		}
 
@@ -98,13 +78,13 @@ func DispatchEmergency(c *fiber.Ctx) error {
 		if fe, ok := err.(*fiber.Error); ok {
 			return c.Status(fe.Code).JSON(fiber.Map{"message": fe.Message})
 		}
-		return c.Status(500).JSON(fiber.Map{"message": "Failed to dispatch units."})
+		return c.Status(500).JSON(fiber.Map{"message": "Failed to dispatch agency."})
 	}
 
 	var er models.EmergencyRequest
 	if err := database.DB.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err == nil && er.UserID != nil {
 		services.SafeGo(func() {
-			_ = services.NotifyUser(*er.UserID, "Responders Dispatched", "Help is on the way to your location.", map[string]string{
+			_ = services.NotifyUser(*er.UserID, "Responders Dispatched", fmt.Sprintf("Help from %s is on the way to your location.", req.Agency), map[string]string{
 				"type": "dispatched",
 			})
 		})
@@ -112,7 +92,7 @@ func DispatchEmergency(c *fiber.Ctx) error {
 
 	websocket.BroadcastEmergency("dispatched", req.RequestID)
 
-	return c.JSON(fiber.Map{"message": "Units dispatched successfully!"})
+	return c.JSON(fiber.Map{"message": "Agency dispatched successfully!"})
 }
 
 func ResolveEmergency(c *fiber.Ctx) error {
@@ -140,21 +120,14 @@ func ResolveEmergency(c *fiber.Ctx) error {
 			return err
 		}
 
-		var dispatches []models.Dispatch
-		tx.Where("request_id = ? AND status = 'En Route'", req.RequestID).Find(&dispatches)
-
 		now := time.Now()
-		for _, d := range dispatches {
-			if d.ResponderID != nil {
-				tx.Model(&models.Responder{}).Where("responder_id = ?", *d.ResponderID).Update("status", "Available")
-			}
-			if d.VehicleID != nil {
-				tx.Model(&models.Vehicle{}).Where("vehicle_id = ?", *d.VehicleID).Update("status", "Available")
-			}
-			tx.Model(&d).Updates(map[string]interface{}{
+		if err := tx.Model(&models.Dispatch{}).
+			Where("request_id = ? AND (status IS NULL OR status != 'Completed')", req.RequestID).
+			Updates(map[string]interface{}{
 				"status":       "Completed",
 				"arrival_time": &now,
-			})
+			}).Error; err != nil {
+			return err
 		}
 		return nil
 	})
@@ -237,7 +210,7 @@ func MarkFalseAlarm(c *fiber.Ctx) error {
 				"type": "suspended",
 			})
 			if userEmail != "" {
-				_ = services.SendFalseAlarmStrikeEmail(userName, userEmail, newStrikes, 3, "Emergency report marked as false alarm during responder on-site verification.", "banned")
+				_ = services.SendFalseAlarmStrikeEmail(userName, userEmail, newStrikes, 3, "Emergency report marked as false alarm during on-site verification.", "banned")
 			}
 		})
 
@@ -261,7 +234,7 @@ func MarkFalseAlarm(c *fiber.Ctx) error {
 			map[string]string{"type": "false_alarm_strike"},
 		)
 		if userEmail != "" {
-			_ = services.SendFalseAlarmStrikeEmail(userName, userEmail, newStrikes, 3, "Emergency report marked as false alarm during responder on-site verification.", "active")
+			_ = services.SendFalseAlarmStrikeEmail(userName, userEmail, newStrikes, 3, "Emergency report marked as false alarm during on-site verification.", "active")
 		}
 	})
 

@@ -71,9 +71,12 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   activeRequests: any[] = [];
   activeHazards: any[] = [];
-  availableResponders: any[] = [];
-  availableVehicles: any[] = [];
-  filteredVehicles: any[] = [];
+  availableAgencies: string[] = [
+    'MDRRMO Rescue Team',
+    'San Isidro BFP (Firefighters)',
+    'San Isidro PNP (Police)',
+    'Rural Health Unit (RHU / Medical)',
+  ];
 
   selectedRequestId: number | null = null;
   previewType: 'emergency' | 'hazard' | null = null;
@@ -85,13 +88,13 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   private satelliteLayer: any;
   private bgyLabelsLayer: any;
 
-  private fallbackPollSub?: Subscription;
+  fallbackPollSub?: Subscription;
   private echoEmergencySub?: Subscription;
   private echoHazardSub?: Subscription;
 
   isDispatchModalOpen = false;
   isDispatching = false;
-  dispatchForm = { request_id: null as number | null, responder_id: null, vehicle_id: null };
+  dispatchForm = { request_id: null as number | null, agency: '', notes: '' };
 
   selectedBarangays: number[] = [];
   selectedTypes: string[] = [];
@@ -1072,30 +1075,33 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   openDispatchModal(requestId: number) {
     this.dispatchForm.request_id = requestId;
-    this.dispatchForm.responder_id = null;
-    this.dispatchForm.vehicle_id = null;
-    this.filteredVehicles = [];
+    this.dispatchForm.agency = '';
+    this.dispatchForm.notes = '';
     this.isDispatchModalOpen = true;
-    if (this.availableResponders.length === 0 || this.availableVehicles.length === 0) {
+    if (this.availableAgencies.length === 0) {
       this.api.getDispatchAssets().subscribe((res: any) => {
-        this.availableResponders = res.responders || [];
-        this.availableVehicles   = res.vehicles   || [];
+        if (res && res.agencies && res.agencies.length > 0) {
+          this.availableAgencies = res.agencies;
+        }
       });
     }
   }
-  onResponderChange() { this.filteredVehicles = this.availableVehicles.filter((v: any) => v.responder_id === this.dispatchForm.responder_id); }
 
   submitDispatch() {
-    if (!this.dispatchForm.responder_id || !this.dispatchForm.vehicle_id || this.isDispatching) return;
+    if (!this.dispatchForm.agency || !this.dispatchForm.request_id || this.isDispatching) return;
     this.isDispatching = true;
     this.api.dispatchEmergency(this.dispatchForm).subscribe({
       next: () => {
         this.isDispatching = false;
-        this.ui.showToast('Units dispatched!', 'success');
+        this.ui.showToast('Unit dispatched successfully!', 'success');
         this.isDispatchModalOpen = false;
         this.loadData();
       },
-      error: () => { this.isDispatching = false; this.ui.showToast('Dispatch failed.', 'danger'); }
+      error: (err: any) => {
+        this.isDispatching = false;
+        const msg = err?.error?.message || 'Dispatch failed.';
+        this.ui.showToast(msg, 'danger');
+      }
     });
   }
 

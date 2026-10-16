@@ -24,9 +24,6 @@ erDiagram
     USERS ||--o{ USER_SETTINGS : "configures"
     INCIDENT_TYPES ||--o{ EMERGENCY_REQUESTS : "categorizes"
     EMERGENCY_REQUESTS ||--o{ DISPATCH : "triggers"
-    RESPONDERS ||--o{ DISPATCH : "assigned to"
-    RESPONDERS ||--o{ VEHICLES : "operates"
-    VEHICLES ||--o{ DISPATCH : "utilized in"
 
     BARANGAYS {
         int barangay_id PK
@@ -108,25 +105,10 @@ erDiagram
     DISPATCH {
         int dispatch_id PK
         int request_id FK
-        int responder_id FK
-        int vehicle_id FK
+        varchar agency
+        text notes
         datetime dispatch_time
         datetime arrival_time
-        varchar status
-    }
-    RESPONDERS {
-        int responder_id PK
-        varchar name
-        varchar role
-        varchar contact
-        varchar status
-    }
-    VEHICLES {
-        int vehicle_id PK
-        int responder_id FK
-        varchar name
-        varchar type
-        varchar plate
         varchar status
     }
     BROADCASTS {
@@ -296,29 +278,21 @@ Citizen-reported public road hazards (floods, fallen trees, electrical hazards).
 ---
 
 ### 2.5 `dispatch`
-Links emergency requests to assigned responder teams and vehicles.
+Records inter-agency and local municipal dispatch protocols triggered for an emergency.
 
 | Column | Type | Nullable | Notes |
 |---|---|---|---|
 | `dispatch_id` | `int` | No | Primary Key, Auto Increment |
 | `request_id` | `int` | No | FK → `emergency_requests.request_id` |
-| `responder_id`| `int` | No | FK → `responders.responder_id` |
-| `vehicle_id`  | `int` | No | FK → `vehicles.vehicle_id` |
-| `dispatch_time`| `datetime` | Yes | Timestamp when units were dispatched |
-| `arrival_time` | `datetime` | Yes | Timestamp when units arrived/completed |
-| `status`      | `varchar(50)` | Yes | `'En Route'`, `'Completed'` |
+| `agency`      | `varchar(100)` | Yes | Responding Agency (e.g. MDRRMO Rescue, BFP, PNP, RHU) |
+| `notes`       | `text` | Yes | Action notes / dispatch coordination protocol details |
+| `dispatch_time`| `datetime` | Yes | Timestamp when dispatch was authorized |
+| `arrival_time` | `datetime` | Yes | Timestamp when response was completed / incident resolved |
+| `status`      | `varchar(50)` | Yes | `'Dispatched'`, `'Completed'` |
 
 ---
 
-### 2.6 `responders` & `vehicles`
-Municipal response units and their linked emergency vehicle fleets.
-
-- **`responders`**: San Isidro BFP (Firefighter), San Isidro PNP (Police), MDRRMO Rescue Team (Rescue), Rural Health Unit — RHU (Medical).
-- **`vehicles`**: Ambulances, Fire Trucks, Patrol Cars, Rescue Boats, Utility Trucks (linked to specific `responder_id`).
-
----
-
-### 2.7 `broadcasts` & `broadcast_barangays`
+### 2.6 `broadcasts` & `broadcast_barangays`
 Emergency alert banners pushed by dispatchers/admins.
 
 - **`broadcasts`**: Contains `broadcast_id`, `title`, `message`, `media_files` (JSON array of up to 4 images/videos), `is_active` (`1` or `0`), `is_draft` (`1` for saved review drafts, `0` for published/archived), `scheduled_at` (nullable future timestamp for queued releases), and `created_at`.
@@ -326,7 +300,7 @@ Emergency alert banners pushed by dispatchers/admins.
 
 ---
 
-### 2.8 `user_settings`
+### 2.7 `user_settings`
 Flexible key-value preferences table with unique constraint on `(user_id, key)`.
 
 Supported Keys:

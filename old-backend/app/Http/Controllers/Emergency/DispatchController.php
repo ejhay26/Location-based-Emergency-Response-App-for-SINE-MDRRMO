@@ -8,12 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\EmergencyRequest;
 use App\Models\Dispatch;
-use App\Models\Responder;
-use App\Models\Vehicle;
 use App\Models\User;
 use App\Services\NotificationService;
 
-/** Dispatcher/admin actions: assign responders/vehicles, resolve, and false-alarm strikes. */
+/** Dispatcher/admin actions: protocol dispatch agency assignment, resolve, and false-alarm strikes. */
 class DispatchController extends Controller
 {
     public function __construct(private NotificationService $notifications)
@@ -23,17 +21,21 @@ class DispatchController extends Controller
     public function getDispatchAssets()
     {
         return response()->json([
-            'responders' => Responder::where('status', 'Available')->get(),
-            'vehicles'   => Vehicle::where('status', 'Available')->get(),
+            'agencies' => [
+                'MDRRMO Rescue Team',
+                'San Isidro BFP (Firefighters)',
+                'San Isidro PNP (Police)',
+                'Rural Health Unit (RHU / Medical)',
+            ],
         ]);
     }
 
     public function dispatchEmergency(Request $request)
     {
         $request->validate([
-            'request_id'   => 'required|integer',
-            'responder_id' => 'required|integer',
-            'vehicle_id'   => 'required|integer',
+            'request_id' => 'required|integer',
+            'agency'     => 'required|string|max:100',
+            'notes'      => 'nullable|string',
         ]);
 
         $req = EmergencyRequest::find($request->request_id);
@@ -44,49 +46,31 @@ class DispatchController extends Controller
             return response()->json(['message' => "Emergency request cannot be dispatched; current status is {$req->status}."], 409);
         }
 
-        $responder = Responder::find($request->responder_id);
-        if (!$responder) {
-            return response()->json(['message' => 'Responder not found.'], 404);
-        }
-        if ($responder->status !== 'Available') {
-            return response()->json(['message' => "Assigned responder is {$responder->status}."], 409);
-        }
-
-        $vehicle = Vehicle::find($request->vehicle_id);
-        if (!$vehicle) {
-            return response()->json(['message' => 'Vehicle not found.'], 404);
-        }
-        if ($vehicle->status !== 'Available') {
-            return response()->json(['message' => "Assigned vehicle is {$vehicle->status}."], 409);
-        }
-
         DB::transaction(function () use ($request) {
             Dispatch::create([
                 'request_id'    => $request->request_id,
-                'responder_id'  => $request->responder_id,
-                'vehicle_id'    => $request->vehicle_id,
+                'agency'        => $request->agency,
+                'notes'         => $request->notes,
                 'dispatch_time' => now(),
-                'status'        => 'En Route',
+                'status'        => 'Dispatched',
             ]);
 
             EmergencyRequest::where('request_id', $request->request_id)
                 ->update(['status' => 'Dispatched']);
-
-            // Update assigned responder and vehicle status to prevent double-assignment
-            Responder::where('responder_id', $request->responder_id)
-                ->update(['status' => 'Dispatched']);
-
-            Vehicle::where('vehicle_id', $request->vehicle_id)
-                ->update(['status' => 'In Use']);
         });
 
         if ($req) {
-            $this->notifications->notifyUser($req->user_id, 'Responders Dispatched', 'Help is on the way to your location.', ['type' => 'dispatched']);
+            $this->notifications->notifyUser(
+                $req->user_id,
+                'Responders Dispatched',
+                "Help from {$request->agency} is on the way to your location.",
+                ['type' => 'dispatched']
+            );
         }
 
         broadcast(new EmergencyUpdated('dispatched', $request->request_id))->toOthers();
 
-        return response()->json(['message' => 'Units dispatched successfully!']);
+        return response()->json(['message' => 'Agency dispatched successfully!']);
     }
 
     public function resolveEmergency(Request $request)
@@ -105,22 +89,10 @@ class DispatchController extends Controller
             EmergencyRequest::where('request_id', $request->request_id)
                 ->update(['status' => 'Resolved']);
 
-            // Release all active responders and vehicles for this emergency
-            $activeDispatches = Dispatch::where('request_id', $request->request_id)
-                ->where('status', 'En Route')
-                ->get();
-
-            foreach ($activeDispatches as $dispatch) {
-                if ($dispatch->responder_id) {
-                    Responder::where('responder_id', $dispatch->responder_id)
-                        ->update(['status' => 'Available']);
-                }
-                if ($dispatch->vehicle_id) {
-                    Vehicle::where('vehicle_id', $dispatch->vehicle_id)
-                        ->update(['status' => 'Available']);
-                }
-                $dispatch->update(['status' => 'Completed', 'arrival_time' => now()]);
-            }
+            // Update all active dispatches for this emergency
+            Dispatch::where('request_id', $request->request_id)
+                ->where('status', '!=', 'Completed')
+                ->update(['status' => 'Completed', 'arrival_time' => now()]);
         });
 
         $req = EmergencyRequest::find($request->request_id);

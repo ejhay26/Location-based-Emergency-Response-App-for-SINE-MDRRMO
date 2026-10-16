@@ -186,24 +186,27 @@ INSERT INTO `device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`)
 --
 
 CREATE TABLE `dispatch` (
-  `dispatch_id` int(11) NOT NULL,
+  `dispatch_id` int(11) NOT NULL AUTO_INCREMENT,
   `request_id` int(11) DEFAULT NULL,
-  `responder_id` int(11) DEFAULT NULL,
-  `vehicle_id` int(11) DEFAULT NULL,
+  `agency` varchar(100) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
   `dispatch_time` datetime DEFAULT NULL,
   `arrival_time` datetime DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL
+  `status` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`dispatch_id`),
+  KEY `dispatch_request_id_foreign` (`request_id`),
+  CONSTRAINT `dispatch_request_id_foreign` FOREIGN KEY (`request_id`) REFERENCES `emergency_requests` (`request_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `dispatch`
 --
 
-INSERT INTO `dispatch` (`dispatch_id`, `request_id`, `responder_id`, `vehicle_id`, `dispatch_time`, `arrival_time`, `status`) VALUES
-(1, 4, 2, 2, '2026-06-13 09:41:33', '2026-06-13 09:43:20', 'Completed'),
-(2, 8, 4, 3, '2026-06-13 09:44:55', '2026-06-13 09:46:23', 'Completed'),
-(3, 14, 3, 4, '2026-08-22 10:43:04', '2026-08-22 10:43:47', 'Completed'),
-(4, 15, 4, 3, '2026-08-22 10:48:22', NULL, 'En Route');
+INSERT INTO `dispatch` (`dispatch_id`, `request_id`, `agency`, `notes`, `dispatch_time`, `arrival_time`, `status`) VALUES
+(1, 4, 'San Isidro PNP', 'Dispatched via station radio', '2026-06-13 09:41:33', '2026-06-13 09:43:20', 'Completed'),
+(2, 8, 'Rural Health Unit (RHU)', 'Emergency medical response dispatched', '2026-06-13 09:44:55', '2026-06-13 09:46:23', 'Completed'),
+(3, 14, 'MDRRMO Rescue Team', 'Quick response crew en route', '2026-08-22 10:43:04', '2026-08-22 10:43:47', 'Completed'),
+(4, 15, 'San Isidro BFP', 'Fire engine dispatched to scene', '2026-08-22 10:48:22', NULL, 'Dispatched');
 
 -- --------------------------------------------------------
 
@@ -462,29 +465,7 @@ INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `n
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `responders`
---
 
-CREATE TABLE `responders` (
-  `responder_id` int(11) NOT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  `role` varchar(50) DEFAULT NULL,
-  `contact` varchar(20) DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `responders`
---
-
-INSERT INTO `responders` (`responder_id`, `name`, `role`, `contact`, `status`) VALUES
-(1, 'San Isidro BFP', 'Firefighter', '09111111111', 'Available'),
-(2, 'San Isidro PNP', 'Police', '09222222222', 'Available'),
-(3, 'MDRRMO Rescue Team', 'Rescue', '09333333333', 'Available'),
-(4, 'Rural Health Unit (RHU)', 'Medical', '09444444444', 'Available');
-
--- --------------------------------------------------------
 
 --
 -- Table structure for table `sessions`
@@ -647,28 +628,7 @@ CREATE TABLE `user_verifications` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `vehicles`
---
 
-CREATE TABLE `vehicles` (
-  `vehicle_id` int(11) NOT NULL,
-  `responder_id` int(11) DEFAULT NULL,
-  `name` varchar(100) DEFAULT NULL,
-  `type` varchar(50) DEFAULT NULL,
-  `plate` varchar(50) DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `vehicles`
---
-
-INSERT INTO `vehicles` (`vehicle_id`, `responder_id`, `name`, `type`, `plate`, `status`) VALUES
-(1, 1, 'Firetruck 01', 'Truck', 'SFP-123', 'Available'),
-(2, 2, 'Police Patrol Alpha', 'Car', 'PNP-456', 'Available'),
-(3, 4, 'Rescue Ambulance A', 'Ambulance', 'MDR-789', 'Available'),
-(4, 3, 'Rescue Boat 1', 'Boat', 'MDR-001', 'Available');
 
 --
 -- Indexes for dumped tables
@@ -791,11 +751,7 @@ ALTER TABLE `personal_access_tokens`
   ADD UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
   ADD KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`);
 
---
--- Indexes for table `responders`
---
-ALTER TABLE `responders`
-  ADD PRIMARY KEY (`responder_id`);
+
 
 --
 -- Indexes for table `sessions`
@@ -844,12 +800,7 @@ ALTER TABLE `user_verifications`
   ADD KEY `idx_verif_user_id` (`user_id`),
   ADD KEY `idx_verif_status` (`verification_status`);
 
---
--- Indexes for table `vehicles`
---
-ALTER TABLE `vehicles`
-  ADD PRIMARY KEY (`vehicle_id`),
-  ADD KEY `fk_vehicle_responder` (`responder_id`);
+
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -928,12 +879,6 @@ ALTER TABLE `personal_access_tokens`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
--- AUTO_INCREMENT for table `responders`
---
-ALTER TABLE `responders`
-  MODIFY `responder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
@@ -962,12 +907,6 @@ ALTER TABLE `user_settings`
 --
 ALTER TABLE `user_verifications`
   MODIFY `verification_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `vehicles`
---
-ALTER TABLE `vehicles`
-  MODIFY `vehicle_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
@@ -1031,12 +970,6 @@ ALTER TABLE `user_settings`
 --
 ALTER TABLE `user_verifications`
   ADD CONSTRAINT `fk_verif_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
-
---
--- Constraints for table `vehicles`
---
-ALTER TABLE `vehicles`
-  ADD CONSTRAINT `fk_vehicle_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

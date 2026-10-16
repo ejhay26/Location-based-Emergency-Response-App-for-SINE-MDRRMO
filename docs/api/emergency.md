@@ -50,22 +50,33 @@ Feeds the Operations Dashboard live map and historical archive panels.
 ## 2. Dispatcher Operations **[dispatcher]**
 
 ### 2.1 `GET /api/dispatch-assets`
-Fetches all currently available responder teams (BFP, PNP, Rescue, RHU) and active vehicles.
+Fetches all configured responding agencies (MDRRMO Rescue Team, San Isidro BFP, San Isidro PNP, RHU).
+- **Response (200):**
+  ```json
+  {
+    "agencies": [
+      "MDRRMO Rescue Team",
+      "San Isidro BFP (Firefighters)",
+      "San Isidro PNP (Police)",
+      "Rural Health Unit (RHU / Medical)"
+    ]
+  }
+  ```
 
 ---
 
 ### 2.2 `POST /api/dispatch-emergency`
-Assigns a responder unit and matching vehicle to an active incident.
+Assigns a responding agency and action/protocol notes to an active incident.
 - **Request Body:**
   ```json
   {
     "request_id": 42,
-    "responder_id": 1,
-    "vehicle_id": 3
+    "agency": "MDRRMO Rescue Team",
+    "notes": "Dispatched via VHF Radio Base. Crew deployed."
   }
   ```
-- **Response (200):** `{ "message": "Units dispatched successfully!" }`  
-- **Action:** Broadcasts `EmergencyUpdated` (`dispatched`) and sends an FCM push notification to the reporting citizen.
+- **Response (200):** `{ "message": "Agency dispatched successfully!" }`  
+- **Action:** Records dispatch time and agency, marks emergency status as `Dispatched`, broadcasts `EmergencyUpdated` (`dispatched`), and sends a push notification to the reporting citizen.
 
 ---
 

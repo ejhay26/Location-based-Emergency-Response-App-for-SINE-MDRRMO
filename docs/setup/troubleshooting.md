@@ -80,7 +80,7 @@ Common issues, error codes, and step-by-step solutions when developing, running,
 <details>
 <summary><b>1.5 Database Migrations & Initial Seed Data</b></summary>
 
-**Symptoms:** Fresh database installation is missing schema tables or reference lookup records (Barangays, Incident Types, Responders, Vehicles).
+**Symptoms:** Fresh database installation is missing schema tables or reference lookup records (Barangays, Incident Types).
 
 **Solutions:**
 1. The Go Fiber backend automatically executes `AutoMigrate()` and runs `Seed()` on startup.
@@ -89,7 +89,7 @@ Common issues, error codes, and step-by-step solutions when developing, running,
    cd backend
    go run main.go
    ```
-   All 16 tables are created and seeded with San Isidro barangays, default responders, incident types, and fleet vehicles immediately.
+   All core tables are created and seeded with San Isidro barangays, incident types, and default administrative accounts immediately.
 
 </details>
 

@@ -46,11 +46,11 @@ To maintain functionality during cell tower congestion or signal outages:
 
 ---
 
-## 6. Smart Unit & Fleet Dispatching
+## 6. Inter-Agency Protocol Dispatching
 
-- **Linked Asset Dropdowns:** The dispatch system prevents mismatched unit assignments by linking responder teams (Fire, Police, Rescue, RHU) to their specific assigned vehicles (e.g. selecting BFP only reveals fire trucks and water tenders).
-- **Real-Time Asset State Synchronization:** Unit dispatching dynamically flags responder and vehicle states to `in_use` across all active operations consoles to prevent double-assignment. Resolving or cancelling the emergency restores assets back to `available`.
-- **Incident Lifecycle Tracking:** Dispatches transition incidents through `Pending` → `Dispatched` (`En Route`) → `Resolved` (`Completed`), sending push notifications to reporting citizens at each milestone.
+- **Clean Protocol Dispatch Modal:** Dispatchers select the responding agency (MDRRMO Rescue Team, San Isidro BFP, San Isidro PNP, Rural Health Unit) and can attach operational coordination notes (e.g., dispatched via VHF radio base, team leader instructions).
+- **Incident Lifecycle Tracking:** Dispatches transition incidents cleanly through `Pending` → `Dispatched` → `Resolved`, triggering real-time WebSocket state synchronizations across consoles and automated push notifications to reporting citizens.
+- **Audit-Ready Dispatch Logging:** Every dispatch persists the authorizing timestamp, agency assignment, and operational protocol notes directly to MariaDB for retrospective reporting and situational analysis.
 
 ---
 

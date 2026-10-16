@@ -154,7 +154,7 @@ Access the **History** tab from the bottom navigation to review your personal em
 - **Unified Chronological Feed:** Concurrently fetches and sorts both personal emergency SOS requests and public road hazard reports into a single chronological timeline.
 - **Incident Lifecycle Badges:**
   - `Pending`: Logged at the operations center; undergoing dispatcher triage.
-  - `Dispatched`: First responder units (BFP, PNP, Rescue, or RHU) and assigned vehicles deployed to your coordinates.
+  - `Dispatched`: Authorized response agency (MDRRMO Rescue, BFP, PNP, or RHU) deployed to your location.
   - `Resolved`: Emergency handled and closed, or road hazard cleared.
   - `Cancelled`: Request revoked by user or flagged as false alarm.
 - **Accordion Card Inspection:** Tap any report card to expand full incident details, including registered barangay, exact submission timestamp, status history, and captured photo/video proof.

@@ -109,12 +109,10 @@ backup desc
 +------------------------+--------------------------+
 | users                  | 6                        |
 | emergency_requests     | 13                       |
-| dispatches             | 0                        |
+| dispatch               | 0                        |
 | hazards                | 2                        |
 | broadcasts             | 18                       |
 | barangays              | 9                        |
-| responders             | 4                        |
-| vehicles               | 4                        |
 | user_settings          | 12                       |
 | personal_access_tokens | 2                        |
 +------------------------+--------------------------+

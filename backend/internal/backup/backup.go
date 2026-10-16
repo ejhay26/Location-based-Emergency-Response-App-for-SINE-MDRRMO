@@ -348,9 +348,9 @@ func DescribeSnapshot(target string) (*SnapshotDesc, error) {
 
 	if len(tablesFound) == 0 {
 		tablesFound = []string{
-			"users", "emergency_requests", "dispatches", "hazards",
-			"broadcasts", "barangays", "incident_types", "responders",
-			"vehicles", "feedback", "user_settings", "personal_access_tokens",
+			"users", "emergency_requests", "dispatch", "hazards",
+			"broadcasts", "barangays", "incident_types",
+			"feedback", "user_settings", "personal_access_tokens",
 			"device_tokens",
 		}
 	}

@@ -9,9 +9,9 @@ This document provides the formal Data Flow Diagrams (Context Diagram Level 0 an
 The system facilitates emergency response operations across the Municipality of San Isidro, Nueva Ecija. Data flows between the system boundary and five external entities:
 
 1. **Citizen / Resident:** Initiates account registration, provides identity verification documents, submits emergency SOS alerts with camera and GPS evidence, logs non-emergency road hazards, and receives safety advisories.
-2. **Municipal Dispatcher:** Monitors live incoming incidents on the operations desk, assigns responder teams and matching vehicles, clears road hazards, and issues town-wide or barangay-scoped broadcasts.
+2. **Municipal Dispatcher:** Monitors live incoming incidents on the operations desk, assigns response agencies and protocol directives, clears road hazards, and issues town-wide or barangay-scoped broadcasts.
 3. **Master Administrator:** Reviews citizen government ID verifications, manages staff credentials, enforces disciplinary strikes, reviews feedback, and oversees disaster recovery backups.
-4. **Emergency Responders & Fleet (BFP, PNP, Rescue, RHU):** Receives incident location telemetry and navigation details, reports arrival on scene, and submits resolution status.
+4. **Inter-Agency Response Teams (BFP, PNP, Rescue, RHU):** Receives incident dispatch authorization, conducts on-scene mitigation, and coordinates incident clearance with dispatchers.
 5. **External Cloud Services:**
    - **PhilSMS API:** Transactional SMS gateway delivering one-time passwords (OTP).
    - **Resend Mailer:** Transactional email gateway for email OTP and account verification notices.
@@ -29,7 +29,7 @@ flowchart LR
     Citizen["Citizen / Resident"]
     Dispatcher["Municipal Dispatcher"]
     Admin["Master Administrator"]
-    Responders["Field Responders & Fleet<br/>(BFP, PNP, Rescue, RHU)"]
+    Responders["Inter-Agency Response Teams<br/>(BFP, PNP, Rescue, RHU)"]
     CloudServices["External Cloud Gateways<br/>(PhilSMS, Resend, FCM, PSA GeoJSON)"]
 
     System["0.0<br/>SINE MDRRMO Location-Based<br/>Emergency Response System"]
@@ -51,8 +51,8 @@ flowchart LR
     System -->|"Pending Applicant Queue, Citizen Directory, Audit Logs"| Admin
     System -->|"Database Snapshots, Gap Salvage Reports"| Admin
 
-    System -->|"Incident Dispatch Telemetry, Route & Coordinates"| Responders
-    Responders -->|"On-Scene Status, Arrival Time, Completion Report"| System
+    System -->|"Incident Dispatch Authorization & Protocol Details"| Responders
+    Responders -->|"Incident Mitigation & Scene Clearance Feedback"| System
 
     System -->|"SMS OTP Payload, Welcome Email, FCM Push Data"| CloudServices
     CloudServices -->|"SMS/Email Delivery Status, PSA Boundary Data"| System
@@ -71,7 +71,7 @@ Data stores correspond to the normalized database tables in MariaDB (`emergencyd
 | **D3** | PSA Boundaries & Barangays | `barangays`, `san-isidro-barangays.geojson` | Reference geographic data for San Isidro's 9 official barangays. |
 | **D4** | Emergency Requests & Media Proof | `emergency_requests`, `/storage/emergencies/` | SOS records, camera photos/videos, timestamps, status, and coordinates. |
 | **D5** | Public Road Hazards | `hazards`, `/storage/hazards/` | Citizen hazard reports with photo evidence and clearance state. |
-| **D6** | Responders, Vehicles & Dispatches | `responders`, `vehicles`, `dispatch` | Municipal fleet inventory, assigned responder teams, and deployment tracking. |
+| **D6** | Inter-Agency Protocol Dispatches | `dispatch` | Municipal dispatch records, authorized response agencies, action notes, and deployment timestamps. |
 | **D7** | Broadcast Advisories & Drafts | `broadcasts`, `broadcast_barangays` | Public alert records, draft composer entries, schedules, and media files. |
 | **D8** | Audit Trails, Strikes & Backups | `false_alarm_strikes`, `feedback`, `backups/` | Disciplinary strike logs, community bug reports, and compressed database snapshots. |
 
@@ -86,7 +86,7 @@ flowchart TD
     E1["Citizen"]
     E2["Municipal Dispatcher"]
     E3["Master Administrator"]
-    E4["Field Responders<br/>(BFP, PNP, Rescue, RHU)"]
+    E4["Inter-Agency Response Teams<br/>(BFP, PNP, Rescue, RHU)"]
     E5["Cloud Services<br/>(PhilSMS, Resend, FCM)"]
 
     D1[("D1: Users, Profiles & KYC Verifications")]
@@ -94,7 +94,7 @@ flowchart TD
     D3[("D3: PSA Boundaries & Barangays")]
     D4[("D4: Emergency Requests & Media Proof")]
     D5[("D5: Public Road Hazards")]
-    D6[("D6: Responders, Vehicles & Dispatches")]
+    D6[("D6: Inter-Agency Protocol Dispatches")]
     D7[("D7: Broadcast Advisories & Drafts")]
     D8[("D8: Audit Trails, Strikes & Backups")]
 
@@ -120,17 +120,17 @@ flowchart TD
     D2 -->|"Blood Type, Allergies, PWD"| P3
     P3 -->|"Broadcast Event via WebSockets"| E2
 
-    P4["4.0<br/>Incident Fleet Dispatching<br/>& Status Lifecycle"]
+    P4["4.0<br/>Inter-Agency Protocol Dispatching<br/>& Status Lifecycle"]
     D4 -->|"Active Emergency Queue"| P4
-    D6 -->|"Available Units & Vehicles"| P4
-    E2 -->|"Assign Responder & Vehicle"| P4
-    P4 -->|"Update Unit State to in_use"| D6
+    D6 -->|"Configured Response Agencies"| P4
+    E2 -->|"Assign Responding Agency & Notes"| P4
+    P4 -->|"Persist Dispatch Record"| D6
     P4 -->|"Update Status to Dispatched"| D4
-    P4 -->|"Push Alert (En Route)"| E1
-    P4 -->|"Dispatch Details & Navigation"| E4
-    E4 -->|"Arrival & Completion Report"| P4
+    P4 -->|"Push Alert (Help Dispatched)"| E1
+    P4 -->|"Coordination & Protocol Deployment"| E4
+    E4 -->|"Incident Mitigation & Scene Clearance"| P4
     E2 -->|"Resolve Incident"| P4
-    P4 -->|"Release Assets to Available"| D6
+    P4 -->|"Mark Dispatch Completed"| D6
     P4 -->|"Archive Resolved Request"| D4
 
     P5["5.0<br/>Road Hazard Reporting<br/>& Clearance"]
@@ -182,11 +182,11 @@ flowchart TD
 - **Outbound Data:** Real-time WebSocket incident events transmitted to dispatcher consoles, sound alert triggers, and emergency records.
 - **Data Stores:** Writes to `D4` (Emergency Requests); reads from `D2` (Medical Profiles) and `D3` (Boundaries).
 
-### 4.0 Incident Fleet Dispatching & Status Lifecycle
-- **Function:** Enables dispatchers to assign appropriate response units (BFP, PNP, Rescue, RHU) and paired vehicles to active incidents. Manages unit availability states (`in_use` vs. `available`) and updates the incident lifecycle (`Pending` -> `Dispatched` -> `Resolved`).
-- **Inbound Data:** Dispatcher unit and vehicle assignments, arrival status updates, and on-scene resolution confirmation.
-- **Outbound Data:** Telemetry sent to field responders, push notifications sent to citizens (`En Route`, `Resolved`), and updated map marker states.
-- **Data Stores:** Reads and writes to `D4` (Emergency Requests) and `D6` (Responders, Vehicles & Dispatches).
+### 4.0 Inter-Agency Protocol Dispatching & Status Lifecycle
+- **Function:** Enables dispatchers to assign appropriate response agencies (MDRRMO Rescue Team, San Isidro BFP, San Isidro PNP, RHU) and protocol action notes to active incidents. Manages the incident lifecycle (`Pending` -> `Dispatched` -> `Resolved`).
+- **Inbound Data:** Dispatcher agency selection, coordination notes, and on-scene resolution confirmation.
+- **Outbound Data:** Push notifications sent to citizens (`Dispatched`, `Resolved`), dispatch protocol records, and updated live map marker states.
+- **Data Stores:** Reads and writes to `D4` (Emergency Requests) and `D6` (Inter-Agency Protocol Dispatches).
 
 ### 5.0 Road Hazard Reporting & Clearance
 - **Function:** Ingests crowd-sourced reports of road obstructions, fallen trees, downed power lines, and flooded roads to assist municipal safety awareness and route planning.

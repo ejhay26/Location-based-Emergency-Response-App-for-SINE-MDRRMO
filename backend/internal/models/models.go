@@ -24,30 +24,6 @@ type IncidentType struct {
 
 func (IncidentType) TableName() string { return "incident_types" }
 
-// ─── Responder ──────────────────────────────────────────────────────
-
-type Responder struct {
-	ResponderID int    `gorm:"column:responder_id;primaryKey;autoIncrement" json:"responder_id"`
-	Name        string `gorm:"column:name;size:100" json:"name"`
-	Role        string `gorm:"column:role;size:50" json:"role"`
-	Contact     string `gorm:"column:contact;size:20" json:"contact"`
-	Status      string `gorm:"column:status;size:50" json:"status"`
-}
-
-func (Responder) TableName() string { return "responders" }
-
-// ─── Vehicle ────────────────────────────────────────────────────────
-
-type Vehicle struct {
-	VehicleID   int    `gorm:"column:vehicle_id;primaryKey;autoIncrement" json:"vehicle_id"`
-	ResponderID *int   `gorm:"column:responder_id" json:"responder_id"`
-	Name        string `gorm:"column:name;size:100" json:"name"`
-	Type        string `gorm:"column:type;size:50" json:"type"`
-	Plate       string `gorm:"column:plate;size:50" json:"plate"`
-	Status      string `gorm:"column:status;size:50" json:"status"`
-}
-
-func (Vehicle) TableName() string { return "vehicles" }
 
 // ─── User ───────────────────────────────────────────────────────────
 
@@ -287,8 +263,8 @@ func (Broadcast) TableName() string { return "broadcasts" }
 type Dispatch struct {
 	DispatchID   int        `gorm:"column:dispatch_id;primaryKey;autoIncrement" json:"dispatch_id"`
 	RequestID    *int       `gorm:"column:request_id" json:"request_id"`
-	ResponderID  *int       `gorm:"column:responder_id" json:"responder_id"`
-	VehicleID    *int       `gorm:"column:vehicle_id" json:"vehicle_id"`
+	Agency       *string    `gorm:"column:agency;size:100" json:"agency"`
+	Notes        *string    `gorm:"column:notes;type:text" json:"notes"`
 	DispatchTime *time.Time `gorm:"column:dispatch_time" json:"dispatch_time"`
 	ArrivalTime  *time.Time `gorm:"column:arrival_time" json:"arrival_time"`
 	Status       *string    `gorm:"column:status;size:50" json:"status"`

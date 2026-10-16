@@ -11,9 +11,9 @@ The system identifies five primary and supporting actors:
 | Actor | Type | Description |
 | :--- | :--- | :--- |
 | **Citizen (Resident)** | Primary Human Actor | Resident of San Isidro submitting emergency SOS alerts, reporting public road hazards, configuring medical profiles, and receiving targeted public advisories. |
-| **Municipal Dispatcher** | Primary Human Actor | Operational officer at the MDRRMO Operations Desk responsible for monitoring live incidents, dispatching responder units and vehicles, clearing road hazards, and drafting broadcasts. |
+| **Municipal Dispatcher** | Primary Human Actor | Operational officer at the MDRRMO Operations Desk responsible for monitoring live incidents, dispatching response agencies and protocol directives, clearing road hazards, and drafting broadcasts. |
 | **Master Administrator** | Primary Human Actor | Superadmin with master authority managing citizen identity verification (KYC), staff accounts, disciplinary strikes, system settings, and disaster recovery backups. |
-| **Field Responders & Fleet** | Secondary Supporting Actor | Response teams (San Isidro BFP, PNP, MDRRMO Rescue, RHU) and specialized vehicles receiving dispatch coordinates and reporting on-scene status. |
+| **Inter-Agency Response Teams** | Secondary Supporting Actor | External municipal and national response agencies (San Isidro BFP, PNP, MDRRMO Rescue, RHU) coordinating via radio/telecom protocols for on-scene response. |
 | **External Cloud Gateways** | Supporting System Actor | Automated services providing SMS OTP delivery (PhilSMS), transactional emails (Resend), mobile push notifications (FCM v1), and PSA boundary verification. |
 
 ---
@@ -26,7 +26,7 @@ flowchart TD
     Citizen(["Citizen / Resident"])
     Dispatcher(["Municipal Dispatcher"])
     Admin(["Master Administrator"])
-    Responders(["Field Responders & Fleet<br/>(BFP, PNP, Rescue, RHU)"])
+    Responders(["Inter-Agency Response Teams<br/>(BFP, PNP, Rescue, RHU)"])
     Cloud(["External Gateways<br/>(PhilSMS, Resend, FCM, PSA)"])
 
     subgraph SystemBoundary ["SINE MDRRMO Emergency Response System"]
@@ -46,8 +46,8 @@ flowchart TD
 
         %% Subsystem 3: Operations & Dispatch
         UC_Live(["UC-11: Monitor Live Incident Map & Telemetry"])
-        UC_Disp(["UC-12: Dispatch Linked Responder Unit & Vehicle"])
-        UC_Stat(["UC-13: Update Incident Lifecycle (En Route / Resolved)"])
+        UC_Disp(["UC-12: Dispatch Inter-Agency Response Team"])
+        UC_Stat(["UC-13: Update Incident Lifecycle (Dispatched / Resolved)"])
         UC_Haz(["UC-14: Report Public Road Hazard"])
         UC_HazClr(["UC-15: Clear & Resolve Road Hazard"])
 
@@ -174,27 +174,26 @@ flowchart TD
 
 ---
 
-### Use Case 03: Unit & Vehicle Fleet Dispatching
+### Use Case 03: Inter-Agency Protocol Dispatching
 - **Use Case ID:** `UC-DISP-03`
 - **Primary Actor:** Municipal Dispatcher
-- **Secondary Actors:** Field Responders (BFP, PNP, Rescue, RHU), Citizen
+- **Secondary Actors:** Inter-Agency Response Teams (BFP, PNP, Rescue, RHU), Citizen
 - **Pre-conditions:**
   1. An emergency request is active in the operations queue with status `Pending`.
   2. Dispatcher is logged in on desktop or mobile.
 - **Main Flow:**
   1. Dispatcher inspects the incoming incident card, reviewing GPS coordinates, camera proof, and Golden Minute medical notes.
   2. Dispatcher clicks **Dispatch**.
-  3. The system displays linked dropdown menus: selecting a responder team (e.g. San Isidro BFP) strictly limits the vehicle dropdown to matching units (e.g. Fire Truck 01).
-  4. Dispatcher confirms unit and vehicle assignment.
-  5. The backend sets assigned units and vehicles to `in_use` status, synchronizing state across all active consoles to prevent double-assignment.
-  6. Incident status transitions to `Dispatched` (`En Route`).
-  7. Citizen receives a push notification stating responders are en route.
-  8. Responders arrive on scene, mitigate the incident, and report completion.
-  9. Dispatcher taps **Resolve Incident**.
-  10. Incident transitions to `Resolved`, assigned units return to `Available`, and the record is moved to the searchable Log Archive.
+  3. The system displays responding agency choices (MDRRMO Rescue Team, San Isidro BFP, San Isidro PNP, Rural Health Unit) and an optional dispatch protocol notes textarea.
+  4. Dispatcher selects the agency, enters coordination notes, and confirms dispatch.
+  5. The backend creates a dispatch record and updates emergency request status to `Dispatched`.
+  6. Citizen receives a push notification stating the response agency is on the way.
+  7. Field response team conducts on-scene mitigation and provides clearance feedback via base radio/phone.
+  8. Dispatcher taps **Resolve Incident**.
+  9. Incident transitions to `Resolved`, active dispatch is marked `Completed`, and the record is moved to the searchable Log Archive.
 - **Post-conditions:**
   - Emergency is marked completed with exact dispatch and resolution timestamps.
-  - Responder units and vehicles are released back to available fleet inventory.
+  - Dispatch record preserves responding agency and protocol notes for post-incident audits.
 
 ---
 
@@ -203,7 +202,7 @@ flowchart TD
 - **Primary Actor:** Municipal Dispatcher / Administrator
 - **Secondary Actor:** Citizen
 - **Pre-conditions:**
-  1. Field responders arrive at the reported incident coordinates and verify that no emergency occurred and the report was fraudulent or malicious.
+  1. On-site verification confirms that no emergency occurred and the report was fraudulent or malicious.
   2. Incident is accessed via the Log Archive or active dispatch list.
 - **Main Flow:**
   1. Dispatcher opens the incident details and clicks **Mark False Alarm**.

@@ -42,29 +42,7 @@ class DatabaseSeeder extends Seeder
             DB::table('incident_types')->updateOrInsert(['incident_type_id' => $t['incident_type_id']], $t);
         }
 
-        // ── 3. Responders ────────────────────────────────────────────────────
-        $responders = [
-            ['responder_id' => 1, 'name' => 'San Isidro BFP',           'role' => 'Firefighter', 'contact' => '09111111111', 'status' => 'Available'],
-            ['responder_id' => 2, 'name' => 'San Isidro PNP',           'role' => 'Police',      'contact' => '09222222222', 'status' => 'Available'],
-            ['responder_id' => 3, 'name' => 'MDRRMO Rescue Team',      'role' => 'Rescue',      'contact' => '09333333333', 'status' => 'Available'],
-            ['responder_id' => 4, 'name' => 'Rural Health Unit (RHU)', 'role' => 'Medical',     'contact' => '09444444444', 'status' => 'Available'],
-        ];
-        foreach ($responders as $r) {
-            DB::table('responders')->updateOrInsert(['responder_id' => $r['responder_id']], $r);
-        }
-
-        // ── 4. Vehicles ──────────────────────────────────────────────────────
-        $vehicles = [
-            ['vehicle_id' => 1, 'responder_id' => 1, 'name' => 'Firetruck 01',        'type' => 'Truck',     'plate' => 'SFP-123', 'status' => 'Available'],
-            ['vehicle_id' => 2, 'responder_id' => 2, 'name' => 'Police Patrol Alpha', 'type' => 'Car',       'plate' => 'PNP-456', 'status' => 'Available'],
-            ['vehicle_id' => 3, 'responder_id' => 4, 'name' => 'Rescue Ambulance A',  'type' => 'Ambulance', 'plate' => 'MDR-789', 'status' => 'Available'],
-            ['vehicle_id' => 4, 'responder_id' => 3, 'name' => 'Rescue Boat 1',       'type' => 'Boat',      'plate' => 'MDR-001', 'status' => 'Available'],
-        ];
-        foreach ($vehicles as $v) {
-            DB::table('vehicles')->updateOrInsert(['vehicle_id' => $v['vehicle_id']], $v);
-        }
-
-        // ── 5. Default Admin & Dispatcher Accounts ───────────────────────────
+        // ── 3. Default Admin & Dispatcher Accounts ───────────────────────────
         $defaultUsers = [
             [
                 'email'               => 'admin_user@sine.gov.ph',

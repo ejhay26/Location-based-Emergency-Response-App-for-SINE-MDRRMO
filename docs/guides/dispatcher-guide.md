@@ -37,16 +37,15 @@ The **Incident Map** is the primary operational dashboard:
         │
         ▼
 [Tap "Dispatch" Button]
-        ├─ Step 1: Select Responder Unit (BFP, PNP, Rescue, RHU)
-        ├─ Step 2: Select Matching Vehicle (Ambulance, Fire Truck, Patrol Car)
-        │         (Assets automatically synchronized to in-use status across all consoles)
+        ├─ Step 1: Select Responding Agency (MDRRMO Rescue, BFP, PNP, RHU)
+        ├─ Step 2: Add Protocol Notes (e.g. VHF radio dispatch details, crew directives)
         │
         ▼
-[Confirm Dispatch] ──▶ Status becomes "En Route" (Citizen notified via Push Alert)
+[Confirm Dispatch] ──▶ Status becomes "Dispatched" (Citizen notified via Push Alert)
         │
         ▼ (Incident Resolved on Scene)
 [Tap "Resolve"]    ──▶ Confirmation dialog with animated loading spinner
-        │             (Assigned units and vehicles automatically returned to available)
+        │             (Active dispatch marked completed)
         │
         ▼
 Status becomes "Resolved" & moved to Log Archive
@@ -76,7 +75,7 @@ The **Log Archive** stores all completed, resolved, and cancelled emergency reco
 - **Date Range Filter:** Filter by Single Day, Multi-Day, or a custom Date Range using the calendar selector.
 - **Download Certified PDF:** Export filtered records into a formatted situation summary for council briefings.
 - **Mark False Alarm:**  
-  If field responders confirm that a reported emergency was fraudulent or malicious:
+  If on-site verification confirms that a reported emergency was fraudulent or malicious:
   1. Open the incident in Log Archive.
   2. Tap **Mark False Alarm**.
   3. This increments the reporting citizen's strike counter. When a citizen reaches **3 strikes**, their account is automatically banned from filing further requests.

@@ -177,9 +177,9 @@ class DatabaseBackupService
         // Fallback default list if no CREATE TABLE statements found
         if (empty($tablesFound)) {
             $tablesFound = [
-                'users', 'emergency_requests', 'dispatches', 'hazards',
-                'broadcasts', 'barangays', 'incident_types', 'responders',
-                'vehicles', 'feedback', 'user_settings', 'personal_access_tokens',
+                'users', 'emergency_requests', 'dispatch', 'hazards',
+                'broadcasts', 'barangays', 'incident_types',
+                'feedback', 'user_settings', 'personal_access_tokens',
                 'device_tokens', 'migrations'
             ];
         }

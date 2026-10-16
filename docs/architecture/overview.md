@@ -87,7 +87,7 @@ The system enforces strict multi-tenant role isolation across three tiers: **`ci
 ### Enforcement Layers
 1. **Backend Token Abilities:**
    - **`admin`**: Granted `['admin', 'dispatcher', 'citizen']` abilities. Full access to ID verifications, citizen moderation, dispatcher management, feedback, and dispatch operations.
-   - **`dispatcher`**: Granted `['dispatcher']` ability. Can dispatch responders, resolve emergencies, acknowledge hazards, and issue broadcasts. Forbidden from accessing admin-only routes (returns HTTP 403).
+   - **`dispatcher`**: Granted `['dispatcher']` ability. Can authorize dispatches, resolve emergencies, acknowledge hazards, and issue broadcasts. Forbidden from accessing admin-only routes (returns HTTP 403).
    - **`citizen`**: Granted `['citizen']` ability. Limited to filing personal SOS, submitting hazards, updating personal profile, and viewing scoped active alerts.
 2. **Frontend Angular Route Guards:**
    - `auth-guard.ts`: Enforces authenticated sessions and role-specific dashboard routing.
@@ -107,3 +107,13 @@ The system enforces strict multi-tenant role isolation across three tiers: **`ci
    - The operations dashboard runs as a lightweight **Tauri v2 Desktop App** on Windows, macOS, and Linux with custom frameless window controls and background OS alerts, as well as an adaptive **Mobile Admin UI** with draggable bottom sheets and touch filters for field dispatchers.
 5. **Interactive Onboarding & Operations Guided Tours:**
    - Unified tour engine with viewport-responsive step definitions (desktop vs mobile), animated map pin focus (`flyTo`), and triage popup trigger cards with mock demo fallbacks.
+
+---
+
+## 6. Related Architectural Documents
+
+- [Database Schema](file:///C:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/docs/architecture/database-schema.md)
+- [Data Flow Diagram](file:///C:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/docs/architecture/data-flow-diagram.md)
+- [UML Use Case Diagram](file:///C:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/docs/architecture/use-case-diagram.md)
+- [Disaster Recovery & Backup Architecture](file:///C:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/docs/architecture/disaster-recovery.md)
+- [Inter-Agency Responder Framework & Operational Boundaries](file:///C:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/docs/architecture/inter-agency-responder-framework.md)

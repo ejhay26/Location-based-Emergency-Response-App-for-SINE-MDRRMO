@@ -72,7 +72,7 @@ Start the unified backend API & WebSocket server:
 go run main.go
 ```
 
-> **Automated Migrations & Seeders:** On startup, the Go Fiber engine automatically applies schema migrations (`AutoMigrate`) for all 16 core data models and idempotently seeds initial incident types, San Isidro barangays, emergency responders, and response vehicles.
+> **Automated Migrations & Seeders:** On startup, the Go Fiber engine automatically applies schema migrations (`AutoMigrate`) for all core data models and idempotently seeds initial incident types, San Isidro barangays, and default administrative accounts.
 
 The backend service runs concurrently on `http://localhost:3000` (serving REST endpoints, tile caching, media storage, and real-time WebSockets).
 

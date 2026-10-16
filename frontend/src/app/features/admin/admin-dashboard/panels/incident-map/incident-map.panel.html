@@ -626,23 +626,22 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <p style="font-weight: 800; font-size: 15px; margin: 0 0 10px 0; color: var(--ion-text-color);">1. Select a Responder Team</p>
-      <ion-radio-group [(ngModel)]="dispatchForm.responder_id" (ionChange)="onResponderChange()">
-        <div *ngFor="let r of availableResponders" style="display: flex; align-items: center; background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; gap: 14px; transition: all 0.15s;" [style.border-color]="dispatchForm.responder_id === r.responder_id ? '#ffc409' : 'var(--ion-color-step-150, #ddd)'" [style.background]="dispatchForm.responder_id === r.responder_id ? 'rgba(255,196,9,0.1)' : 'var(--ion-card-background, #fff)'">
-          <ion-radio [value]="r.responder_id" style="--color-checked: #ffc409;"></ion-radio>
-          <div><p style="margin: 0; font-weight: 800; font-size: 15.5px; color: var(--ion-text-color);">{{ r.name }}</p><p style="margin: 2px 0 0 0; font-size: 13px; color: var(--ion-color-medium);">{{ r.role }} · {{ r.contact }}</p></div>
+      <p style="font-weight: 800; font-size: 15px; margin: 0 0 10px 0; color: var(--ion-text-color);">1. Select Responding Agency</p>
+      <ion-radio-group [(ngModel)]="dispatchForm.agency">
+        <div *ngFor="let agency of availableAgencies" style="display: flex; align-items: center; background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; gap: 14px; transition: all 0.15s;" [style.border-color]="dispatchForm.agency === agency ? '#ffc409' : 'var(--ion-color-step-150, #ddd)'" [style.background]="dispatchForm.agency === agency ? 'rgba(255,196,9,0.1)' : 'var(--ion-card-background, #fff)'">
+          <ion-radio [value]="agency" style="--color-checked: #ffc409;"></ion-radio>
+          <div><p style="margin: 0; font-weight: 800; font-size: 15.5px; color: var(--ion-text-color);">{{ agency }}</p></div>
         </div>
       </ion-radio-group>
-      <p style="font-weight: 800; font-size: 15px; margin: 16px 0 10px 0; color: var(--ion-text-color);">2. Assign a Vehicle</p>
-      <div *ngIf="!dispatchForm.responder_id" style="text-align: center; padding: 18px; color: var(--ion-color-medium); font-size: 13.5px; font-weight: 600; border: 2px dashed var(--ion-color-step-200, #ddd); border-radius: 14px;">Select a responder first to see available vehicles.</div>
-      <ion-radio-group [(ngModel)]="dispatchForm.vehicle_id" *ngIf="dispatchForm.responder_id">
-        <div *ngFor="let v of filteredVehicles" style="display: flex; align-items: center; background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; gap: 14px; transition: all 0.15s;" [style.border-color]="dispatchForm.vehicle_id === v.vehicle_id ? '#ffc409' : 'var(--ion-color-step-150, #ddd)'" [style.background]="dispatchForm.vehicle_id === v.vehicle_id ? 'rgba(255,196,9,0.1)' : 'var(--ion-card-background, #fff)'">
-          <ion-radio [value]="v.vehicle_id" style="--color-checked: #ffc409;"></ion-radio>
-          <div><p style="margin: 0; font-weight: 800; font-size: 15.5px; color: var(--ion-text-color);">{{ v.name }}</p><p style="margin: 2px 0 0 0; font-size: 13px; color: var(--ion-color-medium);">{{ v.type }} · Plate: {{ v.plate }}</p></div>
-        </div>
-      </ion-radio-group>
+      <p style="font-weight: 800; font-size: 15px; margin: 16px 0 10px 0; color: var(--ion-text-color);">2. Dispatch Notes (Optional)</p>
+      <ion-textarea
+        [(ngModel)]="dispatchForm.notes"
+        rows="3"
+        placeholder="e.g. Dispatched via VHF Radio Base. Crew deployed to location."
+        style="background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 14px; padding: 8px 12px; font-size: 14px; width: 100%; color: var(--ion-text-color);"
+      ></ion-textarea>
       <ion-button expand="block" color="warning" class="ion-margin-top" (click)="submitDispatch()"
-          [class.btn-muted]="(!dispatchForm.responder_id || !dispatchForm.vehicle_id) && !isDispatching"
+          [class.btn-muted]="!dispatchForm.agency && !isDispatching"
           [class.btn-loading]="isDispatching"
           style="font-weight: 800; height: 50px; --border-radius: 14px; font-size: 16px; margin-top: 20px;">
           <ng-container *ngIf="!isDispatching">
