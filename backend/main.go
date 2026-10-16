@@ -35,25 +35,38 @@ func main() {
 	}
 	if len(os.Args) > 2 && os.Args[1] == "test-mail" {
 		targetEmail := os.Args[2]
+		templateType := "otp"
+		if len(os.Args) > 3 {
+			templateType = strings.ToLower(os.Args[3])
+		}
+
 		mailer := services.NewMailer()
 		sentAtFormatted := time.Now().In(time.Local).Format("Monday, January 02, 2006 at 03:04:05 PM MST (GMT+8)")
-		err := mailer.Send(targetEmail, "SINE-MDRRMO Go Fiber Mailer Verification Test", `
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"></head>
-<body style="font-family: Arial, sans-serif; padding: 20px;">
-  <div style="max-width: 500px; margin: auto; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 24px;">
-    <h2 style="color: #059669;">SINE-MDRRMO Go Fiber Live Mailer Test</h2>
-    <p>This email confirms that the <strong>Go Fiber backend</strong> running on your VPS is successfully integrated with the Resend transactional email API.</p>
-    <p style="color: #333; font-size: 13px;"><strong>Sent at:</strong> `+sentAtFormatted+`</p>
-  </div>
-</body>
-</html>`)
+		var err error
+
+		switch templateType {
+		case "welcome":
+			err = mailer.SendWelcomeEmail(targetEmail, "Juan")
+		case "bug":
+			err = mailer.SendBugReportEmail(
+				targetEmail,
+				1,
+				"Juan Dela Cruz",
+				"citizen@sine-mdrrmo.gov.ph",
+				"Application Crash",
+				"App closes unexpectedly when navigating near Barangay Alua on the emergency map.",
+				time.Now().Format("2006-01-02 15:04:05"),
+				"Forwarded by Admin to technical development team for immediate investigation.",
+			)
+		default:
+			err = mailer.SendOtpEmail(targetEmail, 584920, "verifying your new account")
+		}
+
 		if err != nil {
 			fmt.Printf("FAIL: %v\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("SUCCESS: Sent test email to %s (Time: %s)\n", targetEmail, sentAtFormatted)
+		fmt.Printf("SUCCESS: Sent templated [%s] email to %s (Time: %s)\n", templateType, targetEmail, sentAtFormatted)
 		return
 	}
 
