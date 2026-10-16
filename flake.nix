@@ -31,6 +31,8 @@
             libsoup_3
             openssl
             librsvg
+            dbus
+            libappindicator-gtk3
           ];
         in {
           default = pkgs.rustPlatform.buildRustPackage {
@@ -38,7 +40,15 @@
             version = "0.84.7";
 
             src = ./frontend;
-            buildAndTestSubdir = "src-tauri";
+
+            # Points sourceRoot to the Rust crate subfolder where Cargo.lock lives
+            postUnpack = ''
+              if [ -d "$sourceRoot/src-tauri" ]; then
+                sourceRoot="$sourceRoot/src-tauri"
+              elif [ -d "frontend/src-tauri" ]; then
+                sourceRoot="frontend/src-tauri"
+              fi
+            '';
 
             cargoLock = {
               lockFile = ./frontend/src-tauri/Cargo.lock;
@@ -51,18 +61,22 @@
 
             buildInputs = tauriLibraries;
 
+            doCheck = false;
+
             # Ensure frontendDist (../www) exists so tauri-build succeeds
             preBuild = ''
-              mkdir -p www
-              if [ ! -f www/index.html ]; then
-                echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>SINE MDRRMO</title></head><body><h1>SINE MDRRMO Emergency Response App</h1></body></html>' > www/index.html
+              mkdir -p ../www
+              if [ ! -f ../www/index.html ]; then
+                echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>SINE MDRRMO</title></head><body><h1>SINE MDRRMO Emergency Response App</h1></body></html>' > ../www/index.html
               fi
             '';
 
             postInstall = ''
               mkdir -p $out/share/applications
               mkdir -p $out/share/icons/hicolor/128x128/apps
-              if [ -f src-tauri/icons/128x128.png ]; then
+              if [ -f icons/128x128.png ]; then
+                cp icons/128x128.png $out/share/icons/hicolor/128x128/apps/mdrrmo-emergency-response-app.png
+              elif [ -f src-tauri/icons/128x128.png ]; then
                 cp src-tauri/icons/128x128.png $out/share/icons/hicolor/128x128/apps/mdrrmo-emergency-response-app.png
               fi
               cat > $out/share/applications/mdrrmo-emergency-response-app.desktop <<EOF
@@ -110,6 +124,8 @@ EOF
             libsoup_3
             openssl
             librsvg
+            dbus
+            libappindicator-gtk3
           ];
           buildTools = with pkgs; [
             pkg-config
