@@ -42,8 +42,9 @@ type Config struct {
 	RedisPort     string
 	RedisPassword string
 
-	// Mail (Resend)
+	// Mail (Resend & Brevo)
 	ResendAPIKey    string
+	BrevoAPIKey     string
 	MailFromAddress string
 	MailFromName    string
 
@@ -105,7 +106,8 @@ func Load() {
 		RedisPassword: getEnv("REDIS_PASSWORD", ""),
 
 		ResendAPIKey:    getEnv("RESEND_API_KEY", ""),
-		MailFromAddress: getEnv("MAIL_FROM_ADDRESS", "onboarding@resend.dev"),
+		BrevoAPIKey:     getEnv("BREVO_API_KEY", ""),
+		MailFromAddress: getEnv("MAIL_FROM_ADDRESS", "ejperez623@gmail.com"),
 		MailFromName:    getEnv("MAIL_FROM_NAME", "MDRRMO SAN ISIDRO"),
 
 		PhilSMSToken:  getEnv("PHILSMS_API_TOKEN", ""),

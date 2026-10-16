@@ -62,12 +62,13 @@ Used for transactional OTP verification during registration, login, and password
 
 ---
 
-## 6. Email Service (Resend API)
+## 6. Email Service (Brevo HTTP API / Resend)
 
 | Variable | Default / Example | Purpose |
 |---|---|---|
-| `RESEND_API_KEY` | `re_xxxxxxxxx` | Resend API key for fast, reliable transactional email |
-| `MAIL_FROM_ADDRESS` | `"onboarding@resend.dev"` / `"no-reply@sinemdrrmo.gov.ph"` | Sender email address |
+| `BREVO_API_KEY` | `xkeysib-xxxxxxxxx` | Brevo REST API key (sends to any recipient over HTTPS port 443 without domain setup) |
+| `RESEND_API_KEY` | `re_xxxxxxxxx` | Resend API key for transactional email (requires verified domain for public delivery) |
+| `MAIL_FROM_ADDRESS` | `"ejperez623@gmail.com"` | Verified sender email address |
 | `MAIL_FROM_NAME` | `"MDRRMO SAN ISIDRO NUEVA ECIJA EMERGENCY RESPONSE APP"` | Display name shown to recipients |
 
 ---

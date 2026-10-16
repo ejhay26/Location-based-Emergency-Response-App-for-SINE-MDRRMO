@@ -1,9 +1,14 @@
 package services
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"html"
+	"io"
+	"net/http"
+	"time"
 
 	"sine-mdrrmo-backend/internal/config"
 
@@ -11,7 +16,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Mailer wraps the Resend SDK for sending emails with HTML templates.
+// Mailer wraps transactional email providers (Brevo HTTP API and Resend).
 // Replaces Laravel's Mail facade + Mailable classes.
 type Mailer struct {
 	client *resend.Client
@@ -19,16 +24,90 @@ type Mailer struct {
 }
 
 func NewMailer() *Mailer {
+	resendKey := ""
+	if config.AppConfig != nil {
+		resendKey = config.AppConfig.ResendAPIKey
+	}
+	from := "MDRRMO SAN ISIDRO <ejperez623@gmail.com>"
+	if config.AppConfig != nil && config.AppConfig.MailFromAddress != "" {
+		from = fmt.Sprintf("%s <%s>", config.AppConfig.MailFromName, config.AppConfig.MailFromAddress)
+	}
+
 	return &Mailer{
-		client: resend.NewClient(config.AppConfig.ResendAPIKey),
-		from:   fmt.Sprintf("%s <%s>", config.AppConfig.MailFromName, config.AppConfig.MailFromAddress),
+		client: resend.NewClient(resendKey),
+		from:   from,
 	}
 }
 
-// Send dispatches an HTML email via Resend.
-func (m *Mailer) Send(to, subject, html string) error {
-	if config.AppConfig.ResendAPIKey == "" {
-		log.Warn().Str("to", to).Str("subject", subject).Msg("Mailer: Resend API key is empty, skipping email")
+type brevoSender struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type brevoRecipient struct {
+	Email string `json:"email"`
+}
+
+type brevoEmailPayload struct {
+	Sender      brevoSender      `json:"sender"`
+	To          []brevoRecipient `json:"to"`
+	Subject     string           `json:"subject"`
+	HtmlContent string           `json:"htmlContent"`
+}
+
+func (m *Mailer) sendBrevo(to, subject, htmlContent string) error {
+	payload := brevoEmailPayload{
+		Sender: brevoSender{
+			Name:  config.AppConfig.MailFromName,
+			Email: config.AppConfig.MailFromAddress,
+		},
+		To: []brevoRecipient{
+			{Email: to},
+		},
+		Subject:     subject,
+		HtmlContent: htmlContent,
+	}
+
+	bodyBytes, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal brevo payload: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(context.Background(), "POST", "https://api.brevo.com/v3/smtp/email", bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return fmt.Errorf("failed to create brevo request: %w", err)
+	}
+
+	req.Header.Set("api-key", config.AppConfig.BrevoAPIKey)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Error().Err(err).Str("to", to).Str("subject", subject).Msg("Brevo: failed to connect to API")
+		return fmt.Errorf("brevo request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		log.Error().Int("status", resp.StatusCode).Str("response", string(respBody)).Str("to", to).Msg("Brevo: API returned error")
+		return fmt.Errorf("brevo api error (%d): %s", resp.StatusCode, string(respBody))
+	}
+
+	log.Info().Str("to", to).Str("subject", subject).Msg("Brevo: email sent successfully")
+	return nil
+}
+
+// Send dispatches an HTML email via Brevo if configured, or Resend as fallback.
+func (m *Mailer) Send(to, subject, htmlContent string) error {
+	if config.AppConfig != nil && config.AppConfig.BrevoAPIKey != "" {
+		return m.sendBrevo(to, subject, htmlContent)
+	}
+
+	if config.AppConfig == nil || config.AppConfig.ResendAPIKey == "" {
+		log.Warn().Str("to", to).Str("subject", subject).Msg("Mailer: neither BREVO_API_KEY nor RESEND_API_KEY is configured, skipping email")
 		return nil
 	}
 
@@ -36,16 +115,16 @@ func (m *Mailer) Send(to, subject, html string) error {
 		From:    m.from,
 		To:      []string{to},
 		Subject: subject,
-		Html:    html,
+		Html:    htmlContent,
 	}
 
 	_, err := m.client.Emails.SendWithContext(context.Background(), params)
 	if err != nil {
-		log.Error().Err(err).Str("to", to).Str("subject", subject).Msg("Mailer: failed to send email")
+		log.Error().Err(err).Str("to", to).Str("subject", subject).Msg("Mailer: failed to send email via Resend")
 		return err
 	}
 
-	log.Info().Str("to", to).Str("subject", subject).Msg("Mailer: email sent successfully")
+	log.Info().Str("to", to).Str("subject", subject).Msg("Mailer: email sent successfully via Resend")
 	return nil
 }
 
