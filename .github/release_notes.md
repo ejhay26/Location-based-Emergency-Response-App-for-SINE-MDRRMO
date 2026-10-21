@@ -15,6 +15,7 @@
 - **Admin Incident Map Stability**: Hardened the Admin Incident Map date filter against accidental dismissals during popover and calendar interactions by filtering backdrop clicks through composed event paths.
 - **Independent Card Hover & Upward Button Flight Animation**: Resolved grid row height stretching in the Citizens and Dispatchers admin panels by anchoring cards to track start. Hovered cards now lift, scale gracefully, and reveal action buttons with a smooth staggered upward flight animation, keeping unhovered cards compact without whitespace gaps.
 - **Documentation Alignment**: Updated API specifications, security whitepapers, and production deployment runbooks to reflect dedicated database credentials, rate limits, and cryptographic asset paths.
+- **Offline PMTiles Map Engine with Resilient Backend Fallback**: Implemented a hybrid tile-loading layer for the Street view that prioritizes local offline PMTiles archives (e.g., packaged municipal tiles in `assets/tiles/san-isidro.pmtiles`) for zero-latency, offline disaster-resilient mapping during power and telecom blackouts. If the offline archive is missing or a requested coordinate falls outside municipal bounds, it automatically falls back to the backend tile proxy server. Hardcoded map zoom bounds (minimum zoom 12, maximum zoom 19) are strictly enforced across street and satellite layers, while satellite imagery remains hosted on the backend.
 
 ### Direct Application Downloads
 

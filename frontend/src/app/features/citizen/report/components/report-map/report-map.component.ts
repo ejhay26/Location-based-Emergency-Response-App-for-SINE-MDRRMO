@@ -9,6 +9,7 @@ import * as L from 'leaflet';
 import { UserSettingsService } from '../../../../../core/services/user-settings';
 import { LocationService } from '../../../../../core/services/location';
 import { TourService } from '../../../../../core/services/tour';
+import { MapTileService } from '../../../../../core/services/map-tile.service';
 import { PressFeedbackDirective } from '../../../../../shared/directives/press-feedback.directive';
 import { environment } from '../../../../../../environments/environment';
 
@@ -36,6 +37,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   private locationSvc    = inject(LocationService);
   private cdr            = inject(ChangeDetectorRef);
   public  tour           = inject(TourService);
+  private mapTileService = inject(MapTileService);
 
   @Input() reportType: 'emergency' | 'hazard' = 'emergency';
   @Output() coordsChanged = new EventEmitter<ReportCoords | null>();
@@ -610,12 +612,21 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     // own internal element lookup can't hit the same duplicate-id collision
     // this class's other lookups were fixed for — see mapCanvasRef's doc
     // comment above. tryInit() already guards this truthy before calling here.
-    this.map = L.map(this.mapCanvasRef!.nativeElement, { minZoom: 12, zoomControl: false }).setView([15.3014, 120.9274], 14);
-    const osmTileUrl = (environment as any).mapTileUrl || 'http://159.223.42.159/tiles/osm/{z}/{x}/{y}.png';
-    const satelliteTileUrl = (environment as any).satelliteTileUrl || 'http://159.223.42.159/tiles/satellite/{z}/{y}/{x}.jpg';
+    this.map = L.map(this.mapCanvasRef!.nativeElement, {
+      minZoom: this.mapTileService.minZoom,
+      maxZoom: this.mapTileService.maxZoom,
+      zoomControl: false
+    }).setView([15.3014, 120.9274], 14);
+    const osmTileUrl = (environment as any).mapTileUrl || 'http://159.223.42.159:3000/tiles/osm/{z}/{x}/{y}.png';
+    const satelliteTileUrl = (environment as any).satelliteTileUrl || 'http://159.223.42.159:3000/tiles/satellite/{z}/{y}/{x}.jpg';
 
-    this.streetLayer = L.tileLayer(osmTileUrl, { maxZoom: 19, attribution: '© OpenStreetMap' });
-    this.satelliteLayer = L.tileLayer(satelliteTileUrl, { maxZoom: 19, maxNativeZoom: 18, attribution: '© Esri' });
+    this.streetLayer = this.mapTileService.createResilientStreetLayer({
+      backendTileUrl: osmTileUrl,
+      minZoom: this.mapTileService.minZoom,
+      maxZoom: this.mapTileService.maxZoom,
+      attribution: '© OpenStreetMap'
+    });
+    this.satelliteLayer = this.mapTileService.createSatelliteLayer(satelliteTileUrl);
 
     if (this.mapStyle === 'street') {
       this.streetLayer.addTo(this.map);

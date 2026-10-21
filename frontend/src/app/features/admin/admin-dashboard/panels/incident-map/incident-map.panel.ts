@@ -23,6 +23,7 @@ import { AppIconComponent } from '../../../../../shared/components/app-icon/app-
 import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 import { TourService } from '../../../../../core/services/tour';
 import { KeyboardShortcutsService } from '../../../../../core/services/keyboard-shortcuts.service';
+import { MapTileService } from '../../../../../core/services/map-tile.service';
 
 /**
  * Fallback polling interval for the incident map — active continuously as
@@ -376,6 +377,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     private echo: EchoService,
     public tour: TourService,
     private shortcuts: KeyboardShortcutsService,
+    private mapTileService: MapTileService,
   ) {
     const savedWidth = localStorage.getItem('admin_map_queue_width');
     if (savedWidth) {
@@ -834,20 +836,23 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   initMap() {
     if (this.map) return;
-    this.map = L.map('dispatch-map', { minZoom: 12, zoomControl: false }).setView([15.3014, 120.9274], 13);
-    const osmTileUrl = (environment as any).mapTileUrl || 'http://159.223.42.159/tiles/osm/{z}/{x}/{y}.png';
-    const satelliteTileUrl = (environment as any).satelliteTileUrl || 'http://159.223.42.159/tiles/satellite/{z}/{y}/{x}.jpg';
+    this.map = L.map('dispatch-map', {
+      minZoom: this.mapTileService.minZoom,
+      maxZoom: this.mapTileService.maxZoom,
+      zoomControl: false
+    }).setView([15.3014, 120.9274], 13);
 
-    this.streetLayer = L.tileLayer(osmTileUrl, {
-      maxZoom: 19,
+    const osmTileUrl = (environment as any).mapTileUrl || 'http://159.223.42.159:3000/tiles/osm/{z}/{x}/{y}.png';
+    const satelliteTileUrl = (environment as any).satelliteTileUrl || 'http://159.223.42.159:3000/tiles/satellite/{z}/{y}/{x}.jpg';
+
+    this.streetLayer = this.mapTileService.createResilientStreetLayer({
+      backendTileUrl: osmTileUrl,
+      minZoom: this.mapTileService.minZoom,
+      maxZoom: this.mapTileService.maxZoom,
       attribution: '© OpenStreetMap contributors'
     });
 
-    this.satelliteLayer = L.tileLayer(satelliteTileUrl, {
-      maxZoom: 19,
-      maxNativeZoom: 18,
-      attribution: '© Esri'
-    });
+    this.satelliteLayer = this.mapTileService.createSatelliteLayer(satelliteTileUrl);
 
     if (this.mapStyle === 'street') {
       this.streetLayer.addTo(this.map);
