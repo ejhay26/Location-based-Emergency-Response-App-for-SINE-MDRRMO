@@ -38,7 +38,6 @@
         cargo
         makeWrapper
         nodejs_22
-        nodePackages.npm
       ];
     in {
       packages = forAllSystems (system:
@@ -62,11 +61,15 @@
               export HOME="$TMPDIR/home"
               mkdir -p "$HOME"
 
-              cd "$src/frontend"
+              mkdir -p "$TMPDIR/work"
+              cp -a "$src/frontend" "$TMPDIR/work/frontend"
+              chmod -R u+w "$TMPDIR/work/frontend"
+
+              cd "$TMPDIR/work/frontend"
               npm install --legacy-peer-deps --include=dev
               npm run build
 
-              cd "$src/frontend/src-tauri"
+              cd "$TMPDIR/work/frontend/src-tauri"
               cargo build --release
             '';
 
@@ -77,7 +80,8 @@
               mkdir -p "$out/share/applications"
               mkdir -p "$out/share/icons/hicolor/128x128/apps"
 
-              cp "$src/frontend/src-tauri/target/release/mdrrmo-emergency-response-app" "$out/bin/mdrrmo-emergency-response-app"
+              cp "$TMPDIR/work/frontend/src-tauri/target/release/mdrrmo-emergency-response-app" \
+                "$out/bin/mdrrmo-emergency-response-app"
 
               wrapProgram "$out/bin/mdrrmo-emergency-response-app" \
                 --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath (tauriLibraries pkgs)}" \
@@ -86,8 +90,9 @@
                 --set GIO_MODULE_DIR "${pkgs.glib-networking}/lib/gio/modules" \
                 --set XDG_DATA_DIRS "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS"
 
-              if [ -f "$src/frontend/src-tauri/icons/128x128.png" ]; then
-                cp "$src/frontend/src-tauri/icons/128x128.png" "$out/share/icons/hicolor/128x128/apps/mdrrmo-emergency-response-app.png"
+              if [ -f "$TMPDIR/work/frontend/src-tauri/icons/128x128.png" ]; then
+                cp "$TMPDIR/work/frontend/src-tauri/icons/128x128.png" \
+                  "$out/share/icons/hicolor/128x128/apps/mdrrmo-emergency-response-app.png"
               fi
 
               cat > "$out/share/applications/mdrrmo-emergency-response-app.desktop" <<EOF
@@ -134,13 +139,6 @@ EOF
               export GIO_MODULE_DIR="${pkgs.glib-networking}/lib/gio/modules"
               export WEBKIT_DISABLE_COMPOSITING_MODE=1
               export WEBKIT_DISABLE_DMABUF_RENDERER=1
-
-              echo "SINE MDRRMO Desktop Frontend (NixOS / Tauri v2)"
-              echo "Commands:"
-              echo "  cd frontend"
-              echo "  npm install --legacy-peer-deps"
-              echo "  npm run build"
-              echo "  cargo tauri build --release"
             '';
           };
         }
