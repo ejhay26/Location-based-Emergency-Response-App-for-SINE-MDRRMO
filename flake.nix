@@ -15,75 +15,86 @@
           allowUnfree = true;
         };
       });
+
+      tauriLibraries = pkgs: with pkgs; [
+        webkitgtk_4_1
+        gtk3
+        cairo
+        gdk-pixbuf
+        glib
+        glib-networking
+        gsettings-desktop-schemas
+        pango
+        libsoup_3
+        openssl
+        librsvg
+        dbus
+        libappindicator-gtk3
+      ];
+
+      buildTools = pkgs: with pkgs; [
+        pkg-config
+        rustc
+        cargo
+        makeWrapper
+        nodejs_22
+        nodePackages.npm
+      ];
     in {
       packages = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
-          tauriLibraries = with pkgs; [
-            webkitgtk_4_1
-            gtk3
-            cairo
-            gdk-pixbuf
-            glib
-            glib-networking
-            gsettings-desktop-schemas
-            pango
-            libsoup_3
-            openssl
-            librsvg
-            dbus
-            libappindicator-gtk3
-          ];
         in {
-          default = pkgs.rustPlatform.buildRustPackage {
+          default = pkgs.stdenvNoCC.mkDerivation rec {
             pname = "mdrrmo-emergency-response-app";
             version = "0.84.7";
 
-            src = ./frontend;
+            src = ./.;
 
-            # Points sourceRoot to the Rust crate subfolder where Cargo.lock lives
-            postUnpack = ''
-              if [ -d "$sourceRoot/src-tauri" ]; then
-                sourceRoot="$sourceRoot/src-tauri"
-              elif [ -d "frontend/src-tauri" ]; then
-                sourceRoot="frontend/src-tauri"
-              fi
+            nativeBuildInputs = buildTools pkgs;
+            buildInputs = tauriLibraries pkgs;
+
+            dontUseNpmInstall = true;
+
+            buildPhase = ''
+              set -euo pipefail
+
+              export HOME="$TMPDIR/home"
+              mkdir -p "$HOME"
+
+              cd "$src/frontend"
+              npm install --legacy-peer-deps --include=dev
+              npm run build
+
+              cd "$src/frontend/src-tauri"
+              cargo build --release
             '';
 
-            cargoLock = {
-              lockFile = ./frontend/src-tauri/Cargo.lock;
-            };
+            installPhase = ''
+              set -euo pipefail
 
-            nativeBuildInputs = [
-              pkgs.pkg-config
-              pkgs.wrapGAppsHook3
-            ];
+              mkdir -p "$out/bin"
+              mkdir -p "$out/share/applications"
+              mkdir -p "$out/share/icons/hicolor/128x128/apps"
 
-            buildInputs = tauriLibraries;
+              cp "$src/frontend/src-tauri/target/release/mdrrmo-emergency-response-app" "$out/bin/mdrrmo-emergency-response-app"
 
-            doCheck = false;
+              wrapProgram "$out/bin/mdrrmo-emergency-response-app" \
+                --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath (tauriLibraries pkgs)}" \
+                --set WEBKIT_DISABLE_DMABUF_RENDERER 1 \
+                --set WEBKIT_DISABLE_COMPOSITING_MODE 1 \
+                --set GIO_MODULE_DIR "${pkgs.glib-networking}/lib/gio/modules" \
+                --set XDG_DATA_DIRS "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS"
 
-            # Ensure frontendDist (../www) exists so tauri-build succeeds
-            preBuild = ''
-              mkdir -p ../www
-              if [ ! -f ../www/index.html ]; then
-                echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>SINE MDRRMO</title></head><body><h1>SINE MDRRMO Emergency Response App</h1></body></html>' > ../www/index.html
+              if [ -f "$src/frontend/src-tauri/icons/128x128.png" ]; then
+                cp "$src/frontend/src-tauri/icons/128x128.png" "$out/share/icons/hicolor/128x128/apps/mdrrmo-emergency-response-app.png"
               fi
-            '';
 
-            postInstall = ''
-              mkdir -p $out/share/applications
-              mkdir -p $out/share/icons/hicolor/128x128/apps
-              if [ -f icons/128x128.png ]; then
-                cp icons/128x128.png $out/share/icons/hicolor/128x128/apps/mdrrmo-emergency-response-app.png
-              elif [ -f src-tauri/icons/128x128.png ]; then
-                cp src-tauri/icons/128x128.png $out/share/icons/hicolor/128x128/apps/mdrrmo-emergency-response-app.png
-              fi
-              cat > $out/share/applications/mdrrmo-emergency-response-app.desktop <<EOF
+              cat > "$out/share/applications/mdrrmo-emergency-response-app.desktop" <<EOF
 [Desktop Entry]
 Name=MDRRMO Emergency Response App
-Comment=Location-Based Emergency Response Operations Console
-Exec=mdrrmo-emergency-response-app
+Comment=Location-Based Emergency Response App for SINE MDRRMO
+Exec=$out/bin/mdrrmo-emergency-response-app
 Icon=mdrrmo-emergency-response-app
 Terminal=false
 Type=Application
@@ -112,50 +123,24 @@ EOF
       devShells = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
-          tauriLibraries = with pkgs; [
-            webkitgtk_4_1
-            gtk3
-            cairo
-            gdk-pixbuf
-            glib
-            glib-networking
-            gsettings-desktop-schemas
-            pango
-            libsoup_3
-            openssl
-            librsvg
-            dbus
-            libappindicator-gtk3
-          ];
-          buildTools = with pkgs; [
-            pkg-config
-            rustc
-            cargo
-            cargo-tauri
-            nodejs_22
-            nodePackages.npm
-          ];
         in {
           default = pkgs.mkShell {
-            nativeBuildInputs = [
-              pkgs.pkg-config
-              pkgs.wrapGAppsHook3
-            ];
-
-            buildInputs = tauriLibraries ++ buildTools;
+            nativeBuildInputs = buildTools pkgs;
+            buildInputs = tauriLibraries pkgs;
 
             shellHook = ''
-              export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath tauriLibraries}:$LD_LIBRARY_PATH"
+              export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath (tauriLibraries pkgs)}:$LD_LIBRARY_PATH"
               export XDG_DATA_DIRS="${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS"
               export GIO_MODULE_DIR="${pkgs.glib-networking}/lib/gio/modules"
               export WEBKIT_DISABLE_COMPOSITING_MODE=1
+              export WEBKIT_DISABLE_DMABUF_RENDERER=1
 
               echo "SINE MDRRMO Desktop Frontend (NixOS / Tauri v2)"
               echo "Commands:"
               echo "  cd frontend"
               echo "  npm install --legacy-peer-deps"
               echo "  npm run build"
-              echo "  cargo tauri dev"
+              echo "  cargo tauri build --release"
             '';
           };
         }
