@@ -90,12 +90,20 @@ export class SettingsPage implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.syncSettings();
+    this.widgetPin.isAvailable().then(v => this.widgetAvailable = v);
+  }
+
+  ionViewWillEnter() {
+    this.syncSettings();
+  }
+
+  private syncSettings(): void {
     this.appearance.forEach(s => s.value = this.settings.getBool(s.key));
     this.location.forEach(s => s.value = this.settings.getBool(s.key));
     this.notifications.forEach(s => s.value = this.settings.getBool(s.key));
     this.mapSettings.forEach(s => s.value = this.settings.get(s.key));
     this.reporting.forEach(s => s.value = this.settings.getBool(s.key));
-    this.widgetPin.isAvailable().then(v => this.widgetAvailable = v);
   }
 
   private lastToggleOrigin: { x: number; y: number } | null = null;

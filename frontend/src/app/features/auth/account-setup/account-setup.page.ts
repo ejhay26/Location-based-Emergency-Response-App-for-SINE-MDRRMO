@@ -147,8 +147,10 @@ export class AccountSetupPage implements OnInit {
     this.currentSlide = index;
   }
 
-  onToggle(setting: SetupToggle) {
-    this.settings.setBool(setting.key, setting.value);
+  onToggle(setting: SetupToggle, event?: any) {
+    const isChecked = event?.detail?.checked !== undefined ? event.detail.checked : !setting.value;
+    setting.value = isChecked;
+    this.settings.setBool(setting.key, isChecked);
     if (setting.key === 'dark_mode')         document.documentElement.classList.toggle('ion-palette-dark', setting.value);
     if (setting.key === 'reduce_animations') document.documentElement.classList.toggle('reduce-animations', setting.value);
     if (setting.key === 'location_auto_fetch') {

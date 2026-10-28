@@ -33,7 +33,21 @@ export class UserSettingsService {
   private cache: Record<string, string> = { ...DEFAULTS };
   private router = inject(Router);
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService) {
+    this.hydrateFromStorage();
+  }
+
+  private hydrateFromStorage(): void {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          this.cache = { ...DEFAULTS, ...parsed };
+        }
+      } catch {}
+    }
+  }
 
   /** Call once after login to pull settings from the server into local cache. */
   async loadFromServer(userId: number): Promise<void> {

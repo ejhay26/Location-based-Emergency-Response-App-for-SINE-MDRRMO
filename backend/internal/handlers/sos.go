@@ -22,6 +22,31 @@ type SubmitSosRequest struct {
 	Description    *string  `json:"description"`
 }
 
+func (r *SubmitSosRequest) UnmarshalJSON(data []byte) error {
+	type Alias SubmitSosRequest
+	aux := struct {
+		RawIncidentTypeID any `json:"incident_type_id"`
+		RawLatitude       any `json:"latitude"`
+		RawLongitude      any `json:"longitude"`
+		*Alias
+	}{
+		Alias: (*Alias)(r),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	if aux.RawIncidentTypeID != nil {
+		r.IncidentTypeID = parseFlexibleInt(aux.RawIncidentTypeID)
+	}
+	if aux.RawLatitude != nil {
+		r.Latitude = parseFlexibleFloat64(aux.RawLatitude)
+	}
+	if aux.RawLongitude != nil {
+		r.Longitude = parseFlexibleFloat64(aux.RawLongitude)
+	}
+	return nil
+}
+
 func SubmitSos(c *fiber.Ctx) error {
 	user := middleware.GetUser(c)
 	if user == nil {
@@ -29,7 +54,7 @@ func SubmitSos(c *fiber.Ctx) error {
 	}
 
 	var req SubmitSosRequest
-	if err := c.BodyParser(&req); err != nil || req.IncidentTypeID <= 0 {
+	if err := c.BodyParser(&req); err != nil || req.IncidentTypeID <= 0 || req.Latitude == 0 || req.Longitude == 0 {
 		return c.Status(422).JSON(fiber.Map{"message": "Valid incident type and location are required."})
 	}
 

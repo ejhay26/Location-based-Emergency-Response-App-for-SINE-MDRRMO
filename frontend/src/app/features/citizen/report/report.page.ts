@@ -284,9 +284,26 @@ export class ReportPage implements OnDestroy {
 
     this.isSubmitting = true;
     const proofFiles = this.mediaFiles.map(m => m.preview);
+    const lat = Number(this.reportForm.value.latitude);
+    const lng = Number(this.reportForm.value.longitude);
+    const incId = Number(this.reportForm.value.incident_type_id);
     const payload = this.reportType === 'emergency'
-      ? { user_id: user.user_id, incident_type_id: this.reportForm.value.incident_type_id, description: this.reportForm.value.description, latitude: this.reportForm.value.latitude, longitude: this.reportForm.value.longitude, proof_files: proofFiles }
-      : { user_id: user.user_id, description: this.reportForm.value.description || '', hazard_type: this.reportForm.value.hazard_type, latitude: this.reportForm.value.latitude, longitude: this.reportForm.value.longitude, proof_files: proofFiles };
+      ? {
+          user_id: user.user_id,
+          incident_type_id: isNaN(incId) ? 0 : incId,
+          description: this.reportForm.value.description || '',
+          latitude: isNaN(lat) ? 0 : lat,
+          longitude: isNaN(lng) ? 0 : lng,
+          proof_files: proofFiles
+        }
+      : {
+          user_id: user.user_id,
+          description: this.reportForm.value.description || '',
+          hazard_type: this.reportForm.value.hazard_type,
+          latitude: isNaN(lat) ? 0 : lat,
+          longitude: isNaN(lng) ? 0 : lng,
+          proof_files: proofFiles
+        };
 
     // Skip the live attempt entirely when we already know we're offline —
     // no point waiting out a doomed request's timeout first. `isOnline` is

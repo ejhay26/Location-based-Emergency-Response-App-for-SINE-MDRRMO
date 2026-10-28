@@ -22,6 +22,27 @@ type SubmitHazardRequest struct {
 	HazardType  *string  `json:"hazard_type"`
 }
 
+func (r *SubmitHazardRequest) UnmarshalJSON(data []byte) error {
+	type Alias SubmitHazardRequest
+	aux := struct {
+		RawLatitude  any `json:"latitude"`
+		RawLongitude any `json:"longitude"`
+		*Alias
+	}{
+		Alias: (*Alias)(r),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	if aux.RawLatitude != nil {
+		r.Latitude = parseFlexibleFloat64(aux.RawLatitude)
+	}
+	if aux.RawLongitude != nil {
+		r.Longitude = parseFlexibleFloat64(aux.RawLongitude)
+	}
+	return nil
+}
+
 func SubmitHazard(c *fiber.Ctx) error {
 	user := middleware.GetUser(c)
 	if user == nil {
@@ -29,7 +50,7 @@ func SubmitHazard(c *fiber.Ctx) error {
 	}
 
 	var req SubmitHazardRequest
-	if err := c.BodyParser(&req); err != nil || req.Description == "" || len(req.ProofFiles) == 0 {
+	if err := c.BodyParser(&req); err != nil || req.Description == "" || len(req.ProofFiles) == 0 || req.Latitude == 0 || req.Longitude == 0 {
 		return c.Status(422).JSON(fiber.Map{"message": "Description, coordinates, and at least 1 proof photo are required."})
 	}
 
