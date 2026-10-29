@@ -24,6 +24,9 @@ The desktop application intercepts native workstation hotkeys to optimize emerge
 | <kbd>Ctrl</kbd> + <kbd>B</kbd> | <kbd>⌘</kbd> + <kbd>B</kbd> | **Toggle Sidebar** | All Staff | Collapses or expands the left navigation menu between compact and full width. |
 | <kbd>Ctrl</kbd> + <kbd>D</kbd> | <kbd>⌘</kbd> + <kbd>D</kbd> | **Toggle Dark / Light Mode** | All Staff | Seamlessly switches between the night-shift dark workstation and high-contrast light theme. |
 | <kbd>Ctrl</kbd> + <kbd>N</kbd> | <kbd>⌘</kbd> + <kbd>N</kbd> | **New Announcement Composer** | All Staff | Navigates to Alert Broadcast and expands the announcement composer. |
+| <kbd>Ctrl</kbd> + <kbd>+</kbd> / <kbd>=</kbd> | <kbd>⌘</kbd> + <kbd>+</kbd> / <kbd>=</kbd> | **Zoom In (Scale Up)** | All Staff | Increases workstation display scale in 10% steps up to 150%. |
+| <kbd>Ctrl</kbd> + <kbd>-</kbd> | <kbd>⌘</kbd> + <kbd>-</kbd> | **Zoom Out (Scale Down)** | All Staff | Decreases workstation display scale down to 75%. |
+| <kbd>Ctrl</kbd> + <kbd>0</kbd> | <kbd>⌘</kbd> + <kbd>0</kbd> | **Reset Zoom (100%)** | All Staff | Restores default 100% 1:1 pixel scaling. |
 | <kbd>ESC</kbd> | <kbd>esc</kbd> | **Dismiss / Cancel** | All Staff | Cascading dismiss for modal dialogs, lightboxes, command palette, and drawer sheets. |
 | <kbd>ENTER</kbd> | <kbd>return</kbd> | **Confirm / Select** | All Staff | Executes primary confirmation on dialogs or runs the highlighted command palette item. |
 | <kbd>SPACE</kbd> | <kbd>space</kbd> | **Toggle Video Playback** | All Staff | Pauses or plays video recordings in the full-screen media lightbox without page scroll. |
@@ -31,6 +34,10 @@ The desktop application intercepts native workstation hotkeys to optimize emerge
 > [!NOTE]
 > **Preserved Multiline Line Breaks:**  
 > When typing inside multiline text inputs (`<textarea>`, `<ion-textarea>`, or editable rich text), pressing <kbd>ENTER</kbd> inserts a natural line break without triggering dialog submission or navigation.
+
+> [!TIP]
+> **Universal Display Scaling & Zoom:**  
+> In addition to hotkeys (<kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>+</kbd>, <kbd>-</kbd>, <kbd>0</kbd>), dispatchers can adjust granular workstation scaling between 75% and 150% via the slider in **Settings Panel**. The chosen scale is instantly persisted and automatically restored on next application launch.
 
 ---
 

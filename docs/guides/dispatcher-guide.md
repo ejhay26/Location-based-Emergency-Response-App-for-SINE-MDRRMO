@@ -38,20 +38,21 @@ The **Incident Map** is the primary operational dashboard:
         ▼
 [Tap "Dispatch" Button]
         ├─ Step 1: Select Responding Agency (MDRRMO Rescue, BFP, PNP, RHU)
-        ├─ Step 2: Add Protocol Notes (e.g. VHF radio dispatch details, crew directives)
+        ├─ Step 2: Assign Unit Tag (Select preset chip e.g. AMB-01, RESCUE-ALPHA, or type custom callsign)
+        ├─ Step 3: Add Protocol Notes (e.g. VHF radio dispatch details, crew directives)
         │
         ▼
-[Confirm Dispatch] ──▶ Status becomes "Dispatched" (Citizen notified via Push Alert)
+[Confirm Dispatch] ──▶ Status becomes "Dispatched" (Citizen sees responding agency & unit callsign)
         │
         ▼ (Incident Resolved on Scene)
 [Tap "Resolve"]    ──▶ Confirmation dialog with animated loading spinner
-        │             (Active dispatch marked completed)
+        │             (Active dispatch marked completed with resolver audit record)
         │
         ▼
 Status becomes "Resolved" & moved to Log Archive
 ```
 
-- **Copy Coordinates:** Dispatchers can click the coordinate button on any incident card to copy latitude and longitude directly to the clipboard.
+- **Copy Coordinates & Dispatch Brief:** Dispatchers can click the coordinate button to copy latitude/longitude, or click the **Brief** button to copy a complete situational summary (incident type, reporter, phone, location, coordinates, assigned unit, and timestamp) directly to the clipboard for rapid VHF radio or group chat dissemination.
 
 ---
 
@@ -73,7 +74,8 @@ The **Log Archive** stores all completed, resolved, and cancelled emergency reco
 ### Features
 - **Keyword Search:** Search by citizen name, username, phone number, or description.
 - **Date Range Filter:** Filter by Single Day, Multi-Day, or a custom Date Range using the calendar selector.
-- **Download Certified PDF:** Export filtered records into a formatted situation summary for council briefings.
+- **Operational Audit Trail:** Every resolved log displays a dedicated audit box detailing **Dispatched By** (dispatcher staff member), **Assigned Unit** (vehicle or rescue crew callsign), and **Resolved By** (personnel who verified incident closure) along with exact chronological timestamps.
+- **Download Certified PDF:** Export filtered records into a formatted situation summary for council briefings with complete audit trail and responder unit metadata included.
 - **Mark False Alarm:**  
   If on-site verification confirms that a reported emergency was fraudulent or malicious:
   1. Open the incident in Log Archive.
@@ -133,7 +135,8 @@ Dispatcher desktop workstations support high-velocity keyboard shortcuts and qui
 - <kbd>Ctrl</kbd> + <kbd>,</kbd> (<kbd>⌘</kbd> + <kbd>,</kbd> on macOS): Jump directly to Settings.
 - <kbd>F1</kbd> (<kbd>⌘</kbd> + <kbd>?</kbd> on macOS): Open SOPs, Operator Procedures & Tours.
 - <kbd>Ctrl</kbd> + <kbd>F</kbd> / <kbd>Ctrl</kbd> + <kbd>K</kbd>: Open Apple Spotlight-style **Quick Search & Command Palette** (jump to panels, execute actions, or zoom directly to any barangay on the map).
-- <kbd>Ctrl</kbd> + <kbd>1</kbd> – <kbd>4</kbd>: Switch between Incident Map, Alert Broadcast, ID Verifications, and Analytics.
+- <kbd>Ctrl</kbd> + <kbd>1</kbd> – <kbd>4</kbd>: Switch between Incident Map, Log Archive, Analytics, and Alert Broadcast.
+- <kbd>Ctrl</kbd> + <kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd>: Universal Display Zoom In, Zoom Out, and Reset (100%).
 - <kbd>Ctrl</kbd> + <kbd>B</kbd>: Toggle sidebar collapse/expand.
 - <kbd>Ctrl</kbd> + <kbd>D</kbd>: Toggle dark/light theme.
 - <kbd>Ctrl</kbd> + <kbd>N</kbd>: Open Alert Broadcast and stretch open the Announcement Composer.

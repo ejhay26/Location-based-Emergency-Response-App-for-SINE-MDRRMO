@@ -150,6 +150,7 @@ In addition to live response, administrators have deep visibility into historica
 - **Reduce Animations:** Minimize UI transition effects for maximum performance on lower-spec workstations.
 - **Emergency Audio & Push Alerts:** Enable or mute real-time sound cues and push alerts for incoming SOS calls.
 - **Default Map Style:** Set the default tile layer for the Incident Map (**Street View** vs. **Satellite Imagery**).
+- **Universal Display Scaling & Zoom:** Fine-tune workstation interface scaling between 75% and 150% via the granular zoom slider, instantly stored and synchronized with keyboard shortcuts (<kbd>Ctrl</kbd> + <kbd>+</kbd>, <kbd>-</kbd>, <kbd>0</kbd>).
 - **Interactive Guided Tours:** Step-by-step walkthroughs for dispatch, broadcasts, archiving, and staff management with viewport-adaptive mobile steps, interactive element tracking (including expanding the broadcast composer and inspecting saved drafts), and mock demo fallbacks.
 - **Concurrent Device Sessions:** Admin accounts support simultaneous logins across the native desktop workstation (Tauri) and mobile devices without expiring active sessions.
 - **Session Logout:** Safely terminate the administrative session and clear local credentials.
@@ -167,7 +168,8 @@ For fast incident response on administrative workstations, global hotkeys and a 
 
 ![Spotlight Quick Search Palette](../assets/admin/quick-search.png)
 
-- <kbd>Ctrl</kbd> + <kbd>1</kbd> – <kbd>4</kbd>: Direct switch between Incident Map, Broadcast Center, ID Verifications, and Analytics.
+- <kbd>Ctrl</kbd> + <kbd>1</kbd> – <kbd>8</kbd>: Direct switch between Incident Map, Log Archive, Analytics, Alert Broadcast, Citizen Feedback, ID Verifications, Dispatchers, and Citizens Directory.
+- <kbd>Ctrl</kbd> + <kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd>: Universal Display Zoom In, Zoom Out, and Reset (100%).
 - <kbd>Ctrl</kbd> + <kbd>B</kbd>: Toggle sidebar collapse/expand.
 - <kbd>Ctrl</kbd> + <kbd>D</kbd>: Toggle dark/light theme.
 - <kbd>Ctrl</kbd> + <kbd>N</kbd>: Open Alert Broadcast and stretch open the Announcement Composer.
