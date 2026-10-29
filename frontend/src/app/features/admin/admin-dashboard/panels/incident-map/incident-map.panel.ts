@@ -1,3 +1,9 @@
+export interface ResponderUnitTag {
+  key: string;
+  value: string;
+  agency?: string;
+}
+
 import { Component, Input, OnChanges, AfterViewInit, OnDestroy, SimpleChanges, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -96,18 +102,20 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   isDispatchModalOpen = false;
   isDispatching = false;
   dispatchForm = { request_id: null as number | null, agency: '', unit_name: '', notes: '' };
-  readonly defaultUnits: string[] = [
-    'Ambulance Alpha',
-    'Ambulance Bravo',
-    'Rescue Team 1',
-    'Fire Engine 2',
-    'Police Patrol 1',
-    'RHU Mobile Nurse'
+  readonly defaultUnits: ResponderUnitTag[] = [
+    { key: 'AMB-01', value: 'Ambulance Alpha', agency: 'MDRRMO Rescue' },
+    { key: 'AMB-02', value: 'Ambulance Bravo', agency: 'MDRRMO Rescue' },
+    { key: 'RES-01', value: 'Rescue Team 1', agency: 'MDRRMO Rescue' },
+    { key: 'ENG-02', value: 'Fire Engine 2', agency: 'BFP Fire Rescue' },
+    { key: 'PAT-01', value: 'Police Patrol 1', agency: 'PNP Police Assistance' },
+    { key: 'RHU-01', value: 'RHU Mobile Nurse', agency: 'RHU Health Unit' }
   ];
-  availableUnits: string[] = [...this.defaultUnits];
+  availableUnits: ResponderUnitTag[] = this.defaultUnits.map(u => ({ ...u }));
   isAddingUnit = false;
-  newUnitName = '';
+  newUnitKey = '';
+  newUnitValue = '';
   editingUnitIndex: number | null = null;
+  editingUnitKey = '';
   editingUnitValue = '';
 
   selectedBarangays: number[] = [];
@@ -1143,12 +1151,28 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          this.availableUnits = parsed;
+          this.availableUnits = parsed.map((item: any, idx: number) => {
+            if (typeof item === 'string') {
+              const parts = item.split(' - ');
+              return {
+                key: parts.length > 1 ? parts[0].trim() : ('UNIT-' + (idx + 1)),
+                value: (parts.length > 1 ? parts.slice(1).join(' - ') : item).trim()
+              };
+            }
+            if (item && typeof item === 'object') {
+              return {
+                key: String(item.key || ('UNIT-' + (idx + 1))).trim(),
+                value: String(item.value || item.name || item.label || ('Unit ' + (idx + 1))).trim(),
+                agency: item.agency ? String(item.agency).trim() : undefined
+              };
+            }
+            return { key: 'UNIT-' + (idx + 1), value: 'Unit ' + (idx + 1) };
+          });
           return;
         }
       }
     } catch {}
-    this.availableUnits = [...this.defaultUnits];
+    this.availableUnits = this.defaultUnits.map(u => ({ ...u }));
   }
 
   saveAvailableUnits(): void {
@@ -1157,47 +1181,83 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     } catch {}
   }
 
+  isUnitSelected(tag: ResponderUnitTag): boolean {
+    if (!this.dispatchForm.unit_name || !tag) return false;
+    const cur = this.dispatchForm.unit_name.trim().toLowerCase();
+    const val = tag.value.trim().toLowerCase();
+    const full = (tag.key + ' - ' + tag.value).trim().toLowerCase();
+    return cur === val || cur === full || cur === tag.key.trim().toLowerCase();
+  }
+
+  toggleSelectUnit(tag: ResponderUnitTag): void {
+    if (this.isUnitSelected(tag)) {
+      this.dispatchForm.unit_name = '';
+    } else {
+      this.dispatchForm.unit_name = tag.key ? `${tag.key} - ${tag.value}` : tag.value;
+      if (tag.agency && !this.dispatchForm.agency) {
+        this.dispatchForm.agency = tag.agency;
+      }
+    }
+  }
+
   startAddUnit(): void {
     this.isAddingUnit = true;
-    this.newUnitName = '';
+    this.newUnitKey = '';
+    this.newUnitValue = '';
     this.editingUnitIndex = null;
   }
 
   confirmAddUnit(): void {
-    const trimmed = this.newUnitName.trim();
-    if (!trimmed) return;
-    if (!this.availableUnits.includes(trimmed)) {
-      this.availableUnits.push(trimmed);
-      this.saveAvailableUnits();
+    const val = this.newUnitValue.trim();
+    if (!val) return;
+    let key = this.newUnitKey.trim().toUpperCase();
+    if (!key) {
+      key = val.slice(0, 3).toUpperCase() + '-' + (this.availableUnits.length + 1);
     }
-    this.dispatchForm.unit_name = trimmed;
+    const newTag: ResponderUnitTag = {
+      key,
+      value: val,
+      agency: this.dispatchForm.agency || undefined
+    };
+    this.availableUnits.push(newTag);
+    this.saveAvailableUnits();
+    this.toggleSelectUnit(newTag);
     this.isAddingUnit = false;
-    this.newUnitName = '';
+    this.newUnitKey = '';
+    this.newUnitValue = '';
   }
 
   cancelAddUnit(): void {
     this.isAddingUnit = false;
-    this.newUnitName = '';
+    this.newUnitKey = '';
+    this.newUnitValue = '';
   }
 
   startEditUnit(index: number, ev: Event): void {
     ev.stopPropagation();
+    const tag = this.availableUnits[index];
+    if (!tag) return;
     this.editingUnitIndex = index;
-    this.editingUnitValue = this.availableUnits[index] || '';
+    this.editingUnitKey = tag.key || '';
+    this.editingUnitValue = tag.value || '';
     this.isAddingUnit = false;
   }
 
   confirmEditUnit(index: number, ev?: Event): void {
     if (ev) ev.stopPropagation();
-    const trimmed = this.editingUnitValue.trim();
-    if (!trimmed) {
+    const tag = this.availableUnits[index];
+    if (!tag) return;
+    const val = this.editingUnitValue.trim();
+    if (!val) {
       this.cancelEditUnit(ev);
       return;
     }
-    const oldVal = this.availableUnits[index];
-    this.availableUnits[index] = trimmed;
-    if (this.dispatchForm.unit_name === oldVal) {
-      this.dispatchForm.unit_name = trimmed;
+    const key = (this.editingUnitKey.trim().toUpperCase()) || tag.key;
+    const oldCallsign = tag.key ? `${tag.key} - ${tag.value}` : tag.value;
+    tag.key = key;
+    tag.value = val;
+    if (this.dispatchForm.unit_name === oldCallsign || this.dispatchForm.unit_name === tag.value) {
+      this.dispatchForm.unit_name = `${key} - ${val}`;
     }
     this.saveAvailableUnits();
     this.editingUnitIndex = null;
@@ -1210,8 +1270,9 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   deleteUnit(index: number, ev: Event): void {
     ev.stopPropagation();
-    const removed = this.availableUnits[index];
-    if (this.dispatchForm.unit_name === removed) {
+    const tag = this.availableUnits[index];
+    if (!tag) return;
+    if (this.isUnitSelected(tag)) {
       this.dispatchForm.unit_name = '';
     }
     this.availableUnits.splice(index, 1);
@@ -1222,7 +1283,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   resetUnitsToDefault(): void {
-    this.availableUnits = [...this.defaultUnits];
+    this.availableUnits = this.defaultUnits.map(u => ({ ...u }));
     this.saveAvailableUnits();
     this.editingUnitIndex = null;
     this.isAddingUnit = false;
