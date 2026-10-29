@@ -9,6 +9,8 @@ export interface FloatingSosStatus {
   status: 'Pending' | 'Dispatched' | 'Resolved' | 'Cancelled';
   request_time: string;
   incident_name?: string | null;
+  agency?: string | null;
+  unit_name?: string | null;
 }
 
 type PillState = 'offline' | 'pending' | 'dispatched';
@@ -64,13 +66,30 @@ export class FloatingSosCardComponent {
 
     for (const r of this.activeReports) {
       const state: PillState = r.status === 'Dispatched' ? 'dispatched' : 'pending';
+      const label = r.incident_name
+        ? `${r.incident_name} Emergency`
+        : (state === 'dispatched' ? 'Help Is On The Way' : 'Emergency SOS');
+
+      let sublabel = '';
+      if (state === 'dispatched') {
+        if (r.agency && r.unit_name) {
+          sublabel = `${r.agency} (${r.unit_name}) is en route to your location.`;
+        } else if (r.agency) {
+          sublabel = `${r.agency} is en route to your location.`;
+        } else if (r.unit_name) {
+          sublabel = `${r.unit_name} is en route to your location.`;
+        } else {
+          sublabel = 'A responder has been dispatched to your location.';
+        }
+      } else {
+        sublabel = 'MDRRMO has received your request and is reviewing it.';
+      }
+
       result.push({
         key: r.request_id,
         state,
-        label: state === 'dispatched' ? 'Help Is On The Way' : 'SOS Sent — Awaiting Response',
-        sublabel: state === 'dispatched'
-          ? 'A responder has been dispatched to your location.'
-          : 'MDRRMO has received your request and is reviewing it.',
+        label,
+        sublabel,
         icon: state === 'dispatched' ? 'truck-medical' : 'clock',
         timeAgo: this.calcTimeAgo(r.request_time),
         requestId: r.request_id,

@@ -39,9 +39,26 @@ class SosController extends Controller
 
         $existing = EmergencyRequest::where('user_id', $userId)
             ->whereIn('status', ['Pending', 'Dispatched'])
-            ->first();
-        if ($existing) {
-            return response()->json(['message' => 'You already have an active emergency request!'], 429);
+            ->get();
+
+        if ($existing->count() >= 3) {
+            return response()->json(['message' => 'You have reached the maximum of 3 concurrent active emergency reports.'], 409);
+        }
+
+        foreach ($existing as $active) {
+            if ($active->incident_type_id == $request->incident_type_id) {
+                if ($active->latitude && $active->longitude) {
+                    $dLat = deg2rad((float)$request->latitude - (float)$active->latitude);
+                    $dLon = deg2rad((float)$request->longitude - (float)$active->longitude);
+                    $a = sin($dLat/2) * sin($dLat/2) + cos(deg2rad((float)$active->latitude)) * cos(deg2rad((float)$request->latitude)) * sin($dLon/2) * sin($dLon/2);
+                    $dist = 6371000 * 2 * atan2(sqrt($a), sqrt(1-$a));
+                    if ($dist < 100) {
+                        return response()->json(['message' => 'You already have an active emergency of this type at this location.'], 409);
+                    }
+                } else {
+                    return response()->json(['message' => 'You already have an active emergency of this type pending response.'], 409);
+                }
+            }
         }
 
         $proofFilesJson = null;
