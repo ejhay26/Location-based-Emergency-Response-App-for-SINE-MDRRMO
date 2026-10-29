@@ -63,7 +63,7 @@
     <p style="margin: 0; color: var(--ion-color-medium); font-size: 13.5px;">Registered citizens will appear here.</p>
   </div>
 
-  <div *ngIf="citizens.length > 0 && filteredCitizens.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
+  <div *ngIf="!isLoading && citizens.length > 0 && filteredCitizens.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
     <p>No citizens match the current filters.</p>
   </div>
 

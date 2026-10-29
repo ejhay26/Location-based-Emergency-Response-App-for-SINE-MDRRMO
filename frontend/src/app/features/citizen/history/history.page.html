@@ -43,7 +43,16 @@
   </ion-card>
 
   <div>
-    <ng-container *ngIf="isLoading"><ion-card *ngFor="let i of [1,2,3]" style="margin:10px 0;border-radius:18px;"><ion-item lines="none"><ion-label><h2><ion-skeleton-text [animated]="true" style="width:60%;"></ion-skeleton-text></h2><p><ion-skeleton-text [animated]="true" style="width:40%;"></ion-skeleton-text></p></ion-label></ion-item></ion-card></ng-container>
+    <ng-container *ngIf="isLoading">
+      <ion-card *ngFor="let i of [1,2,3]" style="margin: 12px 0; border-radius: 18px; padding: 14px; background: var(--ion-card-background, #fff); box-shadow: 0 4px 14px rgba(0,0,0,0.04);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <ion-skeleton-text [animated]="true" style="width: 45%; height: 16px; border-radius: 4px;"></ion-skeleton-text>
+          <ion-skeleton-text [animated]="true" style="width: 25%; height: 20px; border-radius: 10px;"></ion-skeleton-text>
+        </div>
+        <ion-skeleton-text [animated]="true" style="width: 80%; height: 12px; border-radius: 4px; margin-bottom: 6px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 50%; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+      </ion-card>
+    </ng-container>
 
     <div *ngIf="!isLoading && filteredEmergencies.length === 0 && !filterSettling" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;text-align:center;">
       <app-icon name="history" [size]="52" color="var(--ion-color-step-400,#bbb)" style="margin-bottom:14px;"></app-icon>

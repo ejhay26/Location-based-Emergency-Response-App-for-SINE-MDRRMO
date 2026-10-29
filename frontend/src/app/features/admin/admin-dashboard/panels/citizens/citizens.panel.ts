@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
-  IonButton, IonModal, IonContent
+  IonButton, IonModal, IonContent, IonSkeletonText
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -27,7 +27,7 @@ import { TourService } from '../../../../../core/services/tour';
   selector: 'app-citizens-panel',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, IonButton, IonModal, IonContent,
+    CommonModule, FormsModule, IonButton, IonModal, IonContent, IonSkeletonText,
     ProxyImageDirective, UtcDatePipe, DateRangeFilterComponent,
     FilterSummaryBarComponent, ListEnterDirective, AppIconComponent,
     FilterDropdownComponent, CustomTooltipDirective
@@ -37,6 +37,7 @@ import { TourService } from '../../../../../core/services/tour';
 })
 export class CitizensPanel implements OnInit, OnDestroy {
 
+  isLoading = true;
   citizens: any[] = [];
   citizenSearch = '';
   citizenFilterStatus: 'all' | 'active' | 'suspended' | 'has_strikes' | 'clean' = 'all';
@@ -259,7 +260,16 @@ export class CitizensPanel implements OnInit, OnDestroy {
   }
 
   loadCitizens() {
-    this.api.getCitizens().subscribe((res: any) => { this.citizens = res; });
+    this.isLoading = true;
+    this.api.getCitizens().subscribe({
+      next: (res: any) => {
+        this.citizens = res || [];
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   // ── Strike Management Modal ──────────────────────────────────────────

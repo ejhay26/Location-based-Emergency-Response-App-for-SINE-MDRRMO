@@ -70,8 +70,26 @@
     {{ filteredArchivedRequests.length }} of {{ archivedRequests.length }} records
   </p>
 
+  <!-- Skeleton Loader -->
+  <div *ngIf="isLoading" style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
+    <div *ngFor="let i of [1,2,3,4]" style="padding: 18px; border-radius: 16px; background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <ion-skeleton-text [animated]="true" style="width: 40px; height: 40px; border-radius: 12px;"></ion-skeleton-text>
+          <div>
+            <ion-skeleton-text [animated]="true" style="width: 140px; height: 16px; border-radius: 4px; margin-bottom: 6px;"></ion-skeleton-text>
+            <ion-skeleton-text [animated]="true" style="width: 90px; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+          </div>
+        </div>
+        <ion-skeleton-text [animated]="true" style="width: 70px; height: 24px; border-radius: 8px;"></ion-skeleton-text>
+      </div>
+      <ion-skeleton-text [animated]="true" style="width: 80%; height: 13px; border-radius: 4px; margin-bottom: 6px;"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="true" style="width: 50%; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+    </div>
+  </div>
+
   <div
-    *ngIf="filteredArchivedRequests.length === 0"
+    *ngIf="!isLoading && filteredArchivedRequests.length === 0"
     class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
     <p>No matching log entries.</p>
   </div>

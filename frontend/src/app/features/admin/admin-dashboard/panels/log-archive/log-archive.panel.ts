@@ -2,7 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { IonButton, IonBadge } from '@ionic/angular/standalone';
+import { IonButton, IonBadge, IonSkeletonText } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
 import { UserSettingsService } from '../../../../../core/services/user-settings';
@@ -28,7 +28,7 @@ const ARCHIVE_FILTER_LABELS: Record<string, string> = {
   selector: 'app-log-archive-panel',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, IonButton, IonBadge, ProxyImageDirective, VideoThumbnailDirective, UtcDatePipe,
+    CommonModule, FormsModule, IonButton, IonBadge, IonSkeletonText, ProxyImageDirective, VideoThumbnailDirective, UtcDatePipe,
     DateRangeFilterComponent, FilterSummaryBarComponent, RevealAnimateDirective, ListEnterDirective,
     AppIconComponent, FilterDropdownComponent, CustomTooltipDirective
   ],
@@ -36,6 +36,7 @@ const ARCHIVE_FILTER_LABELS: Record<string, string> = {
 })
 export class LogArchivePanel implements OnInit {
 
+  isLoading = true;
   archivedRequests: any[] = [];
 
   archiveFilter: 'all' | 'resolved' | 'false_alarm' | 'cancelled' = 'all';

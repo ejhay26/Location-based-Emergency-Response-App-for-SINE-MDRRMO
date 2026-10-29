@@ -66,7 +66,7 @@
     <p style="margin: 0; color: var(--ion-color-medium); font-size: 13.5px;">Click "Add Dispatcher" to create the first account.</p>
   </div>
 
-  <div *ngIf="dispatchers.length > 0 && filteredDispatchers.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
+  <div *ngIf="!isLoading && dispatchers.length > 0 && filteredDispatchers.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
     <p>No dispatchers match the current filters.</p>
   </div>
 

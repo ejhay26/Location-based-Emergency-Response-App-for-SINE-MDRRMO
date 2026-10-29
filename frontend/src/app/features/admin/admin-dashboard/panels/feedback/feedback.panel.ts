@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { IonSkeletonText } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../../../core/services/api';
@@ -17,11 +18,12 @@ export type FeedbackFilter = 'all' | 'suggestion' | 'bug' | 'general' | 'high_ra
 @Component({
   selector: 'app-feedback-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, UtcDatePipe, ListEnterDirective, AppIconComponent, CustomTooltipDirective],
+  imports: [CommonModule, FormsModule, IonSkeletonText, UtcDatePipe, ListEnterDirective, AppIconComponent, CustomTooltipDirective],
   templateUrl: './feedback.panel.html',
 })
 export class FeedbackPanel implements OnInit {
 
+  isLoading = true;
   feedbackList: any[] = [];
   activeFilter: FeedbackFilter = 'all';
   isForwardingBug: Record<number, boolean> = {};
@@ -40,9 +42,16 @@ export class FeedbackPanel implements OnInit {
   }
 
   loadFeedback() {
+    this.isLoading = true;
     this.api.getFeedback().subscribe({
-      next: (res: any) => { this.feedbackList = res || []; },
-      error: () => this.ui.showToast('Failed to load citizen feedback.', 'danger')
+      next: (res: any) => {
+        this.feedbackList = res || [];
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.ui.showToast('Failed to load citizen feedback.', 'danger');
+      }
     });
   }
 

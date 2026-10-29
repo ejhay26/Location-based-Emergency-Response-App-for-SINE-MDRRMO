@@ -55,7 +55,7 @@ export class HistoryPage implements OnInit, OnDestroy {
   readonly statusFilters = STATUS_FILTERS;
 
   emergencies: any[] = [];
-  isLoading = false;
+  isLoading = true;
 
   statusFilter: StatusFilter = 'All';
   dateFilter: DateFilterValue | null = null;

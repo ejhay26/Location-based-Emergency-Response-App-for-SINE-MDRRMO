@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 import {
   IonCard, IonCardContent,
   IonItem, IonInput, IonButton,
-  IonSelect, IonSelectOption
+  IonSelect, IonSelectOption, IonSkeletonText
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -33,7 +33,7 @@ export interface BroadcastMediaItem {
   imports: [
     CommonModule, FormsModule,
     IonCard, IonCardContent, IonItem, IonInput, IonButton,
-    IonSelect, IonSelectOption,
+    IonSelect, IonSelectOption, IonSkeletonText,
     UtcDatePipe, ListEnterDirective, ProxyImageDirective, AppIconComponent,
     CustomTooltipDirective
   ],
@@ -41,6 +41,7 @@ export interface BroadcastMediaItem {
   styleUrls: ['./broadcast.panel.scss'],
 })
 export class BroadcastPanel implements OnInit, OnDestroy {
+  isLoading = true;
 
   barangays: readonly Barangay[] = BARANGAYS;
 
@@ -457,8 +458,10 @@ export class BroadcastPanel implements OnInit, OnDestroy {
   }
 
   fetchBroadcasts() {
+    this.isLoading = true;
     this.api.getActiveBroadcast().subscribe({
       next: (res: any) => {
+        this.isLoading = false;
         if (res && typeof res === 'object' && !Array.isArray(res)) {
           this.draftBroadcasts     = res.drafts || [];
           this.activeBroadcasts    = res.active || [];
@@ -471,7 +474,7 @@ export class BroadcastPanel implements OnInit, OnDestroy {
           this.archivedBroadcasts  = [];
         }
       },
-      error: () => {}
+      error: () => { this.isLoading = false; }
     });
   }
 

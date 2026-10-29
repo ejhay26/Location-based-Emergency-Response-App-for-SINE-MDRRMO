@@ -336,7 +336,7 @@
     <div class="mac-accordion-collapse" [class.is-expanded]="showDraftsSection">
       <div class="mac-accordion-inner">
       <!-- Empty State -->
-      <div *ngIf="draftBroadcasts.length === 0" style="margin-top: 10px; padding: 20px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
+      <div *ngIf="!isLoading && draftBroadcasts.length === 0" style="margin-top: 10px; padding: 20px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
         <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(245,158,11,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
           <app-icon name="draft" [size]="18" color="#d97706"></app-icon>
         </div>
@@ -428,8 +428,15 @@
 
     <div class="mac-accordion-collapse" [class.is-expanded]="showActiveSection">
       <div class="mac-accordion-inner">
+      <!-- Skeleton Loader -->
+      <div *ngIf="isLoading" style="margin-top: 10px; padding: 18px; border-radius: 16px; background: var(--ion-card-background, white); border: 1px solid var(--ion-color-step-150, #ddd);">
+        <ion-skeleton-text [animated]="true" style="width: 40%; height: 18px; border-radius: 4px; margin-bottom: 8px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 85%; height: 13px; border-radius: 4px; margin-bottom: 6px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 60%; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+      </div>
+
       <!-- Empty State -->
-      <div *ngIf="activeBroadcasts.length === 0" style="margin-top: 10px; padding: 24px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
+      <div *ngIf="!isLoading && activeBroadcasts.length === 0" style="margin-top: 10px; padding: 24px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
         <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
           <app-icon name="broadcast" [size]="20" color="var(--ion-color-medium)"></app-icon>
         </div>
@@ -545,7 +552,7 @@
     <div class="mac-accordion-collapse" [class.is-expanded]="showScheduledSection">
       <div class="mac-accordion-inner">
       <!-- Empty State -->
-      <div *ngIf="scheduledBroadcasts.length === 0" style="margin-top: 10px; padding: 20px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
+      <div *ngIf="!isLoading && scheduledBroadcasts.length === 0" style="margin-top: 10px; padding: 20px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
         <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(56,128,255,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
           <app-icon name="calendar-clock" [size]="18" color="#3880ff"></app-icon>
         </div>
@@ -623,7 +630,7 @@
     <div class="mac-accordion-collapse" [class.is-expanded]="showArchivedSection">
       <div class="mac-accordion-inner">
       <!-- Empty State -->
-      <div *ngIf="archivedBroadcasts.length === 0" style="margin-top: 10px; padding: 20px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
+      <div *ngIf="!isLoading && archivedBroadcasts.length === 0" style="margin-top: 10px; padding: 20px; border-radius: 16px; border: 1.5px dashed var(--ion-color-step-200, #ccc); display: flex; align-items: center; gap: 14px; background: var(--ion-card-background, white);">
         <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
           <app-icon name="history" [size]="18" color="var(--ion-color-medium)"></app-icon>
         </div>

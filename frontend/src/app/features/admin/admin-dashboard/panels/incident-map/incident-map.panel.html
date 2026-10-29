@@ -370,7 +370,19 @@
     </div>
 
     <!-- Empty state -->
-    <div *ngIf="unifiedActiveItems.length === 0" style="text-align: center; padding: 40px 16px; color: var(--ion-color-medium); background: var(--ion-card-background, white); border-radius: 16px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow);">
+    <!-- Desktop Skeleton Loader -->
+    <div *ngIf="isLoading" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
+      <div *ngFor="let i of [1,2,3]" style="padding: 16px; border-radius: 16px; background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+          <ion-skeleton-text [animated]="true" style="width: 45%; height: 16px; border-radius: 6px;"></ion-skeleton-text>
+          <ion-skeleton-text [animated]="true" style="width: 25%; height: 20px; border-radius: 8px;"></ion-skeleton-text>
+        </div>
+        <ion-skeleton-text [animated]="true" style="width: 75%; height: 13px; border-radius: 4px; margin-bottom: 8px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 50%; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading && unifiedActiveItems.length === 0" style="text-align: center; padding: 40px 16px; color: var(--ion-color-medium); background: var(--ion-card-background, white); border-radius: 16px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow);">
       <app-icon name="shield-check" [size]="40" color="var(--ion-color-success, #2dd36f)" style="margin-bottom: 12px;"></app-icon>
       <h4 style="margin: 0 0 6px 0; font-weight: 800; color: var(--ion-text-color);">All Clear</h4>
       <p style="margin: 0; font-size: 13px;">No active emergency SOS requests or hazard reports match your current filters.</p>
@@ -542,7 +554,18 @@
     <!-- Scrollable Cards inside Bottom Sheet -->
     <div class="sheet-cards-scroll" id="mobile-sheet-cards">
       <!-- Empty state -->
-      <div *ngIf="unifiedActiveItems.length === 0" style="text-align: center; padding: 28px 16px; color: var(--ion-color-medium);">
+      <!-- Mobile Skeleton Loader -->
+      <div *ngIf="isLoading" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+        <div *ngFor="let i of [1,2]" style="padding: 14px; border-radius: 14px; background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <ion-skeleton-text [animated]="true" style="width: 50%; height: 15px; border-radius: 5px;"></ion-skeleton-text>
+            <ion-skeleton-text [animated]="true" style="width: 25%; height: 18px; border-radius: 6px;"></ion-skeleton-text>
+          </div>
+          <ion-skeleton-text [animated]="true" style="width: 70%; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoading && unifiedActiveItems.length === 0" style="text-align: center; padding: 28px 16px; color: var(--ion-color-medium);">
         <app-icon name="shield-check" [size]="36" color="var(--ion-color-success, #2dd36f)" style="margin-bottom: 8px;"></app-icon>
         <h4 style="margin: 0 0 4px 0; font-weight: 800; font-size: 15px; color: var(--ion-text-color);">All Clear</h4>
         <p style="margin: 0; font-size: 12.5px;">No active emergency SOS requests or hazard reports.</p>

@@ -56,6 +56,7 @@ const FALLBACK_POLL_MS = 30_000;
   styleUrl: './incident-map.panel.scss',
 })
 export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
+  isLoading = true;
 
   /** Which list is shown in the right-hand column — defaults to 'all' in unified mode. */
   @Input() mode: 'active' | 'hazards' | 'all' = 'active';
@@ -560,8 +561,31 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   loadData() {
-    this.api.getActiveEmergencies().subscribe((res: any) => { this.activeRequests = res; this.plotMarkers(); });
-    this.api.getActiveHazards().subscribe((res: any)     => { this.activeHazards  = res; this.plotMarkers(); });
+    let emergenciesDone = false;
+    let hazardsDone = false;
+    const checkDone = () => {
+      if (emergenciesDone && hazardsDone) {
+        this.isLoading = false;
+      }
+    };
+    this.api.getActiveEmergencies().subscribe({
+      next: (res: any) => {
+        this.activeRequests = res;
+        this.plotMarkers();
+        emergenciesDone = true;
+        checkDone();
+      },
+      error: () => { emergenciesDone = true; checkDone(); }
+    });
+    this.api.getActiveHazards().subscribe({
+      next: (res: any) => {
+        this.activeHazards = res;
+        this.plotMarkers();
+        hazardsDone = true;
+        checkDone();
+      },
+      error: () => { hazardsDone = true; checkDone(); }
+    });
   }
 
   invalidateMapSize() {
@@ -1292,7 +1316,12 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   submitDispatch() {
     if (!this.dispatchForm.agency || !this.dispatchForm.request_id || this.isDispatching) return;
     this.isDispatching = true;
-    this.api.dispatchEmergency(this.dispatchForm).subscribe({
+    const trimmedUnit = this.dispatchForm.unit_name ? this.dispatchForm.unit_name.trim() : '';
+    const finalPayload = {
+      ...this.dispatchForm,
+      unit_name: trimmedUnit || 'None Specified'
+    };
+    this.api.dispatchEmergency(finalPayload).subscribe({
       next: () => {
         this.isDispatching = false;
         this.ui.showToast('Unit dispatched successfully!', 'success');

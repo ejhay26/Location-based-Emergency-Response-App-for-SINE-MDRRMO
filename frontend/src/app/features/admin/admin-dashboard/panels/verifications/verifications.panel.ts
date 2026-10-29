@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, firstValueFrom } from 'rxjs';
-import { IonButton } from '@ionic/angular/standalone';
+import { IonButton, IonSkeletonText } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
 import { EchoService } from '../../../../../core/services/echo.service';
@@ -25,7 +25,7 @@ import { CustomTooltipDirective } from '../../../../../shared/directives/custom-
   selector: 'app-verifications-panel',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, IonButton, ProxyImageDirective,
+    CommonModule, FormsModule, IonButton, IonSkeletonText, ProxyImageDirective,
     DateRangeFilterComponent, FilterSummaryBarComponent,
     AppIconComponent, FilterDropdownComponent, UtcDatePipe,
     CustomTooltipDirective
@@ -35,6 +35,7 @@ import { CustomTooltipDirective } from '../../../../../shared/directives/custom-
 })
 export class VerificationsPanel implements OnInit, OnDestroy {
 
+  isLoading = true;
   pendingVerifications: any[] = [];
   selectedUserId: number | null = null;
 

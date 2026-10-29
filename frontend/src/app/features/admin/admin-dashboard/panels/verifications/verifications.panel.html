@@ -39,8 +39,22 @@
 
   <app-filter-summary-bar [chips]="activeFilterChips" (clearAll)="clearAllFilters()"></app-filter-summary-bar>
 
+  <!-- Skeleton Loader -->
+  <div *ngIf="isLoading" style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
+    <div *ngFor="let i of [1,2,3,4]" style="padding: 16px 18px; border-radius: 16px; background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+        <ion-skeleton-text [animated]="true" style="width: 44px; height: 44px; border-radius: 12px;"></ion-skeleton-text>
+        <div style="flex: 1;">
+          <ion-skeleton-text [animated]="true" style="width: 50%; height: 16px; border-radius: 4px; margin-bottom: 6px;"></ion-skeleton-text>
+          <ion-skeleton-text [animated]="true" style="width: 30%; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+        </div>
+      </div>
+      <ion-skeleton-text [animated]="true" style="width: 80px; height: 28px; border-radius: 8px;"></ion-skeleton-text>
+    </div>
+  </div>
+
   <!-- ── Empty State: All Done ── -->
-  <div *ngIf="pendingVerifications.length === 0" class="empty-queue-card">
+  <div *ngIf="!isLoading && pendingVerifications.length === 0" class="empty-queue-card">
     <div class="icon-bubble">
       <app-icon name="shield-check" [size]="36" color="#2dd36f"></app-icon>
     </div>
@@ -49,7 +63,7 @@
   </div>
 
   <!-- ── Empty State: Filter Mismatch ── -->
-  <div *ngIf="pendingVerifications.length > 0 && filteredVerifications.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
+  <div *ngIf="!isLoading && pendingVerifications.length > 0 && filteredVerifications.length === 0" class="ion-text-center ion-padding ion-color-medium" style="font-weight:600;">
     <p>No pending verifications match the current filters.</p>
   </div>
 

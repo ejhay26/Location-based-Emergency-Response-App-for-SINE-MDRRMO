@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
   IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-  IonModal, IonContent
+  IonModal, IonContent, IonSkeletonText
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../../../core/services/api';
 import { AdminUiService } from '../../admin-ui.service';
@@ -34,7 +34,7 @@ interface DispatcherForm {
   imports: [
     CommonModule, FormsModule,
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-    IonModal, IonContent,
+    IonModal, IonContent, IonSkeletonText,
     ProxyImageDirective, DateRangeFilterComponent, FilterSummaryBarComponent, ListEnterDirective,
     AppIconComponent, FilterDropdownComponent, CustomTooltipDirective
   ],
@@ -43,6 +43,7 @@ interface DispatcherForm {
 })
 export class DispatchersPanel implements OnInit, OnDestroy {
 
+  isLoading = true;
   dispatchers: any[] = [];
   dispatcherSearch = '';
   dispatcherBarangayFilter: number[] = [];
@@ -164,7 +165,16 @@ export class DispatchersPanel implements OnInit, OnDestroy {
   }
 
   loadDispatchers() {
-    this.api.getDispatchers().subscribe((res: any) => { this.dispatchers = res; });
+    this.isLoading = true;
+    this.api.getDispatchers().subscribe({
+      next: (res: any) => {
+        this.dispatchers = res || [];
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   get filteredDispatchers(): any[] {

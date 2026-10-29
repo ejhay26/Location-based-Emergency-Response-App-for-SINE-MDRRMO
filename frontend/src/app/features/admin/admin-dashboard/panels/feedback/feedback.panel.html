@@ -130,8 +130,23 @@
 
   </div>
 
+  <!-- Skeleton Loader -->
+  <div *ngIf="isLoading" style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
+    <div *ngFor="let i of [1,2,3]" style="padding: 18px; border-radius: 16px; background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <ion-skeleton-text [animated]="true" style="width: 36px; height: 36px; border-radius: 10px;"></ion-skeleton-text>
+          <ion-skeleton-text [animated]="true" style="width: 120px; height: 16px; border-radius: 4px;"></ion-skeleton-text>
+        </div>
+        <ion-skeleton-text [animated]="true" style="width: 60px; height: 20px; border-radius: 6px;"></ion-skeleton-text>
+      </div>
+      <ion-skeleton-text [animated]="true" style="width: 90%; height: 13px; border-radius: 4px; margin-bottom: 6px;"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="true" style="width: 60%; height: 13px; border-radius: 4px;"></ion-skeleton-text>
+    </div>
+  </div>
+
   <!-- ── EMPTY STATE ── -->
-  <div *ngIf="filteredList.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #ffffff); border-radius: 18px; border: 2px dashed var(--ion-color-step-200, #ddd); box-shadow: var(--card-shadow);">
+  <div *ngIf="!isLoading && filteredList.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #ffffff); border-radius: 18px; border: 2px dashed var(--ion-color-step-200, #ddd); box-shadow: var(--card-shadow);">
     <div style="width: 68px; height: 68px; border-radius: 20px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
       <app-icon [name]="activeFilter === 'trash' ? 'trash' : 'message-square'" [size]="32" color="var(--ion-color-medium)"></app-icon>
     </div>
