@@ -96,7 +96,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   isDispatchModalOpen = false;
   isDispatching = false;
   dispatchForm = { request_id: null as number | null, agency: '', unit_name: '', notes: '' };
-  availableUnits: string[] = [
+  readonly defaultUnits: string[] = [
     'Ambulance Alpha',
     'Ambulance Bravo',
     'Rescue Team 1',
@@ -104,6 +104,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     'Police Patrol 1',
     'RHU Mobile Nurse'
   ];
+  availableUnits: string[] = [...this.defaultUnits];
+  isAddingUnit = false;
+  newUnitName = '';
+  editingUnitIndex: number | null = null;
+  editingUnitValue = '';
 
   selectedBarangays: number[] = [];
   selectedTypes: string[] = [];
@@ -387,6 +392,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     private shortcuts: KeyboardShortcutsService,
     private mapTileService: MapTileService,
   ) {
+    this.loadAvailableUnits();
     const savedWidth = localStorage.getItem('admin_map_queue_width');
     if (savedWidth) {
       const parsed = parseInt(savedWidth, 10);
@@ -1129,6 +1135,97 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     }).catch(() => {
       this.ui.showToast('Failed to copy to clipboard.', 'warning');
     });
+  }
+
+  loadAvailableUnits(): void {
+    try {
+      const stored = localStorage.getItem('sine_responder_units');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          this.availableUnits = parsed;
+          return;
+        }
+      }
+    } catch {}
+    this.availableUnits = [...this.defaultUnits];
+  }
+
+  saveAvailableUnits(): void {
+    try {
+      localStorage.setItem('sine_responder_units', JSON.stringify(this.availableUnits));
+    } catch {}
+  }
+
+  startAddUnit(): void {
+    this.isAddingUnit = true;
+    this.newUnitName = '';
+    this.editingUnitIndex = null;
+  }
+
+  confirmAddUnit(): void {
+    const trimmed = this.newUnitName.trim();
+    if (!trimmed) return;
+    if (!this.availableUnits.includes(trimmed)) {
+      this.availableUnits.push(trimmed);
+      this.saveAvailableUnits();
+    }
+    this.dispatchForm.unit_name = trimmed;
+    this.isAddingUnit = false;
+    this.newUnitName = '';
+  }
+
+  cancelAddUnit(): void {
+    this.isAddingUnit = false;
+    this.newUnitName = '';
+  }
+
+  startEditUnit(index: number, ev: Event): void {
+    ev.stopPropagation();
+    this.editingUnitIndex = index;
+    this.editingUnitValue = this.availableUnits[index] || '';
+    this.isAddingUnit = false;
+  }
+
+  confirmEditUnit(index: number, ev?: Event): void {
+    if (ev) ev.stopPropagation();
+    const trimmed = this.editingUnitValue.trim();
+    if (!trimmed) {
+      this.cancelEditUnit(ev);
+      return;
+    }
+    const oldVal = this.availableUnits[index];
+    this.availableUnits[index] = trimmed;
+    if (this.dispatchForm.unit_name === oldVal) {
+      this.dispatchForm.unit_name = trimmed;
+    }
+    this.saveAvailableUnits();
+    this.editingUnitIndex = null;
+  }
+
+  cancelEditUnit(ev?: Event): void {
+    if (ev) ev.stopPropagation();
+    this.editingUnitIndex = null;
+  }
+
+  deleteUnit(index: number, ev: Event): void {
+    ev.stopPropagation();
+    const removed = this.availableUnits[index];
+    if (this.dispatchForm.unit_name === removed) {
+      this.dispatchForm.unit_name = '';
+    }
+    this.availableUnits.splice(index, 1);
+    this.saveAvailableUnits();
+    if (this.editingUnitIndex === index) {
+      this.editingUnitIndex = null;
+    }
+  }
+
+  resetUnitsToDefault(): void {
+    this.availableUnits = [...this.defaultUnits];
+    this.saveAvailableUnits();
+    this.editingUnitIndex = null;
+    this.isAddingUnit = false;
   }
 
   submitDispatch() {
