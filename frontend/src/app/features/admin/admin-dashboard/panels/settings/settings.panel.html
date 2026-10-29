@@ -92,6 +92,35 @@
           (touchstart)="s.key === 'dark_mode' ? onTogglePointer($event) : null"
           (ionChange)="onToggle(s, $event)"></ion-toggle>
       </div>
+
+      <!-- Display Scaling & Zoom Slider -->
+      <div style="padding: 14px 18px; border-top: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.05));">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 38px; height: 38px; border-radius: 11px; background: rgba(56,128,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <app-icon name="zoom-in" [size]="18" color="var(--ion-color-primary)"></app-icon>
+            </div>
+            <div>
+              <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">Display Scaling &amp; Zoom</p>
+              <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">Universal desktop scaling (Ctrl + / Ctrl - / Ctrl 0)</p>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 13px; font-weight: 800; color: var(--ion-color-primary); min-width: 44px; text-align: right;">{{ currentZoom }}%</span>
+            <button type="button" *ngIf="currentZoom !== 100" (click)="resetZoom()"
+                    style="padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; background: var(--ion-color-step-150, #eee); border: none; cursor: pointer; color: var(--ion-text-color);">
+              Reset
+            </button>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; padding: 0 4px;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">75%</span>
+          <ion-range [min]="75" [max]="150" [step]="5" [value]="currentZoom" (ionChange)="onZoomChange($event)"
+                     style="--bar-background: var(--ion-color-step-200, #ddd); --bar-background-active: var(--ion-color-primary); --knob-background: var(--ion-color-primary); flex: 1;">
+          </ion-range>
+          <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">150%</span>
+        </div>
+      </div>
     </div>
   </div>
 

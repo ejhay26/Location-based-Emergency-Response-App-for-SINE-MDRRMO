@@ -11,7 +11,8 @@ export type SettingKey =
   | 'notif_broadcast_alerts'
   | 'save_media_to_device'
   | 'photo_cropping_enabled'
-  | 'video_trimming_enabled';
+  | 'video_trimming_enabled'
+  | 'desktop_zoom';
 
 const STORAGE_KEY = 'user_settings_cache';
 
@@ -25,6 +26,7 @@ const DEFAULTS: Record<SettingKey, string> = {
   save_media_to_device:    'false',
   photo_cropping_enabled:  'true',
   video_trimming_enabled:  'true',
+  desktop_zoom:            '100',
 };
 
 @Injectable({ providedIn: 'root' })
@@ -178,6 +180,41 @@ export class UserSettingsService {
     const isDark = this.getBool('dark_mode');
     document.documentElement.classList.toggle('ion-palette-dark',    isDark);
     document.documentElement.classList.toggle('reduce-animations',   this.getBool('reduce_animations'));
+    this.applyZoom();
+  }
+
+  getZoom(): number {
+    const val = parseInt(this.get('desktop_zoom'), 10);
+    return isNaN(val) ? 100 : Math.min(150, Math.max(75, val));
+  }
+
+  setZoom(zoomPercent: number): void {
+    const clamped = Math.min(150, Math.max(75, Math.round(zoomPercent)));
+    this.set('desktop_zoom', String(clamped));
+    this.applyZoom();
+  }
+
+  zoomIn(step: number = 10): void {
+    this.setZoom(this.getZoom() + step);
+  }
+
+  zoomOut(step: number = 10): void {
+    this.setZoom(this.getZoom() - step);
+  }
+
+  resetZoom(): void {
+    this.setZoom(100);
+  }
+
+  applyZoom(): void {
+    if (typeof document === 'undefined') return;
+    const zoom = this.getZoom();
+    const root = document.documentElement;
+    if (zoom === 100) {
+      (root.style as any).zoom = '';
+    } else {
+      (root.style as any).zoom = `${zoom / 100}`;
+    }
   }
 
   /** Clear cache and remove all visual effects on logout. */
@@ -187,5 +224,8 @@ export class UserSettingsService {
     // Remove visual effects so the login page is always clean
     document.documentElement.classList.remove('ion-palette-dark');
     document.documentElement.classList.remove('reduce-animations');
+    if (typeof document !== 'undefined') {
+      (document.documentElement.style as any).zoom = '';
+    }
   }
 }

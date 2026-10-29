@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { timeout, catchError } from 'rxjs/operators';
-import { IonToggle } from '@ionic/angular/standalone';
+import { IonToggle, IonRange } from '@ionic/angular/standalone';
 import { UserSettingsService, SettingKey } from '../../../../../core/services/user-settings';
 import { AdminUiService } from '../../admin-ui.service';
 import { ApiService } from '../../../../../core/services/api';
@@ -24,7 +24,7 @@ interface SettingToggle {
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    IonToggle,
+    IonToggle, IonRange,
     AppIconComponent
   ],
   templateUrl: './settings.panel.html',
@@ -48,6 +48,21 @@ export class SettingsPanel implements OnInit {
   ];
 
   mapDefaultStyle = 'street';
+
+  get currentZoom(): number {
+    return this.settings.getZoom();
+  }
+
+  onZoomChange(event: any): void {
+    const val = event?.detail?.value;
+    if (typeof val === 'number') {
+      this.settings.setZoom(val);
+    }
+  }
+
+  resetZoom(): void {
+    this.settings.setZoom(100);
+  }
 
   constructor(
     private settings: UserSettingsService,

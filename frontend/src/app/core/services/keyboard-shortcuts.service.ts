@@ -2,6 +2,7 @@ import { Injectable, signal, isDevMode } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { isTauri, isMacDesktop } from '../../shared/utils/platform.util';
+import { UserSettingsService } from './user-settings';
 
 export type ShortcutActionType =
   | 'toggle-sidebar'
@@ -38,7 +39,7 @@ export class KeyboardShortcutsService {
 
   private isInitialized = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private userSettings: UserSettingsService) {}
 
   /** Checks if the current session is an admin or dispatcher */
   isAdminOrDispatcher(): boolean {
@@ -199,16 +200,24 @@ export class KeyboardShortcutsService {
       return;
     }
 
-    // 3. Suppress Browser Zoom hotkeys to preserve 1:1 crisp workstation pixel grid:
-    // - Ctrl/Cmd + Plus / Equals (+ / =)
-    // - Ctrl/Cmd + Minus / Underscore (- / _)
-    // - Ctrl/Cmd + 0
+    // 3. Universal Display Zoom hotkeys:
+    // - Ctrl/Cmd + Plus / Equals (+ / = / NumpadAdd): Zoom In (+10%)
+    // - Ctrl/Cmd + Minus / Underscore (- / _ / NumpadSubtract): Zoom Out (-10%)
+    // - Ctrl/Cmd + 0 (0 / Numpad0): Reset Zoom (100% 1:1)
     if (
       modifier &&
-      (['+', '=', '-', '_', '0'].includes(e.key) || e.code === 'NumpadAdd' || e.code === 'NumpadSubtract')
+      (['+', '=', '-', '_', '0'].includes(e.key) || e.code === 'NumpadAdd' || e.code === 'NumpadSubtract' || e.code === 'Numpad0')
     ) {
       e.preventDefault();
       e.stopPropagation();
+      const current = this.userSettings.getZoom();
+      if (['+', '=', 'NumpadAdd'].includes(e.key) || e.code === 'NumpadAdd') {
+        this.userSettings.setZoom(current + 10);
+      } else if (['-', '_', 'NumpadSubtract'].includes(e.key) || e.code === 'NumpadSubtract') {
+        this.userSettings.setZoom(current - 10);
+      } else if (e.key === '0' || e.code === 'Numpad0') {
+        this.userSettings.setZoom(100);
+      }
       return;
     }
 
@@ -265,6 +274,26 @@ export class KeyboardShortcutsService {
       if (isStaff) {
         this.navigateToPanel('help');
       }
+      return;
+    }
+
+    // Universal Desktop Display Scaling (Zoom In / Out / Reset)
+    if (modifier && (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd')) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.userSettings.zoomIn();
+      return;
+    }
+    if (modifier && (e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract')) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.userSettings.zoomOut();
+      return;
+    }
+    if (modifier && (e.key === '0' || e.code === 'Numpad0')) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.userSettings.resetZoom();
       return;
     }
 
