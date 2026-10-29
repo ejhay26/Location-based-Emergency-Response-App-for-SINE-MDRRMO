@@ -121,6 +121,32 @@
       <strong>Barangay:</strong> {{ req.barangay_name || 'Unresolved' }}
     </p>
 
+    <div *ngIf="req.agency || req.dispatched_by_name || req.resolved_by_name"
+         style="margin: 6px 0; padding: 6px 10px; border-radius: 8px; background: var(--ion-color-step-100, #f8f9fa); border: 1px solid var(--ion-color-step-150, #eee); font-size: 12px; color: var(--ion-color-medium); display: flex; flex-wrap: wrap; gap: 10px;">
+      <span *ngIf="req.agency">
+        <strong style="color: var(--ion-text-color);">Unit:</strong> {{ req.agency }} <span *ngIf="req.unit_name">({{ req.unit_name }})</span>
+      </span>
+      <span *ngIf="req.dispatched_by_name">
+        <strong style="color: var(--ion-text-color);">Dispatched By:</strong> {{ req.dispatched_by_name }}
+      </span>
+      <span *ngIf="req.resolved_by_name">
+        <strong style="color: var(--ion-text-color);">Resolved By:</strong> {{ req.resolved_by_name }}
+      </span>
+    </div>
+
+    <div *ngIf="req.agency || req.dispatched_by_name || req.resolved_by_name"
+         style="margin: 6px 0; padding: 6px 10px; border-radius: 8px; background: var(--ion-color-step-100, #f8f9fa); border: 1px solid var(--ion-color-step-150, #eee); font-size: 12px; color: var(--ion-color-medium); display: flex; flex-wrap: wrap; gap: 10px;">
+      <span *ngIf="req.agency">
+        <strong style="color: var(--ion-text-color);">Unit:</strong> {{ req.agency }} <span *ngIf="req.unit_name">({{ req.unit_name }})</span>
+      </span>
+      <span *ngIf="req.dispatched_by_name">
+        <strong style="color: var(--ion-text-color);">Dispatched By:</strong> {{ req.dispatched_by_name }}
+      </span>
+      <span *ngIf="req.resolved_by_name">
+        <strong style="color: var(--ion-text-color);">Resolved By:</strong> {{ req.resolved_by_name }}
+      </span>
+    </div>
+
     <p
       *ngIf="req.false_alarm_strikes > 0"
       style="margin: 6px 0 0 0; font-size: 12px; color: var(--ion-color-danger); font-weight: 700; display: flex; align-items: center; gap: 5px;">
@@ -229,6 +255,7 @@
                 <th style="padding: 10px 12px; font-size: 11px; font-weight: 800;">Type</th>
                 <th style="padding: 10px 12px; font-size: 11px; font-weight: 800;">Citizen</th>
                 <th style="padding: 10px 12px; font-size: 11px; font-weight: 800;">Barangay</th>
+                <th style="padding: 10px 12px; font-size: 11px; font-weight: 800;">Unit</th>
                 <th style="padding: 10px 12px; font-size: 11px; font-weight: 800;">Status</th>
               </tr>
             </thead>
@@ -237,6 +264,7 @@
                 <td style="padding: 10px 12px; font-weight: 700;">{{ rec.incident_name }}</td>
                 <td style="padding: 10px 12px;">{{ rec.first_name }} {{ rec.last_name }}</td>
                 <td style="padding: 10px 12px;">{{ rec.barangay_name || 'Unresolved' }}</td>
+                <td style="padding: 10px 12px; font-size: 11.5px;">{{ rec.agency ? (rec.agency + (rec.unit_name ? ' (' + rec.unit_name + ')' : '')) : '—' }}</td>
                 <td style="padding: 10px 12px;">
                   <span [style.color]="rec.status === 'Resolved' ? 'var(--ion-color-success)' : 'var(--ion-color-medium)'" style="font-weight: 700;">
                     {{ rec.status }}

@@ -35,6 +35,7 @@ class DispatchController extends Controller
         $request->validate([
             'request_id' => 'required|integer',
             'agency'     => 'required|string|max:100',
+            'unit_name'  => 'nullable|string|max:150',
             'notes'      => 'nullable|string',
         ]);
 
@@ -46,10 +47,14 @@ class DispatchController extends Controller
             return response()->json(['message' => "Emergency request cannot be dispatched; current status is {$req->status}."], 409);
         }
 
-        DB::transaction(function () use ($request) {
+        $userId = auth()->id();
+
+        DB::transaction(function () use ($request, $userId) {
             Dispatch::create([
                 'request_id'    => $request->request_id,
+                'dispatched_by' => $userId,
                 'agency'        => $request->agency,
+                'unit_name'     => $request->unit_name,
                 'notes'         => $request->notes,
                 'dispatch_time' => now(),
                 'status'        => 'Dispatched',
@@ -60,10 +65,14 @@ class DispatchController extends Controller
         });
 
         if ($req) {
+            $msg = "Help from {$request->agency} is on the way to your location.";
+            if ($request->unit_name) {
+                $msg = "Help from {$request->agency} ({$request->unit_name}) is on the way to your location.";
+            }
             $this->notifications->notifyUser(
                 $req->user_id,
                 'Responders Dispatched',
-                "Help from {$request->agency} is on the way to your location.",
+                $msg,
                 ['type' => 'dispatched']
             );
         }
@@ -85,9 +94,15 @@ class DispatchController extends Controller
             return response()->json(['message' => "Emergency request cannot be resolved; current status is {$req->status}."], 409);
         }
 
-        DB::transaction(function () use ($request) {
+        $userId = auth()->id();
+
+        DB::transaction(function () use ($request, $userId) {
             EmergencyRequest::where('request_id', $request->request_id)
-                ->update(['status' => 'Resolved']);
+                ->update([
+                    'status'      => 'Resolved',
+                    'resolved_by' => $userId,
+                    'resolved_at' => now(),
+                ]);
 
             // Update all active dispatches for this emergency
             Dispatch::where('request_id', $request->request_id)

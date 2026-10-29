@@ -194,6 +194,8 @@ export class LogArchivePanel implements OnInit {
         <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.phone || 'N/A'}</td>
         <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.barangay_name || 'Unresolved'}</td>
         <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${new Date(r.request_time).toLocaleString()}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.agency ? (r.agency + (r.unit_name ? ' (' + r.unit_name + ')' : '')) : '—'}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.dispatched_by_name ? 'Disp: ' + r.dispatched_by_name : ''}${r.resolved_by_name ? (r.dispatched_by_name ? '<br>' : '') + 'Res: ' + r.resolved_by_name : ''}</td>
         <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 11px;">
           <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; background: ${r.status === 'Resolved' ? '#e8f5e9' : '#f5f5f5'}; color: ${r.status === 'Resolved' ? '#2e7d32' : '#616161'};">
             ${r.status}
@@ -274,6 +276,8 @@ export class LogArchivePanel implements OnInit {
               <th>Contact Number</th>
               <th>Barangay</th>
               <th>Date & Time Reported</th>
+              <th>Assigned Unit</th>
+              <th>Handled By</th>
               <th style="text-align: center;">Status</th>
             </tr>
           </thead>

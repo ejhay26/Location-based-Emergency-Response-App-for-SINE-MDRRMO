@@ -18,6 +18,8 @@ return new class extends Migration
             $table->decimal('longitude', 11, 8)->nullable();
             $table->integer('barangay_id')->nullable();
             $table->string('status', 50)->nullable();
+            $table->integer('resolved_by')->nullable();
+            $table->timestamp('resolved_at')->nullable();
             $table->timestamp('request_time')->useCurrent();
             $table->timestamp('created_at')->useCurrent()->nullable();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate()->nullable();
@@ -25,6 +27,7 @@ return new class extends Migration
             $table->boolean('is_false_alarm')->default(false);
 
             $table->foreign('user_id')->references('user_id')->on('users')->nullOnDelete();
+            $table->foreign('resolved_by')->references('user_id')->on('users')->nullOnDelete();
             $table->foreign('incident_type_id')->references('incident_type_id')->on('incident_types')->nullOnDelete();
             $table->foreign('barangay_id')->references('barangay_id')->on('barangays')->nullOnDelete();
 

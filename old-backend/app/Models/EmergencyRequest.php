@@ -26,6 +26,8 @@ class EmergencyRequest extends Model
         'longitude',
         'barangay_id',
         'status',
+        'resolved_by',
+        'resolved_at',
         'request_time',
         'is_false_alarm',
     ];

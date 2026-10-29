@@ -435,6 +435,21 @@
         </div>
         <p *ngIf="!item.data.proof_files?.length" style="font-size: 11.5px; color: var(--ion-color-medium); margin: 8px 0 0 0;">No files attached</p>
 
+        <div *ngIf="item.data.agency" style="margin: 10px 0 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(56,128,255,0.08); border: 1px solid rgba(56,128,255,0.2);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span style="font-size: 12.5px; font-weight: 800; color: var(--ion-color-primary);">
+              {{ item.data.agency }} <span *ngIf="item.data.unit_name">({{ item.data.unit_name }})</span>
+            </span>
+            <button type="button" class="copy-coords-btn" (click)="copyDispatchBrief(item, $event)" [appTooltip]="'Copy Dispatch Brief'" tooltipPlacement="left">
+              <app-icon name="file-text" [size]="12"></app-icon>
+              <span>Brief</span>
+            </button>
+          </div>
+          <p *ngIf="item.data.dispatched_by_name" style="margin: 4px 0 0; font-size: 11px; color: var(--ion-color-medium);">
+            Dispatched by: <strong>{{ item.data.dispatched_by_name }}</strong>
+          </p>
+        </div>
+
         <div style="display: flex; gap: 8px; margin-top: 14px;" (click)="$event.stopPropagation()">
           <ion-button *ngIf="item.data.status === 'Pending'" color="warning" size="small" (click)="openDispatchModal(item.data.request_id)" [appTooltip]="'Dispatch Responder'" [tooltipSub]="'Assign team & vehicle'" tooltipPlacement="top" style="font-weight: 700; flex: 1; height: 38px; margin: 0; --border-radius: 10px;">
             <app-icon name="truck-medical" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Dispatch
@@ -566,6 +581,21 @@
             </button>
           </div>
 
+          <div *ngIf="item.data.agency" style="margin: 8px 0 0 0; padding: 8px 10px; border-radius: 10px; background: rgba(56,128,255,0.08); border: 1px solid rgba(56,128,255,0.2); font-size: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+              <span style="font-weight: 700; color: var(--ion-color-primary);">
+                {{ item.data.agency }} <span *ngIf="item.data.unit_name">({{ item.data.unit_name }})</span>
+              </span>
+              <button type="button" class="copy-coords-btn" (click)="copyDispatchBrief(item, $event)">
+                <app-icon name="file-text" [size]="11"></app-icon>
+                <span>Brief</span>
+              </button>
+            </div>
+            <p *ngIf="item.data.dispatched_by_name" style="margin: 3px 0 0; font-size: 11px; color: var(--ion-color-medium);">
+              Dispatched by: <strong>{{ item.data.dispatched_by_name }}</strong>
+            </p>
+          </div>
+
           <div style="display: flex; gap: 8px; margin-top: 12px;" (click)="$event.stopPropagation()">
             <ion-button *ngIf="item.data.status === 'Pending'" color="warning" (click)="openDispatchModal(item.data.request_id)" style="font-weight: 800; flex: 1; height: 42px; margin: 0; --border-radius: 12px; font-size: 13.5px;">
               <app-icon name="truck-medical" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Dispatch Team
@@ -633,7 +663,23 @@
           <div><p style="margin: 0; font-weight: 800; font-size: 15.5px; color: var(--ion-text-color);">{{ agency }}</p></div>
         </div>
       </ion-radio-group>
-      <p style="font-weight: 800; font-size: 15px; margin: 16px 0 10px 0; color: var(--ion-text-color);">2. Dispatch Notes (Optional)</p>
+      <p style="font-weight: 800; font-size: 15px; margin: 16px 0 8px 0; color: var(--ion-text-color);">2. Assign Unit / Callsign (Optional)</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">
+        <button *ngFor="let u of availableUnits" type="button"
+                (click)="dispatchForm.unit_name = (dispatchForm.unit_name === u ? '' : u)"
+                [style.background]="dispatchForm.unit_name === u ? 'var(--ion-color-warning)' : 'var(--ion-card-background, #fff)'"
+                [style.color]="dispatchForm.unit_name === u ? '#fff' : 'var(--ion-text-color)'"
+                [style.border]="dispatchForm.unit_name === u ? 'none' : '1px solid var(--ion-color-step-150, #ddd)'"
+                style="padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;">
+          {{ u }}
+        </button>
+      </div>
+      <ion-input
+        [(ngModel)]="dispatchForm.unit_name"
+        placeholder="Or type custom unit callsign (e.g. Ambulance Alpha-1)"
+        style="background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 14px; padding: 6px 12px; font-size: 14px; width: 100%; color: var(--ion-text-color);"
+      ></ion-input>
+      <p style="font-weight: 800; font-size: 15px; margin: 16px 0 10px 0; color: var(--ion-text-color);">3. Dispatch Notes (Optional)</p>
       <ion-textarea
         [(ngModel)]="dispatchForm.notes"
         rows="3"

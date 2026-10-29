@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"sine-mdrrmo-backend/internal/database"
+	"sine-mdrrmo-backend/internal/middleware"
 	"sine-mdrrmo-backend/internal/models"
 	"sine-mdrrmo-backend/internal/services"
 	"sine-mdrrmo-backend/internal/websocket"
@@ -29,10 +30,12 @@ func GetDispatchAssets(c *fiber.Ctx) error {
 type DispatchEmergencyRequest struct {
 	RequestID int    `json:"request_id"`
 	Agency    string `json:"agency"`
+	UnitName  string `json:"unit_name"`
 	Notes     string `json:"notes"`
 }
 
 func DispatchEmergency(c *fiber.Ctx) error {
+	caller := middleware.GetUser(c)
 	var req DispatchEmergencyRequest
 	if err := c.BodyParser(&req); err != nil || req.RequestID <= 0 || req.Agency == "" {
 		return c.Status(422).JSON(fiber.Map{"message": "request_id and agency are required."})
@@ -56,9 +59,20 @@ func DispatchEmergency(c *fiber.Ctx) error {
 		if req.Notes != "" {
 			notesPtr = &req.Notes
 		}
+		var unitPtr *string
+		if req.UnitName != "" {
+			unitPtr = &req.UnitName
+		}
+		var callerIDPtr *int
+		if caller != nil && caller.UserID != 0 {
+			callerIDPtr = &caller.UserID
+		}
+
 		dispatch := models.Dispatch{
 			RequestID:    &req.RequestID,
+			DispatchedBy: callerIDPtr,
 			Agency:       &req.Agency,
+			UnitName:     unitPtr,
 			Notes:        notesPtr,
 			DispatchTime: &now,
 			Status:       strPtr("Dispatched"),
@@ -84,7 +98,11 @@ func DispatchEmergency(c *fiber.Ctx) error {
 	var er models.EmergencyRequest
 	if err := database.DB.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err == nil && er.UserID != nil {
 		services.SafeGo(func() {
-			_ = services.NotifyUser(*er.UserID, "Responders Dispatched", fmt.Sprintf("Help from %s is on the way to your location.", req.Agency), map[string]string{
+			notifMsg := fmt.Sprintf("Help from %s is on the way to your location.", req.Agency)
+			if req.UnitName != "" {
+				notifMsg = fmt.Sprintf("Help from %s (%s) is on the way to your location.", req.Agency, req.UnitName)
+			}
+			_ = services.NotifyUser(*er.UserID, "Responders Dispatched", notifMsg, map[string]string{
 				"type": "dispatched",
 			})
 		})
@@ -96,6 +114,7 @@ func DispatchEmergency(c *fiber.Ctx) error {
 }
 
 func ResolveEmergency(c *fiber.Ctx) error {
+	caller := middleware.GetUser(c)
 	var req struct {
 		RequestID int `json:"request_id"`
 	}
@@ -116,11 +135,19 @@ func ResolveEmergency(c *fiber.Ctx) error {
 			return fiber.NewError(409, fmt.Sprintf("Emergency request cannot be resolved; current status is %s.", curr))
 		}
 
-		if err := tx.Model(&models.EmergencyRequest{}).Where("request_id = ? AND deleted_at IS NULL", req.RequestID).Update("status", "Resolved").Error; err != nil {
+		now := time.Now()
+		updates := map[string]interface{}{
+			"status":      "Resolved",
+			"resolved_at": &now,
+		}
+		if caller != nil && caller.UserID != 0 {
+			updates["resolved_by"] = caller.UserID
+		}
+
+		if err := tx.Model(&models.EmergencyRequest{}).Where("request_id = ? AND deleted_at IS NULL", req.RequestID).Updates(updates).Error; err != nil {
 			return err
 		}
 
-		now := time.Now()
 		if err := tx.Model(&models.Dispatch{}).
 			Where("request_id = ? AND (status IS NULL OR status != 'Completed')", req.RequestID).
 			Updates(map[string]interface{}{

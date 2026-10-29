@@ -17,6 +17,6 @@ class Dispatch extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'request_id', 'agency', 'notes', 'dispatch_time', 'arrival_time', 'status',
+        'request_id', 'dispatched_by', 'agency', 'unit_name', 'notes', 'dispatch_time', 'arrival_time', 'status',
     ];
 }

@@ -213,6 +213,8 @@ type EmergencyRequest struct {
 	Longitude      *float64     `gorm:"column:longitude;type:decimal(11,8)" json:"longitude"`
 	BarangayID     *int         `gorm:"column:barangay_id" json:"barangay_id"`
 	Status         *string      `gorm:"column:status;size:50" json:"status"`
+	ResolvedBy     *int         `gorm:"column:resolved_by" json:"resolved_by"`
+	ResolvedAt     *time.Time   `gorm:"column:resolved_at" json:"resolved_at"`
 	RequestTime    *time.Time   `gorm:"column:request_time" json:"request_time"`
 	CreatedAt      *time.Time   `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt      *time.Time   `gorm:"column:updated_at" json:"updated_at"`
@@ -263,7 +265,9 @@ func (Broadcast) TableName() string { return "broadcasts" }
 type Dispatch struct {
 	DispatchID   int        `gorm:"column:dispatch_id;primaryKey;autoIncrement" json:"dispatch_id"`
 	RequestID    *int       `gorm:"column:request_id" json:"request_id"`
+	DispatchedBy *int       `gorm:"column:dispatched_by" json:"dispatched_by"`
 	Agency       *string    `gorm:"column:agency;size:100" json:"agency"`
+	UnitName     *string    `gorm:"column:unit_name;size:150" json:"unit_name"`
 	Notes        *string    `gorm:"column:notes;type:text" json:"notes"`
 	DispatchTime *time.Time `gorm:"column:dispatch_time" json:"dispatch_time"`
 	ArrivalTime  *time.Time `gorm:"column:arrival_time" json:"arrival_time"`

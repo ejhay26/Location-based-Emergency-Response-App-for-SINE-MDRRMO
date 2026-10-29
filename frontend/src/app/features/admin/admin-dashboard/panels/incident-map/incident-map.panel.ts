@@ -95,7 +95,15 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   isDispatchModalOpen = false;
   isDispatching = false;
-  dispatchForm = { request_id: null as number | null, agency: '', notes: '' };
+  dispatchForm = { request_id: null as number | null, agency: '', unit_name: '', notes: '' };
+  availableUnits: string[] = [
+    'Ambulance Alpha',
+    'Ambulance Bravo',
+    'Rescue Team 1',
+    'Fire Engine 2',
+    'Police Patrol 1',
+    'RHU Mobile Nurse'
+  ];
 
   selectedBarangays: number[] = [];
   selectedTypes: string[] = [];
@@ -1081,6 +1089,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   openDispatchModal(requestId: number) {
     this.dispatchForm.request_id = requestId;
     this.dispatchForm.agency = '';
+    this.dispatchForm.unit_name = '';
     this.dispatchForm.notes = '';
     this.isDispatchModalOpen = true;
     if (this.availableAgencies.length === 0) {
@@ -1090,6 +1099,36 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         }
       });
     }
+  }
+
+  copyDispatchBrief(item: any, ev?: Event) {
+    if (ev) ev.stopPropagation();
+    if (!item || !item.data) return;
+    const d = item.data;
+    const citizen = ((d.first_name || '') + ' ' + (d.last_name || '')).trim() || 'Citizen';
+    const phone = d.phone || 'N/A';
+    const brgy = d.barangay_name || 'Unresolved';
+    const coords = (d.latitude && d.longitude) ? (d.latitude + ', ' + d.longitude) : 'N/A';
+    const agency = d.agency || 'MDRRMO';
+    const unit = d.unit_name ? (' (' + d.unit_name + ')') : '';
+    const dispatcher = d.dispatched_by_name ? ('Dispatched By: ' + d.dispatched_by_name + '\n') : '';
+    const time = d.dispatch_time ? new Date(d.dispatch_time).toLocaleTimeString() : 'N/A';
+    const notes = d.notes ? ('Notes: ' + d.notes + '\n') : '';
+
+    const brief = ('[MDRRMO DISPATCH BRIEF]\n' +
+      'Ticket: #' + d.request_id + ' — ' + (d.incident_name || 'Emergency') + '\n' +
+      'Citizen: ' + citizen + ' (' + phone + ')\n' +
+      'Location: ' + brgy + ' (' + coords + ')\n' +
+      'Assigned: ' + agency + unit + '\n' +
+      dispatcher +
+      'Time: ' + time + '\n' +
+      notes).trim();
+
+    navigator.clipboard.writeText(brief).then(() => {
+      this.ui.showToast('Dispatch brief copied to clipboard!', 'success');
+    }).catch(() => {
+      this.ui.showToast('Failed to copy to clipboard.', 'warning');
+    });
   }
 
   submitDispatch() {
