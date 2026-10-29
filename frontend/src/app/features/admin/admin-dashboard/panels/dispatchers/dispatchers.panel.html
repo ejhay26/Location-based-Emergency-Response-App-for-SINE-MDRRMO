@@ -58,7 +58,22 @@
 
   <app-filter-summary-bar [chips]="activeFilterChips" (clearAll)="clearAllFilters()"></app-filter-summary-bar>
 
-  <div *ngIf="dispatchers.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 18px; border: 2px dashed var(--ion-color-step-200, #ddd); box-shadow: var(--card-shadow);">
+  <!-- Skeleton Loader -->
+  <div *ngIf="isLoading" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 14px;">
+    <div *ngFor="let i of [1,2,3,4]" style="padding: 18px; border-radius: 16px; background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+        <ion-skeleton-text [animated]="true" style="width: 44px; height: 44px; border-radius: 12px;"></ion-skeleton-text>
+        <div style="flex: 1;">
+          <ion-skeleton-text [animated]="true" style="width: 70%; height: 16px; border-radius: 4px; margin-bottom: 6px;"></ion-skeleton-text>
+          <ion-skeleton-text [animated]="true" style="width: 45%; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+        </div>
+      </div>
+      <ion-skeleton-text [animated]="true" style="width: 80%; height: 12px; border-radius: 4px; margin-bottom: 6px;"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="true" style="width: 50%; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && dispatchers.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: var(--ion-card-background, #fff); border-radius: 18px; border: 2px dashed var(--ion-color-step-200, #ddd); box-shadow: var(--card-shadow);">
     <div style="width: 72px; height: 72px; border-radius: 20px; background: var(--ion-color-step-50, rgba(0,0,0,0.04)); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
       <app-icon name="user-gear" [size]="36" color="var(--ion-color-medium)"></app-icon>
     </div>

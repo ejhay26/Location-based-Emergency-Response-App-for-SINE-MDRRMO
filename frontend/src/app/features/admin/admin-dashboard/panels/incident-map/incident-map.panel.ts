@@ -11,7 +11,7 @@ import { HttpClient } from '@angular/common/http';
 import { Subscription, interval, firstValueFrom } from 'rxjs';
 import {
   IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, IonSkeletonText
 } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
 import { environment } from '../../../../../../environments/environment';
@@ -47,7 +47,7 @@ const FALLBACK_POLL_MS = 30_000;
   imports: [
     CommonModule, FormsModule,
     IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonContent,
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, IonSkeletonText,
     ProxyImageDirective, VideoThumbnailDirective,
     UtcDatePipe, DateRangeFilterComponent, AppIconComponent,
     CustomTooltipDirective
