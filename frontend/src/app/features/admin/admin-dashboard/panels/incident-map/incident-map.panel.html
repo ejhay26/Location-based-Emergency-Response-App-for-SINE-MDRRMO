@@ -321,7 +321,7 @@
       <ion-card-content class="ion-no-padding" style="height:100%;flex:1;display:flex;position:relative;">
         <div id="dispatch-map" style="height:100%;width:100%;min-height:360px;background-color:#e5e5e5;flex:1;"></div>
 
-        <!-- Floating Map Style Pill Segment (Matching Mobile Admin Layout) -->
+        <!-- Floating Map Style Pill Segment (Top Right) -->
         <div class="floating-map-style-capsule">
           <div class="layer-seg-indicator" [class.is-satellite]="mapStyle === 'satellite'"></div>
           <button
@@ -342,18 +342,20 @@
             <app-icon name="satellite" [size]="12" [color]="mapStyle === 'satellite' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
             <span>Satellite</span>
           </button>
-          <button
-            type="button"
-            class="layer-seg-btn"
-            [class.active]="isImmersiveMap"
-            (click)="toggleImmersiveMap()"
-            [appTooltip]="isImmersiveMap ? 'Standard Split' : 'Immersive Map'"
-            tooltipPlacement="top"
-            aria-label="Toggle Immersive Full Screen Map">
-            <app-icon [name]="isImmersiveMap ? 'compress' : 'expand'" [size]="12" [color]="isImmersiveMap ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
-            <span>{{ isImmersiveMap ? 'Split' : 'Immersive' }}</span>
-          </button>
         </div>
+
+        <!-- Ungrouped Floating Full Screen / Immersive Button (Bottom Left) -->
+        <button
+          type="button"
+          class="floating-immersive-map-btn"
+          [class.active]="isImmersiveMap"
+          (click)="toggleImmersiveMap()"
+          [appTooltip]="isImmersiveMap ? 'Exit Full Screen' : 'Full Screen Immersive Map'"
+          tooltipPlacement="right"
+          aria-label="Toggle Full Screen Immersive Map">
+          <app-icon [name]="isImmersiveMap ? 'compress' : 'expand'" [size]="13" [color]="isImmersiveMap ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+          <span>{{ isImmersiveMap ? 'Exit Full Screen' : 'Full Screen Map' }}</span>
+        </button>
       </ion-card-content>
     </ion-card>
   </div>
@@ -400,13 +402,9 @@
     </div>
 
     <!-- Queue card list (Desktop) -->
-    <div *ngFor="let item of unifiedActiveItems; trackBy: trackByUnifiedItem"
-         [attr.id]="item.type === 'emergency' ? ('admin-incident-' + item.data.request_id) : ('admin-hazard-' + item.data.hazard_id)"
-         class="incident-card"
-         [class.newly-arrived]="isNewlyArrived(item)"
-         [class.selected-incident-card]="item.type === 'emergency' && selectedRequestId === item.data.request_id && previewType === 'emergency'"
-         [class.selected-hazard-card]="item.type === 'hazard' && selectedRequestId === item.data.hazard_id && previewType === 'hazard'"
-         (click)="selectIncidentCard(item.data, item.type)">
+    <!-- Queue card list (Desktop) -->
+    <ng-template #incidentItemContent let-item="item">
+
 
       <!-- EMERGENCY SOS CARD -->
       <ng-container *ngIf="item.type === 'emergency'">
@@ -530,8 +528,42 @@
           </ion-button>
         </div>
       </ng-container>
+    </ng-template>
 
-    </div>
+    <ng-container *ngFor="let cluster of activeItemClusters; trackBy: trackByCluster">
+      <!-- Clustered items at same approximate location -->
+      <div *ngIf="cluster.isCluster" class="cluster-group-card">
+        <div class="cluster-banner">
+          <div class="cluster-banner-title">
+            <app-icon name="map-pin" [size]="14" color="var(--ion-color-danger)"></app-icon>
+            <span><strong>{{ cluster.items.length }} Reports</strong> · Same Approximate Location</span>
+          </div>
+          <span class="cluster-banner-bgy">{{ cluster.barangayName }}</span>
+        </div>
+        <div class="cluster-horizontal-track">
+          <div *ngFor="let item of cluster.items; trackBy: trackByUnifiedItem"
+               [attr.id]="item.type === 'emergency' ? ('admin-incident-' + item.data.request_id) : ('admin-hazard-' + item.data.hazard_id)"
+               class="cluster-horizontal-item incident-card"
+               [class.newly-arrived]="isNewlyArrived(item)"
+               [class.selected-incident-card]="item.type === 'emergency' && selectedRequestId === item.data.request_id && previewType === 'emergency'"
+               [class.selected-hazard-card]="item.type === 'hazard' && selectedRequestId === item.data.hazard_id && previewType === 'hazard'"
+               (click)="selectIncidentCard(item.data, item.type)">
+            <ng-container *ngTemplateOutlet="incidentItemContent; context: { item: item }"></ng-container>
+          </div>
+        </div>
+      </div>
+
+      <!-- Single item -->
+      <div *ngIf="!cluster.isCluster"
+           [attr.id]="cluster.items[0].type === 'emergency' ? ('admin-incident-' + cluster.items[0].data.request_id) : ('admin-hazard-' + cluster.items[0].data.hazard_id)"
+           class="incident-card"
+           [class.newly-arrived]="isNewlyArrived(cluster.items[0])"
+           [class.selected-incident-card]="cluster.items[0].type === 'emergency' && selectedRequestId === cluster.items[0].data.request_id && previewType === 'emergency'"
+           [class.selected-hazard-card]="cluster.items[0].type === 'hazard' && selectedRequestId === cluster.items[0].data.hazard_id && previewType === 'hazard'"
+           (click)="selectIncidentCard(cluster.items[0].data, cluster.items[0].type)">
+        <ng-container *ngTemplateOutlet="incidentItemContent; context: { item: cluster.items[0] }"></ng-container>
+      </div>
+    </ng-container>
   </div>
 
   <!-- ── MOBILE PULLABLE BOTTOM SHEET QUEUE (MOBILE ONLY) ── -->
@@ -583,12 +615,8 @@
       </div>
 
       <!-- Incident card loop for mobile sheet -->
-      <div *ngFor="let item of unifiedActiveItems; trackBy: trackByUnifiedItem"
-           class="incident-card"
-           [class.newly-arrived]="isNewlyArrived(item)"
-           [class.selected-incident-card]="item.type === 'emergency' && selectedRequestId === item.data.request_id && previewType === 'emergency'"
-           [class.selected-hazard-card]="item.type === 'hazard' && selectedRequestId === item.data.hazard_id && previewType === 'hazard'"
-           (click)="selectIncidentCard(item.data, item.type)">
+      <ng-template #mobileIncidentItemContent let-item="item">
+
 
         <!-- EMERGENCY SOS CARD -->
         <ng-container *ngIf="item.type === 'emergency'">
@@ -671,8 +699,40 @@
             </ion-button>
           </div>
         </ng-container>
+      </ng-template>
 
-      </div>
+      <ng-container *ngFor="let cluster of activeItemClusters; trackBy: trackByCluster">
+        <!-- Clustered items for mobile -->
+        <div *ngIf="cluster.isCluster" class="cluster-group-card">
+          <div class="cluster-banner">
+            <div class="cluster-banner-title">
+              <app-icon name="map-pin" [size]="14" color="var(--ion-color-danger)"></app-icon>
+              <span><strong>{{ cluster.items.length }} Reports</strong> · Same Approximate Location</span>
+            </div>
+            <span class="cluster-banner-bgy">{{ cluster.barangayName }}</span>
+          </div>
+          <div class="cluster-horizontal-track">
+            <div *ngFor="let item of cluster.items; trackBy: trackByUnifiedItem"
+                 class="cluster-horizontal-item incident-card"
+                 [class.newly-arrived]="isNewlyArrived(item)"
+                 [class.selected-incident-card]="item.type === 'emergency' && selectedRequestId === item.data.request_id && previewType === 'emergency'"
+                 [class.selected-hazard-card]="item.type === 'hazard' && selectedRequestId === item.data.hazard_id && previewType === 'hazard'"
+                 (click)="selectIncidentCard(item.data, item.type)">
+              <ng-container *ngTemplateOutlet="mobileIncidentItemContent; context: { item: item }"></ng-container>
+            </div>
+          </div>
+        </div>
+
+        <!-- Single item for mobile -->
+        <div *ngIf="!cluster.isCluster"
+             class="incident-card"
+             [class.newly-arrived]="isNewlyArrived(cluster.items[0])"
+             [class.selected-incident-card]="cluster.items[0].type === 'emergency' && selectedRequestId === cluster.items[0].data.request_id && previewType === 'emergency'"
+             [class.selected-hazard-card]="cluster.items[0].type === 'hazard' && selectedRequestId === cluster.items[0].data.hazard_id && previewType === 'hazard'"
+             (click)="selectIncidentCard(cluster.items[0].data, cluster.items[0].type)">
+          <ng-container *ngTemplateOutlet="mobileIncidentItemContent; context: { item: cluster.items[0] }"></ng-container>
+        </div>
+      </ng-container>
     </div>
   </div>
 

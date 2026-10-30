@@ -30,6 +30,7 @@ import { CustomTooltipDirective } from '../../../../../shared/directives/custom-
 import { TourService } from '../../../../../core/services/tour';
 import { KeyboardShortcutsService } from '../../../../../core/services/keyboard-shortcuts.service';
 import { MapTileService } from '../../../../../core/services/map-tile.service';
+import { UserSettingsService } from '../../../../../core/services/user-settings';
 
 /**
  * Fallback polling interval for the incident map — active continuously as
@@ -89,7 +90,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   selectedRequestId: number | null = null;
   previewType: 'emergency' | 'hazard' | null = null;
 
-  mapStyle: 'street' | 'satellite' = (typeof localStorage !== 'undefined' && localStorage.getItem('sine_admin_map_style') as 'street' | 'satellite') || 'street';
+  mapStyle: 'street' | 'satellite' = 'street';
   isImmersiveMap = false;
   private map: any;
   private mapMarkers: any[] = [];
@@ -401,8 +402,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     public tour: TourService,
     private shortcuts: KeyboardShortcutsService,
     private mapTileService: MapTileService,
+    private userSettings: UserSettingsService,
   ) {
     this.loadAvailableUnits();
+    const savedStyle = this.userSettings?.get('map_default_style') || localStorage.getItem('sine_admin_map_style') || 'street';
+    this.mapStyle = (savedStyle === 'satellite' ? 'satellite' : 'street');
     const savedWidth = localStorage.getItem('admin_map_queue_width');
     if (savedWidth) {
       const parsed = parseInt(savedWidth, 10);
@@ -744,8 +748,78 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     });
   }
 
+    private calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371e3;
+    const phi1 = (lat1 * Math.PI) / 180;
+    const phi2 = (lat2 * Math.PI) / 180;
+    const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+    const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
+    const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+              Math.cos(phi1) * Math.cos(phi2) *
+              Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  get activeItemClusters(): Array<{
+    id: string;
+    isCluster: boolean;
+    barangayName: string;
+    items: Array<{ type: 'emergency' | 'hazard'; data: any }>;
+  }> {
+    const rawItems = this.unifiedActiveItems;
+    const clusters: Array<{
+      id: string;
+      isCluster: boolean;
+      barangayName: string;
+      items: Array<{ type: 'emergency' | 'hazard'; data: any }>;
+    }> = [];
+    const visited = new Set<string>();
+
+    for (let i = 0; i < rawItems.length; i++) {
+      const itemKey = this.trackByUnifiedItem(i, rawItems[i]);
+      if (visited.has(itemKey)) continue;
+      visited.add(itemKey);
+
+      const group = [rawItems[i]];
+      const lat1 = Number(rawItems[i].data.latitude);
+      const lon1 = Number(rawItems[i].data.longitude);
+
+      if (!isNaN(lat1) && !isNaN(lon1) && lat1 !== 0 && lon1 !== 0) {
+        for (let j = i + 1; j < rawItems.length; j++) {
+          const otherKey = this.trackByUnifiedItem(j, rawItems[j]);
+          if (visited.has(otherKey)) continue;
+
+          const lat2 = Number(rawItems[j].data.latitude);
+          const lon2 = Number(rawItems[j].data.longitude);
+          if (!isNaN(lat2) && !isNaN(lon2) && lat2 !== 0 && lon2 !== 0) {
+            const d = this.calculateDistanceMeters(lat1, lon1, lat2, lon2);
+            if (d <= 150) {
+              group.push(rawItems[j]);
+              visited.add(otherKey);
+            }
+          }
+        }
+      }
+
+      const bgy = this.getBarangayDisplay(rawItems[i].data);
+      clusters.push({
+        id: itemKey + (group.length > 1 ? '-cluster' : ''),
+        isCluster: group.length > 1,
+        barangayName: bgy,
+        items: group,
+      });
+    }
+
+    return clusters;
+  }
+
   trackByUnifiedItem(index: number, item: any): string {
     return item.type + '-' + (item.type === 'emergency' ? item.data.request_id : item.data.hazard_id);
+  }
+
+  trackByCluster(index: number, cluster: any): string {
+    return cluster.id;
   }
 
   /** Pending barangay focus target to preserve highlight across cold map and GeoJSON loads */
@@ -918,7 +992,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   toggleMapStyle(style: 'street' | 'satellite') {
     if (style === this.mapStyle || !this.map) return;
     this.mapStyle = style;
-    try { localStorage.setItem('sine_admin_map_style', style); } catch {}
+    try { localStorage.setItem('sine_admin_map_style', style); this.userSettings?.set('map_default_style', style); } catch {}
     [this.streetLayer, this.satelliteLayer].forEach(l => { if (l && this.map.hasLayer(l)) this.map.removeLayer(l); });
     if (style === 'street') {
       this.streetLayer.addTo(this.map);
