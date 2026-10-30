@@ -12,6 +12,7 @@ import { AuthSessionService } from './auth-session.service';
 
 @Injectable({ providedIn: 'root' })
 export class ErrorInterceptorService implements HttpInterceptor {
+  private static lastNetworkToastTime = 0;
 
   constructor(
     private toastService: ToastService,
@@ -30,8 +31,18 @@ export class ErrorInterceptorService implements HttpInterceptor {
 
         if (!isStorageFetch) {
           if (!navigator.onLine || error.status === 0) {
-            // Network error — do NOT log out. May just be offline or ngrok timeout.
-            message = 'No internet connection detected. Please check your mobile data or Wi-Fi connection.';
+            // Suppress offline toast during app-switching on Android/mobile or for background polling
+            const isBackgrounded = typeof document !== 'undefined' && document.hidden;
+            const isBackgroundPoll = req.url.includes('/active-emergencies') ||
+                                     req.url.includes('/active-hazards') ||
+                                     req.url.includes('/broadcasts') ||
+                                     req.url.includes('/health') ||
+                                     req.url.includes('/notifications');
+            const now = Date.now();
+            if (!isBackgrounded && !isBackgroundPoll && (now - ErrorInterceptorService.lastNetworkToastTime > 12000)) {
+              ErrorInterceptorService.lastNetworkToastTime = now;
+              message = 'No internet connection detected. Please check your mobile data or Wi-Fi connection.';
+            }
           } else if (error.status === 401 && !isLogout && !isLogin && !ApiService.isLoggingOut) {
             const isApiRequest = req.url.includes('/api/');
             const currentUrl = this.router.url || '';

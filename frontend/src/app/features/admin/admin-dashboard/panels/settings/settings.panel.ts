@@ -66,6 +66,22 @@ export class SettingsPanel implements OnInit {
     this.settings.setZoom(100);
   }
 
+    get soundVolume(): number {
+    return Math.round(this.audio.getVolume() * 100);
+  }
+
+  onSoundVolumeChange(event: any): void {
+    const val = Number(event.target?.value ?? event.detail?.value);
+    if (!isNaN(val)) {
+      this.audio.setVolume(val / 100);
+    }
+  }
+
+  testAudioSound(): void {
+    this.audio.testChime();
+    this.ui.showToast('Playing notification alert chime preview.', 'medium');
+  }
+
   constructor(
     private settings: UserSettingsService,
     private ui: AdminUiService,
@@ -138,6 +154,7 @@ export class SettingsPanel implements OnInit {
   onMapStyleChange(style: string): void {
     this.mapDefaultStyle = style;
     this.settings.set('map_default_style', style);
+    try { localStorage.setItem('sine_admin_map_style', style); } catch {}
     this.ui.showToast(`Default map view set to ${style === 'satellite' ? 'Satellite' : 'Street'}.`, 'medium');
   }
 

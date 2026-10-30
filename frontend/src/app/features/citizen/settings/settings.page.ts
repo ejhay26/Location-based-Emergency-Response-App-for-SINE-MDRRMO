@@ -10,6 +10,7 @@ import { LocationService } from '../../../core/services/location';
 import { TourService } from '../../../core/services/tour';
 import { WidgetPinService } from '../../../core/services/widget-pin';
 import { DialogService } from '../../../core/services/dialog.service';
+import { AudioService } from '../../../core/services/audio.service';
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
 interface SettingToggle { key: SettingKey; label: string; hint: (val: boolean) => string; value: boolean; }
@@ -28,6 +29,22 @@ interface SettingSelect { key: SettingKey; label: string; hint: string; value: s
   ]
 })
 export class SettingsPage implements OnInit {
+  audio = inject(AudioService);
+
+  get soundVolume(): number {
+    return Math.round(this.audio.getVolume() * 100);
+  }
+
+  onSoundVolumeChange(event: any): void {
+    const val = Number(event.target?.value ?? event.detail?.value);
+    if (!isNaN(val)) {
+      this.audio.setVolume(val / 100);
+    }
+  }
+
+  testAudioSound(): void {
+    this.audio.testChime();
+  }
   onSegmentChange(s: SettingSelect, event: any) {
     const val = event.detail.value;
     if (val) {

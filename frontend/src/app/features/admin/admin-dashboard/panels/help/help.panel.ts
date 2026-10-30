@@ -58,6 +58,13 @@ export class HelpPanel {
           subtext: 'All incoming emergency calls and hazard reports appear in this list. Click any card to view photos, medical info, and assign responder units.',
           waitForInteraction: false,
         },
+        {
+          id: 'admin-queue-container',
+          panel: 'active',
+          callout: 'Customizable Responder Units & Callsigns',
+          subtext: 'When dispatching response teams, choose pre-configured units or type custom callsigns (e.g. MDRRMO Alpha, Patrol 3) with full edit and delete controls.',
+          waitForInteraction: false,
+        },
       ]
     },
     {
