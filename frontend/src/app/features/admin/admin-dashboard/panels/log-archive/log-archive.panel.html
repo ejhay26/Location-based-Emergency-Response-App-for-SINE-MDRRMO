@@ -95,6 +95,7 @@
   </div>
 
   <!-- Archive cards -->
+  <div *ngIf="!isLoading">
   <div
     *ngFor="let req of sortedArchivedRequests; let i = index; trackBy: trackByRequestId"
     [attr.data-flip-id]="req.request_id"
@@ -136,21 +137,8 @@
       <strong>Citizen:</strong> {{ req.first_name }} {{ req.last_name }} · {{ req.request_time | utcDate:'medium' }}
     </p>
     <p style="margin: 2px 0; font-size: 13px; color: var(--ion-color-medium);">
-      <strong>Barangay:</strong> {{ req.barangay_name || 'Unresolved' }}
+      <strong>Barangay:</strong> {{ getBarangayDisplay(req) }}
     </p>
-
-    <div *ngIf="req.agency || req.dispatched_by_name || req.resolved_by_name"
-         style="margin: 6px 0; padding: 6px 10px; border-radius: 8px; background: var(--ion-color-step-100, #f8f9fa); border: 1px solid var(--ion-color-step-150, #eee); font-size: 12px; color: var(--ion-color-medium); display: flex; flex-wrap: wrap; gap: 10px;">
-      <span *ngIf="req.agency">
-        <strong style="color: var(--ion-text-color);">Unit:</strong> {{ req.agency }} <span *ngIf="req.unit_name">({{ req.unit_name }})</span>
-      </span>
-      <span *ngIf="req.dispatched_by_name">
-        <strong style="color: var(--ion-text-color);">Dispatched By:</strong> {{ req.dispatched_by_name }}
-      </span>
-      <span *ngIf="req.resolved_by_name">
-        <strong style="color: var(--ion-text-color);">Resolved By:</strong> {{ req.resolved_by_name }}
-      </span>
-    </div>
 
     <div *ngIf="req.agency || req.dispatched_by_name || req.resolved_by_name"
          style="margin: 6px 0; padding: 6px 10px; border-radius: 8px; background: var(--ion-color-step-100, #f8f9fa); border: 1px solid var(--ion-color-step-150, #eee); font-size: 12px; color: var(--ion-color-medium); display: flex; flex-wrap: wrap; gap: 10px;">
@@ -210,6 +198,7 @@
       </ion-button>
     </div>
 
+  </div>
   </div>
 
   <!-- Custom PDF Export Preview Modal -->

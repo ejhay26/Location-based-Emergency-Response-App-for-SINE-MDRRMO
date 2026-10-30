@@ -141,13 +141,25 @@ export class VerificationsPanel implements OnInit, OnDestroy {
   }
 
   loadPendingVerifications() {
-    this.api.getPendingVerifications().subscribe((res: any) => {
-      if (Array.isArray(res) && res.length > 0) {
-        this.pendingVerifications = res;
-      } else if (this.tour.isActive()) {
-        this.pendingVerifications = [this.DEMO_VERIFICATION];
-      } else {
-        this.pendingVerifications = [];
+    this.isLoading = true;
+    this.api.getPendingVerifications().subscribe({
+      next: (res: any) => {
+        if (Array.isArray(res) && res.length > 0) {
+          this.pendingVerifications = res;
+        } else if (this.tour.isActive()) {
+          this.pendingVerifications = [this.DEMO_VERIFICATION];
+        } else {
+          this.pendingVerifications = [];
+        }
+        if (!this.selectedUserId && this.pendingVerifications.length > 0) {
+          this.selectedUserId = this.pendingVerifications[0].user_id;
+        }
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
       }
     });
   }

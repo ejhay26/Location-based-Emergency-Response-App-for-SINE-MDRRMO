@@ -50,6 +50,10 @@ export class FilterDropdownComponent {
     this.isOpen = false;
   }
 
+  get isSearchEnabled(): boolean {
+    return this.searchable || (this.options && this.options.length >= 6);
+  }
+
   get hasFilter(): boolean {
     if (this.multiple) {
       return Array.isArray(this.value) && this.value.length > 0;

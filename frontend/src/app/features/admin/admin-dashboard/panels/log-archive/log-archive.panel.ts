@@ -74,7 +74,17 @@ export class LogArchivePanel implements OnInit {
   }
 
   loadData() {
-    this.api.getArchivedEmergencies().subscribe((res: any) => { this.archivedRequests = res; });
+    this.isLoading = true;
+    this.api.getArchivedEmergencies().subscribe({
+      next: (res: any) => {
+        this.archivedRequests = Array.isArray(res) ? res : [];
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.ui.showToast('Failed to load incident archive logs.', 'danger');
+      }
+    });
   }
 
   get filteredArchivedRequests(): any[] {
@@ -107,6 +117,17 @@ export class LogArchivePanel implements OnInit {
 
   trackByRequestId(_index: number, r: any): number {
     return r.request_id;
+  }
+
+  getBarangayDisplay(req: any): string {
+    if (req.barangay_name && req.barangay_name !== 'Unresolved') {
+      return req.barangay_name;
+    }
+    if (req.barangay_id) {
+      const b = this.barangayOptions.find(item => item.id === Number(req.barangay_id));
+      if (b) return b.name;
+    }
+    return 'San Isidro (General Area)';
   }
 
   /**

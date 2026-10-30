@@ -70,7 +70,7 @@
   <!-- ══════════════════════════════════════════════════════════════════════════
        DESKTOP VIEW (>= 992px): Split Master List + Detail Inspector
        ══════════════════════════════════════════════════════════════════════════ -->
-  <div *ngIf="filteredVerifications.length > 0" class="desktop-split-layout">
+  <div *ngIf="!isLoading && filteredVerifications.length > 0" class="desktop-split-layout">
 
     <!-- Master Queue List (Left Pane) -->
     <div class="queue-master-pane">
@@ -233,7 +233,7 @@
   <!-- ══════════════════════════════════════════════════════════════════════════
        MOBILE VIEW (< 992px): Compact Inset Cards
        ══════════════════════════════════════════════════════════════════════════ -->
-  <div *ngIf="filteredVerifications.length > 0" class="mobile-cards-layout">
+  <div *ngIf="!isLoading && filteredVerifications.length > 0" class="mobile-cards-layout">
     <div *ngFor="let user of filteredVerifications; let i = index; trackBy: trackByUserId"
          [attr.id]="i === 0 ? 'mobile-verification-card-first' : null"
          class="mobile-applicant-card">

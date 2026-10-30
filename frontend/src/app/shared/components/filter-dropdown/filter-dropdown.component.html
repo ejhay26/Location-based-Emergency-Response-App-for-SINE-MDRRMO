@@ -15,7 +15,7 @@
   </button>
 
   <div class="mac-frosted-menu" *ngIf="isOpen" (click)="$event.stopPropagation()">
-    <div class="menu-search-box" *ngIf="searchable">
+    <div class="menu-search-box" *ngIf="isSearchEnabled">
       <app-icon name="search" [size]="12" color="var(--ion-color-medium)"></app-icon>
       <input
         type="text"

@@ -72,8 +72,9 @@
   }
 }
 
-// Active state: triggered on click/tap for touch & mobile
-.citizen-card.is-active {
+// Active state: triggered on tap for mobile / touch screens
+@media (hover: none), (pointer: coarse) {
+  .citizen-card.is-active {
   transform: scale(1.02);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14), 0 3px 10px rgba(0, 0, 0, 0.06) !important;
   z-index: 10;
@@ -97,6 +98,7 @@
       }
     }
   }
+}
 }
 
 // Touch / mobile screen environments: click to toggle active card

@@ -178,6 +178,9 @@ export class CitizensPanel implements OnInit, OnDestroy {
     if (!target.closest('.action-dropdown-anchor')) {
       this.openMenuUserId = null;
     }
+    if (!target.closest('.citizen-card')) {
+      this.activeCardUserId = null;
+    }
   }
 
   @HostListener('document:keydown.escape')
@@ -286,6 +289,7 @@ export class CitizensPanel implements OnInit, OnDestroy {
     this.isStrikeModalOpen = false;
     this.selectedCitizen = null;
     this.customStrikeReason = '';
+    this.activeCardUserId = null;
   }
 
   submitIssueStrike() {
@@ -329,6 +333,7 @@ export class CitizensPanel implements OnInit, OnDestroy {
   }
 
   resetCitizenStrikes(citizen: any) {
+    this.activeCardUserId = null;
     this.ui.showConfirm({
       title: 'Reset Citizen Strikes',
       message: `Clear all false alarm strikes for ${citizen.first_name} ${citizen.last_name}? Their record will be reset to 0/3 strikes and any strike-related suspension will be lifted.`,

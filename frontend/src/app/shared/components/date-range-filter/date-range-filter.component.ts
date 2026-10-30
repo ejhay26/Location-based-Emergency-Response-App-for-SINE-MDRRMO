@@ -231,6 +231,34 @@ export class DateRangeFilterComponent {
     this.popoverEvent = null;
   }
 
+  applyQuickPreset(preset: 'today' | 'yesterday' | '7days' | '30days' | 'this_month'): void {
+    const today = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const toYmd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    if (preset === 'today') {
+      const dStr = toYmd(today);
+      this.valueChange.emit({ mode: 'single', dates: [dStr] });
+    } else if (preset === 'yesterday') {
+      const y = new Date(today);
+      y.setDate(y.getDate() - 1);
+      this.valueChange.emit({ mode: 'single', dates: [toYmd(y)] });
+    } else if (preset === '7days') {
+      const past = new Date(today);
+      past.setDate(past.getDate() - 6);
+      this.valueChange.emit({ mode: 'range', dates: [toYmd(past), toYmd(today)] });
+    } else if (preset === '30days') {
+      const past = new Date(today);
+      past.setDate(past.getDate() - 29);
+      this.valueChange.emit({ mode: 'range', dates: [toYmd(past), toYmd(today)] });
+    } else if (preset === 'this_month') {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      this.valueChange.emit({ mode: 'range', dates: [toYmd(start), toYmd(today)] });
+    }
+    this.isPopoverOpen = false;
+    this.popoverRef?.dismiss().catch(() => {});
+  }
+
   onApply(): void {
     if (!this.canApply) return;
 

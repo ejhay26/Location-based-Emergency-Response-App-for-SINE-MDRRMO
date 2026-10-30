@@ -76,3 +76,31 @@
   }
 }
 
+
+.quick-presets-bar {
+  scrollbar-width: thin;
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+}
+
+.preset-pill {
+  flex: 0 0 auto;
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+  background: var(--ion-color-step-50, rgba(0, 0, 0, 0.04));
+  color: var(--ion-text-color, #1c1c1e);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--ion-color-danger, #eb445a);
+    color: #ffffff;
+    border-color: var(--ion-color-danger, #eb445a);
+    box-shadow: 0 2px 6px rgba(235, 68, 90, 0.25);
+  }
+}
