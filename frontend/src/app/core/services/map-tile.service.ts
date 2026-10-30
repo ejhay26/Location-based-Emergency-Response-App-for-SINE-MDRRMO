@@ -11,6 +11,14 @@ export interface StreetTileConfig {
   attribution?: string;
 }
 
+export interface SatelliteTileConfig {
+  backendTileUrl?: string;
+  offlinePmtilesUrl?: string;
+  minZoom?: number;
+  maxZoom?: number;
+  attribution?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -23,10 +31,11 @@ export class MapTileService {
   readonly defaultOsmTileUrl = (environment as any).mapTileUrl || 'http://159.223.42.159:3000/tiles/osm/{z}/{x}/{y}.png';
   readonly defaultSatelliteTileUrl = (environment as any).satelliteTileUrl || 'http://159.223.42.159:3000/tiles/satellite/{z}/{y}/{x}.jpg';
   readonly defaultPmtilesUrl = (environment as any).offlinePmtilesUrl || 'assets/tiles/san-isidro.pmtiles';
+  readonly defaultSatellitePmtilesUrl = (environment as any).offlineSatellitePmtilesUrl || 'assets/tiles/satellite_base.pmtiles';
 
   /**
    * Creates a resilient street tile layer:
-   * 1. Targets offline PMTiles first (assets/tiles/san-isidro.pmtiles).
+   * 1. Targets offline PMTiles first (assets/tiles/san-isidro.pmtiles or assets/tiles/philippines_vector.pmtiles).
    * 2. If the PMTiles archive is missing, or a specific tile is not in the archive,
    *    it seamlessly falls back to the backend OSM tile server.
    */
@@ -37,10 +46,36 @@ export class MapTileService {
     const backendUrl = config?.backendTileUrl || this.defaultOsmTileUrl;
     const pmtilesUrl = config?.offlinePmtilesUrl || this.defaultPmtilesUrl;
 
+    return this.buildResilientLayer(pmtilesUrl, backendUrl, minZoom, maxZoom, attribution, 'image/png');
+  }
+
+  /**
+   * Creates a resilient satellite tile layer:
+   * 1. Targets offline satellite PMTiles first (assets/tiles/satellite_base.pmtiles).
+   * 2. If absent or out of bounds, seamlessly falls back to the backend satellite tile server.
+   */
+  createSatelliteLayer(customUrl?: string, config?: SatelliteTileConfig): L.Layer {
+    const minZoom = config?.minZoom ?? this.minZoom;
+    const maxZoom = config?.maxZoom ?? this.maxZoom;
+    const attribution = config?.attribution ?? '© Esri Satellite';
+    const backendUrl = customUrl || config?.backendTileUrl || this.defaultSatelliteTileUrl;
+    const pmtilesUrl = config?.offlinePmtilesUrl || this.defaultSatellitePmtilesUrl;
+
+    return this.buildResilientLayer(pmtilesUrl, backendUrl, minZoom, maxZoom, attribution, 'image/jpeg');
+  }
+
+  private buildResilientLayer(
+    pmtilesUrl: string,
+    backendUrl: string,
+    minZoom: number,
+    maxZoom: number,
+    attribution: string,
+    defaultMime: string
+  ): L.Layer {
     let pmtilesSource: PMTiles | null = null;
     let pmtilesReady = false;
     let pmtilesFailed = false;
-    let mimeType = 'image/png';
+    let mimeType = defaultMime;
 
     try {
       pmtilesSource = new PMTiles(pmtilesUrl);
@@ -51,15 +86,13 @@ export class MapTileService {
           else if (header.tileType === 3) mimeType = 'image/jpeg';
           else if (header.tileType === 4) mimeType = 'image/webp';
           else if (header.tileType === 5) mimeType = 'image/avif';
-          console.log(`[MapTileService] Offline PMTiles archive ready (${pmtilesUrl}). Zoom: ${header.minZoom}-${header.maxZoom}`);
+          console.log(`[MapTileService] Offline PMTiles ready (${pmtilesUrl}). Zoom: ${header.minZoom}-${header.maxZoom}`);
         })
         .catch(() => {
           pmtilesFailed = true;
-          console.warn(`[MapTileService] Offline PMTiles not accessible at ${pmtilesUrl}. Using backend tile server: ${backendUrl}`);
         });
     } catch {
       pmtilesFailed = true;
-      console.warn(`[MapTileService] PMTiles init failed. Falling back to backend tile server: ${backendUrl}`);
     }
 
     const ResilientGridLayer = (L.GridLayer as any).extend({
@@ -74,7 +107,7 @@ export class MapTileService {
           .replace('{x}', String(coords.x))
           .replace('{y}', String(coords.y));
 
-        // If offline PMTiles archive failed or is not available, immediately fetch from backend
+        // If offline archive failed or is not available, immediately fetch from backend
         if (pmtilesFailed || !pmtilesSource) {
           tile.src = fallbackSrc;
           tile.onload = () => done(undefined, tile);
@@ -85,7 +118,6 @@ export class MapTileService {
         const controller = new AbortController();
         (tile as any).cancel = () => controller.abort();
 
-        // Target offline PMTiles first
         pmtilesSource.getZxy(coords.z, coords.x, coords.y, controller.signal)
           .then((resp) => {
             if (resp && resp.data && resp.data.byteLength > 0) {
@@ -99,7 +131,6 @@ export class MapTileService {
                 done(undefined, tile);
               };
             } else {
-              // Tile not present in archive -> fallback to backend
               tile.src = fallbackSrc;
               tile.onload = () => done(undefined, tile);
               tile.onerror = () => done(undefined, tile);
@@ -108,7 +139,6 @@ export class MapTileService {
           })
           .catch((err) => {
             if (err?.name !== 'AbortError') {
-              // Tile fetch error -> fallback to backend
               tile.src = fallbackSrc;
               tile.onload = () => done(undefined, tile);
               tile.onerror = () => done(undefined, tile);
@@ -132,19 +162,6 @@ export class MapTileService {
       minZoom,
       maxZoom,
       attribution,
-    });
-  }
-
-  /**
-   * Creates the satellite tile layer, which remains hosted on the backend server.
-   */
-  createSatelliteLayer(customUrl?: string): L.TileLayer {
-    const url = customUrl || this.defaultSatelliteTileUrl;
-    return L.tileLayer(url, {
-      minZoom: this.minZoom,
-      maxZoom: this.maxZoom,
-      maxNativeZoom: this.maxNativeZoom,
-      attribution: '© Esri Satellite'
     });
   }
 }
