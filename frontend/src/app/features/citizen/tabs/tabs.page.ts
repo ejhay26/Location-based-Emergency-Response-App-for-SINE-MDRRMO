@@ -20,7 +20,7 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
   <ion-router-outlet [animated]="settings.shouldAnimate()" [animation]="tabAnimation"></ion-router-outlet>
 </div>
 
-<nav class="ctab-bar">
+<nav class="ctab-bar" [class.tour-tabs-blocked]="isTourBlockingTabs">
   <button *ngFor="let tab of tabs; let i = index"
           class="ctab-btn" [class.active]="activeIndex === i"
           [id]="'tour-tab-' + tab.id"
@@ -44,6 +44,11 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
        ion-router-outlet already does for this whole TabsPage, so ion-content
        sizing works correctly without reproducing that CSS by hand anymore. */
     .route-container { position: absolute; inset: 0; overflow: hidden; }
+    .ctab-bar.tour-tabs-blocked {
+      pointer-events: none !important;
+      opacity: 0.65;
+      transition: opacity 0.2s ease;
+    }
     .ctab-bar {
       /* Flush full-width bar: sits exactly at the screen edge (bottom:0,
          left/right:0) instead of floating with side margins, square top
@@ -104,6 +109,13 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
   `]
 })
 export class TabsPage implements OnInit, OnDestroy {
+  get isTourBlockingTabs(): boolean {
+    if (!this.tour.isActive()) return false;
+    const target = this.tour.targetId();
+    if (target && target.startsWith('tour-tab-')) return false;
+    return true;
+  }
+
   tabs = [
     { id: 'home',     route: '/tabs/home',     icon: 'home',             label: 'Home',     hasAvatar: false },
     { id: 'history',  route: '/tabs/history',  icon: 'history',          label: 'History',  hasAvatar: false },

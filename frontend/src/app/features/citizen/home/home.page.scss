@@ -160,3 +160,26 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55);
 }
+
+/* ── Split Home Layout: Fixed Emergency Buttons & Scrollable Announcements ── */
+.home-page-container {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-height: 720px) {
+  .home-page-container {
+    height: 100%;
+    overflow: hidden;
+  }
+  .home-fixed-emergency-section {
+    flex-shrink: 0;
+  }
+  .home-scrollable-announcements-section {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 24px;
+  }
+}

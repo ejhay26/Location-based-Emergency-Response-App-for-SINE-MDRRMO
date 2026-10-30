@@ -1,5 +1,21 @@
 <ng-container *ngIf="visible">
-  <div class="sos-pill-stack">
+  <!-- Minimized Floating Beacon Pill (Left Edge) -->
+  <div *ngIf="isMinimized"
+       class="sos-minimized-beacon"
+       (click)="expandCard()"
+       role="button"
+       tabindex="0"
+       aria-label="Expand Emergency SOS Status">
+    <div class="beacon-icon-wrap" [class.is-dispatched]="pills[0]?.state === 'dispatched'">
+      <span class="beacon-pulse"></span>
+      <app-icon [name]="pills[0]?.icon || 'alert'" [size]="16" [color]="pills[0]?.state === 'dispatched' ? '#10b981' : '#d32f2f'"></app-icon>
+    </div>
+    <span class="beacon-label">{{ pills[0]?.state === 'dispatched' ? 'En Route' : 'SOS Active' }}</span>
+    <app-icon name="chevron-right" [size]="13" color="var(--ion-color-medium, #8e8e93)"></app-icon>
+  </div>
+
+  <!-- Expanded Floating SOS Card Stack -->
+  <div *ngIf="!isMinimized" class="sos-pill-stack">
     <div *ngFor="let pill of pills; trackBy: trackByKey"
          appPressFeedback
          (click)="onTap()"
@@ -21,14 +37,24 @@
         <div class="sos-pill__header-row">
           <span class="sos-pill__live-indicator" *ngIf="pill.state === 'dispatched'">DISPATCHED</span>
           <span class="sos-pill__pending-indicator" *ngIf="pill.state === 'pending'">PENDING</span>
+          <span *ngIf="pill.timeAgo" class="sos-pill__time-header">{{ pill.timeAgo }}</span>
           <p class="sos-pill__label">{{ pill.label }}</p>
         </div>
         <p class="sos-pill__sublabel">{{ pill.sublabel }}</p>
       </div>
 
-      <!-- Right Action & Timestamp -->
+      <!-- Right Action & Quick Minimize Button -->
       <div class="sos-pill__right">
-        <span *ngIf="pill.timeAgo" class="sos-pill__time">{{ pill.timeAgo }}</span>
+        <!-- Quick Minimize Chevron Button -->
+        <button type="button"
+                class="sos-pill__minimize-btn"
+                (touchstart)="$event.stopPropagation()"
+                (touchend)="$event.stopPropagation()"
+                (mousedown)="$event.stopPropagation()"
+                (click)="minimizeCard($event)"
+                aria-label="Minimize SOS Card">
+          <app-icon name="chevron-left" [size]="12"></app-icon>
+        </button>
 
         <!-- Cancel button — Apple capsule style -->
         <button *ngIf="pill.cancellable"

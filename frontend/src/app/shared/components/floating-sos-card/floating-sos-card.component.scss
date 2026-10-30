@@ -204,3 +204,94 @@
 html.reduce-animations .sos-pill {
   animation: none !important;
 }
+
+/* ── Minimized Beacon & Header Relocations ── */
+.sos-minimized-beacon {
+  position: fixed;
+  left: 12px;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 9999px;
+  background: var(--ion-card-background, #ffffff);
+  border: var(--card-border, 1px solid rgba(0, 0, 0, 0.1));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  user-select: none;
+  animation: beaconSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: scale(1.04);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+  }
+
+  .beacon-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: rgba(211, 47, 47, 0.12);
+    border: 1px solid rgba(211, 47, 47, 0.25);
+
+    &.is-dispatched {
+      background: rgba(16, 185, 129, 0.14);
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+  }
+
+  .beacon-pulse {
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: transparent;
+    border: 2px solid #d32f2f;
+    animation: beaconPulse 1.8s infinite;
+  }
+
+  .beacon-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--ion-text-color);
+  }
+}
+
+@keyframes beaconSlideIn {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.sos-pill__time-header {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ion-color-medium, #8e8e93);
+  background: var(--ion-color-step-100, rgba(0, 0, 0, 0.05));
+  padding: 1px 6px;
+  border-radius: 6px;
+  margin-right: 4px;
+}
+
+.sos-pill__minimize-btn {
+  background: transparent;
+  border: none;
+  color: var(--ion-color-medium, #8e8e93);
+  padding: 3px 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+  margin-bottom: 2px;
+
+  &:hover {
+    background: var(--ion-color-step-100, rgba(0, 0, 0, 0.08));
+    color: var(--ion-text-color);
+  }
+}

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PressFeedbackDirective } from '../../directives/press-feedback.directive';
 import { parseServerDate } from '../../pipes/utc-date.pipe';
@@ -39,7 +39,51 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
   templateUrl: './floating-sos-card.component.html',
   styleUrl: './floating-sos-card.component.scss',
 })
-export class FloatingSosCardComponent {
+export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
+  isMinimized = false;
+  private autoMinimizeTimer: any = null;
+
+  ngOnInit() {
+    this.scheduleAutoMinimize(5000);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['activeReports'] || changes['queuedItems']) {
+      if (this.visible && this.isMinimized) {
+        this.expandCard();
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    this.clearAutoMinimize();
+  }
+
+  scheduleAutoMinimize(delayMs = 5000) {
+    this.clearAutoMinimize();
+    this.autoMinimizeTimer = setTimeout(() => {
+      this.isMinimized = true;
+    }, delayMs);
+  }
+
+  clearAutoMinimize() {
+    if (this.autoMinimizeTimer) {
+      clearTimeout(this.autoMinimizeTimer);
+      this.autoMinimizeTimer = null;
+    }
+  }
+
+  expandCard() {
+    this.isMinimized = false;
+    this.scheduleAutoMinimize(6000);
+  }
+
+  minimizeCard(event?: Event) {
+    if (event) event.stopPropagation();
+    this.clearAutoMinimize();
+    this.isMinimized = true;
+  }
+
   @Input() activeReports: FloatingSosStatus[] = [];
   @Input() queuedItems: QueuedReport[] = [];
   @Output() cardTap = new EventEmitter<void>();
