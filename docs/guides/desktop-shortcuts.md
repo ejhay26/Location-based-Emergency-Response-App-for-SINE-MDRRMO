@@ -24,6 +24,7 @@ The desktop application intercepts native workstation hotkeys to optimize emerge
 | <kbd>Ctrl</kbd> + <kbd>B</kbd> | <kbd>⌘</kbd> + <kbd>B</kbd> | **Toggle Sidebar** | All Staff | Collapses or expands the left navigation menu between compact and full width. |
 | <kbd>Ctrl</kbd> + <kbd>D</kbd> | <kbd>⌘</kbd> + <kbd>D</kbd> | **Toggle Dark / Light Mode** | All Staff | Seamlessly switches between the night-shift dark workstation and high-contrast light theme. |
 | <kbd>Ctrl</kbd> + <kbd>N</kbd> | <kbd>⌘</kbd> + <kbd>N</kbd> | **New Announcement Composer** | All Staff | Navigates to Alert Broadcast and expands the announcement composer. |
+| <kbd>Shift</kbd> + <kbd>F</kbd> | <kbd>⇧</kbd> + <kbd>F</kbd> | **Toggle Immersive Map** | All Staff | Toggles full-screen immersive map mode, maximizing geospatial situational awareness. |
 | <kbd>Ctrl</kbd> + <kbd>+</kbd> / <kbd>=</kbd> | <kbd>⌘</kbd> + <kbd>+</kbd> / <kbd>=</kbd> | **Zoom In (Scale Up)** | All Staff | Increases workstation display scale in 10% steps up to 150%. |
 | <kbd>Ctrl</kbd> + <kbd>-</kbd> | <kbd>⌘</kbd> + <kbd>-</kbd> | **Zoom Out (Scale Down)** | All Staff | Decreases workstation display scale down to 75%. |
 | <kbd>Ctrl</kbd> + <kbd>0</kbd> | <kbd>⌘</kbd> + <kbd>0</kbd> | **Reset Zoom (100%)** | All Staff | Restores default 100% 1:1 pixel scaling. |

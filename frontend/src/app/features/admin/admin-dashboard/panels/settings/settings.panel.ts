@@ -9,6 +9,7 @@ import { UserSettingsService, SettingKey } from '../../../../../core/services/us
 import { AdminUiService } from '../../admin-ui.service';
 import { ApiService } from '../../../../../core/services/api';
 import { DesktopNotificationsService } from '../../../../../core/services/desktop-notifications';
+import { AudioService } from '../../../../../core/services/audio.service';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 interface SettingToggle {
@@ -44,7 +45,8 @@ export class SettingsPanel implements OnInit {
   ];
 
   notifications: SettingToggle[] = [
-    { key: 'notif_emergency_alerts', label: 'Emergency Alerts', hint: v => v ? 'Sound and push alerts for incoming citizen SOS reports are enabled.' : 'SOS alerts are muted.', value: true, icon: 'bell' }
+    { key: 'notif_emergency_alerts', label: 'Emergency Alerts', hint: v => v ? 'Desktop alerts for incoming citizen SOS reports are active.' : 'Desktop alerts are muted.', value: true, icon: 'bell' },
+    { key: 'notif_sound_effects',    label: 'Sound Effects & Chimes', hint: v => v ? 'Audible chimes on new emergencies and tactile interaction feedback are active.' : 'All system audio is muted.', value: true, icon: 'volume-2' }
   ];
 
   mapDefaultStyle = 'street';
@@ -69,6 +71,7 @@ export class SettingsPanel implements OnInit {
     private ui: AdminUiService,
     private api: ApiService,
     private desktopNotifications: DesktopNotificationsService,
+    private audio: AudioService,
     private router: Router,
     private elRef: ElementRef<HTMLElement>,
   ) {}
@@ -125,6 +128,9 @@ export class SettingsPanel implements OnInit {
       this.settings.setBool(setting.key, isChecked);
       if (setting.key === 'reduce_animations') {
         document.documentElement.classList.toggle('reduce-animations', isChecked);
+      }
+      if (setting.key === 'notif_sound_effects') {
+        this.audio.setMuted(!isChecked);
       }
     }
   }

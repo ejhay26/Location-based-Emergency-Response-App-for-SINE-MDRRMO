@@ -89,7 +89,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   selectedRequestId: number | null = null;
   previewType: 'emergency' | 'hazard' | null = null;
 
-  mapStyle: 'street' | 'satellite' = 'street';
+  mapStyle: 'street' | 'satellite' = (typeof localStorage !== 'undefined' && localStorage.getItem('sine_admin_map_style') as 'street' | 'satellite') || 'street';
+  isImmersiveMap = false;
   private map: any;
   private mapMarkers: any[] = [];
   private streetLayer: any;
@@ -865,9 +866,59 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.plotMarkers();
   }
 
+  toggleImmersiveMap(): void {
+    this.isImmersiveMap = !this.isImmersiveMap;
+    setTimeout(() => {
+      if (this.map) {
+        this.map.invalidateSize({ pan: false });
+      }
+    }, 120);
+  }
+
+  getBarangayDisplay(itemData: any): string {
+    if (!itemData) return 'Unassigned';
+    if (itemData.barangay_name && itemData.barangay_name !== 'Unresolved' && String(itemData.barangay_name).trim() !== '') {
+      return itemData.barangay_name;
+    }
+    if (itemData.barangay_id) {
+      const b = this.barangayOptions.find(opt => opt.id === Number(itemData.barangay_id));
+      if (b) return b.name;
+    }
+    if (itemData.latitude && itemData.longitude) {
+      const nearest = this.resolveNearestBarangayName(Number(itemData.latitude), Number(itemData.longitude));
+      if (nearest) return nearest;
+    }
+    return 'Unassigned Barangay';
+  }
+
+  resolveNearestBarangayName(lat: number, lng: number): string | null {
+    const bgyCentroids: { name: string; lat: number; lng: number }[] = [
+      { name: 'Alua', lat: 15.3065, lng: 120.8950 },
+      { name: 'Calaba', lat: 15.2965, lng: 120.8750 },
+      { name: 'Malapit', lat: 15.3080, lng: 120.9190 },
+      { name: 'Mangga', lat: 15.2380, lng: 120.9060 },
+      { name: 'Poblacion', lat: 15.3100, lng: 120.9090 },
+      { name: 'Pulo', lat: 15.2420, lng: 120.9270 },
+      { name: 'San Roque', lat: 15.2890, lng: 120.8830 },
+      { name: 'Santo Cristo', lat: 15.2920, lng: 120.8940 },
+      { name: 'Tabon', lat: 15.2780, lng: 120.9120 },
+    ];
+    let closest = '';
+    let minDist = Infinity;
+    for (const b of bgyCentroids) {
+      const d = (lat - b.lat) * (lat - b.lat) + (lng - b.lng) * (lng - b.lng);
+      if (d < minDist) {
+        minDist = d;
+        closest = b.name;
+      }
+    }
+    return closest || null;
+  }
+
   toggleMapStyle(style: 'street' | 'satellite') {
     if (style === this.mapStyle || !this.map) return;
     this.mapStyle = style;
+    try { localStorage.setItem('sine_admin_map_style', style); } catch {}
     [this.streetLayer, this.satelliteLayer].forEach(l => { if (l && this.map.hasLayer(l)) this.map.removeLayer(l); });
     if (style === 'street') {
       this.streetLayer.addTo(this.map);
@@ -1041,7 +1092,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
           <span><b>Coords:</b> ${req.latitude}, ${req.longitude}</span>
           <button onclick="window.__copyIncidentCoords('${req.latitude}','${req.longitude}')" style="background:var(--ion-color-step-100, #eee);border:1px solid var(--ion-color-step-200, #ccc);color:var(--ion-text-color, #111);padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">Copy</button>
         </div>
-        <p style="font-size:13px;margin:4px 0;"><b>Barangay:</b> ${req.barangay_name || 'Unresolved'}</p>
+        <p style="font-size:13px;margin:4px 0;"><b>Barangay:</b> ${this.getBarangayDisplay(req)}</p>
         <div style="margin-top:12px;display:flex;gap:8px;">
           <button onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${req.request_id}}))" style="background:#ffc409;color:black;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">DISPATCH UNIT</button>
           <button onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${req.request_id}}))"  style="background:#2dd36f;color:white;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">RESOLVE</button>
@@ -1075,7 +1126,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         <h2 style="color:#e0ac00;font-size:17px;font-weight:bold;margin:0 0 6px 0;border-bottom:2px solid #ffc40930;padding-bottom:4px;">PUBLIC HAZARD LOG</h2>
         <p style="font-size:15px;margin:4px 0;line-height:1.4;background:var(--ion-color-light);padding:8px;border-radius:6px;border:1px solid #ffc40940;">"${haz.description}"</p>
         <p style="font-size:12px;color:gray;margin:6px 0 0 0;">Reported by: ${haz.first_name} ${haz.last_name}</p>
-        <p style="font-size:12px;color:gray;margin:2px 0 0 0;"><b>Barangay:</b> ${haz.barangay_name || 'Unresolved'}</p>
+        <p style="font-size:12px;color:gray;margin:2px 0 0 0;"><b>Barangay:</b> ${this.getBarangayDisplay(haz)}</p>
         <div style="font-size:12px;color:gray;margin:4px 0 0 0;background:var(--ion-color-light);padding:4px 8px;border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
           <span><b>Coords:</b> ${haz.latitude}, ${haz.longitude}</span>
           <button onclick="window.__copyIncidentCoords('${haz.latitude}','${haz.longitude}')" style="background:var(--ion-color-step-100, #eee);border:1px solid var(--ion-color-step-200, #ccc);color:var(--ion-text-color, #111);padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">Copy</button>

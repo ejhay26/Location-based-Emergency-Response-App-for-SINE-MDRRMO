@@ -148,10 +148,12 @@ In addition to live response, administrators have deep visibility into historica
 
 - **Dark Theme:** Toggle between High-Contrast Dark Mode and Clean Light Mode with a seamless 250ms cross-dissolve transition across desktop and mobile.
 - **Reduce Animations:** Minimize UI transition effects for maximum performance on lower-spec workstations.
-- **Emergency Audio & Push Alerts:** Enable or mute real-time sound cues and push alerts for incoming SOS calls.
-- **Default Map Style:** Set the default tile layer for the Incident Map (**Street View** vs. **Satellite Imagery**).
+- **Emergency Audio & Push Alerts:** Enable or mute real-time sound cues and push alerts for incoming SOS calls. Supports native desktop OS notifications across Windows, Linux, and macOS via Tauri v2 IPC.
+- **Sound Effects & Chimes:** Audible alert chimes on incoming emergencies and subtle tactile feedback on key UI interactions with mute toggle in Settings.
+- **Default Map Style & Immersive Map Mode:** Set the default tile layer for the Incident Map (**Street View** vs. **Satellite Imagery**) and toggle the full-screen immersive map workspace (<kbd>Shift</kbd> + <kbd>F</kbd>).
 - **Universal Display Scaling & Zoom:** Fine-tune workstation interface scaling between 75% and 150% via the granular zoom slider, instantly stored and synchronized with keyboard shortcuts (<kbd>Ctrl</kbd> + <kbd>+</kbd>, <kbd>-</kbd>, <kbd>0</kbd>).
 - **Interactive Guided Tours:** Step-by-step walkthroughs for dispatch, broadcasts, archiving, and staff management with viewport-adaptive mobile steps, interactive element tracking (including expanding the broadcast composer and inspecting saved drafts), and mock demo fallbacks.
+- **Unsaved Changes Guard:** Protection dialogs on Help, Profile, and Emergency reports to prevent unintentional loss of draft content when changing views.
 - **Concurrent Device Sessions:** Admin accounts support simultaneous logins across the native desktop workstation (Tauri) and mobile devices without expiring active sessions.
 - **Session Logout:** Safely terminate the administrative session and clear local credentials.
 

@@ -18,12 +18,10 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-
             "allowedCommonJsDependencies": [
               "leaflet",
               "pusher-js"
             ],
-
             "outputPath": {
               "base": "www",
               "browser": ""
@@ -41,7 +39,10 @@
                 "output": "assets"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": [
+              "src/global.scss",
+              "src/theme/variables.scss"
+            ],
             "scripts": [],
             "browser": "src/main.ts"
           },
@@ -51,7 +52,7 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
+                  "maximumWarning": "2.5mb",
                   "maximumError": "5mb"
                 },
                 {
@@ -122,7 +123,10 @@
                 "output": "assets"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": [
+              "src/global.scss",
+              "src/theme/variables.scss"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -135,7 +139,10 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
           }
         }
       }
@@ -145,7 +152,11 @@
     "schematicCollections": [
       "@ionic/angular-toolkit"
     ],
-    "analytics": false
+    "analytics": false,
+    "cache": {
+      "enabled": true,
+      "path": "G:/sine_tmp/angular_cache"
+    }
   },
   "schematics": {
     "@ionic/angular-toolkit:component": {

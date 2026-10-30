@@ -12,6 +12,7 @@ export type SettingKey =
   | 'save_media_to_device'
   | 'photo_cropping_enabled'
   | 'video_trimming_enabled'
+  | 'notif_sound_effects'
   | 'desktop_zoom';
 
 const STORAGE_KEY = 'user_settings_cache';
@@ -23,6 +24,7 @@ const DEFAULTS: Record<SettingKey, string> = {
   map_default_style:       'street',
   notif_emergency_alerts:  'true',
   notif_broadcast_alerts:  'true',
+  notif_sound_effects:     'true',
   save_media_to_device:    'false',
   photo_cropping_enabled:  'true',
   video_trimming_enabled:  'true',

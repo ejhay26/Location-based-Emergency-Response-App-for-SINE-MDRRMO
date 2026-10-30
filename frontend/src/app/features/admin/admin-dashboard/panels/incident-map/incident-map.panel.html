@@ -313,10 +313,10 @@
 </div>
 
 <!-- ── WORKSPACE SPLIT (MAP + RESIZER + QUEUE) ── -->
-<div class="map-workspace-split">
+<div class="map-workspace-split" [class.is-immersive-workspace]="isImmersiveMap">
   
   <!-- Left / Main: Map Container -->
-  <div id="cad-map-container" class="map-container-col">
+  <div id="dispatch-map-container" class="map-container-col">
     <ion-card class="map-card-wrapper">
       <ion-card-content class="ion-no-padding" style="height:100%;flex:1;display:flex;position:relative;">
         <div id="dispatch-map" style="height:100%;width:100%;min-height:360px;background-color:#e5e5e5;flex:1;"></div>
@@ -341,6 +341,17 @@
             aria-label="Satellite Map View">
             <app-icon name="satellite" [size]="12" [color]="mapStyle === 'satellite' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
             <span>Satellite</span>
+          </button>
+          <button
+            type="button"
+            class="layer-seg-btn"
+            [class.active]="isImmersiveMap"
+            (click)="toggleImmersiveMap()"
+            [appTooltip]="isImmersiveMap ? 'Standard Split' : 'Immersive Map'"
+            tooltipPlacement="top"
+            aria-label="Toggle Immersive Full Screen Map">
+            <app-icon [name]="isImmersiveMap ? 'compress' : 'expand'" [size]="12" [color]="isImmersiveMap ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+            <span>{{ isImmersiveMap ? 'Split' : 'Immersive' }}</span>
           </button>
         </div>
       </ion-card-content>
@@ -410,7 +421,7 @@
         </div>
         <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description || 'Emergency alert triggered' }}</p>
         <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Citizen:</strong> {{ item.data.first_name }} {{ item.data.last_name }}</p>
-        <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+        <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Barangay:</strong> {{ getBarangayDisplay(item.data) }}</p>
         <div *ngIf="item.data.latitude && item.data.longitude"
              style="display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 0; font-size: 11.5px; color: var(--ion-color-medium);">
           <span><strong>GPS:</strong> {{ formatCoords(item.data.latitude, item.data.longitude) }}</span>
@@ -485,7 +496,7 @@
         </div>
         <p style="font-size: 14px; margin: 4px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description }}</p>
         <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Reported by:</strong> {{ item.data.first_name }} {{ item.data.last_name }}</p>
-        <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+        <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Barangay:</strong> {{ getBarangayDisplay(item.data) }}</p>
         <div *ngIf="item.data.latitude && item.data.longitude"
              style="display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 0; font-size: 11.5px; color: var(--ion-color-medium);">
           <span><strong>GPS:</strong> {{ formatCoords(item.data.latitude, item.data.longitude) }}</span>
@@ -591,7 +602,7 @@
             </div>
           </div>
           <p style="font-size: 13.5px; margin: 3px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description || 'Emergency alert triggered' }}</p>
-          <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Citizen:</strong> {{ item.data.first_name }} {{ item.data.last_name }} · <strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+          <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Citizen:</strong> {{ item.data.first_name }} {{ item.data.last_name }} · <strong>Barangay:</strong> {{ getBarangayDisplay(item.data) }}</p>
           <div *ngIf="item.data.latitude && item.data.longitude"
                style="display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 0; font-size: 11.5px; color: var(--ion-color-medium);">
             <span><strong>GPS:</strong> {{ formatCoords(item.data.latitude, item.data.longitude) }}</span>
@@ -641,7 +652,7 @@
             </div>
           </div>
           <p style="font-size: 13.5px; margin: 3px 0; font-weight: 500; line-height: 1.35;">{{ item.data.description }}</p>
-          <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Reported by:</strong> {{ item.data.first_name }} {{ item.data.last_name }} · <strong>Barangay:</strong> {{ item.data.barangay_name || 'Unresolved' }}</p>
+          <p style="font-size: 12px; color: var(--ion-color-medium); margin: 3px 0 0 0;"><strong>Reported by:</strong> {{ item.data.first_name }} {{ item.data.last_name }} · <strong>Barangay:</strong> {{ getBarangayDisplay(item.data) }}</p>
           <div *ngIf="item.data.latitude && item.data.longitude"
                style="display: flex; align-items: center; justify-content: space-between; margin: 4px 0 0 0; font-size: 11.5px; color: var(--ion-color-medium);">
             <span><strong>GPS:</strong> {{ formatCoords(item.data.latitude, item.data.longitude) }}</span>

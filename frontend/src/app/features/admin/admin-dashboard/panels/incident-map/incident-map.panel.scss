@@ -488,6 +488,18 @@
   position: relative;
 }
 
+.map-workspace-split.is-immersive-workspace {
+  .map-split-resizer,
+  .map-queue-col {
+    display: none !important;
+  }
+  .map-container-col {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
 .map-container-col {
   flex: 1;
   min-width: 320px;
