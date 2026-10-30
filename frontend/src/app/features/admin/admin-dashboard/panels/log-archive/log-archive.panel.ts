@@ -33,8 +33,20 @@ const ARCHIVE_FILTER_LABELS: Record<string, string> = {
     AppIconComponent, FilterDropdownComponent, CustomTooltipDirective
   ],
   templateUrl: './log-archive.panel.html',
+  styleUrls: ['./log-archive.panel.scss'],
 })
 export class LogArchivePanel implements OnInit {
+
+  /** macOS Finder view mode: 'list' (horizontal cards) or 'grid' (multi-column cards) */
+  viewMode: 'grid' | 'list' = (typeof localStorage !== 'undefined' && localStorage.getItem('sine_admin_log_archive_view') as 'grid' | 'list') || 'list';
+
+  setViewMode(mode: 'grid' | 'list'): void {
+    this.viewMode = mode;
+    try {
+      localStorage.setItem('sine_admin_log_archive_view', mode);
+    } catch {}
+  }
+
 
   isLoading = true;
   archivedRequests: any[] = [];

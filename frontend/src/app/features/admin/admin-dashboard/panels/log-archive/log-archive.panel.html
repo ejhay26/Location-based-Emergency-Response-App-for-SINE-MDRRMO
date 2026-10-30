@@ -47,6 +47,28 @@
         (valueChange)="onSortChange($event)">
       </app-filter-dropdown>
 
+            <!-- macOS Finder View Mode Switcher (Grid vs List) -->
+      <div class="apple-segmented-control finder-view-switcher" role="group" aria-label="Archive View Mode">
+        <button
+          type="button"
+          class="segmented-pill-btn"
+          [class.active]="viewMode === 'list'"
+          (click)="setViewMode('list')"
+          appTooltip="List View"
+          tooltipPlacement="bottom">
+          <app-icon name="finder-list" [size]="14"></app-icon>
+        </button>
+        <button
+          type="button"
+          class="segmented-pill-btn"
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')"
+          appTooltip="Grid Cards View"
+          tooltipPlacement="bottom">
+          <app-icon name="finder-grid" [size]="14"></app-icon>
+        </button>
+      </div>
+
       <button
         id="exportArchivePdfBtn"
         type="button"
@@ -71,8 +93,8 @@
   </p>
 
   <!-- Skeleton Loader -->
-  <div *ngIf="isLoading" style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
-    <div *ngFor="let i of [1,2,3,4]" style="padding: 18px; border-radius: 16px; background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+  <div *ngIf="isLoading" [ngClass]="viewMode === 'grid' ? 'archive-cards-grid' : 'archive-cards-list'" style="margin-top: 14px;">
+    <div *ngFor="let i of (viewMode === 'grid' ? [1,2,3,4,5,6] : [1,2,3,4])" style="padding: 18px; border-radius: 16px; background: var(--ion-card-background, #fff); border: 1px solid var(--ion-color-step-150, #ddd); box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
         <div style="display: flex; align-items: center; gap: 12px;">
           <ion-skeleton-text [animated]="true" style="width: 40px; height: 40px; border-radius: 12px;"></ion-skeleton-text>
@@ -95,13 +117,13 @@
   </div>
 
   <!-- Archive cards -->
-  <div *ngIf="!isLoading">
+  <div *ngIf="!isLoading" [ngClass]="viewMode === 'grid' ? 'archive-cards-grid' : 'archive-cards-list'">
   <div
     *ngFor="let req of sortedArchivedRequests; let i = index; trackBy: trackByRequestId"
     [attr.data-flip-id]="req.request_id"
     [appRevealAnimate]="matchesArchiveFilter(req)"
     [appAnnouncementEnter]="i"
-    style="margin: 0 0 12px 0; background: var(--ion-card-background, #fff); border-radius: 14px; padding: 16px; color: var(--ion-text-color); box-shadow: var(--card-shadow, 0 2px 6px rgba(0,0,0,0.03)); border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)));">
+    class="archive-card-item">
 
     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
       <div style="display:flex;align-items:center;gap:10px;">
@@ -141,7 +163,7 @@
     </p>
 
     <div *ngIf="req.agency || req.dispatched_by_name || req.resolved_by_name"
-         style="margin: 6px 0; padding: 6px 10px; border-radius: 8px; background: var(--ion-color-step-100, #f8f9fa); border: 1px solid var(--ion-color-step-150, #eee); font-size: 12px; color: var(--ion-color-medium); display: flex; flex-wrap: wrap; gap: 10px;">
+         class="archive-audit-box">
       <span *ngIf="req.agency">
         <strong style="color: var(--ion-text-color);">Unit:</strong> {{ req.agency }} <span *ngIf="req.unit_name">({{ req.unit_name }})</span>
       </span>
