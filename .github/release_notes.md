@@ -1,42 +1,3 @@
-### What's Changed in v0.93.4
-
-- **Unsaved Changes Guard**: Implemented confirmation dialogs across Citizen Help, Profile, and Emergency Report views before discarding uncommitted inputs or draft content.
-- **Report Modal GPU Transitions**: Re-engineered modal slide-in animation using GPU-composited 3D transforms (`translate3d(100%, 0, 0)` to `translate3d(0, 0, 0)`) with Apple-style cubic bezier easing and deferred map rendering for smooth 60fps presentation.
-- **Full-Screen Map Dialog Stacking**: Reparented dialog overlays to `document.body` with `z-index: 200000`, guaranteeing confirm dialogs sit properly above full-screen maps.
-- **Spotlight Satellite View Preservation**: Persisted map style preferences in local storage, preventing Spotlight Search (`Ctrl + F`) barangay jumps from reverting satellite view to street view.
-- **Immersive Full-Screen Map Workspace**: Added full-screen immersive map mode (`Shift + F` or toolbar toggle) for expanded operational situational awareness.
-- **Log Archive & ID Verification Skeleton Loader Fix**: Resolved infinite skeleton loaders by properly handling completion flags and conditional rendering, eliminating stacked cards below loading states.
-- **Searchable & Scrollable Filter Dropdowns**: Automatically added inline search filtering to all dropdowns with 6 or more options, and introduced one-click quick presets to date range pickers.
-- **Native Desktop OS Notifications (Tauri v2)**: Implemented native OS notifications across Windows, Linux, and macOS via `tauri-plugin-notification` IPC with browser Notification fallback.
-- **Audio Chimes & Tactile Interaction Sound Effects**: Added dual harmonic alert chimes (D5 -> A5) for emergency notifications and tactile click feedback for key interactions, with full mute controls in Settings.
-- **Authoritative PSA Barangay Coordinates Resolution**: Fixed backend geospatial resolver to properly map PSA GeoJSON codes to San Isidro barangays, eliminating "Barangay: Unresolved" pins and labels.
-- **Citizens Hover Action Persistence Fix**: Resolved card hover action button freezing in the Citizens panel by automatically clearing active card selections on outside clicks and modal dismissals.
-- **Offline PMTiles Map Engine**: Enhanced map tile service with dual-mode offline resilience supporting local PMTiles for both street and satellite views.
-
-### What's Changed in v0.93.4
-
-- **Native High-Performance WebSocket Architecture**: Completely removed legacy `laravel-echo` and `pusher-js` client dependencies from the frontend. Replaced with a lightweight native browser/webview `WebSocket` client connecting directly to the Go Fiber daemon on port 3000 (`/ws`). Built a native Go WebSocket Hub with client heartbeat ping/pong tickers, connection concurrency mutexes, and broadcast channels.
-- **Enterprise Authentication & Password Complexity**: Enforced strict password complexity validation in Go matching enterprise standards (uppercase, lowercase, number, and special character required). Capped OTP verification attempts at 5 to eliminate brute-force vulnerability, removed all plaintext OTP logging, and applied endpoint rate limiting.
-- **Role-Based Access Control (RBAC) & Citizen Hazard History**: Restricted account rejection exclusively to pending citizen profiles (`RejectUser`). Locked `/api/active-hazards` to authorized dispatchers and administrators while implementing the dedicated citizen endpoint `GET /api/my-hazards` across both Go and Laravel backends with soft-delete filtering.
-- **Multi-Unit Dispatching & Incident Workflow Hardening**: Resolved incident transition side-effects by enabling multi-unit dispatching for already-dispatched emergencies and allowing direct resolution from pending states.
-- **Cryptographically Secure Media Storage**: Replaced predictable timestamp-based upload filenames with 16 cryptographically secure random bytes generated via `crypto/rand`.
-- **Strict CORS & Process Protection**: Hardened CORS policy to strictly validate origins against whitelist entries and trusted IP patterns, eliminating arbitrary origin reflection. Wrapped background goroutines in `SafeGo` panic recovery and shielded database backup passwords from process table exposure (`ps`).
-- **Desktop Window Visibility & ACL Permissions Fix**: Resolved a startup issue where desktop builds remained hidden due to missing Tauri v2 window-show ACL capabilities. Restored default window visibility, granted `core:window:allow-show` permissions, and added Rust runtime window-focus guarantees.
-- **Frontend De-Monolithing & Performance**: Applied Angular `@defer` blocks across admin dashboard sub-panels and tour overlays to optimize initial chunk evaluation and reduce memory overhead.
-- **Citizen Emergency History & Multi-Date Filter**: Resolved history card rendering collapse caused by container directive wrappers and restored multi-date / date-range selection across citizen emergency logs. Fixed `trackByReportId` function scope binding in `HistoryPage` to resolve card rendering failures.
-- **Adaptive Tooltip System & Dynamic Viewport Clearance**: Re-engineered the custom tooltip directive with dynamic placement flipping (preferred -> opposite -> orthogonal clearance fallback), cross-axis constraint clamping, and responsive text wrapping (`max-width: min(280px, 90vw)`). Added variable-based `--arrow-offset` positioning so tooltip arrows remain precisely targeted at trigger elements without edge clipping or covering toolbar actions.
-- **Centralized Force-Logout & Overlay Teardown**: Introduced `AuthSessionService` to systematically dismiss all open Ionic overlays (modals, popovers, alerts, loading indicators) and root dialogs upon remote session termination (single-device citizen enforcement) or HTTP 401 expiration, preventing orphaned modals from persisting over the login screen.
-- **Resilient Citizen Report Draft Recovery**: Added automatic report draft serialization in `sessionStorage` preserving selected incident types, descriptions, coordinates, and media attachments across unexpected logouts or session expirations. Prevented unauthenticated reports from polluting the offline sync queue.
-- **Admin Incident Map Stability**: Hardened the Admin Incident Map date filter against accidental dismissals during popover and calendar interactions by filtering backdrop clicks through composed event paths.
-- **Independent Card Hover & Upward Button Flight Animation**: Resolved grid row height stretching in the Citizens and Dispatchers admin panels by anchoring cards to track start. Hovered cards now lift, scale gracefully, and reveal action buttons with a smooth staggered upward flight animation, keeping unhovered cards compact without whitespace gaps.
-- **Documentation Alignment**: Updated API specifications, security whitepapers, and production deployment runbooks to reflect dedicated database credentials, rate limits, and cryptographic asset paths.
-- **Offline PMTiles Map Engine with Resilient Backend Fallback**: Implemented a hybrid tile-loading layer for the Street view that prioritizes local offline PMTiles archives (e.g., packaged municipal tiles in `assets/tiles/san-isidro.pmtiles`) for zero-latency, offline disaster-resilient mapping during power and telecom blackouts. If the offline archive is missing or a requested coordinate falls outside municipal bounds, it automatically falls back to the backend tile proxy server. Hardcoded map zoom bounds (minimum zoom 12, maximum zoom 19) are strictly enforced across street and satellite layers, while satellite imagery remains hosted on the backend.
-- **Resilient SOS Dispatch & Settings Toggle Persistence**: Implemented flexible numeric and string parsing across backend emergency SOS and hazard endpoints, preventing 422 submission errors from stringified coordinates. Resolved the Settings page auto-fetch location toggle reversion bug by binding checked states to change events, synchronizing settings on view entry (`ionViewWillEnter`), and hydrating user preferences from storage on service startup.
-- **Universal Desktop Display Scaling & Workstation Zoom**: Introduced universal application-level display scaling for desktop workstations (Tauri / Electron / Web). Users can zoom in with `Ctrl/Cmd` + `+`/`=`, zoom out with `Ctrl/Cmd` + `-`, and reset to 100% with `Ctrl/Cmd` + `0`, or adjust the granular 75%-150% slider in the Settings panel, persistently stored via `UserSettingsService`. Added shortcut entries to Help & Operations guides.
-- **Unit Tag System & Custom Callsigns**: Added unit callsign presets (`MDRRMO-MED-1`, `AMB-01`, `RESCUE-ALPHA`, `BFP-ENGINE-1`, `PNP-PATROL-1`) and free-form typing in the Dispatch modal. Responding unit callsigns are displayed immediately to citizens on their active floating SOS status card and emergency history views.
-- **Operational Audit Trail & Dispatch Brief Export**: Recorded and displayed `Dispatched By` (dispatcher personnel name) and `Resolved By` (resolver personnel name) with timestamps across Incident Map cards, Log Archive records, modal inspections, and certified PDF situation reports. Added a 1-click **Copy Dispatch Brief** action button to active incident cards for instant radio and messaging relay.
-- **Citizen Floating SOS Card & Multi-Emergency Proximity Submission**: Fixed floating SOS card text truncation on mobile devices with responsive multi-line wrapping and dynamic incident naming. Enabled citizens to submit up to 3 simultaneous emergencies across distinct incident types or locations (> 100m away), while returning HTTP 409 Conflict for duplicate submissions within 100m to eliminate misleading dual error toasts.
-
 ### Direct Application Downloads
 
 | Platform | Target Architecture | Direct Download Link | Format |
@@ -51,3 +12,19 @@
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_amd64.AppImage) | `.AppImage` |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_arm64.deb) | `.deb` |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_aarch64.AppImage) | `.AppImage` |
+
+---
+
+### What's Changed in v0.93.4
+
+- **Incident Map Proximate Clustering**: Grouped active emergencies and hazards within 150m into clean horizontal carousels with location badges.
+- **Log Archive Finder Views**: Added macOS Finder-style Grid and List view switcher, eliminating stretched empty audit boxes.
+- **Immersive Full-Screen Incident Map**: Moved full-screen map toggle to bottom left and preserved active incident cards as a floating drawer directly over the map.
+- **Location Boundary Guarantees**: Proactively prevented out-of-bounds submissions with inline warning banners, snap-to-town shortcuts, and removed spam toasts.
+- **Report Modal Discard Dialog Fix**: Corrected premature discard prompts by excluding default coordinates and allowing seamless tutorial progression.
+- **Floating SOS Card Minimization**: Added a 5-second initial visibility timer that collapses into a left beacon with quick re-expand and minimize controls.
+- **Android App Switching Network Resilience**: Suppressed false offline toasts caused by background socket closures during Android app switching.
+- **Interactive UI Sound Controls**: Added dedicated volume sliders, first-gesture audio unlocking for mobile devices, and instant test chime playback.
+- **Customizable Responder Callsigns**: Introduced editable responder callsigns and updated interactive guided tours for dispatchers.
+- **Desktop Workstation Display Zoom**: Universal keyboard shortcuts (`Ctrl/Cmd +/-/0`) and Settings slider for high-resolution displays.
+- **Native OS Desktop Notifications**: Full IPC desktop notification integration across Windows, macOS, and Linux.
