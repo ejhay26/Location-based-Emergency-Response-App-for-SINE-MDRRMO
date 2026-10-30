@@ -91,6 +91,10 @@ export class ReportPage implements OnDestroy, CanComponentDeactivate {
   /** Captured from ReportMapComponent's live preview via onCoordsChanged — shown in the pre-submit confirmation dialog. Preview only: never sent to the backend, which resolves barangay_id independently (see BarangayResolver) before persisting. */
   resolvedBarangayName: string | null = null;
 
+  get isOutOfBounds(): boolean {
+    return !!this.reportMapCmp?.isOutOfBounds;
+  }
+
   get isFormReady(): boolean {
     if (!this.reportForm.value.latitude || !this.reportForm.value.longitude) return false;
     if (this.reportType === 'emergency') return !!this.reportForm.value.incident_type_id;
@@ -101,12 +105,12 @@ export class ReportPage implements OnDestroy, CanComponentDeactivate {
 
   /** Checks if any report details or media were provided by the user. */
   private hasDraftContent(): boolean {
+    if (this.tour.isActive()) return false;
     const val = this.reportForm.value;
     const hasDetails = !!(val?.description && val.description.trim().length > 0);
     const hasType = !!(val?.incident_type_id || val?.hazard_type);
-    const hasLocation = !!(val?.latitude && val?.longitude);
     const hasMedia = this.mediaFiles.length > 0;
-    return hasDetails || hasType || hasLocation || hasMedia;
+    return hasDetails || hasType || hasMedia;
   }
 
   /** Saves active report input fields to sessionStorage so they are preserved across auth bounces. */
@@ -239,11 +243,11 @@ export class ReportPage implements OnDestroy, CanComponentDeactivate {
   async canDeactivate(): Promise<boolean> {
     if (this.hasDraftContent() && !this.isSubmitted) {
       const confirmDiscard = await this.dialog.confirm({
-        title: 'Discard Report Draft?',
-        message: 'You have entered details for this report. Are you sure you want to discard your draft and leave?',
+        title: 'Discard Report Edits?',
+        message: 'You have entered changes for this report. Do you want to discard your edits?',
         icon: 'alert',
         iconColor: '#eb445a',
-        confirmLabel: 'Discard',
+        confirmLabel: 'Discard Edit',
         confirmColor: 'danger',
         cancelLabel: 'Keep Editing',
       });
@@ -259,11 +263,11 @@ export class ReportPage implements OnDestroy, CanComponentDeactivate {
   async close() {
     if (this.hasDraftContent() && !this.isSubmitted) {
       const confirmDiscard = await this.dialog.confirm({
-        title: 'Discard Report Draft?',
-        message: 'You have entered details for this report. Are you sure you want to discard this report and close?',
+        title: 'Discard Report Edits?',
+        message: 'You have entered changes for this report. Do you want to discard your edits and close?',
         icon: 'alert',
         iconColor: '#eb445a',
-        confirmLabel: 'Discard',
+        confirmLabel: 'Discard Edit',
         confirmColor: 'danger',
         cancelLabel: 'Keep Editing',
       });

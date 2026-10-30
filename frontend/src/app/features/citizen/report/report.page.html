@@ -35,8 +35,8 @@
       <div id="tour-location-card" [class.tour-highlight]="tour.targetId() === 'tour-location-card' || tour.targetId() === 'tour-map-area'">
         <app-report-map
           [reportType]="reportType"
-          [submitLabel]="reportType === 'hazard' ? 'Submit Hazard Report' : 'Send Emergency SOS'"
-          [submitDisabled]="!isFormReady || isSubmitting"
+          [submitLabel]="isOutOfBounds ? 'Location Outside San Isidro' : (reportType === 'hazard' ? 'Submit Hazard Report' : 'Send Emergency SOS')"
+          [submitDisabled]="!isFormReady || isSubmitting || isOutOfBounds"
           [submitLoading]="isSubmitting"
           (coordsChanged)="onCoordsChanged($event)"
           (submitRequested)="submitReport()">
@@ -68,7 +68,7 @@
   <ion-button id="tour-submit-button"
               appPressFeedback
               [class.tour-highlight]="tour.targetId() === 'tour-submit-button'"
-              [disabled]="!isFormReady || isSubmitting"
+              [disabled]="!isFormReady || isSubmitting || isOutOfBounds"
               (click)="submitReport()"
               expand="block"
               [color]="reportType === 'hazard' ? undefined : 'danger'"

@@ -111,6 +111,7 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   private barangayPolygons: { name: string; ring: number[][] }[] = [];
   /** Live-resolved barangay for the pin's current position, null while outside every mapped polygon (or outside San Isidro entirely). Read by report.page.ts via ReportCoords.barangayName for the pre-submit confirmation dialog. */
   resolvedBarangayName: string | null = null;
+  isOutOfBounds = false;
 
   mapStyle: 'street' | 'satellite' = 'street';
   mapExpanded = false;
@@ -702,12 +703,19 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     this.hintTimer = setTimeout(() => { this.showMapHint = false; }, 3000);
   }
 
+  snapToTownCenter(): void {
+    if (this.map) {
+      this.map.flyTo([15.3014, 120.9274], 16);
+    }
+  }
+
   updateCoords() {
     const center = this.map.getCenter();
-    if (this.sanIsidroPolygon.length > 0 && !this.isInsideSanIsidro(center.lat, center.lng)) {
+    const isInside = this.sanIsidroPolygon.length === 0 || this.isInsideSanIsidro(center.lat, center.lng);
+    this.isOutOfBounds = !isInside;
+    if (!isInside) {
       this.resolvedBarangayName = null;
       this.coordsChanged.emit(null);
-      this.showToast('Move the pin inside San Isidro.', 'danger');
       return;
     }
     this.resolvedBarangayName = this.resolveBarangayName(center.lat, center.lng);

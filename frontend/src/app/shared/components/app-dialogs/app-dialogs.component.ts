@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, ElementRef } from '@angular/core';
+import { Component, HostListener, OnInit, ElementRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ProxyImageDirective } from '../../directives/proxy-image.directive';
@@ -10,9 +10,16 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
   selector: 'app-dialogs',
   standalone: true,
   imports: [CommonModule, ProxyImageDirective, AppIconComponent, CustomTooltipDirective],
+  styles: [`
+    :host {
+      display: block;
+      position: relative;
+      z-index: 2000000;
+    }
+  `],
   template: `
     <!-- Confirm Dialog (Apple iOS UIAlertController Style) -->
-    <div *ngIf="dialog.confirmDialog().open" class="c-overlay" [class.c-overlay-closing]="dialog.closingConfirm()" style="z-index: 200000;">
+    <div *ngIf="dialog.confirmDialog().open" class="c-overlay" [class.c-overlay-closing]="dialog.closingConfirm()" style="z-index: 2000000;">
       <div class="c-overlay-bg" (click)="dialog.closeConfirm()"></div>
       <div class="c-panel" [class.c-panel-closing]="dialog.closingConfirm()" style="width: min(340px, 88vw); border-radius: 20px; overflow: hidden; border: var(--card-border, 1px solid rgba(0,0,0,0.1)); box-shadow: 0 20px 60px rgba(0,0,0,0.4); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); background: var(--ion-card-background, #ffffff);">
         <div style="padding: 24px 20px 20px; text-align: center;">
@@ -183,7 +190,17 @@ export class AppDialogsComponent implements OnInit {
   private initialScale = 1;
   private lastTap = 0;
 
-  constructor(public dialog: DialogService, private el: ElementRef) {}
+  constructor(public dialog: DialogService, private el: ElementRef) {
+    effect(() => {
+      if (this.dialog.confirmDialog().open || this.dialog.lightboxOpen()) {
+        if (typeof document !== 'undefined' && document.body && this.el?.nativeElement) {
+          if (document.body.lastElementChild !== this.el.nativeElement) {
+            document.body.appendChild(this.el.nativeElement);
+          }
+        }
+      }
+    });
+  }
 
   ngOnInit(): void {
     if (typeof document !== 'undefined' && document.body && this.el?.nativeElement) {
