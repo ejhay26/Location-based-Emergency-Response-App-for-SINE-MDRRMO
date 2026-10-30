@@ -84,13 +84,63 @@ func (r *BarangayResolver) load() {
 		return
 	}
 
+	psgcMap := map[int]int{
+		304925001: 1, // Alua
+		304925002: 2, // Calaba
+		304925004: 3, // Malapit
+		304925005: 4, // Mangga
+		304925006: 5, // Poblacion
+		304925008: 6, // Pulo
+		304925010: 7, // San Roque
+		304925011: 8, // Santo Cristo / Sto. Cristo
+		304925012: 9, // Tabon
+	}
+
 	for _, feature := range fc.Features {
-		bid, ok := feature.Properties["barangay_id"]
-		if !ok {
+		var barangayID int
+		var name string
+
+		if bid, ok := feature.Properties["barangay_id"]; ok {
+			barangayID = int(bid.(float64))
+		} else if psgc, ok := feature.Properties["adm4_psgc"]; ok {
+			pCode := int(psgc.(float64))
+			if mappedID, found := psgcMap[pCode]; found {
+				barangayID = mappedID
+			}
+		}
+
+		if n, ok := feature.Properties["adm4_en"].(string); ok {
+			name = n
+		} else if n, ok := feature.Properties["barangay_name"].(string); ok {
+			name = n
+		}
+
+		if barangayID == 0 && name != "" {
+			switch name {
+			case "Alua":
+				barangayID = 1
+			case "Calaba":
+				barangayID = 2
+			case "Malapit":
+				barangayID = 3
+			case "Mangga":
+				barangayID = 4
+			case "Poblacion":
+				barangayID = 5
+			case "Pulo":
+				barangayID = 6
+			case "San Roque":
+				barangayID = 7
+			case "Sto. Cristo", "Santo Cristo":
+				barangayID = 8
+			case "Tabon":
+				barangayID = 9
+			}
+		}
+
+		if barangayID == 0 {
 			continue
 		}
-		barangayID := int(bid.(float64))
-		name, _ := feature.Properties["barangay_name"].(string)
 
 		var rings [][][2]float64
 
@@ -137,6 +187,31 @@ func (r *BarangayResolver) Resolve(lat, lng float64) *int {
 		if r.pointInPolygon(lat, lng, b.Rings) {
 			id := b.BarangayID
 			return &id
+		}
+	}
+
+	// Centroid proximity fallback if within San Isidro bounding region
+	if lat >= 15.15 && lat <= 15.45 && lng >= 120.75 && lng <= 121.05 {
+		var closestID int
+		minDist := math.MaxFloat64
+		for _, b := range r.boundaries {
+			if len(b.Rings) > 0 && len(b.Rings[0]) > 0 {
+				var latSum, lngSum float64
+				for _, pt := range b.Rings[0] {
+					lngSum += pt[0]
+					latSum += pt[1]
+				}
+				cLat := latSum / float64(len(b.Rings[0]))
+				cLng := lngSum / float64(len(b.Rings[0]))
+				d := haversine(lat, lng, cLat, cLng)
+				if d < minDist {
+					minDist = d
+					closestID = b.BarangayID
+				}
+			}
+		}
+		if closestID > 0 {
+			return &closestID
 		}
 	}
 

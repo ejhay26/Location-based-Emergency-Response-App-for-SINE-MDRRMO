@@ -170,16 +170,17 @@ export class TabsPage implements OnInit, OnDestroy {
    * that reassignment is what drives the tab bar's active-state styling
    * (icon ring, red color, bold label).
    */
-  navigate(tab: { route: string; id: string }, index: number) {
+  async navigate(tab: { route: string; id: string }, index: number) {
     const cameFromIndex = this.tabs.findIndex(t => this.router.url.includes('/' + t.id));
-    this.activeIndex = index;
     if (this.tour.isActive() && this.tour.targetId() === 'tour-tab-' + tab.id) {
       this.tour.onInteraction();
     }
-    if (index >= cameFromIndex) {
-      this.navCtrl.navigateForward([tab.route]);
-    } else {
-      this.navCtrl.navigateBack([tab.route]);
+    const navPromise = (index >= cameFromIndex)
+      ? this.navCtrl.navigateForward([tab.route])
+      : this.navCtrl.navigateBack([tab.route]);
+    const success = await navPromise;
+    if (success) {
+      this.activeIndex = index;
     }
   }
 }

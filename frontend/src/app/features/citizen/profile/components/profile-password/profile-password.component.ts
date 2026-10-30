@@ -48,6 +48,10 @@ export class ProfilePasswordComponent implements OnDestroy {
   pwdSending = false;
   pwdVerifying = false;
   pwdFocused = false;
+
+  hasUnsavedChanges(): boolean {
+    return this.pwdStep !== 'idle';
+  }
   passwords = { new: '', confirm: '' };
   isUpdatingPassword = false;
 

@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogService } from '../../../core/services/dialog.service';
 import { ProxyImageDirective } from '../../directives/proxy-image.directive';
@@ -12,7 +12,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
   imports: [CommonModule, ProxyImageDirective, AppIconComponent, CustomTooltipDirective],
   template: `
     <!-- Confirm Dialog (Apple iOS UIAlertController Style) -->
-    <div *ngIf="dialog.confirmDialog().open" class="c-overlay" [class.c-overlay-closing]="dialog.closingConfirm()" style="z-index: 99999;">
+    <div *ngIf="dialog.confirmDialog().open" class="c-overlay" [class.c-overlay-closing]="dialog.closingConfirm()" style="z-index: 200000;">
       <div class="c-overlay-bg" (click)="dialog.closeConfirm()"></div>
       <div class="c-panel" [class.c-panel-closing]="dialog.closingConfirm()" style="width: min(340px, 88vw); border-radius: 20px; overflow: hidden; border: var(--card-border, 1px solid rgba(0,0,0,0.1)); box-shadow: 0 20px 60px rgba(0,0,0,0.4); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); background: var(--ion-card-background, #ffffff);">
         <div style="padding: 24px 20px 20px; text-align: center;">
@@ -165,7 +165,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
     </div>
   `,
 })
-export class AppDialogsComponent {
+export class AppDialogsComponent implements OnInit {
   scale = 1;
   panX = 0;
   panY = 0;
@@ -183,7 +183,13 @@ export class AppDialogsComponent {
   private initialScale = 1;
   private lastTap = 0;
 
-  constructor(public dialog: DialogService) {}
+  constructor(public dialog: DialogService, private el: ElementRef) {}
+
+  ngOnInit(): void {
+    if (typeof document !== 'undefined' && document.body && this.el?.nativeElement) {
+      document.body.appendChild(this.el.nativeElement);
+    }
+  }
 
   get transformStyle(): string {
     return `translate3d(${this.panX + this.dragX}px, ${this.panY + this.dragY}px, 0px) scale(${this.scale})`;

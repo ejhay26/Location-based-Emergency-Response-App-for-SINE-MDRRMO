@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth-guard';
 import { GuestGuard } from './core/guards/guest-guard';
+import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'welcome', pathMatch: 'full' },
@@ -44,9 +45,9 @@ export const routes: Routes = [
     children: [
       { path: 'home',     loadComponent: () => import('./features/citizen/home/home.page').then(m => m.HomePage) },
       { path: 'history',  loadComponent: () => import('./features/citizen/history/history.page').then(m => m.HistoryPage) },
-      { path: 'profile',  loadComponent: () => import('./features/citizen/profile/profile.page').then(m => m.ProfilePage) },
+      { path: 'profile',  loadComponent: () => import('./features/citizen/profile/profile.page').then(m => m.ProfilePage), canDeactivate: [unsavedChangesGuard] },
       { path: 'settings', loadComponent: () => import('./features/citizen/settings/settings.page').then(m => m.SettingsPage) },
-      { path: 'help',     loadComponent: () => import('./features/citizen/help/help.page').then(m => m.HelpPage) },
+      { path: 'help',     loadComponent: () => import('./features/citizen/help/help.page').then(m => m.HelpPage), canDeactivate: [unsavedChangesGuard] },
       { path: '', redirectTo: 'home', pathMatch: 'full' },
     ],
   },
@@ -60,6 +61,7 @@ export const routes: Routes = [
     path: 'report',
     loadComponent: () => import('./features/citizen/report/report.page').then(m => m.ReportPage),
     canActivate: [AuthGuard],
+    canDeactivate: [unsavedChangesGuard],
     data: { roles: ['citizen'] },
   },
 

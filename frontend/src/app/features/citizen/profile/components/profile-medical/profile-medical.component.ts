@@ -34,8 +34,18 @@ export class ProfileMedicalComponent {
 
   @Input() userId: number | null = null;
 
+  private initialData: MedicalData = { blood_type: '', allergies: '', medical_conditions: '', pwd_status: '' };
+
   @Input() set medicalData(value: MedicalData) {
     this.formData = { ...value };
+    this.initialData = { ...value };
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.formData.blood_type !== this.initialData.blood_type ||
+           this.formData.allergies !== this.initialData.allergies ||
+           this.formData.medical_conditions !== this.initialData.medical_conditions ||
+           this.formData.pwd_status !== this.initialData.pwd_status;
   }
 
   @Output() userUpdated = new EventEmitter<any>();
@@ -52,6 +62,7 @@ export class ProfileMedicalComponent {
       next: (res: any) => {
         this.isSavingMedical = false;
         this.formData = { blood_type: res.user.blood_type || '', allergies: res.user.allergies || '', medical_conditions: res.user.medical_conditions || '', pwd_status: res.user.pwd_status || '' };
+        this.initialData = { ...this.formData };
         this.userUpdated.emit(res.user);
         this.toast.emit({ msg: 'Medical profile saved!', color: 'success' });
       },

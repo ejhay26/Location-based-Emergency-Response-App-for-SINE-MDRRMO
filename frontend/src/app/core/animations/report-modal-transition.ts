@@ -35,18 +35,20 @@ import { createAnimation, Animation } from '@ionic/core';
  * the real, invisible controls underneath) still fired. Both directions
  * now explicitly own the opacity tween, mirroring transform.
  */
-const IOS_EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const IOS_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
 export function reportModalEnter(baseEl: HTMLElement): Animation {
   const wrapper = baseEl.shadowRoot?.querySelector('.modal-wrapper') as HTMLElement | null;
 
-  const root = createAnimation().addElement(baseEl).duration(340).easing(IOS_EASING);
+  const root = createAnimation().addElement(baseEl).duration(320).easing(IOS_EASING);
   if (wrapper) {
     root.addAnimation(
       createAnimation()
         .addElement(wrapper)
-        .fromTo('transform', 'translateX(100%)', 'translateX(0%)')
+        .beforeStyles({ 'will-change': 'transform, opacity' })
+        .fromTo('transform', 'translate3d(100%, 0, 0)', 'translate3d(0%, 0, 0)')
         .fromTo('opacity', 0.01, 1)
+        .afterClearStyles(['will-change'])
     );
   }
   return root;
@@ -55,13 +57,15 @@ export function reportModalEnter(baseEl: HTMLElement): Animation {
 export function reportModalLeave(baseEl: HTMLElement): Animation {
   const wrapper = baseEl.shadowRoot?.querySelector('.modal-wrapper') as HTMLElement | null;
 
-  const root = createAnimation().addElement(baseEl).duration(300).easing(IOS_EASING);
+  const root = createAnimation().addElement(baseEl).duration(260).easing('cubic-bezier(0.4, 0, 1, 1)');
   if (wrapper) {
     root.addAnimation(
       createAnimation()
         .addElement(wrapper)
-        .fromTo('transform', 'translateX(0%)', 'translateX(100%)')
+        .beforeStyles({ 'will-change': 'transform, opacity' })
+        .fromTo('transform', 'translate3d(0%, 0, 0)', 'translate3d(100%, 0, 0)')
         .fromTo('opacity', 1, 0.01)
+        .afterClearStyles(['will-change'])
     );
   }
   return root;

@@ -14,6 +14,7 @@ import { DialogService } from '../../../core/services/dialog.service';
 import { TourService } from '../../../core/services/tour';
 import { LocationService } from '../../../core/services/location';
 import { AuthSessionService } from '../../../core/services/auth-session.service';
+import { CanComponentDeactivate } from '../../../core/guards/unsaved-changes.guard';
 import { PressFeedbackDirective } from '../../../shared/directives/press-feedback.directive';
 import { ReportTypeSelectorComponent } from './components/report-type-selector/report-type-selector.component';
 import type { ConfirmDialogDetail } from '../../../core/services/dialog.service';
@@ -32,7 +33,7 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
     ReportTypeSelectorComponent, ReportMapComponent, ReportMediaComponent, AppIconComponent
   ]
 })
-export class ReportPage implements OnDestroy {
+export class ReportPage implements OnDestroy, CanComponentDeactivate {
   private fb          = inject(FormBuilder);
   private router      = inject(Router);
   private route       = inject(ActivatedRoute);
@@ -170,10 +171,12 @@ export class ReportPage implements OnDestroy {
   }
 
   ionViewDidEnter() {
+    requestAnimationFrame(() => {
     this.locationSvc.start();
     this.reportMapCmp?.tryInit();
     setTimeout(() => this.reportMapCmp?.tryInit(), 150);
     setTimeout(() => this.reportMapCmp?.tryInit(), 400);
+    });
   }
 
   ionViewWillLeave() {
@@ -233,7 +236,40 @@ export class ReportPage implements OnDestroy {
   }
 
   /** Header back/close button — dismisses the modal when presented that way, otherwise falls back to the old route-based navigation. */
-  close() {
+  async canDeactivate(): Promise<boolean> {
+    if (this.hasDraftContent() && !this.isSubmitted) {
+      const confirmDiscard = await this.dialog.confirm({
+        title: 'Discard Report Draft?',
+        message: 'You have entered details for this report. Are you sure you want to discard your draft and leave?',
+        icon: 'alert',
+        iconColor: '#eb445a',
+        confirmLabel: 'Discard',
+        confirmColor: 'danger',
+        cancelLabel: 'Keep Editing',
+      });
+      if (confirmDiscard) {
+        this.clearDraft();
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+
+  async close() {
+    if (this.hasDraftContent() && !this.isSubmitted) {
+      const confirmDiscard = await this.dialog.confirm({
+        title: 'Discard Report Draft?',
+        message: 'You have entered details for this report. Are you sure you want to discard this report and close?',
+        icon: 'alert',
+        iconColor: '#eb445a',
+        confirmLabel: 'Discard',
+        confirmColor: 'danger',
+        cancelLabel: 'Keep Editing',
+      });
+      if (!confirmDiscard) return;
+      this.clearDraft();
+    }
     if (this.presentedAsModal) { this.modalCtrl.dismiss(null, 'cancel'); }
     else { this.router.navigate(['/tabs/home']); }
   }

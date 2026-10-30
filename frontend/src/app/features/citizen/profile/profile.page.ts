@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonList, IonListHeader,
@@ -9,6 +9,7 @@ import { of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api';
 import { DialogService } from '../../../core/services/dialog.service';
+import { CanComponentDeactivate } from '../../../core/guards/unsaved-changes.guard';
 import { UserSettingsService } from '../../../core/services/user-settings';
 import { LocationService } from '../../../core/services/location';
 import { ImageCacheService } from '../../../core/services/image-cache';
@@ -31,7 +32,10 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
     ProfilePhotoComponent, ProfileMedicalComponent, ProfilePasswordComponent, AppIconComponent
   ]
 })
-export class ProfilePage implements OnInit, OnDestroy {
+export class ProfilePage implements OnInit, OnDestroy, CanComponentDeactivate {
+
+  @ViewChild(ProfileMedicalComponent) medicalCmp?: ProfileMedicalComponent;
+  @ViewChild(ProfilePasswordComponent) passwordCmp?: ProfilePasswordComponent;
 
   private api        = inject(ApiService);
   private dialog     = inject(DialogService);
@@ -151,6 +155,23 @@ export class ProfilePage implements OnInit, OnDestroy {
     } catch {
       return String(this.userData.birthdate).split('T')[0];
     }
+  }
+
+  async canDeactivate(): Promise<boolean> {
+    const hasMedicalUnsaved = this.medicalCmp?.hasUnsavedChanges();
+    const hasPasswordUnsaved = this.passwordCmp?.hasUnsavedChanges();
+    if (hasMedicalUnsaved || hasPasswordUnsaved) {
+      return await this.dialog.confirm({
+        title: 'Discard Unsaved Changes?',
+        message: 'You have modified your profile information without saving. Are you sure you want to leave this page and discard your changes?',
+        icon: 'alert',
+        iconColor: '#eb445a',
+        confirmLabel: 'Discard',
+        confirmColor: 'danger',
+        cancelLabel: 'Keep Editing',
+      });
+    }
+    return true;
   }
 
   calculateAge(birthdateStr: string) {

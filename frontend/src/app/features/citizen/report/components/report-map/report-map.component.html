@@ -38,7 +38,7 @@
 </div>
 
 <!-- Fullscreen Overlay with iOS Glassmorphism Layout -->
-<div *ngIf="mapExpanded || mapCollapsing" #fullscreenOverlay style="position:fixed;inset:0;z-index:99999;background:transparent;display:flex;flex-direction:column;pointer-events:auto;">
+<div *ngIf="mapExpanded || mapCollapsing" #fullscreenOverlay style="position:fixed;inset:0;z-index:10000;background:transparent;display:flex;flex-direction:column;pointer-events:auto;">
   <div id="report-map-fullscreen-wrap" style="position:relative;flex:1;min-height:0;overflow:hidden;">
 
     <!-- Curtain-clipped map visual layer. Clamped and smoothed with 4-sided inset and rounded corners. -->

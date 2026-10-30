@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -6,6 +6,8 @@ import {
   ToastController, AlertController
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../../core/services/api';
+import { DialogService } from '../../../core/services/dialog.service';
+import { CanComponentDeactivate } from '../../../core/guards/unsaved-changes.guard';
 import { TourService, TourChapter } from '../../../core/services/tour';
 import { RevealAnimateDirective } from '../../../shared/directives/reveal-animate.directive';
 import { PressFeedbackDirective } from '../../../shared/directives/press-feedback.directive';
@@ -25,7 +27,8 @@ interface TourChapterCard { chapter: TourChapter; icon: string; color: string; t
     RevealAnimateDirective, PressFeedbackDirective, ImpactFeedbackDirective, AppIconComponent
   ],
 })
-export class HelpPage implements OnInit {
+export class HelpPage implements OnInit, CanComponentDeactivate {
+  private dialog = inject(DialogService);
   feedback = { rating: 5, category: 'general', message: '' };
   isSubmitting = false;
 
@@ -118,6 +121,21 @@ export class HelpPage implements OnInit {
         this.showToast('Failed to send. Please try again.', 'danger');
       }
     });
+  }
+
+  async canDeactivate(): Promise<boolean> {
+    if (this.feedback.message.trim().length > 0 && !this.isSubmitting) {
+      return await this.dialog.confirm({
+        title: 'Discard Unsaved Feedback?',
+        message: 'You have entered feedback that has not been submitted yet. Do you want to discard your written input and leave this page?',
+        icon: 'alert',
+        iconColor: '#eb445a',
+        confirmLabel: 'Discard',
+        confirmColor: 'danger',
+        cancelLabel: 'Keep Writing',
+      });
+    }
+    return true;
   }
 
   async showToast(msg: string, color = 'success') {
