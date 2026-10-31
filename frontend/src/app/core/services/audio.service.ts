@@ -3,22 +3,27 @@ import { Injectable } from '@angular/core';
 export interface SoundOption {
   id: string;
   label: string;
-  description: string;
   file: string;
   gain?: number;
 }
 
 export const AVAILABLE_SOUNDS: SoundOption[] = [
-  { id: 'chime_harmonic', label: 'Harmonic Chime', description: 'Dual harmonic tone (D5 to A5)', file: 'chime_harmonic.wav', gain: 0.8 },
-  { id: 'alert_urgent',   label: 'Urgent Alert',   description: 'Rapid staccato urgency pulses', file: 'alert_urgent.wav', gain: 0.75 },
-  { id: 'sonar_depth',    label: 'Sonar Depth',    description: 'Low resonant acoustic double pulse', file: 'sonar_depth.wav', gain: 0.85 },
-  { id: 'ping_strike',    label: 'Twin Strike',    description: 'High descending metallic ping', file: 'ping_strike.wav', gain: 0.75 },
-  { id: 'siren_chirp',    label: 'Security Chirp', description: 'Ascending security sweep', file: 'siren_chirp.wav', gain: 0.8 },
-  { id: 'beacon_radar',   label: 'Radar Beacon',   description: 'Resonant locator radar ping', file: 'beacon_radar.wav', gain: 0.8 },
-  { id: 'radio_roger',    label: 'Radio Roger',    description: 'VHF radio key and roger chirp', file: 'radio_roger.wav', gain: 0.75 },
-  { id: 'pager_digital',  label: 'Digital Pager',  description: 'Fast dual electronic pulse', file: 'pager_digital.wav', gain: 0.7 },
-  { id: 'bell_warm',      label: 'Warm Bell',      description: 'Soft marimba chord', file: 'bell_warm.wav', gain: 0.8 },
-  { id: 'emergency_siren',label: 'Emergency Siren',description: 'Hi-lo response vehicle tone', file: 'emergency_siren.wav', gain: 0.75 },
+  { id: 'chime_harmonic',  label: 'Harmonic Chime',  file: 'chime_harmonic.wav', gain: 0.8 },
+  { id: 'alert_urgent',    label: 'Urgent Alert',    file: 'alert_urgent.wav', gain: 0.75 },
+  { id: 'sonar_depth',     label: 'Sonar Depth',     file: 'sonar_depth.wav', gain: 0.85 },
+  { id: 'ping_strike',     label: 'Twin Strike',     file: 'ping_strike.wav', gain: 0.75 },
+  { id: 'siren_chirp',     label: 'Security Chirp',  file: 'siren_chirp.wav', gain: 0.8 },
+  { id: 'beacon_radar',    label: 'Radar Beacon',    file: 'beacon_radar.wav', gain: 0.8 },
+  { id: 'radio_roger',     label: 'Radio Roger',     file: 'radio_roger.wav', gain: 0.75 },
+  { id: 'pager_digital',   label: 'Digital Pager',   file: 'pager_digital.wav', gain: 0.7 },
+  { id: 'bell_warm',       label: 'Warm Bell',       file: 'bell_warm.wav', gain: 0.8 },
+  { id: 'emergency_siren', label: 'Emergency Siren', file: 'emergency_siren.wav', gain: 0.75 },
+  { id: 'rapid_beep',      label: 'Rapid Beeps',     file: 'rapid_beep.wav', gain: 0.75 },
+  { id: 'echo_pulse',      label: 'Echo Pulse',      file: 'echo_pulse.wav', gain: 0.8 },
+  { id: 'tactical_klaxon', label: 'Tactical Klaxon', file: 'tactical_klaxon.wav', gain: 0.8 },
+  { id: 'subtle_ping',     label: 'Subtle Ping',     file: 'subtle_ping.wav', gain: 0.8 },
+  { id: 'police_siren',    label: 'Police Siren',    file: 'police_siren.wav', gain: 0.75 },
+  { id: 'double_chime',    label: 'Double Chime',    file: 'double_chime.wav', gain: 0.8 },
 ];
 
 export const DEFAULT_INCIDENT_SOUNDS: Record<string, string> = {
@@ -120,6 +125,11 @@ export class AudioService {
     return { ...this.incidentSoundMap };
   }
 
+  getSoundLabel(soundId: string): string {
+    const s = AVAILABLE_SOUNDS.find(item => item.id === soundId);
+    return s?.label || soundId;
+  }
+
   private getAudioContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!this.audioCtx) {
@@ -175,7 +185,6 @@ export class AudioService {
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          // Fallback to Web Audio synthesis if blocked or file missing
           this.synthesizeSound(opt.id, targetVol);
         });
       }
@@ -286,126 +295,86 @@ export class AudioService {
           break;
         }
 
-        case 'siren_chirp': {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(500, now);
-          osc.frequency.exponentialRampToValueAtTime(850, now + 0.18);
-          gain.gain.setValueAtTime(0.35 * volume, now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.22);
+        case 'rapid_beep': {
+          for (const b of [0, 0.11, 0.22]) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(980, now + b);
+            gain.gain.setValueAtTime(0.0001, now + b);
+            gain.gain.linearRampToValueAtTime(0.35 * volume, now + b + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + b + 0.07);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + b);
+            osc.stop(now + b + 0.08);
+          }
+          break;
+        }
+
+        case 'echo_pulse': {
+          const osc1 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(740, now);
+          gain1.gain.setValueAtTime(0.38 * volume, now);
+          gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.26);
 
           const osc2 = ctx.createOscillator();
           const gain2 = ctx.createGain();
           osc2.type = 'sine';
-          osc2.frequency.setValueAtTime(550, now + 0.2);
-          osc2.frequency.exponentialRampToValueAtTime(950, now + 0.38);
+          osc2.frequency.setValueAtTime(740, now + 0.16);
           gain2.gain.setValueAtTime(0.0001, now);
-          gain2.gain.setValueAtTime(0.38 * volume, now + 0.2);
+          gain2.gain.setValueAtTime(0.22 * volume, now + 0.16);
           gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
           osc2.connect(gain2);
           gain2.connect(ctx.destination);
-          osc2.start(now + 0.2);
-          osc2.stop(now + 0.44);
+          osc2.start(now + 0.16);
+          osc2.stop(now + 0.43);
           break;
         }
 
-        case 'beacon_radar': {
+        case 'subtle_ping': {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(660, now);
-          gain.gain.setValueAtTime(0.38 * volume, now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+          osc.frequency.setValueAtTime(1174.66, now);
+          gain.gain.setValueAtTime(0.35 * volume, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
           osc.connect(gain);
           gain.connect(ctx.destination);
           osc.start(now);
-          osc.stop(now + 0.46);
+          osc.stop(now + 0.36);
           break;
         }
 
-        case 'radio_roger': {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(852, now);
-          gain.gain.setValueAtTime(0.32 * volume, now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.15);
+        case 'double_chime': {
+          const osc1 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(783.99, now);
+          gain1.gain.setValueAtTime(0.32 * volume, now);
+          gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.26);
 
           const osc2 = ctx.createOscillator();
           const gain2 = ctx.createGain();
           osc2.type = 'sine';
-          osc2.frequency.setValueAtTime(1108, now + 0.16);
+          osc2.frequency.setValueAtTime(659.25, now + 0.16);
           gain2.gain.setValueAtTime(0.0001, now);
-          gain2.gain.setValueAtTime(0.35 * volume, now + 0.16);
-          gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+          gain2.gain.setValueAtTime(0.36 * volume, now + 0.16);
+          gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
           osc2.connect(gain2);
           gain2.connect(ctx.destination);
           osc2.start(now + 0.16);
-          osc2.stop(now + 0.34);
-          break;
-        }
-
-        case 'pager_digital': {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(1318.5, now);
-          gain.gain.setValueAtTime(0.2 * volume, now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.11);
-
-          const osc2 = ctx.createOscillator();
-          const gain2 = ctx.createGain();
-          osc2.type = 'square';
-          osc2.frequency.setValueAtTime(1567.98, now + 0.14);
-          gain2.gain.setValueAtTime(0.0001, now);
-          gain2.gain.setValueAtTime(0.22 * volume, now + 0.14);
-          gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
-          osc2.connect(gain2);
-          gain2.connect(ctx.destination);
-          osc2.start(now + 0.14);
-          osc2.stop(now + 0.28);
-          break;
-        }
-
-        case 'bell_warm': {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(523.25, now);
-          gain.gain.setValueAtTime(0.32 * volume, now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.42);
-          break;
-        }
-
-        case 'emergency_siren': {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(920, now);
-          osc.frequency.setValueAtTime(720, now + 0.26);
-          gain.gain.setValueAtTime(0.25 * volume, now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.54);
+          osc2.stop(now + 0.46);
           break;
         }
 
@@ -439,9 +408,6 @@ export class AudioService {
     } catch {}
   }
 
-  /**
-   * Plays a subtle, tactile click for significant UI button interactions.
-   */
   playClickFeedback(): void {
     if (this.isMutedState || this.volumeLevel <= 0) return;
 
