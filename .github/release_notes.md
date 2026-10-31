@@ -1,23 +1,26 @@
-### Direct Downloads
+### Direct Application Downloads
 
-- **Android**: [Download Universal APK (v0.93.4)](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_v0.93.4_android.apk) *(Android 7.0+, ARM and x86)*
-- **Windows (x64)**: [Setup Installer (.exe)](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_x64-setup.exe) | [Portable (.exe)](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_v0.93.4_x64-portable.exe)
-- **macOS**: [Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_universal.dmg) | [Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_aarch64.dmg) | [Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_x64.dmg)
-- **Linux (x64)**: [Debian (.deb)](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_amd64.deb) | [AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_amd64.AppImage)
-- **Linux (ARM64)**: [Debian (.deb)](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_arm64.deb) | [AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_aarch64.AppImage)
+| Platform | Target Architecture | Direct Download Link | Format |
+|:---:|:---|:---|:---:|
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/android/android-original.svg" width="20" height="20" alt="Android" /> | Android 7.0+ (ARM / x86) | [Download Android Universal APK](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_v0.93.4_android.apk) | `.apk` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (64-bit) | [Download Windows Setup Installer](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_x64-setup.exe) | `.exe` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/windows11/windows11-original.svg" width="20" height="20" alt="Windows" /> | Windows 10 / 11 (Portable) | [Download Windows Portable Executable](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_v0.93.4_x64-portable.exe) | `.exe` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon & Intel Macs | [Download macOS Universal DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_universal.dmg) | `.dmg` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Apple Silicon only (M1/M2/M3/M4) | [Download macOS Apple Silicon DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_aarch64.dmg) | `.dmg` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/apple/apple-original.svg" width="20" height="20" alt="macOS" /> | Intel Macs (x64) | [Download macOS Intel DMG](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_x64.dmg) | `.dmg` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | Debian, Ubuntu, Mint (x86_64) | [Download Linux Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_amd64.deb) | `.deb` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | All Linux Distros (x86_64) | [Download Linux Standalone AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_amd64.AppImage) | `.AppImage` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 Debian Package](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_arm64.deb) | `.deb` |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" /> | ARM64 Linux / Raspberry Pi | [Download Linux ARM64 AppImage](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/download/v0.93.4/MDRRMO.EMERGENCY.RESPONSE.APP_0.93.4_aarch64.AppImage) | `.AppImage` |
 
 ---
 
 ### What's Changed in v0.93.4
 
-- **Incident Audio Alert Profiles**: Configurable audible alert tones per incident type (Fire, Flood, Medical, Crime, Accident, Hazard) with volume control, immediate sound preview, and user-gesture audio unlock.
-- **Log Archive Finder Views & Motion**: Added Grid and List view switcher with elevation and spring hover transitions matching the admin management panels.
-- **Incident Map Proximate Clustering**: Grouped active emergencies and hazards within 150m into a horizontal carousel to avoid map pin clutter.
-- **Immersive Full-Screen Incident Map**: Full-screen map workspace with floating incident card overlay.
-- **Location Boundary Verification**: Warning banner and snap-to-town center controls to prevent out-of-bounds report submissions.
-- **Report Modal Discard Dialog Fix**: Prevented premature discard confirmations by properly ignoring pre-filled GPS coordinates.
-- **Floating SOS Card Minimization**: 5-second initial visibility timer that automatically docks to a left beacon with quick expand and minimize toggles.
-- **Android App Switching Network Resilience**: Suppressed false disconnect toasts triggered by background WebSocket pauses during app switching.
-- **Customizable Responder Callsigns**: Editable responder callsign tags with persistent local configuration and guided tours.
-- **Desktop Display Zoom**: Universal keyboard shortcuts (`Ctrl/Cmd +/-/0`) and settings slider for high-resolution displays.
-- **Native OS Desktop Notifications**: Cross-platform desktop alert notifications on Windows, macOS, and Linux.
+- **Segmented Settings Architecture**: Reorganized system options into slide-in drill-down categories (Display, Keybinds, Map, Audio Alerts, System) with smooth directional transitions and back navigation.
+- **Customizable Keyboard Shortcuts**: Configurable desktop hotkeys with persistent storage, reset-to-defaults, and dynamic synchronization with Help & Procedures.
+- **Visual Map Settings with Previews**: Interactive dual-card layer selector with street and satellite previews.
+- **Incident Audio Alert Library**: Expanded to 16 distinct audio profiles with customizable volume and per-incident assignments.
+- **Incident Map Full-Screen & Controls Overhaul**: Grouped map layer and full-screen controls in the bottom-left corner, removed enclosing card containers, and introduced collapsible active incident cards.
+- **Boundary Clamping & Out-of-Bounds Resilience**: Clamps manual map pins cleanly to municipal borders without GPS auto-fly conflicts.
+- **Log Archive Card Elevation**: Matched spring hover physics and elevation curves with administrative management panels.
