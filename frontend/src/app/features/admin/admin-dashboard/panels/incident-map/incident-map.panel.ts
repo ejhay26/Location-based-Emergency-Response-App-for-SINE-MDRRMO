@@ -956,41 +956,25 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   toggleQueueHidden(): void {
     this.isQueueHidden = !this.isQueueHidden;
-    const start = performance.now();
-    const duration = 360;
-    const step = (time: number) => {
-      if (this.map) {
-        this.map.invalidateSize({ pan: false });
-      }
-      if (time - start < duration) {
-        requestAnimationFrame(step);
-      } else {
-        if (this.map) {
-          this.map.invalidateSize({ pan: false });
-        }
-      }
-    };
-    requestAnimationFrame(step);
+    this.runMapInvalidationLoop();
   }
 
   toggleImmersiveMap(): void {
     this.isImmersiveMap = !this.isImmersiveMap;
-    if (!this.isImmersiveMap) {
-      this.isQueueHidden = false;
-    }
-    // Morphic continuous invalidation loop so Leaflet smoothly scales as flex/width changes
+    this.isQueueHidden = this.isImmersiveMap;
+    this.runMapInvalidationLoop();
+  }
+
+  private runMapInvalidationLoop(duration = 400): void {
     const start = performance.now();
-    const duration = 380;
     const step = (time: number) => {
       if (this.map) {
         this.map.invalidateSize({ pan: false });
       }
       if (time - start < duration) {
         requestAnimationFrame(step);
-      } else {
-        if (this.map) {
-          this.map.invalidateSize({ pan: false });
-        }
+      } else if (this.map) {
+        this.map.invalidateSize({ pan: false });
       }
     };
     requestAnimationFrame(step);

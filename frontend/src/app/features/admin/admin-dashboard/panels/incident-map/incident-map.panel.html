@@ -387,6 +387,7 @@
 
   <!-- Middle: Draggable Splitter Divider (Desktop Only) -->
   <div class="map-split-resizer"
+       [class.is-collapsed]="isQueueHidden || isImmersiveMap"
        [class.resizing]="isResizingQueue"
        (mousedown)="onSplitterMouseDown($event)"
        [appTooltip]="'Resize Queue'"
