@@ -29,7 +29,7 @@ const ARCHIVE_FILTER_LABELS: Record<string, string> = {
   standalone: true,
   imports: [
     CommonModule, FormsModule, IonButton, IonBadge, IonSkeletonText, ProxyImageDirective, VideoThumbnailDirective, UtcDatePipe,
-    DateRangeFilterComponent, FilterSummaryBarComponent, RevealAnimateDirective, ListEnterDirective,
+    DateRangeFilterComponent, FilterSummaryBarComponent, ListEnterDirective,
     AppIconComponent, FilterDropdownComponent, CustomTooltipDirective
   ],
   templateUrl: './log-archive.panel.html',
@@ -125,6 +125,30 @@ export class LogArchivePanel implements OnInit {
     if (this.archiveTypeFilter !== 'all'     && r.incident_name !== this.archiveTypeFilter) return false;
     if (this.archiveBarangayFilter.length > 0 && !this.archiveBarangayFilter.some(id => Number(id) === Number(r.barangay_id))) return false;
     return matchesDateFilter(r.request_time, this.archiveDateFilter);
+  }
+
+    getIncidentColor(name: string): string {
+    switch (name) {
+      case 'Fire': return '#eb445a';
+      case 'Flood': return '#3880ff';
+      case 'Medical': return '#2dd36f';
+      case 'Crime': return '#bc6fff';
+      case 'Vehicular Accident': return '#ff9800';
+      case 'Hazard': return '#ffc409';
+      default: return '#92949c';
+    }
+  }
+
+  getIncidentIcon(name: string): string {
+    switch (name) {
+      case 'Fire': return 'flame';
+      case 'Flood': return 'droplet';
+      case 'Medical': return 'medical';
+      case 'Crime': return 'shield-alert';
+      case 'Vehicular Accident': return 'car';
+      case 'Hazard': return 'hazard';
+      default: return 'triangle-exclamation';
+    }
   }
 
   trackByRequestId(_index: number, r: any): number {
