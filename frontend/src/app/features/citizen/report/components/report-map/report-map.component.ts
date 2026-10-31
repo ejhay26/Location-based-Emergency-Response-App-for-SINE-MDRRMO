@@ -112,6 +112,10 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   /** Live-resolved barangay for the pin's current position, null while outside every mapped polygon (or outside San Isidro entirely). Read by report.page.ts via ReportCoords.barangayName for the pre-submit confirmation dialog. */
   resolvedBarangayName: string | null = null;
   isOutOfBounds = false;
+  isActualLocationOutOfBounds = false;
+  hasUserInteracted = false;
+  isSnappingInside = false;
+  lastInsideCenter: { lat: number; lng: number } = { lat: 15.3014, lng: 120.9274 };
 
   mapStyle: 'street' | 'satellite' = 'street';
   mapExpanded = false;
@@ -684,7 +688,13 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       if (this.userSettings.getBool('location_auto_fetch')) {
         const cached = this.locationSvc.cachedPosition;
         if (cached && this.map) {
-          this.map.flyTo([cached.lat, cached.lng], 17);
+          const isInside = this.isInsideSanIsidro(cached.lat, cached.lng);
+          this.isActualLocationOutOfBounds = !isInside;
+          if (isInside && !this.hasUserInteracted) {
+            this.map.flyTo([cached.lat, cached.lng], 17);
+          } else if (!isInside) {
+            this.snapToTownCenter();
+          }
         } else {
           this.getCurrentLocation(true);
         }
@@ -694,10 +704,16 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
     this.locationSub?.unsubscribe();
     this.locationSub = this.locationSvc.position$.subscribe(pos => {
       if (pos && this.map && this.userSettings.getBool('location_auto_fetch')) {
-        this.map.flyTo([pos.lat, pos.lng], 17);
+        const isInside = this.isInsideSanIsidro(pos.lat, pos.lng);
+        this.isActualLocationOutOfBounds = !isInside;
+        if (isInside && !this.hasUserInteracted) {
+          this.map.flyTo([pos.lat, pos.lng], 17);
+        }
       }
     });
 
+    this.map.on('movestart', () => { this.hasUserInteracted = true; });
+    this.map.on('dragstart', () => { this.hasUserInteracted = true; });
     this.map.on('moveend', () => this.updateCoords());
     this.showMapHint = true;
     this.hintTimer = setTimeout(() => { this.showMapHint = false; }, 3000);
@@ -710,16 +726,32 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   }
 
   updateCoords() {
+    if (this.isSnappingInside || !this.map) return;
     const center = this.map.getCenter();
     const isInside = this.sanIsidroPolygon.length === 0 || this.isInsideSanIsidro(center.lat, center.lng);
-    this.isOutOfBounds = !isInside;
-    if (!isInside) {
-      this.resolvedBarangayName = null;
-      this.coordsChanged.emit(null);
+
+    if (isInside) {
+      this.isOutOfBounds = false;
+      this.lastInsideCenter = { lat: center.lat, lng: center.lng };
+      this.resolvedBarangayName = this.resolveBarangayName(center.lat, center.lng);
+      this.coordsChanged.emit({ latitude: center.lat.toFixed(6), longitude: center.lng.toFixed(6), barangayName: this.resolvedBarangayName });
       return;
     }
-    this.resolvedBarangayName = this.resolveBarangayName(center.lat, center.lng);
-    this.coordsChanged.emit({ latitude: center.lat.toFixed(6), longitude: center.lng.toFixed(6), barangayName: this.resolvedBarangayName });
+
+    this.isOutOfBounds = true;
+    this.resolvedBarangayName = null;
+    this.coordsChanged.emit(null);
+
+    // If citizen dragged pin outside, smoothly clamp pin back inside
+    if (this.hasUserInteracted && !this.isSnappingInside) {
+      this.isSnappingInside = true;
+      const snapTarget = this.lastInsideCenter || { lat: 15.3014, lng: 120.9274 };
+      this.map.panTo([snapTarget.lat, snapTarget.lng], { animate: true, duration: 0.25 });
+      setTimeout(() => {
+        this.isSnappingInside = false;
+        this.updateCoords();
+      }, 300);
+    }
   }
 
   async getCurrentLocation(silent = false) {
@@ -749,8 +781,24 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
         return;
       }
     }
-    if (this.map && pos?.coords) {
-      this.map.flyTo([pos.coords.latitude, pos.coords.longitude], 17);
+    if (pos?.coords) {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const isInside = this.isInsideSanIsidro(lat, lng);
+      this.isActualLocationOutOfBounds = !isInside;
+      this.locationSvc.cachedPosition = { lat, lng, accuracy: pos.coords.accuracy, timestamp: pos.timestamp };
+
+      if (!isInside) {
+        if (!silent) {
+          this.showToast('Your GPS location is outside San Isidro. Please position the pin manually within town limits.', 'warning');
+        }
+        this.snapToTownCenter();
+        return;
+      }
+
+      if (this.map) {
+        this.map.flyTo([lat, lng], 17);
+      }
     }
     if (pos?.coords) {
       this.locationSvc.cachedPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, timestamp: pos.timestamp };

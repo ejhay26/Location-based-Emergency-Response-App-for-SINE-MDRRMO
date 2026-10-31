@@ -2,10 +2,12 @@
   <!-- report-map-slot: permanent Leaflet container home -->
   
   <!-- Out of bounds inline warning banner -->
-  <div *ngIf="isOutOfBounds" style="position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1000; background: var(--ion-card-background, #ffffff); border-radius: 14px; padding: 10px 14px; border: 1.5px solid var(--ion-color-danger, #eb445a); box-shadow: 0 4px 16px rgba(235, 68, 90, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+  <div *ngIf="isOutOfBounds || isActualLocationOutOfBounds" style="position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1000; background: var(--ion-card-background, #ffffff); border-radius: 14px; padding: 10px 14px; border: 1.5px solid var(--ion-color-danger, #eb445a); box-shadow: 0 4px 16px rgba(235, 68, 90, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
     <div style="display: flex; align-items: center; gap: 7px;">
       <app-icon name="alert" [size]="15" color="var(--ion-color-danger, #eb445a)"></app-icon>
-      <span style="font-size: 12px; font-weight: 700; color: var(--ion-color-danger, #eb445a);">Outside San Isidro boundary</span>
+      <span style="font-size: 12px; font-weight: 700; color: var(--ion-color-danger, #eb445a);">
+        {{ isActualLocationOutOfBounds ? 'Device is outside San Isidro — Pin positioned in town' : 'Outside San Isidro boundary' }}
+      </span>
     </div>
     <button type="button" (click)="snapToTownCenter()" style="display: inline-flex; align-items: center; gap: 5px; background: var(--ion-color-danger, #eb445a); color: white; border: none; border-radius: 9px; padding: 6px 10px; font-size: 11px; font-weight: 800; cursor: pointer;">
       <app-icon name="map-pin" [size]="12" color="#ffffff"></app-icon>
