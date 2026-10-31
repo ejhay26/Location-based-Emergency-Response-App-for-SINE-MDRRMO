@@ -405,7 +405,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     private userSettings: UserSettingsService,
   ) {
     this.loadAvailableUnits();
-    const savedStyle = this.userSettings?.get('map_default_style') || localStorage.getItem('sine_admin_map_style') || 'street';
+    const savedStyle = localStorage.getItem('sine_admin_map_style') || this.userSettings?.get('map_default_style') || 'street';
     this.mapStyle = (savedStyle === 'satellite' ? 'satellite' : 'street');
     const savedWidth = localStorage.getItem('admin_map_queue_width');
     if (savedWidth) {
@@ -940,8 +940,17 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.plotMarkers();
   }
 
+  isQueueHidden = false;
+
+  toggleQueueHidden(): void {
+    this.isQueueHidden = !this.isQueueHidden;
+  }
+
   toggleImmersiveMap(): void {
     this.isImmersiveMap = !this.isImmersiveMap;
+    if (!this.isImmersiveMap) {
+      this.isQueueHidden = false;
+    }
     setTimeout(() => {
       if (this.map) {
         this.map.invalidateSize({ pan: false });

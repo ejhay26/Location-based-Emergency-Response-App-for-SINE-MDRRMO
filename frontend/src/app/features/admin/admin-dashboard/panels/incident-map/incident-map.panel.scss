@@ -505,23 +505,43 @@
     width: 380px !important;
     max-width: calc(100vw - 32px) !important;
     z-index: 1000 !important;
-    background: var(--ion-card-background, rgba(255, 255, 255, 0.94)) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border-radius: 18px !important;
-    padding: 14px !important;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28) !important;
-    border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.12))) !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
     overflow-y: auto !important;
+    pointer-events: none !important;
     display: flex !important;
     flex-direction: column !important;
-    animation: floatingDrawerSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-}
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
 
-@keyframes floatingDrawerSlide {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
+    .queue-header-row,
+    .incident-card,
+    .cluster-group-card,
+    .empty-queue-card {
+      pointer-events: auto !important;
+    }
+
+    .queue-header-row {
+      background: var(--ion-card-background, rgba(255, 255, 255, 0.94));
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 8px 14px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.12)));
+      margin-bottom: 10px !important;
+    }
+
+    &.is-queue-collapsed {
+      transform: translateX(calc(100% + 24px)) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+  }
 }
 
 .floating-immersive-map-btn {
@@ -1343,4 +1363,67 @@
   width: 310px;
   scroll-snap-align: start;
   margin-bottom: 0 !important;
+}
+
+
+/* ── UNIFIED FLOATING MAP CONTROLS BAR (BOTTOM LEFT) ── */
+.floating-map-bottom-controls {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  .floating-map-style-capsule {
+    position: static;
+    top: auto;
+    right: auto;
+    z-index: auto;
+  }
+
+  .floating-immersive-map-btn {
+    position: static;
+    bottom: auto;
+    left: auto;
+    z-index: auto;
+    height: 38px;
+    box-sizing: border-box;
+  }
+}
+
+/* ── FLOATING RESTORE QUEUE BUTTON (TOP RIGHT IN IMMERSIVE MODE) ── */
+.floating-show-queue-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1001;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--ion-card-background, rgba(255, 255, 255, 0.94));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ion-text-color, #1c1c1e);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  animation: floatingPillIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
+    border-color: var(--ion-color-danger, #eb445a);
+  }
+}
+
+@keyframes floatingPillIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
 }

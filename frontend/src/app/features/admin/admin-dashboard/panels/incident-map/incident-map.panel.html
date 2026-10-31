@@ -321,41 +321,44 @@
       <ion-card-content class="ion-no-padding" style="height:100%;flex:1;display:flex;position:relative;">
         <div id="dispatch-map" style="height:100%;width:100%;min-height:360px;background-color:#e5e5e5;flex:1;"></div>
 
-        <!-- Floating Map Style Pill Segment (Top Right) -->
-        <div class="floating-map-style-capsule">
-          <div class="layer-seg-indicator" [class.is-satellite]="mapStyle === 'satellite'"></div>
+        <!-- Unified Floating Map Controls Bar (Bottom Left) -->
+        <div class="floating-map-bottom-controls">
+          <!-- Street / Satellite Layer Toggle -->
+          <div class="floating-map-style-capsule">
+            <div class="layer-seg-indicator" [class.is-satellite]="mapStyle === 'satellite'"></div>
+            <button
+              type="button"
+              class="layer-seg-btn"
+              [class.active]="mapStyle === 'street'"
+              (click)="toggleMapStyle('street')"
+              aria-label="Street Map View">
+              <app-icon name="map" [size]="12" [color]="mapStyle === 'street' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+              <span>Street</span>
+            </button>
+            <button
+              type="button"
+              class="layer-seg-btn"
+              [class.active]="mapStyle === 'satellite'"
+              (click)="toggleMapStyle('satellite')"
+              aria-label="Satellite Map View">
+              <app-icon name="satellite" [size]="12" [color]="mapStyle === 'satellite' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+              <span>Satellite</span>
+            </button>
+          </div>
+
+          <!-- Full Screen Immersive Map Toggle -->
           <button
             type="button"
-            class="layer-seg-btn"
-            [class.active]="mapStyle === 'street'"
-            (click)="toggleMapStyle('street')"
-            aria-label="Street Map View">
-            <app-icon name="map" [size]="12" [color]="mapStyle === 'street' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
-            <span>Street</span>
-          </button>
-          <button
-            type="button"
-            class="layer-seg-btn"
-            [class.active]="mapStyle === 'satellite'"
-            (click)="toggleMapStyle('satellite')"
-            aria-label="Satellite Map View">
-            <app-icon name="satellite" [size]="12" [color]="mapStyle === 'satellite' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
-            <span>Satellite</span>
+            class="floating-immersive-map-btn"
+            [class.active]="isImmersiveMap"
+            (click)="toggleImmersiveMap()"
+            [appTooltip]="isImmersiveMap ? 'Exit Full Screen' : 'Full Screen Immersive Map'"
+            tooltipPlacement="top"
+            aria-label="Toggle Full Screen Immersive Map">
+            <app-icon [name]="isImmersiveMap ? 'compress' : 'expand'" [size]="13" [color]="isImmersiveMap ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
+            <span>{{ isImmersiveMap ? 'Exit Full Screen' : 'Full Screen Map' }}</span>
           </button>
         </div>
-
-        <!-- Ungrouped Floating Full Screen / Immersive Button (Bottom Left) -->
-        <button
-          type="button"
-          class="floating-immersive-map-btn"
-          [class.active]="isImmersiveMap"
-          (click)="toggleImmersiveMap()"
-          [appTooltip]="isImmersiveMap ? 'Exit Full Screen' : 'Full Screen Immersive Map'"
-          tooltipPlacement="right"
-          aria-label="Toggle Full Screen Immersive Map">
-          <app-icon [name]="isImmersiveMap ? 'compress' : 'expand'" [size]="13" [color]="isImmersiveMap ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
-          <span>{{ isImmersiveMap ? 'Exit Full Screen' : 'Full Screen Map' }}</span>
-        </button>
       </ion-card-content>
     </ion-card>
   </div>
@@ -371,15 +374,29 @@
   </div>
 
   <!-- Right: Incident / Hazard Cards Queue (Desktop Split Pane) -->
-  <div id="admin-queue-container" class="map-queue-col" [style.width.px]="queueWidth">
+  <div id="admin-queue-container"
+       class="map-queue-col"
+       [class.is-queue-collapsed]="isImmersiveMap && isQueueHidden"
+       [style.width.px]="isImmersiveMap ? null : queueWidth">
     
-    <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 28px;">
-      <h3 style="margin: 0; font-weight: 800; font-size: 15px; color: var(--ion-text-color); display: flex; align-items: center; gap: 8px;">
-        <span>Active Incidents &amp; Hazards</span>
+    <div class="queue-header-row" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 28px;">
+      <h3 style="margin: 0; font-weight: 800; font-size: 14.5px; color: var(--ion-text-color); display: flex; align-items: center; gap: 8px;">
+        <span>Active Alerts</span>
         <span style="font-size: 11px; padding: 2px 7px; border-radius: 9999px; background: rgba(235,68,90,0.12); color: #eb445a; font-weight: 800;">
           {{ unifiedActiveItems.length }}
         </span>
       </h3>
+
+      <button *ngIf="isImmersiveMap"
+              type="button"
+              class="immersive-hide-queue-btn"
+              (click)="toggleQueueHidden()"
+              [appTooltip]="'Hide Cards'"
+              tooltipPlacement="left"
+              style="padding: 4px 8px; border-radius: 8px; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); background: var(--ion-card-background, #fff); font-size: 11px; font-weight: 700; color: var(--ion-color-medium); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+        <span>Hide</span>
+        <app-icon name="chevron-right" [size]="12" color="currentColor"></app-icon>
+      </button>
     </div>
 
     <!-- Empty state -->
@@ -565,6 +582,18 @@
       </div>
     </ng-container>
   </div>
+
+  <!-- Floating Restore Queue Button when hidden in immersive mode -->
+  <button *ngIf="isImmersiveMap && isQueueHidden"
+          type="button"
+          class="floating-show-queue-btn"
+          (click)="toggleQueueHidden()"
+          [appTooltip]="'Show Alerts Queue'"
+          tooltipPlacement="left"
+          aria-label="Show Active Alerts Queue">
+    <app-icon name="chevron-left" [size]="14"></app-icon>
+    <span>Alerts ({{ unifiedActiveItems.length }})</span>
+  </button>
 
   <!-- ── MOBILE PULLABLE BOTTOM SHEET QUEUE (MOBILE ONLY) ── -->
   <div class="mobile-queue-sheet"
