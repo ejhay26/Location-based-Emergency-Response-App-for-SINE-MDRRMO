@@ -54,7 +54,7 @@ export class SettingsPage implements OnInit, OnDestroy {
   }
 
   resetSoundVolume(): void {
-    this.audio.setVolume(1.0);
+    this.audio.setVolume(0.8);
   }
 
   testAudioSound(): void {
@@ -68,12 +68,22 @@ export class SettingsPage implements OnInit, OnDestroy {
     }
     this.isExitingSubPage = false;
     this.activeSubPage = page;
+    if (page !== 'main') {
+      try {
+        window.history.pushState({ sine_citizen_subpage: page }, '');
+      } catch {}
+    }
   }
 
-  goBackToSettings(): void {
+  goBackToSettings(triggerHistoryBack = true): void {
     if (this.activeSubPage === 'main') return;
+    if (triggerHistoryBack && typeof window !== 'undefined' && window.history.state?.sine_citizen_subpage) {
+      window.history.back();
+      return;
+    }
     if (this.settings.getBool('reduce_animations')) {
       this.activeSubPage = 'main';
+      this.isExitingSubPage = false;
       return;
     }
     this.isExitingSubPage = true;
@@ -81,7 +91,7 @@ export class SettingsPage implements OnInit, OnDestroy {
       this.activeSubPage = 'main';
       this.isExitingSubPage = false;
       this.exitTimer = null;
-    }, 240);
+    }, 260);
   }
 
   getSubPageTitle(): string {
@@ -160,16 +170,29 @@ export class SettingsPage implements OnInit, OnDestroy {
     this.syncSettings();
     this.widgetPin.isAvailable().then(v => this.widgetAvailable = v);
 
-    this.backButtonSub = this.platform.backButton.subscribeWithPriority(100, (processNextHandler) => {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('popstate', this.popStateListener);
+    }
+
+    this.backButtonSub = this.platform.backButton.subscribeWithPriority(99999, (processNextHandler) => {
       if (this.activeSubPage !== 'main') {
-        this.goBackToSettings();
+        this.goBackToSettings(true);
       } else {
         processNextHandler();
       }
     });
   }
 
+  private popStateListener = () => {
+    if (this.activeSubPage !== 'main') {
+      this.goBackToSettings(false);
+    }
+  };
+
   ngOnDestroy() {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('popstate', this.popStateListener);
+    }
     if (this.backButtonSub) {
       this.backButtonSub.unsubscribe();
     }

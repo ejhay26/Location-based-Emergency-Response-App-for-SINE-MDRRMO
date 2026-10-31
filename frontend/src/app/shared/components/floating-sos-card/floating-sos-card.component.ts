@@ -110,6 +110,15 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     this.cdr.markForCheck();
   }
 
+  onCardContainerClick(event: MouseEvent) {
+    if (this.isMinimized) {
+      event.stopPropagation();
+      this.expandCard();
+    } else {
+      this.onTap();
+    }
+  }
+
   @Input() activeReports: FloatingSosStatus[] = [];
   @Input() queuedItems: QueuedReport[] = [];
   @Output() cardTap = new EventEmitter<void>();

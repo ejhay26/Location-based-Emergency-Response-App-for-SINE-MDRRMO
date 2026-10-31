@@ -368,7 +368,7 @@ export class FeedbackPanel implements OnInit {
       printWindow.document.open();
       printWindow.document.write(printHtml);
       printWindow.document.close();
-      this.ui.showToast('Opening print dialog for PDF export...', 'success');
+
     } else {
       // Fallback: hidden iframe print
       const iframe = document.createElement('iframe');
@@ -389,7 +389,7 @@ export class FeedbackPanel implements OnInit {
           iframe.contentWindow?.print();
           setTimeout(() => document.body.removeChild(iframe), 2000);
         }, 500);
-        this.ui.showToast('Preparing PDF report...', 'success');
+
       } else {
         this.ui.showToast('Could not open print dialog. Please allow popups.', 'danger');
       }

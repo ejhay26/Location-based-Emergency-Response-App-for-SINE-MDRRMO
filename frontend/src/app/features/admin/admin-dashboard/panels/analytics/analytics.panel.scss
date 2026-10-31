@@ -102,3 +102,41 @@
     box-shadow: 0 4px 12px rgba(235, 68, 90, 0.45);
   }
 }
+
+/* ── EXPORT MODAL OVERLAY (POPUP CENTERED) ── */
+.c-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2000000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  animation: cOverlayFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  .c-overlay-bg {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .c-panel {
+    position: relative;
+    background: var(--ion-card-background, #ffffff);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.15));
+    animation: cModalPop 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes cModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

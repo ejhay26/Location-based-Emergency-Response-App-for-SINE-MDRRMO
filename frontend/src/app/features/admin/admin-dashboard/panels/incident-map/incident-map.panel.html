@@ -321,8 +321,8 @@
       <ion-card-content class="ion-no-padding" style="height:100%;flex:1;display:flex;position:relative;">
         <div id="dispatch-map" style="height:100%;width:100%;min-height:360px;background-color:#e5e5e5;flex:1;"></div>
 
-        <!-- Sleek Floating Map Controls Dock (Top Right) -->
-        <div class="floating-map-top-dock" [class.is-immersive]="isImmersiveMap" [class.queue-visible]="isImmersiveMap && !isQueueHidden">
+        <!-- Sleek Floating Map Controls Dock (Permanently Fixed Top Left) -->
+        <div class="floating-map-top-dock">
           <!-- Street / Satellite Layer Toggle Capsule -->
           <div class="floating-map-style-capsule">
             <div class="layer-seg-indicator" [class.is-satellite]="mapStyle === 'satellite'"></div>
@@ -398,8 +398,8 @@
   <!-- Right: Incident / Hazard Cards Queue (Desktop Split Pane) -->
   <div id="admin-queue-container"
        class="map-queue-col"
-       [class.is-queue-collapsed]="isImmersiveMap && isQueueHidden"
-       [style.width.px]="isImmersiveMap ? null : queueWidth">
+       [class.is-queue-collapsed]="isQueueHidden"
+       [style.width.px]="isQueueHidden ? 0 : queueWidth">
     
     <div class="queue-header-row" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 28px;">
       <h3 style="margin: 0; font-weight: 800; font-size: 14.5px; color: var(--ion-text-color); display: flex; align-items: center; gap: 8px;">
@@ -409,8 +409,7 @@
         </span>
       </h3>
 
-      <button *ngIf="isImmersiveMap"
-              type="button"
+      <button type="button"
               class="immersive-hide-queue-btn"
               (click)="toggleQueueHidden()"
               [appTooltip]="'Hide Cards'"
@@ -605,8 +604,8 @@
     </ng-container>
   </div>
 
-  <!-- Floating Restore Queue Button when hidden in immersive mode -->
-  <button *ngIf="isImmersiveMap && isQueueHidden"
+  <!-- Floating Restore Queue Button when hidden -->
+  <button *ngIf="isQueueHidden"
           type="button"
           class="floating-show-queue-btn"
           (click)="toggleQueueHidden()"

@@ -1,40 +1,32 @@
 <ng-container *ngIf="visible">
-  <!-- Minimized Floating Beacon Pill (Left Edge) -->
-  <div *ngIf="isMinimized"
-       class="sos-minimized-beacon"
-       (click)="expandCard()"
-       role="button"
-       tabindex="0"
-       aria-label="Expand Emergency SOS Status">
-    <div class="beacon-icon-wrap" [class.is-dispatched]="pills[0]?.state === 'dispatched'">
-      <span class="beacon-pulse"></span>
-      <app-icon [name]="pills[0]?.icon || 'alert'" [size]="16" [color]="pills[0]?.state === 'dispatched' ? '#10b981' : '#d32f2f'"></app-icon>
-    </div>
-    <span class="beacon-label">{{ pills[0]?.state === 'dispatched' ? 'En Route' : 'SOS Active' }}</span>
-    <div class="beacon-chevron-box">
-      <app-icon name="chevron-forward" [size]="14" color="var(--ion-color-medium, #8e8e93)"></app-icon>
-    </div>
-  </div>
-
-  <!-- Expanded Floating SOS Card Stack -->
-  <div *ngIf="!isMinimized" class="sos-pill-stack">
+  <div class="sos-pill-stack" [class.is-minimized-mode]="isMinimized">
     <div *ngFor="let pill of pills; trackBy: trackByKey"
-         (click)="onTap()"
-         class="sos-pill"
+         (click)="onCardContainerClick($event)"
+         class="sos-pill-card"
+         [class.is-minimized]="isMinimized"
          [class.sos-pill--offline]="pill.state === 'offline'"
          [class.sos-pill--pending]="pill.state === 'pending'"
          [class.sos-pill--dispatched]="pill.state === 'dispatched'"
          role="button"
-         tabindex="0">
+         tabindex="0"
+         [attr.aria-label]="isMinimized ? 'Expand Emergency SOS Status' : 'Emergency SOS Details'">
 
-      <!-- Left State Beacon / Icon Badge -->
+      <!-- Left State Beacon / Icon Badge (Fixed Anchor) -->
       <div class="sos-pill__icon-wrap">
         <span class="sos-pill__pulse" *ngIf="pill.state === 'pending' || pill.state === 'dispatched'"></span>
         <app-icon [name]="pill.icon" [size]="18" [color]="pill.state === 'dispatched' ? '#10b981' : (pill.state === 'offline' ? '#f59e0b' : '#d32f2f')"></app-icon>
       </div>
 
-      <!-- Center Title & Status Description -->
-      <div class="sos-pill__body">
+      <!-- Minimized Label & Chevron: Revealed when closed/minimized -->
+      <div class="sos-pill__min-segment" [class.is-active]="isMinimized">
+        <span class="sos-pill__min-label">{{ pill.state === 'dispatched' ? 'En Route' : 'SOS Active' }}</span>
+        <div class="sos-pill__min-chevron">
+          <app-icon name="chevron-forward" [size]="14" color="var(--ion-color-medium, #8e8e93)"></app-icon>
+        </div>
+      </div>
+
+      <!-- Expanded Center Title & Description: Slides in/out smoothly -->
+      <div class="sos-pill__expanded-body" [class.is-collapsed]="isMinimized">
         <div class="sos-pill__header-row">
           <span class="sos-pill__live-indicator" *ngIf="pill.state === 'dispatched'">DISPATCHED</span>
           <span class="sos-pill__pending-indicator" *ngIf="pill.state === 'pending'">PENDING</span>
@@ -44,8 +36,8 @@
         <p class="sos-pill__sublabel">{{ pill.sublabel }}</p>
       </div>
 
-      <!-- Right Action & Enlarged Quick Minimize Button -->
-      <div class="sos-pill__right">
+      <!-- Expanded Right Actions: Cancel Button & Minimize (<) Button -->
+      <div class="sos-pill__expanded-actions" [class.is-collapsed]="isMinimized">
         <!-- Cancel button — Apple capsule style -->
         <button *ngIf="pill.cancellable"
                 type="button"
@@ -63,7 +55,7 @@
         <!-- Chevron for dispatched (tappable) -->
         <app-icon *ngIf="!pill.cancellable" name="chevron-forward" [size]="14" class="sos-pill__chevron"></app-icon>
 
-        <!-- Enlarged Minimize Button at the Far Right -->
+        <!-- Enlarged Minimize Button at the Far Right (Slides right side to left) -->
         <button type="button"
                 class="sos-pill__minimize-btn"
                 (pointerdown)="$event.stopPropagation()"
@@ -76,6 +68,7 @@
           <app-icon name="chevron-back" [size]="16"></app-icon>
         </button>
       </div>
+
     </div>
   </div>
 </ng-container>

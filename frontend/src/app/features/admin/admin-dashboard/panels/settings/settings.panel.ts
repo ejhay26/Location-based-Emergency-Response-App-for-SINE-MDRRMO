@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy, ElementRef } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { Platform } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
@@ -47,6 +49,9 @@ interface IncidentSoundProfile {
 export class SettingsPanel implements OnInit, OnDestroy {
 
   activeSubPage: SettingsSubPage = 'main';
+  isExitingSubPage = false;
+  private exitTimer: any = null;
+  private backButtonSub?: Subscription;
 
   userName = '';
   userEmail = '';
@@ -74,7 +79,6 @@ export class SettingsPanel implements OnInit, OnDestroy {
     { key: 'flood',    label: 'Flood Incident',     icon: 'droplet',       color: '#3880ff', soundId: 'sonar_depth',    volume: 100 },
     { key: 'medical',  label: 'Medical Incident',   icon: 'medical',       color: '#2dd36f', soundId: 'chime_harmonic', volume: 100 },
     { key: 'crime',    label: 'Crime & Security',   icon: 'shield-alert',  color: '#bc6fff', soundId: 'siren_chirp',    volume: 100 },
-    { key: 'accident', label: 'Vehicular Accident', icon: 'car',           color: '#ff9800', soundId: 'ping_strike',    volume: 100 },
     { key: 'hazard',   label: 'Hazard Alert',       icon: 'hazard',        color: '#ffc409', soundId: 'beacon_radar',   volume: 100 },
     { key: 'default',  label: 'General SOS',        icon: 'alert-triangle',color: '#92949c', soundId: 'chime_harmonic', volume: 100 },
   ];
@@ -212,7 +216,36 @@ export class SettingsPanel implements OnInit, OnDestroy {
   }
 
   setSubPage(page: SettingsSubPage): void {
+    if (this.exitTimer) {
+      clearTimeout(this.exitTimer);
+      this.exitTimer = null;
+    }
+    this.isExitingSubPage = false;
     this.activeSubPage = page;
+    if (page !== 'main') {
+      try {
+        window.history.pushState({ sine_admin_subpage: page }, '');
+      } catch {}
+    }
+  }
+
+  goBackToSettings(triggerHistoryBack = true): void {
+    if (this.activeSubPage === 'main') return;
+    if (triggerHistoryBack && typeof window !== 'undefined' && window.history.state?.sine_admin_subpage) {
+      window.history.back();
+      return;
+    }
+    if (this.settings.getBool('reduce_animations')) {
+      this.activeSubPage = 'main';
+      this.isExitingSubPage = false;
+      return;
+    }
+    this.isExitingSubPage = true;
+    this.exitTimer = setTimeout(() => {
+      this.activeSubPage = 'main';
+      this.isExitingSubPage = false;
+      this.exitTimer = null;
+    }, 260);
   }
 
   refreshKeybindList(): void {
@@ -240,6 +273,7 @@ export class SettingsPanel implements OnInit, OnDestroy {
     private shortcuts: KeyboardShortcutsService,
     private router: Router,
     private elRef: ElementRef<HTMLElement>,
+    private platform: Platform,
   ) {}
 
   ngOnInit(): void {
@@ -267,7 +301,25 @@ export class SettingsPanel implements OnInit, OnDestroy {
     });
 
     this.refreshKeybindList();
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('popstate', this.popStateListener);
+    }
+
+    this.backButtonSub = this.platform.backButton.subscribeWithPriority(99999, (processNextHandler) => {
+      if (this.activeSubPage !== 'main') {
+        this.goBackToSettings(true);
+      } else {
+        processNextHandler();
+      }
+    });
   }
+
+  private popStateListener = () => {
+    if (this.activeSubPage !== 'main') {
+      this.goBackToSettings(false);
+    }
+  };
 
   private lastToggleOrigin: { x: number; y: number } | null = null;
 
@@ -313,6 +365,16 @@ export class SettingsPanel implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopRecordingKeybind();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('popstate', this.popStateListener);
+    }
+    if (this.backButtonSub) {
+      this.backButtonSub.unsubscribe();
+    }
+    if (this.exitTimer) {
+      clearTimeout(this.exitTimer);
+      this.exitTimer = null;
+    }
   }
 
   logout(): void {

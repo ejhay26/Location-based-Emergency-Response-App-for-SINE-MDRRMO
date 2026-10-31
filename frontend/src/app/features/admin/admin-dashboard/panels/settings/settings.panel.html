@@ -124,13 +124,13 @@
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- SUB-PAGE: APPEARANCE & DISPLAY                             -->
   <!-- ══════════════════════════════════════════════════════════ -->
-  <div *ngIf="activeSubPage === 'appearance'" class="settings-subpage-container">
+  <div *ngIf="activeSubPage === 'appearance'" class="settings-subpage-container" [class.is-exiting]="isExitingSubPage">
     
     <!-- Sub-page Navigation Header -->
     <div class="subpage-nav-header">
-      <button type="button" class="subpage-back-btn" (click)="setSubPage('main')">
+      <button type="button" class="subpage-back-btn" (click)="goBackToSettings()">
         <app-icon name="chevron-back" [size]="16" color="currentColor"></app-icon>
-        <span>Back to Settings</span>
+        <span>Settings</span>
       </button>
       <div class="subpage-title-row">
         <div class="cat-icon-capsule is-appearance small">
@@ -210,13 +210,13 @@
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- SUB-PAGE: AUDIO & ALERT SOUNDS                             -->
   <!-- ══════════════════════════════════════════════════════════ -->
-  <div *ngIf="activeSubPage === 'audio'" class="settings-subpage-container">
+  <div *ngIf="activeSubPage === 'audio'" class="settings-subpage-container" [class.is-exiting]="isExitingSubPage">
 
     <!-- Sub-page Navigation Header -->
     <div class="subpage-nav-header">
-      <button type="button" class="subpage-back-btn" (click)="setSubPage('main')">
+      <button type="button" class="subpage-back-btn" (click)="goBackToSettings()">
         <app-icon name="chevron-back" [size]="16" color="currentColor"></app-icon>
-        <span>Back to Settings</span>
+        <span>Settings</span>
       </button>
       <div class="subpage-title-row">
         <div class="cat-icon-capsule is-audio small">
@@ -336,13 +336,13 @@
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- SUB-PAGE: MAP DISPLAY & LAYERS                             -->
   <!-- ══════════════════════════════════════════════════════════ -->
-  <div *ngIf="activeSubPage === 'map'" class="settings-subpage-container">
+  <div *ngIf="activeSubPage === 'map'" class="settings-subpage-container" [class.is-exiting]="isExitingSubPage">
 
     <!-- Sub-page Navigation Header -->
     <div class="subpage-nav-header">
-      <button type="button" class="subpage-back-btn" (click)="setSubPage('main')">
+      <button type="button" class="subpage-back-btn" (click)="goBackToSettings()">
         <app-icon name="chevron-back" [size]="16" color="currentColor"></app-icon>
-        <span>Back to Settings</span>
+        <span>Settings</span>
       </button>
       <div class="subpage-title-row">
         <div class="cat-icon-capsule is-map small">
@@ -364,16 +364,6 @@
           <!-- Real OSM Street Cartography Preview -->
           <div class="map-graphic-canvas street-theme">
             <div class="map-tile-grid street-grid"></div>
-            <div class="map-carto-overlay">
-              <span class="carto-label poblacion">Poblacion</span>
-              <span class="carto-label malapit">Malapit</span>
-              <span class="carto-label alua">Alua</span>
-              <span class="carto-route-tag">Maharlika Hwy</span>
-            </div>
-            <div class="map-poi-pin">
-              <app-icon name="map-pin" [size]="20" color="#eb445a"></app-icon>
-            </div>
-            <span class="map-poi-badge">San Isidro Street Cartography</span>
           </div>
 
           <div *ngIf="mapDefaultStyle === 'street'" class="map-selected-badge">
@@ -403,14 +393,6 @@
           <!-- Real Satellite Imagery Preview -->
           <div class="map-graphic-canvas satellite-theme">
             <div class="map-tile-grid satellite-grid"></div>
-            <div class="map-carto-overlay sat-overlay">
-              <span class="carto-label river-label">Pampanga River</span>
-              <span class="carto-label sat-hub">San Isidro Farmlands</span>
-            </div>
-            <div class="map-poi-pin">
-              <app-icon name="map-pin" [size]="20" color="#eb445a"></app-icon>
-            </div>
-            <span class="map-poi-badge sat-badge">San Isidro High-Res Aerial</span>
           </div>
 
           <div *ngIf="mapDefaultStyle === 'satellite'" class="map-selected-badge">
@@ -441,13 +423,13 @@
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- SUB-PAGE: KEYBOARD SHORTCUTS                               -->
   <!-- ══════════════════════════════════════════════════════════ -->
-  <div *ngIf="activeSubPage === 'keybinds'" class="settings-subpage-container">
+  <div *ngIf="activeSubPage === 'keybinds'" class="settings-subpage-container" [class.is-exiting]="isExitingSubPage">
 
     <!-- Sub-page Navigation Header -->
     <div class="subpage-nav-header">
-      <button type="button" class="subpage-back-btn" (click)="setSubPage('main')">
+      <button type="button" class="subpage-back-btn" (click)="goBackToSettings()">
         <app-icon name="chevron-back" [size]="16" color="currentColor"></app-icon>
-        <span>Back to Settings</span>
+        <span>Settings</span>
       </button>
       <div class="subpage-title-row">
         <div class="cat-icon-capsule is-shortcuts small">
@@ -515,13 +497,13 @@
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- SUB-PAGE: NOTIFICATIONS & ALERTS                           -->
   <!-- ══════════════════════════════════════════════════════════ -->
-  <div *ngIf="activeSubPage === 'notifications'" class="settings-subpage-container">
+  <div *ngIf="activeSubPage === 'notifications'" class="settings-subpage-container" [class.is-exiting]="isExitingSubPage">
 
     <!-- Sub-page Navigation Header -->
     <div class="subpage-nav-header">
-      <button type="button" class="subpage-back-btn" (click)="setSubPage('main')">
+      <button type="button" class="subpage-back-btn" (click)="goBackToSettings()">
         <app-icon name="chevron-back" [size]="16" color="currentColor"></app-icon>
-        <span>Back to Settings</span>
+        <span>Settings</span>
       </button>
       <div class="subpage-title-row">
         <div class="cat-icon-capsule is-notifications small">

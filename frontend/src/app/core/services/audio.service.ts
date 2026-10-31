@@ -31,7 +31,6 @@ export const DEFAULT_INCIDENT_SOUNDS: Record<string, string> = {
   flood: 'sonar_depth',
   medical: 'chime_harmonic',
   crime: 'siren_chirp',
-  accident: 'ping_strike',
   hazard: 'beacon_radar',
   default: 'chime_harmonic',
 };
@@ -42,6 +41,7 @@ export class AudioService {
   private isMutedState = false;
   private volumeLevel = 0.8;
   private incidentSoundMap: Record<string, string> = { ...DEFAULT_INCIDENT_SOUNDS };
+  private audioCache = new Map<string, HTMLAudioElement>();
 
   constructor() {
     this.isMutedState = localStorage.getItem('sine_sound_muted') === 'true';
@@ -61,7 +61,23 @@ export class AudioService {
       } catch {}
     }
 
+    this.preloadSounds();
     this.setupUserGestureUnlock();
+  }
+
+  /**
+   * Preload all sound files into in-memory HTMLAudioElements for instant 0ms playback latency.
+   */
+  private preloadSounds(): void {
+    if (typeof window === 'undefined') return;
+    for (const opt of AVAILABLE_SOUNDS) {
+      try {
+        const audio = new Audio(`assets/sounds/${opt.file}`);
+        audio.preload = 'auto';
+        audio.load();
+        this.audioCache.set(opt.id, audio);
+      } catch {}
+    }
   }
 
   /**
@@ -176,9 +192,8 @@ export class AudioService {
     const lower = incidentType.toLowerCase();
     if (lower.includes('fire')) return 'fire';
     if (lower.includes('flood')) return 'flood';
-    if (lower.includes('medical') || lower.includes('health') || lower.includes('injury')) return 'medical';
+    if (lower.includes('medical') || lower.includes('health') || lower.includes('injury') || lower.includes('accident') || lower.includes('vehicular') || lower.includes('crash')) return 'medical';
     if (lower.includes('crime') || lower.includes('theft') || lower.includes('violence') || lower.includes('police')) return 'crime';
-    if (lower.includes('accident') || lower.includes('vehicular') || lower.includes('crash') || lower.includes('collision')) return 'accident';
     if (lower.includes('hazard') || lower.includes('wire') || lower.includes('tree') || lower.includes('obstruction') || lower.includes('street')) return 'hazard';
     return 'default';
   }
@@ -203,11 +218,17 @@ export class AudioService {
     const opt = AVAILABLE_SOUNDS.find(s => s.id === soundId) || AVAILABLE_SOUNDS[0];
     const targetVol = Math.max(0, Math.min(1, this.volumeLevel * (opt.gain ?? 0.8) * volumeScale));
 
-    // Try HTML5 Audio element first
+    // Try preloaded HTML5 Audio element first for 0ms latency
     try {
-      const audio = new Audio(`/assets/sounds/${opt.file}`);
-      audio.volume = targetVol;
-      const playPromise = audio.play();
+      let cached = this.audioCache.get(opt.id);
+      if (!cached) {
+        cached = new Audio(`assets/sounds/${opt.file}`);
+        cached.preload = 'auto';
+        this.audioCache.set(opt.id, cached);
+      }
+      const instance = cached.cloneNode() as HTMLAudioElement;
+      instance.volume = targetVol;
+      const playPromise = instance.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
           this.synthesizeSound(opt.id, targetVol);

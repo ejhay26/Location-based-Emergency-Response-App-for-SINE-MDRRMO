@@ -492,57 +492,6 @@
   .map-split-resizer {
     display: none !important;
   }
-  .map-container-col {
-    flex: 1 1 100% !important;
-    transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    max-width: 100% !important;
-    width: 100% !important;
-  }
-  .map-queue-col {
-    position: absolute !important;
-    right: 16px !important;
-    top: 16px !important;
-    bottom: 16px !important;
-    width: 380px !important;
-    max-width: calc(100vw - 32px) !important;
-    z-index: 1000 !important;
-    background: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border-radius: 0 !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
-    overflow-y: auto !important;
-    pointer-events: none !important;
-    display: flex !important;
-    flex-direction: column !important;
-    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
-
-    .queue-header-row,
-    .incident-card,
-    .cluster-group-card,
-    .empty-queue-card {
-      pointer-events: auto !important;
-    }
-
-    .queue-header-row {
-      background: var(--ion-card-background, rgba(255, 255, 255, 0.94));
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      padding: 8px 14px;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-      border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.12)));
-      margin-bottom: 10px !important;
-    }
-
-    &.is-queue-collapsed {
-      transform: translateX(calc(100% + 24px)) !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-  }
 }
 
 .floating-immersive-map-btn {
@@ -581,11 +530,12 @@
 }
 
 .map-container-col {
-  flex: 1;
-  min-width: 320px;
+  flex: 1 1 0%;
+  min-width: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
+  transition: all 0.38s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .map-card-wrapper {
@@ -609,7 +559,13 @@
   user-select: none;
   -webkit-user-select: none;
   z-index: 10;
-  transition: background-color 0.2s;
+  transition: width 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, background-color 0.2s;
+
+  &.is-collapsed {
+    width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 
   &:hover,
   &.resizing {
@@ -636,7 +592,25 @@
   max-width: 650px;
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   padding-left: 4px;
+  box-sizing: border-box;
+  transition: width 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              min-width 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.28s ease,
+              padding 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              margin 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.is-queue-collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+  }
 }
 
 /* ── INCIDENT CARDS ── */
@@ -1367,26 +1341,22 @@
 }
 
 
-/* ── SLEEK FLOATING MAP CONTROLS DOCK (TOP RIGHT) ── */
+/* ── SLEEK FLOATING MAP CONTROLS DOCK (PERMANENT TOP LEFT) ── */
 .floating-map-top-dock {
   position: absolute;
   top: 14px;
-  right: 14px;
+  left: 14px;
   z-index: 1001;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: right 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 
   .floating-map-style-capsule {
     position: static;
     top: auto;
     right: auto;
+    left: auto;
     z-index: auto;
-  }
-
-  &.is-immersive.queue-visible {
-    right: 406px;
   }
 
   @media (max-width: 900px) {
