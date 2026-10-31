@@ -10,7 +10,11 @@ import { AdminUiService } from '../../admin-ui.service';
 import { ApiService } from '../../../../../core/services/api';
 import { DesktopNotificationsService } from '../../../../../core/services/desktop-notifications';
 import { AudioService, AVAILABLE_SOUNDS, SoundOption } from '../../../../../core/services/audio.service';
+import { KeyboardShortcutsService, KeybindDef } from '../../../../../core/services/keyboard-shortcuts.service';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
+
+export type SettingsSubPage = 'main' | 'appearance' | 'audio' | 'map' | 'keybinds' | 'notifications' | 'account';
 
 interface SettingToggle {
   key: SettingKey;
@@ -34,11 +38,14 @@ interface IncidentSoundProfile {
   imports: [
     CommonModule, FormsModule,
     IonToggle, IonRange,
-    AppIconComponent
+    AppIconComponent, CustomTooltipDirective
   ],
   templateUrl: './settings.panel.html',
+  styleUrls: ['./settings.panel.scss']
 })
 export class SettingsPanel implements OnInit {
+
+  activeSubPage: SettingsSubPage = 'main';
 
   userName = '';
   userEmail = '';
@@ -57,7 +64,7 @@ export class SettingsPanel implements OnInit {
     { key: 'notif_sound_effects',    label: 'Sound Effects & Chimes', hint: v => v ? 'Audible chimes on new emergencies and tactile interaction feedback are active.' : 'All system audio is muted.', value: true, icon: 'volume-2' }
   ];
 
-  mapDefaultStyle = 'street';
+  mapDefaultStyle: 'street' | 'satellite' = 'street';
 
   availableSounds: SoundOption[] = AVAILABLE_SOUNDS;
 
@@ -70,6 +77,9 @@ export class SettingsPanel implements OnInit {
     { key: 'hazard',   label: 'Hazard Alert',       icon: 'hazard',        color: '#ffc409', soundId: 'beacon_radar' },
     { key: 'default',  label: 'General SOS',        icon: 'alert-triangle',color: '#92949c', soundId: 'chime_harmonic' },
   ];
+
+  keybindList: KeybindDef[] = [];
+  availableKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', ',', '.', '/'];
 
   get currentZoom(): number {
     return this.settings.getZoom();
@@ -102,9 +112,14 @@ export class SettingsPanel implements OnInit {
     this.ui.showToast('Playing notification alert chime preview.', 'medium');
   }
 
+  getSoundLabel(soundId: string): string {
+    const s = this.availableSounds.find(item => item.id === soundId);
+    return s?.label || soundId;
+  }
+
   getSoundDescription(soundId: string): string {
     const s = this.availableSounds.find(item => item.id === soundId);
-    return s?.description || 'Custom audible tone';
+    return s?.label || 'Operational sound alert';
   }
 
   onSoundProfileChange(profileKey: string, soundId: string): void {
@@ -113,7 +128,7 @@ export class SettingsPanel implements OnInit {
     if (profile) {
       profile.soundId = soundId;
       this.audio.testSound(soundId);
-      this.ui.showToast(`Updated sound for ${profile.label}.`, 'medium');
+      this.ui.showToast(`Updated alert chime for ${profile.label}.`, 'medium');
     }
   }
 
@@ -124,12 +139,33 @@ export class SettingsPanel implements OnInit {
     this.audio.testSound(soundId);
   }
 
+  setSubPage(page: SettingsSubPage): void {
+    this.activeSubPage = page;
+  }
+
+  refreshKeybindList(): void {
+    this.keybindList = this.shortcuts.getKeybindList();
+  }
+
+  onKeybindChange(id: string, newKey: string): void {
+    this.shortcuts.setKeybind(id, newKey);
+    this.refreshKeybindList();
+    this.ui.showToast(`Shortcut updated to Ctrl + ${newKey.toUpperCase()}.`, 'medium');
+  }
+
+  resetAllKeybinds(): void {
+    this.shortcuts.resetKeybinds();
+    this.refreshKeybindList();
+    this.ui.showToast('Reset all keyboard shortcuts to system defaults.', 'medium');
+  }
+
   constructor(
     private settings: UserSettingsService,
     private ui: AdminUiService,
     private api: ApiService,
     private desktopNotifications: DesktopNotificationsService,
     private audio: AudioService,
+    private shortcuts: KeyboardShortcutsService,
     private router: Router,
     private elRef: ElementRef<HTMLElement>,
   ) {}
@@ -150,12 +186,14 @@ export class SettingsPanel implements OnInit {
 
     this.appearance.forEach(s => s.value = this.settings.getBool(s.key));
     this.notifications.forEach(s => s.value = this.settings.getBool(s.key));
-    this.mapDefaultStyle = this.settings.get('map_default_style') || 'street';
+    this.mapDefaultStyle = (this.settings.get('map_default_style') as 'street' | 'satellite') || 'street';
 
     // Hydrate audio sound profiles
     this.incidentSoundProfiles.forEach(p => {
       p.soundId = this.audio.getIncidentSound(p.key);
     });
+
+    this.refreshKeybindList();
   }
 
   private lastToggleOrigin: { x: number; y: number } | null = null;

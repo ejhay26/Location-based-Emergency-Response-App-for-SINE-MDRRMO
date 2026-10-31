@@ -1,70 +1,154 @@
-<div style="max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; padding-bottom: 40px;">
+<div class="settings-container">
 
-  <!-- Profile Card -->
-  <div
-    style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
-    <div style="display: flex; align-items: center; gap: 16px;">
-      <div
-        style="width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, #eb445a 0%, #ff6b81 100%); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; color: white; box-shadow: 0 4px 12px rgba(235,68,90,0.35); flex-shrink: 0;">
-        {{ userName.charAt(0).toUpperCase() || 'O' }}
-      </div>
-      <div>
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: var(--ion-text-color);">{{ userName }}</h3>
-          <span
-            style="font-size: 10.5px; font-weight: 800; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 20px; background: rgba(235,68,90,0.12); color: var(--ion-color-danger); border: 1px solid rgba(235,68,90,0.25);">
-            {{ userRole }}
-          </span>
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- MAIN CATEGORY DIRECTORY VIEW                              -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeSubPage === 'main'" class="settings-page-view">
+    
+    <!-- Profile & Session Header Card -->
+    <div class="settings-profile-card">
+      <div class="profile-info-group">
+        <div class="profile-avatar">
+          {{ userName.charAt(0).toUpperCase() || 'O' }}
         </div>
-        <p *ngIf="userEmail" style="margin: 3px 0 0; font-size: 12.5px; color: var(--ion-color-medium);">{{ userEmail }}
-        </p>
-        <p *ngIf="phone" style="margin: 1px 0 0; font-size: 12px; color: var(--ion-color-medium);">{{ phone }}</p>
+        <div class="profile-meta">
+          <div class="profile-title-row">
+            <h3 class="profile-name">{{ userName }}</h3>
+            <span class="profile-role-badge">{{ userRole }}</span>
+          </div>
+          <p *ngIf="userEmail" class="profile-sub">{{ userEmail }}</p>
+          <p *ngIf="phone" class="profile-sub">{{ phone }}</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Pills -->
+      <div class="profile-actions-group">
+        <div *ngIf="rawRole === 'admin'" class="session-status-badge is-admin">
+          <span class="session-dot"></span>
+          <span>Superadmin Session</span>
+        </div>
+        <div *ngIf="rawRole !== 'admin'" class="session-status-badge is-dispatcher">
+          <span class="session-dot"></span>
+          <span>Active Dispatcher</span>
+        </div>
+
+        <button type="button" class="logout-btn" (click)="logout()" aria-label="Log Out">
+          <app-icon name="log-out" [size]="15" color="currentColor"></app-icon>
+          <span>Log Out</span>
+        </button>
       </div>
     </div>
 
-    <!-- Quick action buttons -->
-    <div style="display: flex; gap: 8px;">
-      <!-- Superadmin shortcut: directly opens Account Management tab in Admin mode -->
-      <div *ngIf="rawRole === 'admin'"
-        style="padding: 8px 14px; border-radius: 12px; background: rgba(235,68,90,0.08); border: 1px solid rgba(235,68,90,0.2); font-size: 12px; font-weight: 700; color: var(--ion-color-danger); display: flex; align-items: center; gap: 6px;">
-        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--ion-color-danger);"></span>
-        Active Session
+    <!-- Section Title -->
+    <div class="settings-section-header">
+      <p class="settings-section-caption">System Preferences &amp; Workspace</p>
+    </div>
+
+    <!-- Segmented Category Cards Grid -->
+    <div class="settings-category-grid">
+
+      <!-- 1. Appearance & Display -->
+      <div class="settings-category-card" (click)="setSubPage('appearance')">
+        <div class="cat-icon-capsule is-appearance">
+          <app-icon name="moon" [size]="20" color="#eb445a"></app-icon>
+        </div>
+        <div class="cat-text-col">
+          <h4 class="cat-title">Appearance &amp; Display</h4>
+          <p class="cat-desc">Dark theme, interface zoom scaling, reduced motion</p>
+        </div>
+        <div class="cat-arrow">
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
+        </div>
       </div>
 
-      <!-- Dispatcher badge: read-only status -->
-      <div *ngIf="rawRole !== 'admin'"
-        style="padding: 8px 14px; border-radius: 12px; background: rgba(56,128,255,0.08); border: 1px solid rgba(56,128,255,0.2); font-size: 12px; font-weight: 700; color: var(--ion-color-primary); display: flex; align-items: center; gap: 6px;">
-        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--ion-color-primary);"></span>
-        Active Dispatcher
+      <!-- 2. Audio & Alert Sounds -->
+      <div class="settings-category-card" (click)="setSubPage('audio')">
+        <div class="cat-icon-capsule is-audio">
+          <app-icon name="volume-2" [size]="20" color="#3880ff"></app-icon>
+        </div>
+        <div class="cat-text-col">
+          <h4 class="cat-title">Audio &amp; Alert Sounds</h4>
+          <p class="cat-desc">Chime volume levels, sound assignments per incident, live previews</p>
+        </div>
+        <div class="cat-arrow">
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
+        </div>
       </div>
 
-      <button (click)="logout()"
-        style="padding: 8px 14px; border-radius: 12px; background: var(--ion-color-step-100, rgba(0,0,0,0.05)); border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.08)); font-size: 12px; font-weight: 700; color: var(--ion-color-medium); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s ease;">
-        <app-icon name="log-out" [size]="15" color="currentColor"></app-icon>
-        <span>Log Out</span>
-      </button>
+      <!-- 3. Map Display & Controls -->
+      <div class="settings-category-card" (click)="setSubPage('map')">
+        <div class="cat-icon-capsule is-map">
+          <app-icon name="map" [size]="20" color="#2dd36f"></app-icon>
+        </div>
+        <div class="cat-text-col">
+          <h4 class="cat-title">Map Display &amp; Layers</h4>
+          <p class="cat-desc">Dual preview cards for Street and Satellite views of San Isidro</p>
+        </div>
+        <div class="cat-arrow">
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
+        </div>
+      </div>
+
+      <!-- 4. Keyboard Shortcuts -->
+      <div class="settings-category-card" (click)="setSubPage('keybinds')">
+        <div class="cat-icon-capsule is-shortcuts">
+          <app-icon name="command" [size]="20" color="#bc6fff"></app-icon>
+        </div>
+        <div class="cat-text-col">
+          <h4 class="cat-title">Keyboard Shortcuts</h4>
+          <p class="cat-desc">Customizable hotkeys, rapid navigation, restore defaults</p>
+        </div>
+        <div class="cat-arrow">
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
+        </div>
+      </div>
+
+      <!-- 5. Notifications & Alerts -->
+      <div class="settings-category-card" (click)="setSubPage('notifications')">
+        <div class="cat-icon-capsule is-notifications">
+          <app-icon name="bell" [size]="20" color="#ff9800"></app-icon>
+        </div>
+        <div class="cat-text-col">
+          <h4 class="cat-title">Notifications &amp; Alerts</h4>
+          <p class="cat-desc">Emergency SOS alerts, desktop system notifications, sound effects</p>
+        </div>
+        <div class="cat-arrow">
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- Appearance Section -->
-  <div>
-    <p
-      style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
-      <app-icon name="moon" [size]="14" color="var(--ion-color-danger)"></app-icon> Appearance &amp; Display
-    </p>
-    <div
-      style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); overflow: hidden;">
-      <div *ngFor="let s of appearance; let last = last"
-        style="padding: 14px 18px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.05));">
-        <div
-          style="width: 38px; height: 38px; border-radius: 11px; background: rgba(235,68,90,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SUB-PAGE: APPEARANCE & DISPLAY                             -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeSubPage === 'appearance'" class="settings-subpage-container">
+    
+    <!-- Sub-page Navigation Header -->
+    <div class="subpage-nav-header">
+      <button type="button" class="subpage-back-btn" (click)="setSubPage('main')">
+        <app-icon name="chevron-back" [size]="16" color="currentColor"></app-icon>
+        <span>Back to Settings</span>
+      </button>
+      <div class="subpage-title-row">
+        <div class="cat-icon-capsule is-appearance small">
+          <app-icon name="moon" [size]="16" color="#eb445a"></app-icon>
+        </div>
+        <h3 class="subpage-heading">Appearance &amp; Display</h3>
+      </div>
+    </div>
+
+    <!-- Appearance Toggles Card -->
+    <div class="settings-inset-card">
+      <div *ngFor="let s of appearance" class="settings-row-item">
+        <div class="row-icon-capsule">
           <app-icon [name]="s.icon" [size]="18" color="var(--ion-color-danger)"></app-icon>
         </div>
-        <div style="flex: 1; min-width: 0;">
-          <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">{{ s.label }}
-          </p>
-          <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">{{ s.hint(s.value) }}
-          </p>
+        <div class="row-text-col">
+          <p class="row-title">{{ s.label }}</p>
+          <p class="row-hint">{{ s.hint(s.value) }}</p>
         </div>
         <ion-toggle
           class="theme-toggle-live"
@@ -73,219 +157,359 @@
           [checked]="s.value"
           (pointerdown)="s.key === 'dark_mode' ? onTogglePointer($event) : null"
           (touchstart)="s.key === 'dark_mode' ? onTogglePointer($event) : null"
-          (ionChange)="onToggle(s, $event)"></ion-toggle>
-      </div>
-
-      <!-- Display Scaling & Zoom Slider -->
-      <div style="padding: 14px 18px; border-top: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.05));">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-          <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 38px; height: 38px; border-radius: 11px; background: rgba(56,128,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-              <app-icon name="zoom-in" [size]="18" color="var(--ion-color-primary)"></app-icon>
-            </div>
-            <div>
-              <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">Display Scaling &amp; Zoom</p>
-              <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">Universal desktop scaling (Ctrl + / Ctrl - / Ctrl 0)</p>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 13px; font-weight: 800; color: var(--ion-color-primary); min-width: 44px; text-align: right;">{{ currentZoom }}%</span>
-            <button type="button" *ngIf="currentZoom !== 100" (click)="resetZoom()"
-                    style="padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; background: var(--ion-color-step-150, #eee); border: none; cursor: pointer; color: var(--ion-text-color);">
-              Reset
-            </button>
-          </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 14px; padding: 0 4px;">
-          <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">75%</span>
-          <ion-range [min]="75" [max]="150" [step]="5" [value]="currentZoom" (ionChange)="onZoomChange($event)"
-                     style="--bar-background: var(--ion-color-step-200, #ddd); --bar-background-active: var(--ion-color-primary); --knob-background: var(--ion-color-primary); flex: 1;">
-          </ion-range>
-          <span style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">150%</span>
-        </div>
+          (ionChange)="onToggle(s, $event)">
+        </ion-toggle>
       </div>
     </div>
-  </div>
 
-  <!-- Map Defaults -->
-  <div>
-    <p
-      style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
-      <app-icon name="map" [size]="14" color="var(--ion-color-danger)"></app-icon> Map Defaults
-    </p>
-    <div
-      style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); padding: 18px;">
-      <div style="margin-bottom: 14px;">
-        <p style="margin: 0 0 3px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">Default Map Layer</p>
-        <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">Choose whether incident and hazard maps initialize with Street cartography or High-Resolution Satellite imagery.</p>
-      </div>
-
-      <!-- Segment Toggle Style with Dual Interactive Tiles -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-
-        <!-- Street Tile -->
-        <div (click)="onMapStyleChange('street')"
-          [style.border-color]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, rgba(0,0,0,0.08))'"
-          [style.background]="mapDefaultStyle === 'street' ? 'rgba(235,68,90,0.05)' : 'var(--ion-color-step-50, rgba(0,0,0,0.02))'"
-          style="border: 2px solid; border-radius: 16px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: transform 0.12s ease, opacity 0.12s ease;">
-          <div [style.background]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'rgba(0,0,0,0.06)'"
-            style="width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <app-icon name="map" [size]="20"
-              [color]="mapDefaultStyle === 'street' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
-          </div>
-          <div style="flex: 1; min-width: 0;">
-            <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 800; color: var(--ion-text-color);">Street Map</p>
-            <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.35;">Standard vector roads &amp; barangays</p>
-          </div>
-          <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid;"
-            [style.border-color]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-300, #aaa)'"
-            [style.background]="mapDefaultStyle === 'street' ? 'var(--ion-color-danger)' : 'transparent'"
-            style="display: flex; align-items: center; justify-content: center;">
-            <div *ngIf="mapDefaultStyle === 'street'"
-              style="width: 6px; height: 6px; border-radius: 50%; background: white;"></div>
+    <!-- Display Zoom Scaling Slider Card -->
+    <div class="settings-inset-card" style="padding: 20px 22px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <app-icon name="search-plus" [size]="18" color="var(--ion-color-danger)"></app-icon>
+          <div>
+            <p style="margin: 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">Display Zoom Scaling</p>
+            <p style="margin: 2px 0 0; font-size: 12px; color: var(--ion-color-medium);">Universal UI scaling for desktop &amp; large displays</p>
           </div>
         </div>
-
-        <!-- Satellite Tile -->
-        <div (click)="onMapStyleChange('satellite')"
-          [style.border-color]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-200, rgba(0,0,0,0.08))'"
-          [style.background]="mapDefaultStyle === 'satellite' ? 'rgba(235,68,90,0.05)' : 'var(--ion-color-step-50, rgba(0,0,0,0.02))'"
-          style="border: 2px solid; border-radius: 16px; padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: transform 0.12s ease, opacity 0.12s ease;">
-          <div [style.background]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'rgba(0,0,0,0.06)'"
-            style="width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <app-icon name="satellite" [size]="20"
-              [color]="mapDefaultStyle === 'satellite' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
-          </div>
-          <div style="flex: 1; min-width: 0;">
-            <p style="margin: 0 0 2px 0; font-size: 14px; font-weight: 800; color: var(--ion-text-color);">Satellite Map</p>
-            <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.35;">High-res aerial terrain photography</p>
-          </div>
-          <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid;"
-            [style.border-color]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'var(--ion-color-step-300, #aaa)'"
-            [style.background]="mapDefaultStyle === 'satellite' ? 'var(--ion-color-danger)' : 'transparent'"
-            style="display: flex; align-items: center; justify-content: center;">
-            <div *ngIf="mapDefaultStyle === 'satellite'"
-              style="width: 6px; height: 6px; border-radius: 50%; background: white;"></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- Notification Preferences -->
-  <div>
-    <p
-      style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
-      <app-icon name="bell" [size]="14" color="var(--ion-color-danger)"></app-icon> Emergency Notifications &amp; Audio Alerts
-    </p>
-    <div
-      style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); overflow: hidden;">
-      <div *ngFor="let s of notifications; let last = last"
-        style="padding: 14px 18px; display: flex; align-items: center; gap: 14px;"
-        [style.border-bottom]="last ? 'none' : '1px solid var(--ion-color-step-100, rgba(0,0,0,0.05))'">
-        <div
-          style="width: 38px; height: 38px; border-radius: 11px; background: rgba(235,68,90,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <app-icon [name]="s.icon" [size]="18" color="var(--ion-color-danger)"></app-icon>
-        </div>
-        <div style="flex: 1; min-width: 0;">
-          <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">{{ s.label }}</p>
-          <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">{{ s.hint(s.value) }}</p>
-        </div>
-        <ion-toggle mode="ios" color="danger" [checked]="s.value" (ionChange)="onToggle(s, $event)"></ion-toggle>
-      </div>
-
-      <!-- UI Sound Volume & Test Media Control -->
-      <div style="padding: 14px 18px; border-top: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.05));">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <app-icon name="volume-2" [size]="16" color="var(--ion-color-danger)"></app-icon>
-            <span style="font-size: 13.5px; font-weight: 700; color: var(--ion-text-color);">Chime Alert Volume</span>
-            <span style="font-size: 12px; font-weight: 800; color: var(--ion-color-danger); background: rgba(235,68,90,0.1); padding: 1px 7px; border-radius: 8px;">{{ soundVolume }}%</span>
-          </div>
-
-          <button type="button"
-                  (click)="testAudioSound()"
-                  style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 9px; border: 1px solid var(--ion-color-danger); background: rgba(235,68,90,0.08); color: var(--ion-color-danger); font-size: 11.5px; font-weight: 800; cursor: pointer; transition: transform 0.15s ease;">
-            <app-icon name="play" [size]="11" color="var(--ion-color-danger)"></app-icon>
-            <span>Test Chime</span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="zoom-value-badge">{{ currentZoom }}%</span>
+          <button type="button" class="reset-btn-pill" (click)="resetZoom()" [disabled]="currentZoom === 100">
+            <app-icon name="rotate-left" [size]="12" color="currentColor"></app-icon>
+            <span>Reset (100%)</span>
           </button>
         </div>
+      </div>
 
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <app-icon name="volume-x" [size]="14" color="var(--ion-color-medium)"></app-icon>
-          <input type="range"
-                 min="0"
-                 max="100"
-                 step="5"
-                 [value]="soundVolume"
-                 (input)="onSoundVolumeChange($event)"
-                 style="flex: 1; accent-color: var(--ion-color-danger); cursor: pointer;"
-                 aria-label="Sound Volume Slider" />
-          <app-icon name="volume-2" [size]="14" color="var(--ion-color-medium)"></app-icon>
-        </div>
+      <div style="padding: 0 4px;">
+        <ion-range
+          [min]="75"
+          [max]="125"
+          [step]="5"
+          [snaps]="true"
+          [ticks]="true"
+          [value]="currentZoom"
+          (ionChange)="onZoomChange($event)"
+          color="danger"
+          style="--bar-height: 4px; --knob-size: 20px; padding: 10px 0;">
+          <span slot="start" style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">75%</span>
+          <span slot="end" style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">125%</span>
+        </ion-range>
+      </div>
+
+      <div class="zoom-presets-row">
+        <button type="button" class="zoom-preset-btn" [class.is-active]="currentZoom === 85" (click)="onZoomChange({ detail: { value: 85 } })">Compact (85%)</button>
+        <button type="button" class="zoom-preset-btn" [class.is-active]="currentZoom === 100" (click)="onZoomChange({ detail: { value: 100 } })">Default (100%)</button>
+        <button type="button" class="zoom-preset-btn" [class.is-active]="currentZoom === 115" (click)="onZoomChange({ detail: { value: 115 } })">Enlarged (115%)</button>
       </div>
     </div>
+
   </div>
 
-  <!-- Incident Tone Customization -->
-  <div>
-    <p
-      style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 8px; display: flex; align-items: center; gap: 6px;">
-      <app-icon name="radio" [size]="14" color="var(--ion-color-danger)"></app-icon> Incident Audio Profiles
-    </p>
-    <div
-      style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06))); box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.04)); overflow: hidden; padding: 6px 0;">
-      
-      <div style="padding: 12px 18px 8px;">
-        <p style="margin: 0 0 2px 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">Distinct Tones by Incident Type</p>
-        <p style="margin: 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4;">
-          Select specific audio alert profiles for incoming incident categories. Immediate sound feedback plays upon selection.
-        </p>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SUB-PAGE: AUDIO & ALERT SOUNDS                             -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeSubPage === 'audio'" class="settings-subpage-container">
+
+    <!-- Sub-page Navigation Header -->
+    <div class="subpage-nav-header">
+      <button type="button" class="subpage-back-btn" (click)="setSubPage('main')">
+        <app-icon name="chevron-back" [size]="16" color="currentColor"></app-icon>
+        <span>Back to Settings</span>
+      </button>
+      <div class="subpage-title-row">
+        <div class="cat-icon-capsule is-audio small">
+          <app-icon name="volume-2" [size]="16" color="#3880ff"></app-icon>
+        </div>
+        <h3 class="subpage-heading">Audio &amp; Alert Sounds</h3>
+      </div>
+    </div>
+
+    <!-- Master Volume Slider Card -->
+    <div class="settings-inset-card" style="padding: 20px 22px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <app-icon name="volume-2" [size]="18" color="var(--ion-color-primary)"></app-icon>
+          <div>
+            <p style="margin: 0; font-size: 14.5px; font-weight: 700; color: var(--ion-text-color);">Master Chime Volume</p>
+            <p style="margin: 2px 0 0; font-size: 12px; color: var(--ion-color-medium);">Output volume for incoming emergencies and hazard alerts</p>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="zoom-value-badge" style="background: rgba(56,128,255,0.1); color: var(--ion-color-primary);">{{ soundVolume }}%</span>
+          <button type="button" class="preview-btn-pill" (click)="testAudioSound()">
+            <app-icon name="play" [size]="12" color="currentColor"></app-icon>
+            <span>Test Alert</span>
+          </button>
+        </div>
       </div>
 
-      <div *ngFor="let p of incidentSoundProfiles; let last = last"
-        style="padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px;"
-        [style.border-bottom]="last ? 'none' : '1px solid var(--ion-color-step-100, rgba(0,0,0,0.05))'">
-        
-        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
-          <div
-            [style.background]="p.color + '18'"
-            style="width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <app-icon [name]="p.icon" [size]="17" [color]="p.color"></app-icon>
+      <div style="padding: 0 4px;">
+        <ion-range
+          [min]="0"
+          [max]="100"
+          [step]="5"
+          [value]="soundVolume"
+          (ionChange)="onSoundVolumeChange($event)"
+          color="primary"
+          style="--bar-height: 4px; --knob-size: 20px; padding: 10px 0;">
+          <span slot="start" style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">Mute</span>
+          <span slot="end" style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">100%</span>
+        </ion-range>
+      </div>
+    </div>
+
+    <!-- Per-Incident Audio Sound Profiles -->
+    <div class="settings-section-header">
+      <p class="settings-section-caption">Incident Sound Tones ({{ incidentSoundProfiles.length }} Categories)</p>
+    </div>
+
+    <div class="settings-inset-card">
+      <div *ngFor="let profile of incidentSoundProfiles" class="sound-assignment-row">
+        <!-- Icon & Profile Name -->
+        <div class="sound-profile-meta">
+          <div class="incident-icon-box" [style.background]="profile.color + '18'" [style.color]="profile.color">
+            <app-icon [name]="profile.icon" [size]="18" [color]="profile.color"></app-icon>
           </div>
-          <div style="min-width: 0; flex: 1;">
-            <p style="margin: 0 0 1px 0; font-size: 13.5px; font-weight: 700; color: var(--ion-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              {{ p.label }}
-            </p>
-            <p style="margin: 0; font-size: 11.5px; color: var(--ion-color-medium);">
-              {{ getSoundDescription(p.soundId) }}
-            </p>
+          <div>
+            <p class="sound-profile-name">{{ profile.label }}</p>
+            <p class="sound-profile-current">Active: <strong>{{ getSoundLabel(profile.soundId) }}</strong></p>
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+        <!-- Controls: Sound Select Dropdown + Preview Button -->
+        <div class="sound-controls-group">
           <select
-            [value]="p.soundId"
-            (change)="onSoundProfileChange(p.key, $any($event.target).value)"
-            style="padding: 6px 10px; border-radius: 9px; font-size: 12.5px; font-weight: 600; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); background: var(--ion-color-step-50, rgba(0,0,0,0.02)); color: var(--ion-text-color); cursor: pointer; outline: none; max-width: 170px;">
-            <option *ngFor="let snd of availableSounds" [value]="snd.id">
-              {{ snd.label }}
+            class="sound-select-input"
+            [ngModel]="profile.soundId"
+            (ngModelChange)="onSoundProfileChange(profile.key, $event)"
+            [attr.aria-label]="'Select sound for ' + profile.label">
+            <option *ngFor="let sound of availableSounds" [value]="sound.id">
+              {{ sound.label }}
             </option>
           </select>
 
           <button
             type="button"
-            (click)="previewSound(p.soundId, $event)"
-            title="Preview sound"
-            aria-label="Preview sound"
-            style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); background: var(--ion-color-step-100, rgba(0,0,0,0.04)); color: var(--ion-text-color); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.12s ease;">
-            <app-icon name="play" [size]="12" color="var(--ion-color-danger)"></app-icon>
+            class="sound-play-btn"
+            (click)="previewSound(profile.soundId, $event)"
+            [appTooltip]="'Preview Tone'"
+            tooltipPlacement="left"
+            [attr.aria-label]="'Preview ' + getSoundLabel(profile.soundId)">
+            <app-icon name="play" [size]="13" color="currentColor"></app-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SUB-PAGE: MAP DISPLAY & LAYERS                             -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeSubPage === 'map'" class="settings-subpage-container">
+
+    <!-- Sub-page Navigation Header -->
+    <div class="subpage-nav-header">
+      <button type="button" class="subpage-back-btn" (click)="setSubPage('main')">
+        <app-icon name="chevron-back" [size]="16" color="currentColor"></app-icon>
+        <span>Back to Settings</span>
+      </button>
+      <div class="subpage-title-row">
+        <div class="cat-icon-capsule is-map small">
+          <app-icon name="map" [size]="16" color="#2dd36f"></app-icon>
+        </div>
+        <h3 class="subpage-heading">Map Display &amp; Layers</h3>
+      </div>
+    </div>
+
+    <!-- Dual Visual Map Cards Grid -->
+    <div class="map-preview-cards-grid">
+
+      <!-- Street Map Preview Card -->
+      <div class="map-preview-card"
+           [class.is-selected]="mapDefaultStyle === 'street'"
+           (click)="onMapStyleChange('street')">
+        
+        <div class="map-visual-box is-street">
+          <!-- Stylized Street Map Graphics -->
+          <div class="map-graphic-canvas street-theme">
+            <div class="road arterial-road"></div>
+            <div class="road secondary-road r1"></div>
+            <div class="road secondary-road r2"></div>
+            <div class="map-poi-pin">
+              <app-icon name="map-pin" [size]="20" color="#eb445a"></app-icon>
+            </div>
+            <span class="map-poi-badge">San Isidro Core</span>
+          </div>
+
+          <div *ngIf="mapDefaultStyle === 'street'" class="map-selected-badge">
+            <app-icon name="check" [size]="12" color="#ffffff"></app-icon>
+            <span>Active Default</span>
+          </div>
+        </div>
+
+        <div class="map-card-body">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <h4 class="map-card-title">Street Cartography</h4>
+            <span class="map-layer-tag">Vector Layer</span>
+          </div>
+          <p class="map-card-desc">Clean road vectors, labeled landmarks, barangay borders, and municipal arterial paths.</p>
+          <button type="button" class="map-select-btn" [class.is-active]="mapDefaultStyle === 'street'">
+            {{ mapDefaultStyle === 'street' ? 'Default Selected' : 'Set as Default' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Satellite Map Preview Card -->
+      <div class="map-preview-card"
+           [class.is-selected]="mapDefaultStyle === 'satellite'"
+           (click)="onMapStyleChange('satellite')">
+        
+        <div class="map-visual-box is-satellite">
+          <!-- Stylized Satellite Map Graphics -->
+          <div class="map-graphic-canvas satellite-theme">
+            <div class="terrain-overlay"></div>
+            <div class="river-path"></div>
+            <div class="map-poi-pin">
+              <app-icon name="map-pin" [size]="20" color="#eb445a"></app-icon>
+            </div>
+            <span class="map-poi-badge sat-badge">San Isidro Aerial</span>
+          </div>
+
+          <div *ngIf="mapDefaultStyle === 'satellite'" class="map-selected-badge">
+            <app-icon name="check" [size]="12" color="#ffffff"></app-icon>
+            <span>Active Default</span>
+          </div>
+        </div>
+
+        <div class="map-card-body">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <h4 class="map-card-title">Satellite Aerial Imagery</h4>
+            <span class="map-layer-tag" style="background: rgba(45,211,111,0.12); color: #2dd36f;">High-Res Aerial</span>
+          </div>
+          <p class="map-card-desc">High-resolution photographic aerial imagery for terrain, waterways, and foliage inspection.</p>
+          <button type="button" class="map-select-btn" [class.is-active]="mapDefaultStyle === 'satellite'">
+            {{ mapDefaultStyle === 'satellite' ? 'Default Selected' : 'Set as Default' }}
           </button>
         </div>
       </div>
 
     </div>
+
+    <!-- San Isidro Operational Boundary Info -->
+    <div class="settings-inset-card" style="padding: 16px 20px; display: flex; align-items: center; gap: 14px;">
+      <div class="row-icon-capsule" style="background: rgba(235,68,90,0.1); color: var(--ion-color-danger);">
+        <app-icon name="location-dot" [size]="18" color="currentColor"></app-icon>
+      </div>
+      <div style="flex: 1; min-width: 0;">
+        <p style="margin: 0; font-size: 13.5px; font-weight: 700; color: var(--ion-text-color);">San Isidro Boundary Clamping</p>
+        <p style="margin: 2px 0 0; font-size: 12px; color: var(--ion-color-medium);">
+          Operational geographic center anchored at <strong>15.3014° N, 120.9274° E</strong>. Dispatches outside boundary are clamped with warning alerts.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SUB-PAGE: KEYBOARD SHORTCUTS                               -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeSubPage === 'keybinds'" class="settings-subpage-container">
+
+    <!-- Sub-page Navigation Header -->
+    <div class="subpage-nav-header">
+      <button type="button" class="subpage-back-btn" (click)="setSubPage('main')">
+        <app-icon name="chevron-back" [size]="16" color="currentColor"></app-icon>
+        <span>Back to Settings</span>
+      </button>
+      <div class="subpage-title-row">
+        <div class="cat-icon-capsule is-shortcuts small">
+          <app-icon name="command" [size]="16" color="#bc6fff"></app-icon>
+        </div>
+        <h3 class="subpage-heading">Keyboard Shortcuts</h3>
+      </div>
+    </div>
+
+    <!-- Top Action Bar -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-wrap: wrap; gap: 10px;">
+      <p class="settings-section-caption" style="margin: 0;">Universal Desktop Keybinds ({{ keybindList.length }} Shortcuts)</p>
+      <button type="button" class="reset-btn-pill" (click)="resetAllKeybinds()">
+        <app-icon name="rotate-left" [size]="12" color="currentColor"></app-icon>
+        <span>Reset to Defaults</span>
+      </button>
+    </div>
+
+    <!-- Keybinds Table Card -->
+    <div class="settings-inset-card">
+      <div *ngFor="let item of keybindList" class="keybind-row-item">
+        <div class="keybind-meta">
+          <p class="keybind-name">{{ item.label }}</p>
+          <span class="keybind-cat-badge">{{ item.category }}</span>
+        </div>
+
+        <div class="keybind-action-col">
+          <div class="key-pill-display">
+            <kbd class="key-kbd">Ctrl</kbd>
+            <span style="font-size: 11px; opacity: 0.6;">+</span>
+            <kbd class="key-kbd active">{{ item.currentKey }}</kbd>
+          </div>
+
+          <select
+            class="key-select-input"
+            [ngModel]="item.currentKey"
+            (ngModelChange)="onKeybindChange(item.id, $event)"
+            [attr.aria-label]="'Change keybind for ' + item.label">
+            <option *ngFor="let k of availableKeys" [value]="k">{{ k }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- SUB-PAGE: NOTIFICATIONS & ALERTS                           -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div *ngIf="activeSubPage === 'notifications'" class="settings-subpage-container">
+
+    <!-- Sub-page Navigation Header -->
+    <div class="subpage-nav-header">
+      <button type="button" class="subpage-back-btn" (click)="setSubPage('main')">
+        <app-icon name="chevron-back" [size]="16" color="currentColor"></app-icon>
+        <span>Back to Settings</span>
+      </button>
+      <div class="subpage-title-row">
+        <div class="cat-icon-capsule is-notifications small">
+          <app-icon name="bell" [size]="16" color="#ff9800"></app-icon>
+        </div>
+        <h3 class="subpage-heading">Notifications &amp; Alerts</h3>
+      </div>
+    </div>
+
+    <!-- Toggles Card -->
+    <div class="settings-inset-card">
+      <div *ngFor="let s of notifications" class="settings-row-item">
+        <div class="row-icon-capsule">
+          <app-icon [name]="s.icon" [size]="18" color="var(--ion-color-danger)"></app-icon>
+        </div>
+        <div class="row-text-col">
+          <p class="row-title">{{ s.label }}</p>
+          <p class="row-hint">{{ s.hint(s.value) }}</p>
+        </div>
+        <ion-toggle
+          mode="ios"
+          color="danger"
+          [checked]="s.value"
+          (ionChange)="onToggle(s, $event)">
+        </ion-toggle>
+      </div>
+    </div>
+
   </div>
 
 </div>

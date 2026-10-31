@@ -5,142 +5,338 @@
 </ion-header>
 
 <ion-content class="tab-page-content">
-  <div id="tour-settings-page" [class.tour-highlight]="tour.targetId() === 'tour-settings-page'" style="padding: 16px 16px 0;">
-    <!-- Appearance Section -->
-    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:0 4px 8px;display:flex;align-items:center;gap:6px;">
-      <app-icon name="moon" [size]="14" color="var(--ion-color-danger)"></app-icon>Appearance
-    </p>
-    <div class="inset-card">
-      <ion-item *ngFor="let s of appearance; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
-        <ion-label style="padding:12px 0 10px;">
-          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
-          <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
-        </ion-label>
-        <ion-toggle mode="ios" slot="end" color="danger"
-          [class.theme-toggle-live]="s.key === 'dark_mode'"
-          [checked]="s.value"
-          (pointerdown)="s.key === 'dark_mode' ? onTogglePointer($event) : null"
-          (touchstart)="s.key === 'dark_mode' ? onTogglePointer($event) : null"
-          (ionChange)="onToggle(s, $event)"></ion-toggle>
-      </ion-item>
-    </div>
+  <div id="tour-settings-page" [class.tour-highlight]="tour.targetId() === 'tour-settings-page'" style="padding: 16px 16px 40px; max-width: 680px; margin: 0 auto;">
 
-    <!-- Map & Location Section -->
-    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
-      <app-icon name="map-pin" [size]="14" color="var(--ion-color-danger)"></app-icon>Map &amp; Location
-    </p>
-    <div class="inset-card">
-      <ion-item *ngFor="let s of location" lines="full" style="--background:transparent;--inner-padding-end:16px;">
-        <ion-label style="padding:12px 0 10px;">
-          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
-          <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
-        </ion-label>
-        <ion-toggle mode="ios" slot="end" color="danger" [checked]="s.value" (ionChange)="onToggle(s, $event)"></ion-toggle>
-      </ion-item>
-      <div *ngFor="let s of mapSettings" style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:var(--inset-divider, 1px solid rgba(0,0,0,0.06));">
-        <div style="flex:1;">
-          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
-          <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint }}</p>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- MAIN CATEGORY DIRECTORY                                    -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeSubPage === 'main'" class="settings-view-anim">
+      <p class="section-badge-caption">Application Preferences</p>
+
+      <div class="category-cards-col">
+
+        <!-- 1. Appearance & Theme -->
+        <div class="category-drill-card" (click)="setSubPage('appearance')">
+          <div class="cat-icon-box is-appearance">
+            <app-icon name="moon" [size]="20" color="#eb445a"></app-icon>
+          </div>
+          <div class="cat-info-col">
+            <h4 class="cat-label">Appearance &amp; Theme</h4>
+            <p class="cat-hint">Dark theme, reduced motion and visual styling</p>
+          </div>
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
         </div>
-        <div style="min-width:170px;flex-shrink:0;">
-          <ion-segment mode="ios" [value]="s.value" (ionChange)="onSegmentChange(s, $event)">
-            <ion-segment-button *ngFor="let opt of s.options" [value]="opt.value">
-              <ion-label style="font-size:12px;font-weight:700;">{{ opt.label }}</ion-label>
-            </ion-segment-button>
-          </ion-segment>
+
+        <!-- 2. Audio & Alert Chimes -->
+        <div class="category-drill-card" (click)="setSubPage('audio')">
+          <div class="cat-icon-box is-audio">
+            <app-icon name="volume-2" [size]="20" color="#3880ff"></app-icon>
+          </div>
+          <div class="cat-info-col">
+            <h4 class="cat-label">Audio &amp; Alert Chimes</h4>
+            <p class="cat-hint">Master volume level, notification chimes and audio preview</p>
+          </div>
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
         </div>
+
+        <!-- 3. Map & Location -->
+        <div class="category-drill-card" (click)="setSubPage('map')">
+          <div class="cat-icon-box is-map">
+            <app-icon name="map" [size]="20" color="#2dd36f"></app-icon>
+          </div>
+          <div class="cat-info-col">
+            <h4 class="cat-label">Map &amp; Location</h4>
+            <p class="cat-hint">Street vs Satellite view cards, auto-fetch GPS tracking</p>
+          </div>
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
+        </div>
+
+        <!-- 4. Notifications & Alerts -->
+        <div class="category-drill-card" (click)="setSubPage('notifications')">
+          <div class="cat-icon-box is-notifications">
+            <app-icon name="bell" [size]="20" color="#ff9800"></app-icon>
+          </div>
+          <div class="cat-info-col">
+            <h4 class="cat-label">Notifications &amp; Alerts</h4>
+            <p class="cat-hint">MDRRMO emergency dispatches and public safety broadcasts</p>
+          </div>
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
+        </div>
+
+        <!-- 5. Emergency Reporting Preferences -->
+        <div class="category-drill-card" (click)="setSubPage('reporting')">
+          <div class="cat-icon-box is-reporting">
+            <app-icon name="camera-retro" [size]="20" color="#bc6fff"></app-icon>
+          </div>
+          <div class="cat-info-col">
+            <h4 class="cat-label">Reporting Media Preferences</h4>
+            <p class="cat-hint">Photo crop editor, video trim editor and gallery saving</p>
+          </div>
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
+        </div>
+
+        <!-- 6. Home Screen Widgets (Android) -->
+        <div *ngIf="widgetAvailable" class="category-drill-card" (click)="setSubPage('widgets')">
+          <div class="cat-icon-box is-widgets">
+            <app-icon name="mobile-screen" [size]="20" color="#06b6d4"></app-icon>
+          </div>
+          <div class="cat-info-col">
+            <h4 class="cat-label">Home Screen Widgets</h4>
+            <p class="cat-hint">Instant 1-tap SOS and Hazard report buttons on home screen</p>
+          </div>
+          <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
+        </div>
+
       </div>
     </div>
 
-    <!-- Notifications Section -->
-    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
-      <app-icon name="bell" [size]="14" color="var(--ion-color-danger)"></app-icon>Notifications
-    </p>
-    <div class="inset-card">
-      <ion-item *ngFor="let s of notifications; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
-        <ion-label style="padding:12px 0 10px;">
-          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
-          <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
-        </ion-label>
-        <ion-toggle mode="ios" slot="end" color="danger" [checked]="s.value" (ionChange)="onToggle(s, $event)"></ion-toggle>
-      </ion-item>
-      <!-- UI Sound Media Controls -->
-      <div style="padding: 12px 16px; border-top: var(--inset-divider, 1px solid rgba(0,0,0,0.06));">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <app-icon name="volume-2" [size]="16" color="var(--ion-color-danger)"></app-icon>
-            <span style="font-size: 14px; font-weight: 600; color: var(--ion-text-color);">Chime Alert Volume</span>
-            <span style="font-size: 11.5px; font-weight: 800; color: var(--ion-color-danger); background: rgba(235,68,90,0.1); padding: 1px 6px; border-radius: 6px;">{{ soundVolume }}%</span>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SUB-PAGE: APPEARANCE & THEME                               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeSubPage === 'appearance'" class="subpage-view-anim">
+      <div class="subpage-top-nav">
+        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
+          <app-icon name="chevron-back" [size]="16"></app-icon>
+          <span>Back to Settings</span>
+        </button>
+        <h3 class="subpage-title">Appearance &amp; Theme</h3>
+      </div>
+
+      <div class="inset-card">
+        <ion-item *ngFor="let s of appearance; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
+          <ion-label style="padding:12px 0 10px;">
+            <p style="font-weight:700;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
+            <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
+          </ion-label>
+          <ion-toggle mode="ios" slot="end" color="danger"
+            [class.theme-toggle-live]="s.key === 'dark_mode'"
+            [checked]="s.value"
+            (pointerdown)="s.key === 'dark_mode' ? onTogglePointer($event) : null"
+            (touchstart)="s.key === 'dark_mode' ? onTogglePointer($event) : null"
+            (ionChange)="onToggle(s, $event)"></ion-toggle>
+        </ion-item>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SUB-PAGE: AUDIO & ALERT CHIMES                             -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeSubPage === 'audio'" class="subpage-view-anim">
+      <div class="subpage-top-nav">
+        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
+          <app-icon name="chevron-back" [size]="16"></app-icon>
+          <span>Back to Settings</span>
+        </button>
+        <h3 class="subpage-title">Audio &amp; Alert Chimes</h3>
+      </div>
+
+      <div class="inset-card" style="padding: 18px 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div>
+            <p style="font-weight:700; font-size:15px; color:var(--ion-text-color); margin:0 0 3px;">Alert Volume</p>
+            <p style="font-size:12px; color:var(--ion-color-medium); margin:0;">Audio level for emergency alerts &amp; chimes</p>
           </div>
+          <span style="font-size: 12.5px; font-weight: 800; padding: 3px 9px; border-radius: 12px; background: rgba(56,128,255,0.1); color: var(--ion-color-primary);">
+            {{ soundVolume }}%
+          </span>
+        </div>
+
+        <ion-range
+          [min]="0"
+          [max]="100"
+          [step]="5"
+          [value]="soundVolume"
+          (ionChange)="onSoundVolumeChange($event)"
+          color="primary"
+          style="--bar-height: 4px; --knob-size: 20px; padding: 10px 0;">
+          <span slot="start" style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">Mute</span>
+          <span slot="end" style="font-size: 11px; font-weight: 700; color: var(--ion-color-medium);">100%</span>
+        </ion-range>
+
+        <button type="button"
+                (click)="testAudioSound()"
+                style="margin-top: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 12px; background: rgba(56,128,255,0.08); border: 1px solid rgba(56,128,255,0.2); color: var(--ion-color-primary); font-size: 13px; font-weight: 700; cursor: pointer;">
+          <app-icon name="play" [size]="14" color="currentColor"></app-icon>
+          <span>Play Alert Preview</span>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SUB-PAGE: MAP & LOCATION                                   -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeSubPage === 'map'" class="subpage-view-anim">
+      <div class="subpage-top-nav">
+        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
+          <app-icon name="chevron-back" [size]="16"></app-icon>
+          <span>Back to Settings</span>
+        </button>
+        <h3 class="subpage-title">Map &amp; Location</h3>
+      </div>
+
+      <!-- Dual Map Preview Cards -->
+      <div class="citizen-map-cards-grid">
+        <!-- Street Card -->
+        <div class="citizen-map-card" [class.is-selected]="mapDefaultStyle === 'street'" (click)="onMapStyleChange('street')">
+          <div class="map-thumb-box is-street">
+            <div class="thumb-canvas street-canvas">
+              <div class="mini-road arterial"></div>
+              <div class="mini-road secondary"></div>
+              <div class="mini-pin"><app-icon name="map-pin" [size]="16" color="#eb445a"></app-icon></div>
+            </div>
+            <div *ngIf="mapDefaultStyle === 'street'" class="thumb-selected-badge">
+              <app-icon name="check" [size]="11" color="#ffffff"></app-icon>
+              <span>Selected</span>
+            </div>
+          </div>
+          <div class="thumb-meta">
+            <h4 class="thumb-title">Street Map</h4>
+            <p class="thumb-sub">Clear road names, municipal boundaries and street geometry</p>
+          </div>
+        </div>
+
+        <!-- Satellite Card -->
+        <div class="citizen-map-card" [class.is-selected]="mapDefaultStyle === 'satellite'" (click)="onMapStyleChange('satellite')">
+          <div class="map-thumb-box is-satellite">
+            <div class="thumb-canvas satellite-canvas">
+              <div class="mini-river"></div>
+              <div class="mini-pin"><app-icon name="map-pin" [size]="16" color="#eb445a"></app-icon></div>
+            </div>
+            <div *ngIf="mapDefaultStyle === 'satellite'" class="thumb-selected-badge">
+              <app-icon name="check" [size]="11" color="#ffffff"></app-icon>
+              <span>Selected</span>
+            </div>
+          </div>
+          <div class="thumb-meta">
+            <h4 class="thumb-title">Satellite View</h4>
+            <p class="thumb-sub">High-resolution photographic aerial imagery of terrain</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto-fetch GPS Toggle -->
+      <div class="inset-card" style="margin-top: 14px;">
+        <ion-item *ngFor="let s of location" lines="none" style="--background:transparent;--inner-padding-end:16px;">
+          <ion-label style="padding:12px 0 10px;">
+            <p style="font-weight:700;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
+            <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
+          </ion-label>
+          <ion-toggle mode="ios" slot="end" color="danger"
+            [checked]="s.value"
+            (ionChange)="onToggle(s, $event)"></ion-toggle>
+        </ion-item>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SUB-PAGE: NOTIFICATIONS                                    -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeSubPage === 'notifications'" class="subpage-view-anim">
+      <div class="subpage-top-nav">
+        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
+          <app-icon name="chevron-back" [size]="16"></app-icon>
+          <span>Back to Settings</span>
+        </button>
+        <h3 class="subpage-title">Notifications &amp; Alerts</h3>
+      </div>
+
+      <div class="inset-card">
+        <ion-item *ngFor="let s of notifications; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
+          <ion-label style="padding:12px 0 10px;">
+            <p style="font-weight:700;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
+            <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
+          </ion-label>
+          <ion-toggle mode="ios" slot="end" color="danger"
+            [checked]="s.value"
+            (ionChange)="onToggle(s, $event)"></ion-toggle>
+        </ion-item>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SUB-PAGE: REPORTING MEDIA PREFERENCES                      -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeSubPage === 'reporting'" class="subpage-view-anim">
+      <div class="subpage-top-nav">
+        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
+          <app-icon name="chevron-back" [size]="16"></app-icon>
+          <span>Back to Settings</span>
+        </button>
+        <h3 class="subpage-title">Reporting Preferences</h3>
+      </div>
+
+      <div class="inset-card">
+        <ion-item *ngFor="let s of reporting; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
+          <ion-label style="padding:12px 0 10px;">
+            <p style="font-weight:700;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
+            <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
+          </ion-label>
+          <ion-toggle mode="ios" slot="end" color="danger"
+            [checked]="s.value"
+            (ionChange)="onToggle(s, $event)"></ion-toggle>
+        </ion-item>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SUB-PAGE: HOME SCREEN WIDGETS (ANDROID)                    -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeSubPage === 'widgets'" class="subpage-view-anim">
+      <div class="subpage-top-nav">
+        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
+          <app-icon name="chevron-back" [size]="16"></app-icon>
+          <span>Back to Settings</span>
+        </button>
+        <h3 class="subpage-title">Home Screen Widgets</h3>
+      </div>
+
+      <div class="inset-card" style="padding: 16px;">
+        <p style="font-size: 13px; color: var(--ion-color-medium); margin: 0 0 16px 0; line-height: 1.45;">
+          Place one-tap emergency action buttons directly on your Android home screen to report incidents immediately without unlocking through app tabs.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button"
+                  (click)="addWidget('emergency')"
+                  style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: 14px; background: rgba(235,68,90,0.08); border: 1px solid rgba(235,68,90,0.22); color: var(--ion-color-danger); cursor: pointer; text-align: left;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <app-icon name="triangle-exclamation" [size]="20" color="#eb445a"></app-icon>
+              <div>
+                <p style="margin: 0; font-size: 14px; font-weight: 700;">Add Emergency SOS Widget</p>
+                <p style="margin: 2px 0 0; font-size: 11.5px; opacity: 0.8;">Instant reporting for fire, flood, medical, or crime</p>
+              </div>
+            </div>
+            <app-icon name="add" [size]="18" color="currentColor"></app-icon>
+          </button>
 
           <button type="button"
-                  (click)="testAudioSound()"
-                  style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--ion-color-danger); background: rgba(235,68,90,0.08); color: var(--ion-color-danger); font-size: 11px; font-weight: 800; cursor: pointer;">
-            <app-icon name="play" [size]="10" color="var(--ion-color-danger)"></app-icon>
-            <span>Test Sound</span>
+                  (click)="addWidget('hazard')"
+                  style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: 14px; background: rgba(255,196,9,0.08); border: 1px solid rgba(255,196,9,0.25); color: #d69e00; cursor: pointer; text-align: left;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <app-icon name="hazard" [size]="20" color="#ffc409"></app-icon>
+              <div>
+                <p style="margin: 0; font-size: 14px; font-weight: 700;">Add Public Hazard Widget</p>
+                <p style="margin: 2px 0 0; font-size: 11.5px; opacity: 0.8;">Report road hazards, fallen posts or power lines</p>
+              </div>
+            </div>
+            <app-icon name="add" [size]="18" color="currentColor"></app-icon>
           </button>
         </div>
-
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <app-icon name="volume-x" [size]="13" color="var(--ion-color-medium)"></app-icon>
-          <input type="range"
-                 min="0"
-                 max="100"
-                 step="5"
-                 [value]="soundVolume"
-                 (input)="onSoundVolumeChange($event)"
-                 style="flex: 1; accent-color: var(--ion-color-danger); cursor: pointer;"
-                 aria-label="Sound Volume Slider" />
-          <app-icon name="volume-2" [size]="13" color="var(--ion-color-medium)"></app-icon>
-        </div>
       </div>
     </div>
 
-    <!-- Reporting Section -->
-    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
-      <app-icon name="camera" [size]="14" color="var(--ion-color-danger)"></app-icon>Reporting
-    </p>
-    <div class="inset-card">
-      <ion-item *ngFor="let s of reporting; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
-        <ion-label style="padding:12px 0 10px;">
-          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;">{{ s.label }}</p>
-          <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">{{ s.hint(s.value) }}</p>
-        </ion-label>
-        <ion-toggle mode="ios" slot="end" color="danger" [checked]="s.value" (ionChange)="onToggle(s, $event)"></ion-toggle>
-      </ion-item>
-    </div>
-
-    <!-- Home Screen Widgets Section -->
-    <div *ngIf="widgetAvailable">
-      <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
-        <app-icon name="mobile" [size]="14" color="var(--ion-color-danger)"></app-icon>Home Screen Widgets
-      </p>
-      <div class="inset-card">
-        <ion-item button (click)="addWidget('emergency')" lines="full" style="--background:transparent;--inner-padding-end:16px;">
-          <ion-label style="padding:12px 0 10px;">
-            <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;display:flex;align-items:center;gap:6px;">
-              <app-icon name="alert" [size]="16" color="var(--ion-color-danger)"></app-icon>Add Emergency SOS Widget
-            </p>
-            <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">1-tap instant access to Report Emergency from your home screen — no need to unlock and dig through the app first.</p>
-          </ion-label>
-          <app-icon name="chevron-right" slot="end" [size]="14" color="var(--ion-color-medium)"></app-icon>
-        </ion-item>
-        <ion-item button (click)="addWidget('hazard')" lines="none" style="--background:transparent;--inner-padding-end:16px;">
-          <ion-label style="padding:12px 0 10px;">
-            <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);margin:0 0 4px;display:flex;align-items:center;gap:6px;">
-              <app-icon name="hazard" [size]="16" color="var(--ion-color-warning)"></app-icon>Add Report Hazard Widget
-            </p>
-            <p style="font-size:12px;color:var(--ion-color-medium);margin:0;line-height:1.4;">1-tap shortcut to report road hazards, fallen trees, floods, or public safety issues straight from your home screen.</p>
-          </ion-label>
-          <app-icon name="chevron-right" slot="end" [size]="14" color="var(--ion-color-medium)"></app-icon>
-        </ion-item>
-      </div>
-    </div>
   </div>
 
-  <div style="padding:16px;text-align:center;margin-top:8px;">
-    <p style="font-size:12px;color:var(--ion-color-medium);margin:0;">MDRRMO San Isidro Emergency App<br><span style="font-size:11px;">Settings are saved automatically and synced across devices.</span></p>
-  </div>
-
-  <ion-toast [isOpen]="widgetToastOpen" [message]="widgetToastMessage" color="medium" [duration]="3000" (didDismiss)="widgetToastOpen = false"></ion-toast>
+  <ion-toast
+    [isOpen]="widgetToastOpen"
+    [message]="widgetToastMessage"
+    [duration]="3000"
+    (didDismiss)="widgetToastOpen = false">
+  </ion-toast>
 </ion-content>

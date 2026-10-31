@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
-  IonItem, IonLabel, IonToggle, IonToast, IonSegment, IonSegmentButton
+  IonItem, IonLabel, IonToggle, IonToast, IonRange
 } from '@ionic/angular/standalone';
 import { UserSettingsService, SettingKey } from '../../../core/services/user-settings';
 import { LocationService } from '../../../core/services/location';
@@ -13,7 +13,9 @@ import { DialogService } from '../../../core/services/dialog.service';
 import { AudioService } from '../../../core/services/audio.service';
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 
-interface SettingToggle { key: SettingKey; label: string; hint: (val: boolean) => string; value: boolean; }
+export type CitizenSettingsSubPage = 'main' | 'appearance' | 'audio' | 'map' | 'notifications' | 'reporting' | 'widgets';
+
+interface SettingToggle { key: SettingKey; label: string; hint: (val: boolean) => string; value: boolean; icon?: string; }
 interface SettingSelect { key: SettingKey; label: string; hint: string; value: string; options: { value: string; label: string }[]; }
 
 @Component({
@@ -24,12 +26,14 @@ interface SettingSelect { key: SettingKey; label: string; hint: string; value: s
   imports: [
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonItem, IonLabel, IonToggle, IonToast, IonSegment, IonSegmentButton,
+    IonItem, IonLabel, IonToggle, IonToast, IonRange,
     AppIconComponent
   ]
 })
 export class SettingsPage implements OnInit {
   audio = inject(AudioService);
+
+  activeSubPage: CitizenSettingsSubPage = 'main';
 
   get soundVolume(): number {
     return Math.round(this.audio.getVolume() * 100);
@@ -45,54 +49,58 @@ export class SettingsPage implements OnInit {
   testAudioSound(): void {
     this.audio.testChime();
   }
-  onSegmentChange(s: SettingSelect, event: any) {
-    const val = event.detail.value;
-    if (val) {
-      s.value = String(val);
-      this.onSelect(s);
-    }
+
+  setSubPage(page: CitizenSettingsSubPage): void {
+    this.activeSubPage = page;
   }
+
+  get mapDefaultStyle(): 'street' | 'satellite' {
+    return (this.settings.get('map_default_style') as 'street' | 'satellite') || 'street';
+  }
+
+  onMapStyleChange(style: 'street' | 'satellite'): void {
+    this.settings.set('map_default_style', style);
+    this.mapSettings.forEach(s => s.value = style);
+  }
+
   appearance: SettingToggle[] = [
-    { key: 'dark_mode',          label: 'Dark Mode',           hint: v => v ? 'Dark theme is on.' : 'Light theme is on.',                                    value: false },
-    { key: 'reduce_animations',  label: 'Reduce Animations',   hint: v => v ? 'Animations are reduced.' : 'Full animations are enabled.',                    value: false }
+    { key: 'dark_mode',          label: 'Dark Mode',           hint: v => v ? 'Dark theme is active across the application.' : 'Light theme is active.',                    value: false, icon: 'moon' },
+    { key: 'reduce_animations',  label: 'Reduce Animations',   hint: v => v ? 'Interface animations are minimized.' : 'Full interface animations are active.',              value: false, icon: 'sliders' }
   ];
   location: SettingToggle[] = [
-    { key: 'location_auto_fetch', label: 'Auto-fetch Location', hint: v => v ? 'Your location is tracked while the app is open.' : 'Location is only fetched when you tap "Use My Location".', value: true }
+    { key: 'location_auto_fetch', label: 'Auto-fetch GPS Location', hint: v => v ? 'Your location is tracked automatically while the app is active.' : 'Location is only fetched when you tap "Use My Location".', value: true, icon: 'location-dot' }
   ];
   mapSettings: SettingSelect[] = [
     { key: 'map_default_style', label: 'Default Map Style', hint: 'The map view used when you first open the report page.', value: 'street', options: [{ value: 'street', label: 'Street' }, { value: 'satellite', label: 'Satellite' }] }
   ];
   notifications: SettingToggle[] = [
-    { key: 'notif_emergency_alerts', label: 'Emergency Dispatch Alerts', hint: v => v ? 'You\'ll be notified when MDRRMO dispatches a response.' : 'Emergency dispatch notifications are off.', value: true },
-    { key: 'notif_broadcast_alerts', label: 'Broadcast Alerts',          hint: v => v ? 'You\'ll be notified when MDRRMO sends a public broadcast.' : 'Broadcast notifications are off.',          value: true }
+    { key: 'notif_emergency_alerts', label: 'Emergency Dispatch Alerts', hint: v => v ? 'Receive instant alerts when MDRRMO dispatches emergency units.' : 'Emergency dispatch notifications are muted.', value: true, icon: 'bell' },
+    { key: 'notif_broadcast_alerts', label: 'Public Broadcast Alerts',   hint: v => v ? 'Receive official disaster warnings and weather bulletins from MDRRMO.' : 'Broadcast notifications are muted.', value: true, icon: 'bullhorn' }
   ];
   reporting: SettingToggle[] = [
     {
       key: 'photo_cropping_enabled',
       label: 'Photo Crop Editor',
-      hint: v => v ? 'Crop editor opens after capturing a photo.' : 'Photos are attached directly to emergency reports without opening the crop editor.',
-      value: true
+      hint: v => v ? 'Crop editor opens after capturing a photo to frame key proof.' : 'Photos are attached directly to emergency reports without opening the crop editor.',
+      value: true,
+      icon: 'crop-simple'
     },
     {
       key: 'video_trimming_enabled',
       label: 'Video Trim Editor',
-      hint: v => v ? 'Trim editor opens after recording a video.' : 'Videos are attached directly to emergency reports without opening the trim editor.',
-      value: true
+      hint: v => v ? 'Trim editor opens after recording a video to keep only crucial footage.' : 'Videos are attached directly to emergency reports without opening the trim editor.',
+      value: true,
+      icon: 'camera-rotate'
     },
     {
       key: 'save_media_to_device',
-      label: 'Save Captured Media to Device',
-      hint: v => v ? 'Photos and videos captured while reporting will be saved to your device gallery.' : 'Captured media is used only for the report and not saved to your device.',
-      value: false
+      label: 'Save Captured Media to Gallery',
+      hint: v => v ? 'Photos and videos captured while reporting will be saved to your device gallery.' : 'Captured media is used only for the report and not saved to your device gallery.',
+      value: false,
+      icon: 'images'
     }
   ];
 
-  /**
-   * Stage 3a — Home Screen Widget entry point. Android 8+ only (see
-   * WidgetPinService/WidgetPinnerPlugin); the whole "Home Screen Widget"
-   * ion-list is *ngIf'd out on iOS/web/older Android so this never shows a
-   * button that can't do anything.
-   */
   widgetAvailable = false;
   widgetToastOpen = false;
   widgetToastMessage = '';
@@ -161,13 +169,6 @@ export class SettingsPage implements OnInit {
     }
   }
 
-  onSelect(setting: SettingSelect) { this.settings.set(setting.key, setting.value); }
-
-  /**
-   * Explains the "why" before asking Android to show its own pin-request
-   * prompt — the widget only saves time if the user understands what it's
-   * for, so we don't just say "Add to Home Screen" with no context.
-   */
   async addWidget(type: 'emergency' | 'hazard' = 'emergency') {
     const isEmergency = type === 'emergency';
     const confirmed = await this.dialog.confirm({
