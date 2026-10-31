@@ -321,9 +321,9 @@
       <ion-card-content class="ion-no-padding" style="height:100%;flex:1;display:flex;position:relative;">
         <div id="dispatch-map" style="height:100%;width:100%;min-height:360px;background-color:#e5e5e5;flex:1;"></div>
 
-        <!-- Unified Floating Map Controls Bar (Bottom Left) -->
-        <div class="floating-map-bottom-controls">
-          <!-- Street / Satellite Layer Toggle -->
+        <!-- Sleek Floating Map Controls Dock (Top Right) -->
+        <div class="floating-map-top-dock" [class.is-immersive]="isImmersiveMap" [class.queue-visible]="isImmersiveMap && !isQueueHidden">
+          <!-- Street / Satellite Layer Toggle Capsule -->
           <div class="floating-map-style-capsule">
             <div class="layer-seg-indicator" [class.is-satellite]="mapStyle === 'satellite'"></div>
             <button
@@ -331,7 +331,8 @@
               class="layer-seg-btn"
               [class.active]="mapStyle === 'street'"
               (click)="toggleMapStyle('street')"
-              aria-label="Street Map View">
+              aria-label="Street Map View"
+              [appTooltip]="'Street Cartography'">
               <app-icon name="map" [size]="12" [color]="mapStyle === 'street' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
               <span>Street</span>
             </button>
@@ -340,23 +341,44 @@
               class="layer-seg-btn"
               [class.active]="mapStyle === 'satellite'"
               (click)="toggleMapStyle('satellite')"
-              aria-label="Satellite Map View">
+              aria-label="Satellite Map View"
+              [appTooltip]="'Satellite Aerial View'">
               <app-icon name="satellite" [size]="12" [color]="mapStyle === 'satellite' ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
               <span>Satellite</span>
             </button>
           </div>
 
-          <!-- Full Screen Immersive Map Toggle -->
+          <!-- Custom Zoom In (+) & Zoom Out (-) Pill Controls -->
+          <div class="floating-map-zoom-capsule">
+            <button
+              type="button"
+              class="zoom-capsule-btn"
+              (click)="zoomInMap()"
+              [appTooltip]="'Zoom In'"
+              aria-label="Zoom In Map">
+              <app-icon name="plus" [size]="13"></app-icon>
+            </button>
+            <div class="zoom-capsule-divider"></div>
+            <button
+              type="button"
+              class="zoom-capsule-btn"
+              (click)="zoomOutMap()"
+              [appTooltip]="'Zoom Out'"
+              aria-label="Zoom Out Map">
+              <app-icon name="minus" [size]="13"></app-icon>
+            </button>
+          </div>
+
+          <!-- Compact Fullscreen / Immersive Icon Button (No wide text) -->
           <button
             type="button"
-            class="floating-immersive-map-btn"
+            class="floating-immersive-icon-btn"
             [class.active]="isImmersiveMap"
             (click)="toggleImmersiveMap()"
             [appTooltip]="isImmersiveMap ? 'Exit Full Screen' : 'Full Screen Immersive Map'"
-            tooltipPlacement="top"
+            tooltipPlacement="bottom"
             aria-label="Toggle Full Screen Immersive Map">
-            <app-icon [name]="isImmersiveMap ? 'compress' : 'expand'" [size]="13" [color]="isImmersiveMap ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
-            <span>{{ isImmersiveMap ? 'Exit Full Screen' : 'Full Screen Map' }}</span>
+            <app-icon [name]="isImmersiveMap ? 'minimize-2' : 'maximize-2'" [size]="14" [color]="isImmersiveMap ? '#ffffff' : 'var(--ion-text-color)'"></app-icon>
           </button>
         </div>
       </ion-card-content>

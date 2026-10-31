@@ -787,6 +787,30 @@ export class IconRegistryService {
       }
     ],
     [
+      'minus',
+      {
+        name: 'minus',
+        faClass: 'fa-solid fa-minus',
+        lucideSvg: '<path d="M5 12h14"/>'
+      }
+    ],
+    [
+      'maximize-2',
+      {
+        name: 'maximize-2',
+        faClass: 'fa-solid fa-expand',
+        lucideSvg: '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/>'
+      }
+    ],
+    [
+      'minimize-2',
+      {
+        name: 'minimize-2',
+        faClass: 'fa-solid fa-compress',
+        lucideSvg: '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" x2="21" y1="10" y2="3"/><line x1="3" x2="10" y1="21" y2="14"/>'
+      }
+    ],
+    [
       'plus',
       {
         name: 'plus',

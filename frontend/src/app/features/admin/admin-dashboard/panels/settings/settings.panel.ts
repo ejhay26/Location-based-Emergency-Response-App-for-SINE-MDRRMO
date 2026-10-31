@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -30,6 +30,7 @@ interface IncidentSoundProfile {
   icon: string;
   color: string;
   soundId: string;
+  volume: number;
 }
 
 @Component({
@@ -43,7 +44,7 @@ interface IncidentSoundProfile {
   templateUrl: './settings.panel.html',
   styleUrls: ['./settings.panel.scss']
 })
-export class SettingsPanel implements OnInit {
+export class SettingsPanel implements OnInit, OnDestroy {
 
   activeSubPage: SettingsSubPage = 'main';
 
@@ -69,14 +70,17 @@ export class SettingsPanel implements OnInit {
   availableSounds: SoundOption[] = AVAILABLE_SOUNDS;
 
   incidentSoundProfiles: IncidentSoundProfile[] = [
-    { key: 'fire',     label: 'Fire Incident',      icon: 'flame',         color: '#eb445a', soundId: 'alert_urgent' },
-    { key: 'flood',    label: 'Flood Incident',     icon: 'droplet',       color: '#3880ff', soundId: 'sonar_depth' },
-    { key: 'medical',  label: 'Medical Incident',   icon: 'medical',       color: '#2dd36f', soundId: 'chime_harmonic' },
-    { key: 'crime',    label: 'Crime & Security',   icon: 'shield-alert',  color: '#bc6fff', soundId: 'siren_chirp' },
-    { key: 'accident', label: 'Vehicular Accident', icon: 'car',           color: '#ff9800', soundId: 'ping_strike' },
-    { key: 'hazard',   label: 'Hazard Alert',       icon: 'hazard',        color: '#ffc409', soundId: 'beacon_radar' },
-    { key: 'default',  label: 'General SOS',        icon: 'alert-triangle',color: '#92949c', soundId: 'chime_harmonic' },
+    { key: 'fire',     label: 'Fire Incident',      icon: 'flame',         color: '#eb445a', soundId: 'alert_urgent',   volume: 100 },
+    { key: 'flood',    label: 'Flood Incident',     icon: 'droplet',       color: '#3880ff', soundId: 'sonar_depth',    volume: 100 },
+    { key: 'medical',  label: 'Medical Incident',   icon: 'medical',       color: '#2dd36f', soundId: 'chime_harmonic', volume: 100 },
+    { key: 'crime',    label: 'Crime & Security',   icon: 'shield-alert',  color: '#bc6fff', soundId: 'siren_chirp',    volume: 100 },
+    { key: 'accident', label: 'Vehicular Accident', icon: 'car',           color: '#ff9800', soundId: 'ping_strike',    volume: 100 },
+    { key: 'hazard',   label: 'Hazard Alert',       icon: 'hazard',        color: '#ffc409', soundId: 'beacon_radar',   volume: 100 },
+    { key: 'default',  label: 'General SOS',        icon: 'alert-triangle',color: '#92949c', soundId: 'chime_harmonic', volume: 100 },
   ];
+
+  recordingKeybindId: string | null = null;
+  private keyRecordingListener: ((e: KeyboardEvent) => void) | null = null;
 
   keybindList: KeybindDef[] = [];
   availableKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', ',', '.', '/'];
@@ -136,11 +140,75 @@ export class SettingsPanel implements OnInit {
     }
   }
 
-  previewSound(soundId: string, event?: Event): void {
+  previewSound(profileOrSoundId: IncidentSoundProfile | string, event?: Event): void {
     if (event) {
       event.stopPropagation();
     }
-    this.audio.testSound(soundId);
+    const soundId = typeof profileOrSoundId === 'string' ? profileOrSoundId : profileOrSoundId.soundId;
+    const vol = typeof profileOrSoundId === 'object' && profileOrSoundId.volume !== undefined ? profileOrSoundId.volume / 100 : 1.0;
+    this.audio.playSound(soundId, vol);
+  }
+
+  onIncidentVolumeChange(profile: IncidentSoundProfile, event: any): void {
+    const val = typeof event?.detail?.value === 'number' ? event.detail.value : profile.volume;
+    profile.volume = val;
+    this.audio.setIncidentVolume(profile.key, val / 100);
+  }
+
+  resetIncidentVolume(profile: IncidentSoundProfile, event?: Event): void {
+    if (event) event.stopPropagation();
+    profile.volume = 100;
+    this.audio.setIncidentVolume(profile.key, 1.0);
+    this.ui.showToast(`Reset ${profile.label} volume to 100%.`, 'medium');
+  }
+
+  startRecordingKeybind(item: KeybindDef, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.stopRecordingKeybind();
+    this.recordingKeybindId = item.id;
+
+    this.keyRecordingListener = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (e.key === 'Escape') {
+        this.stopRecordingKeybind();
+        return;
+      }
+
+      if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) {
+        return;
+      }
+
+      const combo = KeyboardShortcutsService.formatKeyEvent(e);
+      if (combo) {
+        const res = this.shortcuts.setKeybind(item.id, combo);
+        if (res.success) {
+          this.refreshKeybindList();
+          this.ui.showToast(`Updated shortcut for ${item.label} to "${combo}".`, 'success');
+        } else {
+          this.ui.showToast(`Conflict: "${combo}" is already assigned to ${res.conflictWith?.label || 'another action'}.`, 'warning');
+        }
+        this.stopRecordingKeybind();
+      }
+    };
+
+    window.addEventListener('keydown', this.keyRecordingListener, { capture: true });
+  }
+
+  stopRecordingKeybind(): void {
+    if (this.keyRecordingListener) {
+      window.removeEventListener('keydown', this.keyRecordingListener, { capture: true });
+      this.keyRecordingListener = null;
+    }
+    this.recordingKeybindId = null;
+  }
+
+  resetIndividualKeybind(item: KeybindDef, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.shortcuts.resetIndividualKeybind(item.id);
+    this.refreshKeybindList();
+    this.ui.showToast(`Reset ${item.label} to default shortcut.`, 'medium');
   }
 
   setSubPage(page: SettingsSubPage): void {
@@ -195,6 +263,7 @@ export class SettingsPanel implements OnInit {
     // Hydrate audio sound profiles
     this.incidentSoundProfiles.forEach(p => {
       p.soundId = this.audio.getIncidentSound(p.key);
+      p.volume = Math.round(this.audio.getIncidentVolume(p.key) * 100);
     });
 
     this.refreshKeybindList();
@@ -240,6 +309,10 @@ export class SettingsPanel implements OnInit {
     this.mapDefaultStyle = style;
     this.settings.set('map_default_style', style);
     this.ui.showToast(`Default map layer set to ${style === 'street' ? 'Street' : 'Satellite'}.`, 'medium');
+  }
+
+  ngOnDestroy(): void {
+    this.stopRecordingKeybind();
   }
 
   logout(): void {

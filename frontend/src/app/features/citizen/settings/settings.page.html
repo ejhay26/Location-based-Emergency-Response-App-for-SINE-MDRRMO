@@ -173,8 +173,11 @@
         <div class="citizen-map-card" [class.is-selected]="mapDefaultStyle === 'street'" (click)="onMapStyleChange('street')">
           <div class="map-thumb-box is-street">
             <div class="thumb-canvas street-canvas">
-              <div class="mini-road arterial"></div>
-              <div class="mini-road secondary"></div>
+              <div class="map-tile-grid street-grid"></div>
+              <div class="map-carto-overlay">
+                <span class="carto-label poblacion">Poblacion</span>
+                <span class="carto-route-tag">Maharlika Hwy</span>
+              </div>
               <div class="mini-pin"><app-icon name="map-pin" [size]="16" color="#eb445a"></app-icon></div>
             </div>
             <div *ngIf="mapDefaultStyle === 'street'" class="thumb-selected-badge">
@@ -192,7 +195,10 @@
         <div class="citizen-map-card" [class.is-selected]="mapDefaultStyle === 'satellite'" (click)="onMapStyleChange('satellite')">
           <div class="map-thumb-box is-satellite">
             <div class="thumb-canvas satellite-canvas">
-              <div class="mini-river"></div>
+              <div class="map-tile-grid satellite-grid"></div>
+              <div class="map-carto-overlay sat-overlay">
+                <span class="carto-label river-label">Pampanga River</span>
+              </div>
               <div class="mini-pin"><app-icon name="map-pin" [size]="16" color="#eb445a"></app-icon></div>
             </div>
             <div *ngIf="mapDefaultStyle === 'satellite'" class="thumb-selected-badge">

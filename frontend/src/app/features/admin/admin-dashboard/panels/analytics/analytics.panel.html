@@ -51,6 +51,16 @@
         <app-icon [name]="trendChartType === 'bar' ? 'chart-pie' : 'sliders'" [size]="13" color="var(--ion-color-danger)"></app-icon>
         <span class="btn-text">{{ trendChartType === 'bar' ? 'Line View' : 'Bar View' }}</span>
       </button>
+
+      <!-- Export PDF Button -->
+      <button
+        type="button"
+        class="mac-popover-btn export-pdf-btn"
+        (click)="openExportModal()"
+        appTooltip="Export executive analytics summary and KPI report to PDF">
+        <app-icon name="file-pdf" [size]="13" color="#ffffff"></app-icon>
+        <span class="btn-text">Export PDF</span>
+      </button>
     </div>
 
   </div>
@@ -153,4 +163,117 @@
       <ion-badge [color]="req.status === 'Resolved' ? 'success' : (req.status === 'Pending' ? 'warning' : 'medium')" style="font-weight: 800; font-size: 11px; padding: 5px 8px; border-radius: 6px;">{{ req.status }}</ion-badge>
     </div>
   </div>
+
+  <!-- EXPORT ANALYTICS PDF MODAL -->
+  <div *ngIf="showExportModal" class="c-overlay" (click)="closeExportModal()">
+    <div class="c-overlay-bg"></div>
+    <div class="c-panel" (click)="$event.stopPropagation()" style="max-width: 640px; width: 92%; border-radius: 20px; overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;">
+      
+      <!-- Modal Header -->
+      <div style="padding: 18px 24px; border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(235,68,90,0.12); display: flex; align-items: center; justify-content: center;">
+            <app-icon name="file-pdf" [size]="20" color="var(--ion-color-danger)"></app-icon>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-weight: 800; font-size: 16.5px; color: var(--ion-text-color);">Export Analytics Situational Report</h3>
+            <p style="margin: 2px 0 0; font-size: 12px; color: var(--ion-color-medium);">Executive KPI Summary • SINE MDRRMO</p>
+          </div>
+        </div>
+
+        <button type="button" (click)="closeExportModal()" style="border: none; background: transparent; cursor: pointer; color: var(--ion-color-medium); padding: 6px; border-radius: 8px;">
+          <app-icon name="close" [size]="18"></app-icon>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding: 20px 24px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px;">
+        
+        <!-- Filter Summary Box -->
+        <div style="background: var(--ion-color-step-100, #f8f9fa); border-radius: 12px; padding: 14px 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06));">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+            <div>
+              <span style="font-size: 10px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Active Scope</span>
+              <p style="margin: 3px 0 0; font-size: 13px; font-weight: 800; color: var(--ion-color-danger);">{{ analyticsTab === 'emergency' ? 'Emergency Dispatch' : 'Public Hazards' }}</p>
+            </div>
+            <div>
+              <span style="font-size: 10px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Date Filter</span>
+              <p style="margin: 3px 0 0; font-size: 13px; font-weight: 700; color: var(--ion-text-color);">{{ analyticsDateFilter ? 'Custom Range' : (chartRange === 1 ? 'Today' : chartRange + ' Days') }}</p>
+            </div>
+            <div>
+              <span style="font-size: 10px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">Dataset Size</span>
+              <p style="margin: 3px 0 0; font-size: 13px; font-weight: 700; color: var(--ion-text-color);">{{ filteredAnalyticsRecords.length }} Records</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editable Form Inputs -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <label style="display: block; font-size: 11.5px; font-weight: 700; color: var(--ion-text-color); margin-bottom: 5px;">Report Document Title</label>
+            <input type="text" [(ngModel)]="exportReportTitle" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.15)); background: var(--ion-color-step-50, #fff); color: var(--ion-text-color); font-size: 13px; font-weight: 600;" placeholder="MDRRMO San Isidro — Executive Analytics & Operations Intelligence Report" />
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="display: block; font-size: 11.5px; font-weight: 700; color: var(--ion-text-color); margin-bottom: 5px;">Prepared By (Signatory)</label>
+              <input type="text" [(ngModel)]="exportPreparedBy" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.15)); background: var(--ion-color-step-50, #fff); color: var(--ion-text-color); font-size: 13px; font-weight: 600;" placeholder="Officer Name" />
+            </div>
+            <div>
+              <label style="display: block; font-size: 11.5px; font-weight: 700; color: var(--ion-text-color); margin-bottom: 5px;">Signatory Designation</label>
+              <input type="text" [(ngModel)]="exportDesignation" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.15)); background: var(--ion-color-step-50, #fff); color: var(--ion-text-color); font-size: 13px; font-weight: 600;" placeholder="MDRRMO Operations & Statistics Lead" />
+            </div>
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 11.5px; font-weight: 700; color: var(--ion-text-color); margin-bottom: 5px;">Situational Insights &amp; Operational Notes</label>
+            <textarea rows="2" [(ngModel)]="exportRemarks" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.15)); background: var(--ion-color-step-50, #fff); color: var(--ion-text-color); font-size: 12.5px; resize: vertical;" placeholder="Certified executive operations and incident statistics summary for municipal emergency preparedness and resource allocation."></textarea>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="margin: 0 0 8px 0; font-size: 11px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.8px;">
+            Dataset Breakdown Preview
+          </h4>
+
+          <div style="border: 1px solid var(--ion-color-step-150, #eee); border-radius: 10px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+              <thead>
+                <tr style="background: var(--ion-color-step-100, #f1f3f5); text-align: left;">
+                  <th style="padding: 8px 10px; font-size: 11px; font-weight: 800;">Category / Type</th>
+                  <th style="padding: 8px 10px; font-size: 11px; font-weight: 800; text-align: right;">Total Logged</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of exportPreviewList | slice:0:5" style="border-top: 1px solid var(--ion-color-step-150, #eee);">
+                  <td style="padding: 8px 10px; font-weight: 700;">{{ item.incident_name || item.hazard_type || 'Unspecified' }}</td>
+                  <td style="padding: 8px 10px; text-align: right; font-weight: 800; color: var(--ion-color-danger);">{{ item.count }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div style="padding: 14px 24px; border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); display: flex; justify-content: flex-end; gap: 10px; background: var(--ion-color-step-50, #fafafa); flex-shrink: 0;">
+        <button
+          type="button"
+          (click)="closeExportModal()"
+          style="padding: 9px 18px; border-radius: 10px; border: 1px solid var(--ion-color-step-200, #ccc); background: transparent; color: var(--ion-text-color); font-weight: 700; cursor: pointer; font-size: 13px;">
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="printPdfReport()"
+          style="padding: 9px 20px; border-radius: 10px; border: none; background: var(--ion-color-danger); color: white; font-weight: 800; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(235,68,90,0.35);">
+          <app-icon name="file-pdf" [size]="16" color="#ffffff"></app-icon>
+          <span>Print / Save as PDF</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </div>

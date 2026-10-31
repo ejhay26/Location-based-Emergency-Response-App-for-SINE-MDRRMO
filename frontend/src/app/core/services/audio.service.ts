@@ -121,6 +121,30 @@ export class AudioService {
     } catch {}
   }
 
+  private incidentVolumeMap: Record<string, number> = {};
+
+  getIncidentVolume(type: string): number {
+    const norm = (type || 'default').toLowerCase().trim();
+    if (this.incidentVolumeMap[norm] !== undefined) {
+      return this.incidentVolumeMap[norm];
+    }
+    try {
+      const stored = localStorage.getItem('sine_incident_volumes');
+      if (stored) {
+        this.incidentVolumeMap = JSON.parse(stored);
+      }
+    } catch {}
+    return typeof this.incidentVolumeMap[norm] === 'number' ? this.incidentVolumeMap[norm] : 1.0;
+  }
+
+  setIncidentVolume(type: string, volume: number): void {
+    const norm = (type || 'default').toLowerCase().trim();
+    this.incidentVolumeMap[norm] = Math.max(0, Math.min(1, volume));
+    try {
+      localStorage.setItem('sine_incident_volumes', JSON.stringify(this.incidentVolumeMap));
+    } catch {}
+  }
+
   getAllIncidentSounds(): Record<string, string> {
     return { ...this.incidentSoundMap };
   }
@@ -166,7 +190,8 @@ export class AudioService {
     if (this.isMutedState || this.volumeLevel <= 0) return;
     const category = this.resolveCategory(incidentType);
     const soundId = this.getIncidentSound(category);
-    this.playSound(soundId);
+    const indVol = this.getIncidentVolume(category);
+    this.playSound(soundId, indVol);
   }
 
   /**

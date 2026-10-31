@@ -571,55 +571,74 @@
     width: 100%;
     height: 100%;
     position: relative;
+    overflow: hidden;
 
-    &.street-theme {
-      .road {
-        position: absolute;
-        background: #ffffff;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      }
-      .arterial-road {
-        top: 45%;
-        left: -10%;
-        width: 120%;
-        height: 12px;
-        background: #fcd0a1;
-        border: 1px solid #e09855;
-        transform: rotate(-12deg);
-      }
-      .secondary-road.r1 {
-        left: 40%;
-        top: -10%;
-        width: 8px;
-        height: 120%;
-        transform: rotate(25deg);
-      }
-      .secondary-road.r2 {
-        left: 65%;
-        top: -10%;
-        width: 6px;
-        height: 120%;
-        transform: rotate(-35deg);
-      }
+    .map-tile-grid {
+      position: absolute;
+      inset: 0;
     }
 
-    &.satellite-theme {
-      .terrain-overlay {
+    .street-grid {
+      background-color: #f4f1ea;
+      background-image: 
+        radial-gradient(ellipse at 80% 30%, #e2ece9 0%, transparent 45%),
+        radial-gradient(ellipse at 20% 80%, #d8ebd4 0%, transparent 50%),
+        linear-gradient(112deg, transparent 40%, rgba(254, 215, 170, 0.85) 40%, rgba(254, 215, 170, 0.85) 44%, transparent 44%),
+        linear-gradient(22deg, transparent 48%, #ffffff 48%, #ffffff 52%, transparent 52%),
+        linear-gradient(65deg, transparent 28%, #ffffff 28%, #ffffff 30.5%, transparent 30.5%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+    }
+
+    .satellite-grid {
+      background-color: #112017;
+      background-image: 
+        radial-gradient(circle at 75% 25%, rgba(35, 68, 48, 0.9) 0%, transparent 60%),
+        radial-gradient(circle at 25% 75%, rgba(22, 45, 30, 0.95) 0%, transparent 70%),
+        linear-gradient(125deg, transparent 38%, rgba(18, 38, 52, 0.85) 38%, rgba(18, 38, 52, 0.85) 43%, transparent 43%),
+        repeating-linear-gradient(45deg, rgba(46, 85, 58, 0.15) 0px, rgba(46, 85, 58, 0.15) 8px, rgba(20, 42, 28, 0.2) 8px, rgba(20, 42, 28, 0.2) 20px),
+        linear-gradient(170deg, #15271d 0%, #0c1811 100%);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 30px 30px, 100% 100%;
+    }
+
+    .map-carto-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+
+      .carto-label {
         position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at 70% 30%, #2f4538 0%, #17241c 100%);
+        font-size: 9.5px;
+        font-weight: 700;
+        color: #374151;
+        background: rgba(255, 255, 255, 0.88);
+        padding: 1px 6px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        letter-spacing: 0.2px;
+
+        &.poblacion { top: 20%; left: 36%; color: #111827; font-weight: 800; font-size: 10px; }
+        &.malapit { top: 32%; right: 14%; }
+        &.alua { bottom: 25%; left: 14%; }
+        &.river-label { top: 22%; left: 12%; color: #93c5fd; background: rgba(15, 23, 42, 0.75); }
+        &.sat-hub { bottom: 22%; right: 12%; color: #86efac; background: rgba(15, 23, 42, 0.75); }
       }
-      .river-path {
+
+      .carto-route-tag {
         position: absolute;
-        top: 20%;
-        left: -10%;
-        width: 120%;
-        height: 22px;
-        background: #1d3a4b;
-        border-radius: 50%;
-        transform: rotate(-18deg);
-        filter: blur(1px);
-        opacity: 0.9;
+        top: 62%;
+        left: 26%;
+        font-size: 8.5px;
+        font-weight: 800;
+        color: #9a3412;
+        background: #fed7aa;
+        border: 1px solid #ea580c;
+        padding: 1px 6px;
+        border-radius: 9999px;
+        transform: rotate(-10deg);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.15);
       }
     }
   }

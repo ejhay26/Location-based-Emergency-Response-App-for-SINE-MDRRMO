@@ -24,13 +24,6 @@
   style="--width: 360px; --min-width: 330px; --max-width: 95vw; --background: var(--ion-card-background, #1c1c1e); --border-radius: 16px; --box-shadow: 0 16px 40px rgba(0,0,0,0.45);">
   <ng-template>
     <div style="padding: 14px 12px 12px; width: 100%; box-sizing: border-box; background: var(--ion-card-background, #ffffff); border: var(--card-border, 1px solid rgba(255,255,255,0.15)); border-radius: 16px;">
-      <div class="quick-presets-bar" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px;">
-        <button type="button" class="preset-pill" (click)="applyQuickPreset('today')">Today</button>
-        <button type="button" class="preset-pill" (click)="applyQuickPreset('yesterday')">Yesterday</button>
-        <button type="button" class="preset-pill" (click)="applyQuickPreset('7days')">Last 7 Days</button>
-        <button type="button" class="preset-pill" (click)="applyQuickPreset('this_month')">This Month</button>
-        <button type="button" class="preset-pill" (click)="applyQuickPreset('30days')">Last 30 Days</button>
-      </div>
 
       <ion-segment mode="ios" [value]="pendingMode" (ionChange)="onModeChange($event)" style="margin-bottom:12px;">
         <ion-segment-button value="single"><ion-label style="font-size:11px;font-weight:700;">One Day</ion-label></ion-segment-button>

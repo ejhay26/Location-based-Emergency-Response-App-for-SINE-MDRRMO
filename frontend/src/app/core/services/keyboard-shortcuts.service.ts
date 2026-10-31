@@ -24,21 +24,21 @@ export interface KeybindDef {
 }
 
 export const DEFAULT_KEYBINDS: Record<string, string> = {
-  'nav-map': '1',
-  'nav-archive': '2',
-  'nav-analytics': '3',
-  'nav-broadcast': '4',
-  'nav-feedback': '5',
-  'nav-verify': '6',
-  'nav-dispatchers': '7',
-  'nav-citizens': '8',
-  'nav-settings': ',',
+  'nav-map': 'Ctrl + 1',
+  'nav-archive': 'Ctrl + 2',
+  'nav-analytics': 'Ctrl + 3',
+  'nav-broadcast': 'Ctrl + 4',
+  'nav-feedback': 'Ctrl + 5',
+  'nav-verify': 'Ctrl + 6',
+  'nav-dispatchers': 'Ctrl + 7',
+  'nav-citizens': 'Ctrl + 8',
+  'nav-settings': 'Ctrl + ,',
   'nav-help': 'F1',
-  'action-search': 'F',
-  'action-sidebar': 'B',
-  'action-darkmode': 'D',
-  'action-announcement': 'N',
-  'action-refresh': 'R',
+  'action-search': 'Ctrl + F',
+  'action-sidebar': 'Ctrl + B',
+  'action-darkmode': 'Ctrl + D',
+  'action-announcement': 'Ctrl + N',
+  'action-refresh': 'F5',
 };
 
 const KEYBIND_STORAGE_KEY = 'sine_custom_keybinds';
@@ -90,12 +90,49 @@ export class KeyboardShortcutsService {
     return this.keybindMap[id] || DEFAULT_KEYBINDS[id] || '';
   }
 
-  setKeybind(id: string, key: string): void {
-    if (!id || !key) return;
-    this.keybindMap[id] = key.toUpperCase();
+  static formatKeyEvent(e: KeyboardEvent): string {
+    const parts: string[] = [];
+    if (e.ctrlKey) parts.push('Ctrl');
+    if (e.metaKey) parts.push('Cmd');
+    if (e.altKey) parts.push('Alt');
+    if (e.shiftKey) parts.push('Shift');
+
+    let key = e.key;
+    if (['Control', 'Meta', 'Alt', 'Shift'].includes(key)) {
+      return '';
+    }
+    if (key === ' ') key = 'Space';
+    else if (key.length === 1) key = key.toUpperCase();
+
+    parts.push(key);
+    return parts.join(' + ');
+  }
+
+  setKeybind(id: string, combo: string): { success: boolean; conflictWith?: { id: string; label: string } } {
+    if (!id || !combo) return { success: false };
+    const norm = combo.trim();
+
+    // Check for conflict with other actions
+    const list = this.getKeybindList();
+    const conflict = list.find(item => item.id !== id && item.currentKey.toLowerCase() === norm.toLowerCase());
+    if (conflict) {
+      return { success: false, conflictWith: { id: conflict.id, label: conflict.label } };
+    }
+
+    this.keybindMap[id] = norm;
     try {
       localStorage.setItem(KEYBIND_STORAGE_KEY, JSON.stringify(this.keybindMap));
     } catch {}
+    return { success: true };
+  }
+
+  resetIndividualKeybind(id: string): string {
+    const def = DEFAULT_KEYBINDS[id] || '';
+    this.keybindMap[id] = def;
+    try {
+      localStorage.setItem(KEYBIND_STORAGE_KEY, JSON.stringify(this.keybindMap));
+    } catch {}
+    return def;
   }
 
   resetKeybinds(): void {
@@ -229,12 +266,26 @@ export class KeyboardShortcutsService {
 
   private handleGlobalKeyDown(e: KeyboardEvent): void {
     const isMac = this.isMac;
-    const modifier = isMac ? e.metaKey : e.ctrlKey;
     const isStaff = this.isAdminOrDispatcher();
+    const combo = KeyboardShortcutsService.formatKeyEvent(e);
+    if (!combo) return;
 
-    // 1. Universal Command Search: modifier + Key or modifier + K
-    const searchKey = this.getKeybind('action-search').toUpperCase();
-    if (modifier && (e.key.toUpperCase() === searchKey || e.key.toUpperCase() === 'K')) {
+    // Check if user is typing in a form field
+    const activeEl = document.activeElement;
+    const tagName = activeEl ? activeEl.tagName.toLowerCase() : '';
+    const isInput = tagName === 'input' || tagName === 'textarea' || tagName === 'ion-textarea' || tagName === 'select' || activeEl?.getAttribute('contenteditable') === 'true';
+
+    // Single-character shortcuts without modifiers should NOT fire while typing in an input
+    const hasModifier = e.ctrlKey || e.metaKey || e.altKey;
+    if (isInput && !hasModifier && !e.key.startsWith('F') && e.key !== 'Escape') {
+      return;
+    }
+
+    const comboLower = combo.toLowerCase();
+
+    // 1. Universal Command Search: matches action-search, or Ctrl/Cmd + K
+    const searchCombo = this.getKeybind('action-search').toLowerCase();
+    if (comboLower === searchCombo || comboLower === 'ctrl + k' || comboLower === 'cmd + k') {
       e.preventDefault();
       e.stopPropagation();
       if (isStaff) this.toggleQuickSearch();
@@ -254,6 +305,7 @@ export class KeyboardShortcutsService {
     }
 
     // 3. Zoom Controls
+    const modifier = isMac ? e.metaKey : e.ctrlKey;
     if (modifier && (['+', '=', 'NumpadAdd'].includes(e.key) || e.code === 'NumpadAdd')) {
       e.preventDefault();
       e.stopPropagation();
@@ -287,9 +339,8 @@ export class KeyboardShortcutsService {
       return;
     }
 
-    // 5. Help Key (F1 or custom)
-    const helpKey = this.getKeybind('nav-help').toUpperCase();
-    if (e.key.toUpperCase() === helpKey || (helpKey === 'F1' && e.key === 'F1') || (isMac && e.metaKey && (e.key === '?' || e.key === '/'))) {
+    // 5. Help Key
+    if (comboLower === this.getKeybind('nav-help').toLowerCase() || e.key === 'F1') {
       e.preventDefault();
       e.stopPropagation();
       if (isStaff) this.navigateToPanel('help');
@@ -297,8 +348,7 @@ export class KeyboardShortcutsService {
     }
 
     // 6. Settings Panel
-    const settingsKey = this.getKeybind('nav-settings').toUpperCase();
-    if (modifier && e.key.toUpperCase() === settingsKey) {
+    if (comboLower === this.getKeybind('nav-settings').toLowerCase()) {
       e.preventDefault();
       e.stopPropagation();
       if (isStaff) this.navigateToPanel('settings');
@@ -306,8 +356,7 @@ export class KeyboardShortcutsService {
     }
 
     // 7. Refresh Data
-    const refreshKey = this.getKeybind('action-refresh').toUpperCase();
-    if (e.key === 'F5' || (modifier && e.key.toUpperCase() === refreshKey)) {
+    if (comboLower === this.getKeybind('action-refresh').toLowerCase() || e.key === 'F5') {
       e.preventDefault();
       e.stopPropagation();
       if (isStaff) this.dispatchAction('refresh-data');
@@ -318,8 +367,7 @@ export class KeyboardShortcutsService {
     if (!isStaff) return;
 
     // 8. Toggle Sidebar
-    const sidebarKey = this.getKeybind('action-sidebar').toUpperCase();
-    if (modifier && e.key.toUpperCase() === sidebarKey) {
+    if (comboLower === this.getKeybind('action-sidebar').toLowerCase()) {
       e.preventDefault();
       e.stopPropagation();
       this.action$.next({ type: 'toggle-sidebar' });
@@ -327,8 +375,7 @@ export class KeyboardShortcutsService {
     }
 
     // 9. Toggle Dark Mode
-    const darkKey = this.getKeybind('action-darkmode').toUpperCase();
-    if (modifier && e.key.toUpperCase() === darkKey) {
+    if (comboLower === this.getKeybind('action-darkmode').toLowerCase()) {
       e.preventDefault();
       e.stopPropagation();
       this.action$.next({ type: 'toggle-dark-mode' });
@@ -336,59 +383,54 @@ export class KeyboardShortcutsService {
     }
 
     // 10. New Announcement
-    const annKey = this.getKeybind('action-announcement').toUpperCase();
-    if (modifier && e.key.toUpperCase() === annKey) {
+    if (comboLower === this.getKeybind('action-announcement').toLowerCase()) {
       e.preventDefault();
       e.stopPropagation();
       this.action$.next({ type: 'new-announcement' });
       return;
     }
 
-    // 11. Custom or Standard Number Navigation Keys (Ctrl/Cmd + 1-8)
-    if (modifier && !e.shiftKey && !e.altKey) {
-      const isAdmin = this.isAdmin();
-      const currentUpper = e.key.toUpperCase();
-
-      if (currentUpper === this.getKeybind('nav-map').toUpperCase()) {
-        e.preventDefault();
-        this.navigateToPanel('active');
-        return;
-      }
-      if (currentUpper === this.getKeybind('nav-archive').toUpperCase()) {
-        e.preventDefault();
-        this.navigateToPanel('archive');
-        return;
-      }
-      if (currentUpper === this.getKeybind('nav-analytics').toUpperCase()) {
-        e.preventDefault();
-        this.navigateToPanel('analytics');
-        return;
-      }
-      if (currentUpper === this.getKeybind('nav-broadcast').toUpperCase()) {
-        e.preventDefault();
-        this.navigateToPanel('broadcast');
-        return;
-      }
-      if (isAdmin && currentUpper === this.getKeybind('nav-feedback').toUpperCase()) {
-        e.preventDefault();
-        this.navigateToPanel('feedback');
-        return;
-      }
-      if (isAdmin && currentUpper === this.getKeybind('nav-verify').toUpperCase()) {
-        e.preventDefault();
-        this.navigateToPanel('verifications');
-        return;
-      }
-      if (isAdmin && currentUpper === this.getKeybind('nav-dispatchers').toUpperCase()) {
-        e.preventDefault();
-        this.navigateToPanel('dispatchers');
-        return;
-      }
-      if (isAdmin && currentUpper === this.getKeybind('nav-citizens').toUpperCase()) {
-        e.preventDefault();
-        this.navigateToPanel('citizens');
-        return;
-      }
+    // 11. Navigation Shortcuts
+    const isAdmin = this.isAdmin();
+    if (comboLower === this.getKeybind('nav-map').toLowerCase()) {
+      e.preventDefault();
+      this.navigateToPanel('active');
+      return;
+    }
+    if (comboLower === this.getKeybind('nav-archive').toLowerCase()) {
+      e.preventDefault();
+      this.navigateToPanel('archive');
+      return;
+    }
+    if (comboLower === this.getKeybind('nav-analytics').toLowerCase()) {
+      e.preventDefault();
+      this.navigateToPanel('analytics');
+      return;
+    }
+    if (comboLower === this.getKeybind('nav-broadcast').toLowerCase()) {
+      e.preventDefault();
+      this.navigateToPanel('broadcast');
+      return;
+    }
+    if (isAdmin && comboLower === this.getKeybind('nav-feedback').toLowerCase()) {
+      e.preventDefault();
+      this.navigateToPanel('feedback');
+      return;
+    }
+    if (isAdmin && comboLower === this.getKeybind('nav-verify').toLowerCase()) {
+      e.preventDefault();
+      this.navigateToPanel('verifications');
+      return;
+    }
+    if (isAdmin && comboLower === this.getKeybind('nav-dispatchers').toLowerCase()) {
+      e.preventDefault();
+      this.navigateToPanel('dispatchers');
+      return;
+    }
+    if (isAdmin && comboLower === this.getKeybind('nav-citizens').toLowerCase()) {
+      e.preventDefault();
+      this.navigateToPanel('citizens');
+      return;
     }
   }
 }

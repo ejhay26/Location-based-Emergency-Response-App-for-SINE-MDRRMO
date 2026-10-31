@@ -160,10 +160,9 @@
     flex-direction: column;
     gap: 3px;
     margin-top: 6px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    background: var(--ion-color-step-100, rgba(0, 0, 0, 0.04));
-    border: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.06));
+    padding: 2px 0;
+    background: transparent;
+    border: none;
     font-size: 11.5px;
     color: var(--ion-color-medium);
 

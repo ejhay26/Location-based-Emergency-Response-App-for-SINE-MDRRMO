@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
   IonButton,
@@ -20,6 +21,7 @@ import { CustomTooltipDirective } from '../../../../../shared/directives/custom-
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
     IonButton,
     IonList, IonItem, IonLabel, IonPopover, IonBadge,
@@ -426,4 +428,204 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
       }
     });
   }
+
+  
+  get exportPreviewList(): any[] {
+    return (this.analyticsTab === 'emergency' ? this.analyticsData.type_stats : this.analyticsData.hazard_stats) || [];
+  }
+
+  showExportModal = false;
+  exportReportTitle = 'MDRRMO San Isidro — Executive Analytics & Operations Intelligence Report';
+  exportOfficeName = 'Municipal Disaster Risk Reduction and Management Office (SINE - San Isidro, Nueva Ecija)';
+  exportPreparedBy = 'MDRRMO Data Officer';
+  exportDesignation = 'MDRRMO Operations & Statistics Lead';
+  exportRemarks = 'Certified executive operations and incident statistics summary for municipal emergency preparedness and resource allocation.';
+
+  openExportModal(): void {
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    if (user) {
+      const name = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+      if (name) this.exportPreparedBy = name;
+    }
+    const role = localStorage.getItem('role') || 'Admin';
+    this.exportDesignation = (role.toLowerCase() === 'admin') ? 'MDRRMO Administrator' : 'Lead Operations Dispatcher';
+    this.showExportModal = true;
+  }
+
+  closeExportModal(): void {
+    this.showExportModal = false;
+  }
+
+  printPdfReport(): void {
+    const adminName = this.exportPreparedBy || 'MDRRMO Officer';
+    const role = this.exportDesignation || 'MDRRMO Operations Lead';
+    const nowStr = new Date().toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const isEmergency = this.analyticsTab === 'emergency';
+    const typeList = isEmergency ? (this.analyticsData.type_stats || []) : (this.analyticsData.hazard_stats || []);
+    const brgyList = isEmergency ? (this.analyticsData.barangay_stats || []) : (this.analyticsData.hazard_barangay_stats || []);
+    const records = this.filteredAnalyticsRecords || [];
+
+    const dateScopeStr = this.analyticsDateFilter ? formatDateFilterLabel(this.analyticsDateFilter) : (this.chartRange === 1 ? 'Today (24 Hours)' : `Last ${this.chartRange} Days`);
+
+    const typeRowsHtml = typeList.map((t: any) => `
+      <tr>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb; font-weight: 700;">${t.incident_name || t.hazard_type || 'Unspecified'}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 800; color: #c62828;">${t.count}</td>
+      </tr>
+    `).join('');
+
+    const brgyRowsHtml = brgyList.map((b: any) => `
+      <tr>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${b.barangay_name || 'San Isidro (General Area)'}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 800; color: #111827;">${b.count}</td>
+      </tr>
+    `).join('');
+
+    const topBarangay = brgyList.length > 0 ? (brgyList[0].barangay_name || 'San Isidro') : 'None Recorded';
+
+    const printHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${this.exportReportTitle} - ${new Date().toISOString().slice(0, 10)}</title>
+        <style>
+          @page { size: landscape; margin: 12mm 15mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1f2937; margin: 0; padding: 15px; font-size: 11.5px; }
+          .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #c62828; padding-bottom: 12px; margin-bottom: 14px; }
+          .header-left { display: flex; align-items: center; gap: 14px; }
+          .logo-img { width: 48px; height: 48px; border-radius: 8px; object-fit: contain; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+          .title-box h1 { margin: 0; font-size: 16px; text-transform: uppercase; color: #c62828; letter-spacing: 0.5px; font-weight: 800; }
+          .title-box p { margin: 3px 0 0; font-size: 11px; color: #4b5563; font-weight: 600; }
+          .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+          .kpi-card { background: #f9fafb; padding: 12px 14px; border-radius: 8px; border: 1px solid #e5e7eb; }
+          .kpi-label { color: #6b7280; text-transform: uppercase; font-size: 9px; font-weight: 800; margin-bottom: 3px; }
+          .kpi-val { font-size: 16px; font-weight: 800; color: #c62828; }
+          .two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
+          table { width: 100%; border-collapse: collapse; }
+          th { background: #f3f4f6; color: #374151; font-weight: 800; font-size: 10.5px; text-transform: uppercase; padding: 8px 10px; border-bottom: 2px solid #d1d5db; text-align: left; }
+          tr:nth-child(even) { background-color: #fafbfc; }
+          .remarks-banner { background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; padding: 8px 12px; border-radius: 6px; font-size: 11px; color: #92400e; margin-bottom: 12px; }
+          .footer { margin-top: 26px; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 14px; border-top: 1px solid #e5e7eb; font-size: 10px; color: #6b7280; }
+          .sig-box { text-align: center; border-top: 1.5px solid #111827; padding-top: 4px; width: 200px; }
+          @media print {
+            body { padding: 0; }
+            button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="header-left">
+            <img src="/assets/icon/logo.jpg" alt="MDRRMO Logo" class="logo-img" onerror="this.style.display='none';" />
+            <div class="title-box">
+              <h1>${this.exportReportTitle}</h1>
+              <p>${this.exportOfficeName}</p>
+            </div>
+          </div>
+          <div style="text-align: right; font-size: 11px; color: #4b5563;">
+            <div><b>Generated:</b> ${nowStr}</div>
+            <div><b>Reporting Lead:</b> ${adminName}</div>
+          </div>
+        </div>
+
+        ${this.exportRemarks ? `<div class="remarks-banner"><b>Operational Intelligence Remarks:</b> ${this.exportRemarks}</div>` : ''}
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Scope Focus</div>
+            <div class="kpi-val" style="font-size: 13px; color: #111827;">${isEmergency ? 'Emergency Incidents' : 'Public Hazard Reports'}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Reporting Period</div>
+            <div class="kpi-val" style="font-size: 13px; color: #111827;">${dateScopeStr}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total Logged Records</div>
+            <div class="kpi-val">${records.length} Records</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Highest Concentration</div>
+            <div class="kpi-val" style="font-size: 13px; color: #111827;">${topBarangay}</div>
+          </div>
+        </div>
+
+        <div class="two-col-grid">
+          <div>
+            <h3 style="margin: 0 0 6px 0; font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #374151;">Incident Distribution by Category</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Category / Classification</th>
+                  <th style="text-align: right;">Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${typeRowsHtml || '<tr><td colspan="2" style="padding:10px; text-align:center; color:#9ca3af;">No recorded types</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <h3 style="margin: 0 0 6px 0; font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #374151;">Geographic Distribution by Barangay</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Barangay Jurisdiction</th>
+                  <th style="text-align: right;">Incidents</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${brgyRowsHtml || '<tr><td colspan="2" style="padding:10px; text-align:center; color:#9ca3af;">No recorded barangays</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>
+            <div><b>MDRRMO Emergency Operations Center</b> • Statistical Intelligence Assessment</div>
+            <div style="margin-top: 2px;">Municipal Hall Compound, San Isidro, Nueva Ecija (SINE)</div>
+          </div>
+          <div style="display: flex; gap: 36px;">
+            <div class="sig-box">
+              <div style="font-weight: 700; color: #111827; font-size: 11px;">${adminName}</div>
+              <div style="color: #4b5563; font-size: 9.5px; text-transform: uppercase;">${role}</div>
+              <div style="color: #9ca3af; font-size: 8.5px; margin-top: 2px;">Prepared By</div>
+            </div>
+            <div class="sig-box">
+              <div style="font-weight: 700; color: #111827; font-size: 11px;">Municipal Disaster Risk Reduction Officer</div>
+              <div style="color: #4b5563; font-size: 9.5px; text-transform: uppercase;">Head of Office / MDRRMC Executive</div>
+              <div style="color: #9ca3af; font-size: 8.5px; margin-top: 2px;">Approved & Certified Correct</div>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
+    } else {
+      console.warn('Popup blocked');
+    }
+    this.closeExportModal();
+  }
+
 }

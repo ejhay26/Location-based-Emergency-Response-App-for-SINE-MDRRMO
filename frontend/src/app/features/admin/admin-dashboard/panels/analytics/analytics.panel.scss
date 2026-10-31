@@ -88,3 +88,17 @@
   height: 210px;
   width: 100%;
 }
+
+.export-pdf-btn {
+  background: var(--ion-color-danger, #eb445a) !important;
+  color: #ffffff !important;
+  border-color: var(--ion-color-danger, #eb445a) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(235, 68, 90, 0.35);
+
+  &:hover {
+    background: #d32f2f !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(235, 68, 90, 0.45);
+  }
+}

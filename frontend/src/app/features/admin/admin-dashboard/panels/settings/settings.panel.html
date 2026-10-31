@@ -278,11 +278,11 @@
           </div>
           <div>
             <p class="sound-profile-name">{{ profile.label }}</p>
-            <p class="sound-profile-current">Active: <strong>{{ getSoundLabel(profile.soundId) }}</strong></p>
+            <p class="sound-profile-current">Tone: <strong>{{ getSoundLabel(profile.soundId) }}</strong></p>
           </div>
         </div>
 
-        <!-- Controls: Sound Select Dropdown + Preview Button -->
+        <!-- Controls: Tone Dropdown + Individual Volume Slider + Reset + Preview Button -->
         <div class="sound-controls-group">
           <select
             class="sound-select-input"
@@ -294,11 +294,34 @@
             </option>
           </select>
 
+          <!-- Individual Volume Control -->
+          <div class="sound-individual-volume" style="display: flex; align-items: center; gap: 6px;">
+            <ion-range
+              [min]="0"
+              [max]="100"
+              [step]="5"
+              [value]="profile.volume"
+              (ionChange)="onIncidentVolumeChange(profile, $event)"
+              color="primary"
+              style="--bar-height: 3px; --knob-size: 14px; width: 85px; padding: 0;">
+            </ion-range>
+            <span class="ind-vol-badge" style="font-size: 11px; font-weight: 800; min-width: 34px; color: var(--ion-color-primary);">{{ profile.volume }}%</span>
+            <button
+              type="button"
+              class="ind-vol-reset-btn"
+              (click)="resetIncidentVolume(profile, $event)"
+              [appTooltip]="'Reset ' + profile.label + ' volume to 100%'"
+              tooltipPlacement="top"
+              style="background: transparent; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.1)); border-radius: 6px; padding: 3px 5px; cursor: pointer; color: var(--ion-color-medium); display: flex; align-items: center;">
+              <app-icon name="rotate-left" [size]="10" color="currentColor"></app-icon>
+            </button>
+          </div>
+
           <button
             type="button"
             class="sound-play-btn"
-            (click)="previewSound(profile.soundId, $event)"
-            [appTooltip]="'Preview Tone'"
+            (click)="previewSound(profile, $event)"
+            [appTooltip]="'Preview Tone at ' + profile.volume + '%'"
             tooltipPlacement="left"
             [attr.aria-label]="'Preview ' + getSoundLabel(profile.soundId)">
             <app-icon name="play" [size]="13" color="currentColor"></app-icon>
@@ -338,15 +361,19 @@
            (click)="onMapStyleChange('street')">
         
         <div class="map-visual-box is-street">
-          <!-- Stylized Street Map Graphics -->
+          <!-- Real OSM Street Cartography Preview -->
           <div class="map-graphic-canvas street-theme">
-            <div class="road arterial-road"></div>
-            <div class="road secondary-road r1"></div>
-            <div class="road secondary-road r2"></div>
+            <div class="map-tile-grid street-grid"></div>
+            <div class="map-carto-overlay">
+              <span class="carto-label poblacion">Poblacion</span>
+              <span class="carto-label malapit">Malapit</span>
+              <span class="carto-label alua">Alua</span>
+              <span class="carto-route-tag">Maharlika Hwy</span>
+            </div>
             <div class="map-poi-pin">
               <app-icon name="map-pin" [size]="20" color="#eb445a"></app-icon>
             </div>
-            <span class="map-poi-badge">San Isidro Core</span>
+            <span class="map-poi-badge">San Isidro Street Cartography</span>
           </div>
 
           <div *ngIf="mapDefaultStyle === 'street'" class="map-selected-badge">
@@ -373,14 +400,17 @@
            (click)="onMapStyleChange('satellite')">
         
         <div class="map-visual-box is-satellite">
-          <!-- Stylized Satellite Map Graphics -->
+          <!-- Real Satellite Imagery Preview -->
           <div class="map-graphic-canvas satellite-theme">
-            <div class="terrain-overlay"></div>
-            <div class="river-path"></div>
+            <div class="map-tile-grid satellite-grid"></div>
+            <div class="map-carto-overlay sat-overlay">
+              <span class="carto-label river-label">Pampanga River</span>
+              <span class="carto-label sat-hub">San Isidro Farmlands</span>
+            </div>
             <div class="map-poi-pin">
               <app-icon name="map-pin" [size]="20" color="#eb445a"></app-icon>
             </div>
-            <span class="map-poi-badge sat-badge">San Isidro Aerial</span>
+            <span class="map-poi-badge sat-badge">San Isidro High-Res Aerial</span>
           </div>
 
           <div *ngIf="mapDefaultStyle === 'satellite'" class="map-selected-badge">
@@ -403,18 +433,7 @@
 
     </div>
 
-    <!-- San Isidro Operational Boundary Info -->
-    <div class="settings-inset-card" style="padding: 16px 20px; display: flex; align-items: center; gap: 14px;">
-      <div class="row-icon-capsule" style="background: rgba(235,68,90,0.1); color: var(--ion-color-danger);">
-        <app-icon name="location-dot" [size]="18" color="currentColor"></app-icon>
-      </div>
-      <div style="flex: 1; min-width: 0;">
-        <p style="margin: 0; font-size: 13.5px; font-weight: 700; color: var(--ion-text-color);">San Isidro Boundary Clamping</p>
-        <p style="margin: 2px 0 0; font-size: 12px; color: var(--ion-color-medium);">
-          Operational geographic center anchored at <strong>15.3014° N, 120.9274° E</strong>. Dispatches outside boundary are clamped with warning alerts.
-        </p>
-      </div>
-    </div>
+
 
   </div>
 
@@ -455,20 +474,37 @@
           <span class="keybind-cat-badge">{{ item.category }}</span>
         </div>
 
-        <div class="keybind-action-col">
-          <div class="key-pill-display">
-            <kbd class="key-kbd">Ctrl</kbd>
-            <span style="font-size: 11px; opacity: 0.6;">+</span>
-            <kbd class="key-kbd active">{{ item.currentKey }}</kbd>
-          </div>
+        <div class="keybind-action-col" style="display: flex; align-items: center; gap: 8px;">
+          <!-- Record Trigger Button / Pill -->
+          <button
+            type="button"
+            class="keybind-record-btn"
+            [class.is-recording]="recordingKeybindId === item.id"
+            (click)="startRecordingKeybind(item, $event)"
+            [appTooltip]="recordingKeybindId === item.id ? 'Press any key combo (Esc to cancel)' : 'Click to record new keybind'"
+            tooltipPlacement="top"
+            style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 9px; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); cursor: pointer; transition: all 0.15s ease;">
+            <ng-container *ngIf="recordingKeybindId === item.id">
+              <span class="recording-pulse-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+              <span class="recording-text" style="font-size: 12px; font-weight: 700; color: #f59e0b;">Press key combo...</span>
+            </ng-container>
+            <ng-container *ngIf="recordingKeybindId !== item.id">
+              <kbd class="key-kbd active" style="font-family: inherit; font-size: 12px; font-weight: 800; color: var(--ion-text-color);">{{ item.currentKey }}</kbd>
+              <span class="record-hint-tag" style="font-size: 9.5px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; background: var(--ion-color-step-150, rgba(0,0,0,0.06)); padding: 1px 5px; border-radius: 4px;">Record</span>
+            </ng-container>
+          </button>
 
-          <select
-            class="key-select-input"
-            [ngModel]="item.currentKey"
-            (ngModelChange)="onKeybindChange(item.id, $event)"
-            [attr.aria-label]="'Change keybind for ' + item.label">
-            <option *ngFor="let k of availableKeys" [value]="k">{{ k }}</option>
-          </select>
+          <!-- Individual Reset Button -->
+          <button
+            type="button"
+            class="ind-keybind-reset-btn"
+            (click)="resetIndividualKeybind(item, $event)"
+            [appTooltip]="'Reset to default (' + item.defaultKey + ')'"
+            tooltipPlacement="left"
+            [attr.aria-label]="'Reset ' + item.label + ' to default'"
+            style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.1)); background: transparent; color: var(--ion-color-medium); cursor: pointer;">
+            <app-icon name="rotate-left" [size]="12" color="currentColor"></app-icon>
+          </button>
         </div>
       </div>
     </div>

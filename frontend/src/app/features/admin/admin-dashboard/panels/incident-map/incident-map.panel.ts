@@ -942,8 +942,35 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   isQueueHidden = false;
 
+  zoomInMap(): void {
+    if (this.map) {
+      this.map.zoomIn();
+    }
+  }
+
+  zoomOutMap(): void {
+    if (this.map) {
+      this.map.zoomOut();
+    }
+  }
+
   toggleQueueHidden(): void {
     this.isQueueHidden = !this.isQueueHidden;
+    const start = performance.now();
+    const duration = 360;
+    const step = (time: number) => {
+      if (this.map) {
+        this.map.invalidateSize({ pan: false });
+      }
+      if (time - start < duration) {
+        requestAnimationFrame(step);
+      } else {
+        if (this.map) {
+          this.map.invalidateSize({ pan: false });
+        }
+      }
+    };
+    requestAnimationFrame(step);
   }
 
   toggleImmersiveMap(): void {
@@ -951,14 +978,25 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     if (!this.isImmersiveMap) {
       this.isQueueHidden = false;
     }
-    setTimeout(() => {
+    // Morphic continuous invalidation loop so Leaflet smoothly scales as flex/width changes
+    const start = performance.now();
+    const duration = 380;
+    const step = (time: number) => {
       if (this.map) {
         this.map.invalidateSize({ pan: false });
       }
-    }, 120);
+      if (time - start < duration) {
+        requestAnimationFrame(step);
+      } else {
+        if (this.map) {
+          this.map.invalidateSize({ pan: false });
+        }
+      }
+    };
+    requestAnimationFrame(step);
   }
 
-  getBarangayDisplay(itemData: any): string {
+    getBarangayDisplay(itemData: any): string {
     if (!itemData) return 'Unassigned';
     if (itemData.barangay_name && itemData.barangay_name !== 'Unresolved' && String(itemData.barangay_name).trim() !== '') {
       return itemData.barangay_name;

@@ -216,12 +216,25 @@ export class LogArchivePanel implements OnInit {
   }
 
   showExportModal = false;
+  exportReportTitle = 'MDRRMO San Isidro — Emergency Log Archive Report';
+  exportOfficeName = 'Municipal Disaster Risk Reduction and Management Office (SINE - San Isidro, Nueva Ecija)';
+  exportPreparedBy = 'MDRRMO Officer';
+  exportDesignation = 'MDRRMO Operations Officer';
+  exportRemarks = 'Certified official dispatch and incident log records of the Municipal Disaster Risk Reduction and Management Office.';
 
   openExportModal(): void {
     if (this.filteredArchivedRequests.length === 0) {
       this.ui.showToast('No records match your current filters to export.', 'warning');
       return;
     }
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    if (user) {
+      const name = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+      if (name) this.exportPreparedBy = name;
+    }
+    const role = localStorage.getItem('role') || 'Admin';
+    this.exportDesignation = (role.toLowerCase() === 'admin') ? 'MDRRMO Administrator' : 'Lead Operations Dispatcher';
     this.showExportModal = true;
   }
 
@@ -230,10 +243,8 @@ export class LogArchivePanel implements OnInit {
   }
 
   printPdfReport(): void {
-    const userStr = localStorage.getItem('user');
-    const user = userStr ? JSON.parse(userStr) : null;
-    const adminName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'MDRRMO Officer';
-    const role = localStorage.getItem('role') || 'Admin';
+    const adminName = this.exportPreparedBy || 'MDRRMO Officer';
+    const role = this.exportDesignation || 'MDRRMO Operations';
     const nowStr = new Date().toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -246,19 +257,19 @@ export class LogArchivePanel implements OnInit {
 
     const rowsHtml = records.map((r, i) => `
       <tr>
-        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 11px;">${i + 1}</td>
-        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-size: 12px;">${r.incident_name || 'Emergency'}</td>
-        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.first_name || ''} ${r.last_name || ''}</td>
-        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.phone || 'N/A'}</td>
-        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.barangay_name || 'Unresolved'}</td>
-        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${new Date(r.request_time).toLocaleString()}</td>
-        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.agency ? (r.agency + (r.unit_name ? ' (' + r.unit_name + ')' : '')) : '—'}</td>
-        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.dispatched_by_name ? 'Disp: ' + r.dispatched_by_name : ''}${r.resolved_by_name ? (r.dispatched_by_name ? '<br>' : '') + 'Res: ' + r.resolved_by_name : ''}</td>
-        <td style="padding: 8px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 11px;">
-          <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; background: ${r.status === 'Resolved' ? '#e8f5e9' : '#f5f5f5'}; color: ${r.status === 'Resolved' ? '#2e7d32' : '#616161'};">
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 11px;">${i + 1}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-size: 11.5px;">${r.incident_name || 'Emergency'}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.first_name || ''} ${r.last_name || ''}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.phone || 'N/A'}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.barangay_name || 'Unresolved'}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${new Date(r.request_time).toLocaleString()}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.agency ? (r.agency + (r.unit_name ? ' (' + r.unit_name + ')' : '')) : '—'}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.dispatched_by_name ? 'Disp: ' + r.dispatched_by_name : ''}${r.resolved_by_name ? (r.dispatched_by_name ? '<br>' : '') + 'Res: ' + r.resolved_by_name : ''}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 11px;">
+          <span style="display: inline-block; padding: 2px 7px; border-radius: 4px; font-weight: bold; font-size: 10px; background: ${r.status === 'Resolved' ? '#e8f5e9' : '#f5f5f5'}; color: ${r.status === 'Resolved' ? '#2e7d32' : '#616161'};">
             ${r.status}
           </span>
-          ${r.is_false_alarm ? '<span style="display: inline-block; margin-left: 4px; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 9px; background: #ffebee; color: #c62828;">FALSE ALARM</span>' : ''}
+          ${r.is_false_alarm ? '<span style="display: inline-block; margin-left: 3px; padding: 2px 5px; border-radius: 4px; font-weight: bold; font-size: 9px; background: #ffebee; color: #c62828;">FALSE ALARM</span>' : ''}
         </td>
       </tr>
     `).join('');
@@ -267,24 +278,25 @@ export class LogArchivePanel implements OnInit {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>MDRRMO Log Archive Report - ${new Date().toISOString().slice(0, 10)}</title>
+        <title>${this.exportReportTitle} - ${new Date().toISOString().slice(0, 10)}</title>
         <style>
           @page { size: landscape; margin: 12mm 15mm; }
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #222; margin: 0; padding: 15px; font-size: 12px; }
-          .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #c62828; padding-bottom: 12px; margin-bottom: 16px; }
-          .header-left { display: flex; align-items: center; gap: 12px; }
-          .logo-box { width: 44px; height: 44px; background: #c62828; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 14px; }
-          .title-box h1 { margin: 0; font-size: 16px; text-transform: uppercase; color: #c62828; letter-spacing: 0.5px; }
-          .title-box p { margin: 2px 0 0; font-size: 11px; color: #666; }
-          .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #f8f9fa; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e9ecef; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1f2937; margin: 0; padding: 15px; font-size: 11.5px; }
+          .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #c62828; padding-bottom: 12px; margin-bottom: 14px; }
+          .header-left { display: flex; align-items: center; gap: 14px; }
+          .logo-img { width: 48px; height: 48px; border-radius: 8px; object-fit: contain; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+          .title-box h1 { margin: 0; font-size: 16px; text-transform: uppercase; color: #c62828; letter-spacing: 0.5px; font-weight: 800; }
+          .title-box p { margin: 3px 0 0; font-size: 11px; color: #4b5563; font-weight: 600; }
+          .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #f9fafb; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; border: 1px solid #e5e7eb; }
           .meta-item { font-size: 11px; }
-          .meta-label { color: #888; text-transform: uppercase; font-size: 9px; font-weight: bold; margin-bottom: 2px; }
-          .meta-val { font-weight: 600; color: #333; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th { background: #f1f3f5; color: #495057; font-weight: 700; font-size: 11px; text-transform: uppercase; padding: 8px 10px; border-bottom: 2px solid #dee2e6; text-align: left; }
+          .meta-label { color: #6b7280; text-transform: uppercase; font-size: 9px; font-weight: 800; margin-bottom: 2px; }
+          .meta-val { font-weight: 700; color: #111827; }
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+          th { background: #f3f4f6; color: #374151; font-weight: 800; font-size: 10.5px; text-transform: uppercase; padding: 8px 10px; border-bottom: 2px solid #d1d5db; text-align: left; }
           tr:nth-child(even) { background-color: #fafbfc; }
-          .footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 15px; border-top: 1px solid #dee2e6; font-size: 10px; color: #888; }
-          .sig-box { text-align: center; border-top: 1px solid #333; padding-top: 4px; width: 180px; }
+          .remarks-banner { background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; padding: 8px 12px; border-radius: 6px; font-size: 11px; color: #92400e; margin-bottom: 12px; }
+          .footer { margin-top: 26px; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 14px; border-top: 1px solid #e5e7eb; font-size: 10px; color: #6b7280; }
+          .sig-box { text-align: center; border-top: 1.5px solid #111827; padding-top: 4px; width: 200px; }
           @media print {
             body { padding: 0; }
             button { display: none; }
@@ -294,17 +306,19 @@ export class LogArchivePanel implements OnInit {
       <body>
         <div class="header">
           <div class="header-left">
-            <div class="logo-box">SINE</div>
+            <img src="/assets/icon/logo.jpg" alt="MDRRMO Logo" class="logo-img" onerror="this.style.display='none';" />
             <div class="title-box">
-              <h1>MDRRMO San Isidro — Emergency Log Archive Report</h1>
-              <p>Municipal Disaster Risk Reduction and Management Office • Official Record</p>
+              <h1>${this.exportReportTitle}</h1>
+              <p>${this.exportOfficeName}</p>
             </div>
           </div>
-          <div style="text-align: right; font-size: 11px; color: #666;">
+          <div style="text-align: right; font-size: 11px; color: #4b5563;">
             <div><b>Generated:</b> ${nowStr}</div>
-            <div><b>Officer:</b> ${adminName} (${role.toUpperCase()})</div>
+            <div><b>Signatory:</b> ${adminName}</div>
           </div>
         </div>
+
+        ${this.exportRemarks ? `<div class="remarks-banner"><b>Operations Note:</b> ${this.exportRemarks}</div>` : ''}
 
         <div class="meta-grid">
           <div class="meta-item">
@@ -320,15 +334,15 @@ export class LogArchivePanel implements OnInit {
             <div class="meta-val">${this.archiveSort.toUpperCase()}</div>
           </div>
           <div class="meta-item">
-            <div class="meta-label">Report Status</div>
-            <div class="meta-val">Official Archive Export</div>
+            <div class="meta-label">Classification</div>
+            <div class="meta-val">Official Archive Situational Report</div>
           </div>
         </div>
 
         <table>
           <thead>
             <tr>
-              <th style="text-align: center; width: 35px;">#</th>
+              <th style="text-align: center; width: 32px;">#</th>
               <th>Incident Type</th>
               <th>Citizen Reporter</th>
               <th>Contact Number</th>
@@ -345,10 +359,21 @@ export class LogArchivePanel implements OnInit {
         </table>
 
         <div class="footer">
-          <div>This document is an official export from the MDRRMO Emergency Response System. Confidential information.</div>
-          <div class="sig-box">
-            <b>${adminName}</b><br>
-            <span>Certified MDRRMO Personnel</span>
+          <div>
+            <div><b>MDRRMO Emergency Response System</b> • Confidential Government Document</div>
+            <div style="margin-top: 2px;">Municipal Hall Compound, San Isidro, Nueva Ecija (SINE)</div>
+          </div>
+          <div style="display: flex; gap: 36px;">
+            <div class="sig-box">
+              <div style="font-weight: 700; color: #111827; font-size: 11px;">${adminName}</div>
+              <div style="color: #4b5563; font-size: 9.5px; text-transform: uppercase;">${role}</div>
+              <div style="color: #9ca3af; font-size: 8.5px; margin-top: 2px;">Prepared By</div>
+            </div>
+            <div class="sig-box">
+              <div style="font-weight: 700; color: #111827; font-size: 11px;">Municipal Disaster Risk Reduction Officer</div>
+              <div style="color: #4b5563; font-size: 9.5px; text-transform: uppercase;">Head of Office / Incident Commander</div>
+              <div style="color: #9ca3af; font-size: 8.5px; margin-top: 2px;">Approved & Certified Correct</div>
+            </div>
           </div>
         </div>
 
@@ -366,10 +391,10 @@ export class LogArchivePanel implements OnInit {
       printWindow.document.open();
       printWindow.document.write(printHtml);
       printWindow.document.close();
-      this.closeExportModal();
     } else {
-      this.ui.showToast('Could not open print window. Please allow popups for this site.', 'danger');
+      this.ui.showToast('Please allow popups to generate and print PDF reports.', 'warning');
     }
+    this.closeExportModal();
   }
 
   clearAllFilters(): void {
@@ -399,4 +424,3 @@ export class LogArchivePanel implements OnInit {
     });
   }
 }
-
