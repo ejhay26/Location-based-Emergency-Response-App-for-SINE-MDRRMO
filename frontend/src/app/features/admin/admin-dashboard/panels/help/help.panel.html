@@ -1,94 +1,86 @@
-<div style="padding: 24px 32px 48px; max-width: 1200px; margin: 0 auto;">
+<div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; padding-bottom: 40px;">
 
   <!-- Header Banner -->
-  <div style="margin-bottom: 28px;">
-    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
-      <div style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, rgba(235,68,90,0.15), rgba(235,68,90,0.05)); border: 1px solid rgba(235,68,90,0.25); display: flex; align-items: center; justify-content: center; color: var(--ion-color-danger);">
-        <app-icon name="graduation-cap" [size]="22" color="var(--ion-color-danger)"></app-icon>
-      </div>
+  <div style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)); box-shadow: 0 4px 16px rgba(0,0,0,0.04); padding: 24px 28px;">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
       <div>
-        <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--ion-text-color); letter-spacing: -0.3px;">
-          Help &amp; Operations Guides
-        </h2>
-        <p style="margin: 2px 0 0; font-size: 13px; color: var(--ion-color-medium);">
-          Step-by-step guides and interactive walkthroughs for MDRRMO dispatchers.
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(235,68,90,0.12); display: flex; align-items: center; justify-content: center;">
+            <app-icon name="help-circle" [size]="20" color="var(--ion-color-danger)"></app-icon>
+          </div>
+          <h2 style="margin: 0; font-size: 19px; font-weight: 800; color: var(--ion-text-color);">Interactive SOP Guides &amp; Procedures</h2>
+        </div>
+        <p style="margin: 0; font-size: 13.5px; color: var(--ion-color-medium); max-width: 620px; line-height: 1.5;">
+          Click any guided walkthrough below to trigger an interactive step-by-step visual tour with spotlight callouts explaining how to operate each MDRRMO dispatch and administrative module.
         </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; background: rgba(235,68,90,0.08); border: 1px solid rgba(235,68,90,0.2);">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--ion-color-danger);"></span>
+        <span style="font-size: 12px; font-weight: 700; color: var(--ion-color-danger);">Live Guided Tours</span>
       </div>
     </div>
   </div>
 
-  <!-- SECTION 1: PROCEDURAL INTERACTIVE WALKTHROUGHS -->
-  <div style="margin-bottom: 32px;">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <app-icon name="play" [size]="16" color="var(--ion-color-danger)"></app-icon>
-        <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); text-transform: uppercase; letter-spacing: 0.5px;">
-          Interactive System Walkthroughs
-        </h3>
-      </div>
-      <span style="font-size: 12px; font-weight: 600; color: var(--ion-color-medium);">
-        Click any guide to launch a guided spotlight tour
-      </span>
-    </div>
+  <!-- Operational Guided Procedures -->
+  <div>
+    <p style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 12px; display: flex; align-items: center; gap: 6px;">
+      <app-icon name="compass" [size]="14" color="var(--ion-color-danger)"></app-icon> Operational Workflows
+    </p>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
-      <div *ngFor="let proc of filteredProcedures"
-           style="background: var(--ion-card-background, #ffffff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 16px rgba(0,0,0,0.04); transition: transform 0.2s ease, box-shadow 0.2s ease;">
-        <div>
-          <!-- Card Top Bar -->
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-            <div style="width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;"
-                 [style.background]="proc.badgeColor + '18'">
-              <app-icon [name]="proc.icon" [size]="18" [color]="proc.badgeColor"></app-icon>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <ng-container *ngFor="let p of procedures">
+        <div *ngIf="!p.adminOnly || isAdmin"
+             style="background: var(--ion-card-background, #ffffff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)); padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: flex-start; gap: 16px; flex: 1; min-width: 280px;">
+            <div [style.background]="p.badgeColor + '18'"
+                 style="width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+              <app-icon [name]="p.icon" [size]="20" [color]="p.badgeColor"></app-icon>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;"
-                    [style.background]="proc.badgeColor + '18'" [style.color]="proc.badgeColor">
-                {{ proc.category }}
-              </span>
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+                <h3 style="margin: 0; font-size: 15.5px; font-weight: 800; color: var(--ion-text-color);">{{ p.title }}</h3>
+                <span [style.background]="p.badgeColor + '18'" [style.color]="p.badgeColor"
+                      style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 6px;">
+                  {{ p.category }}
+                </span>
+                <span *ngIf="p.adminOnly"
+                      style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 6px; background: rgba(0,0,0,0.06); color: var(--ion-color-medium);">
+                  Admin Only
+                </span>
+              </div>
+              <p style="margin: 0; font-size: 12.5px; color: var(--ion-color-medium); line-height: 1.45;">{{ p.description }}</p>
             </div>
           </div>
 
-          <!-- Card Title & Description -->
-          <h4 style="margin: 0 0 6px; font-size: 15px; font-weight: 800; color: var(--ion-text-color);">
-            {{ proc.title }}
-          </h4>
-          <p style="margin: 0 0 16px; font-size: 12.5px; color: var(--ion-color-medium); line-height: 1.5;">
-            {{ proc.description }}
-          </p>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button"
+                    (click)="startWalkthrough(p)"
+                    style="display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 12px; background: var(--ion-color-danger, #eb445a); color: #ffffff; border: none; font-size: 12.5px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(235,68,90,0.28); transition: transform 0.12s ease;">
+              <app-icon name="play" [size]="13" color="#ffffff"></app-icon>
+              <span>Start Walkthrough</span>
+            </button>
+          </div>
         </div>
-
-        <!-- Launch Button -->
-        <button type="button" (click)="startWalkthrough(proc)"
-                style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--ion-color-danger); background: linear-gradient(135deg, rgba(235,68,90,0.08), rgba(235,68,90,0.02)); color: var(--ion-color-danger); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
-          <app-icon name="play" [size]="13" color="var(--ion-color-danger)"></app-icon>
-          <span>Start Walkthrough ({{ getStepCount(proc) }} Steps)</span>
-        </button>
-      </div>
+      </ng-container>
     </div>
   </div>
 
-  <!-- SECTION 2: WORKSTATION SHORTCUTS & OPERATIONAL CONTROLS -->
-  <div style="margin-top: 36px;">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <app-icon name="keyboard" [size]="17" color="var(--ion-color-danger)"></app-icon>
-        <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--ion-text-color); text-transform: uppercase; letter-spacing: 0.5px;">
-          Desktop Workstation Shortcuts
-        </h3>
-      </div>
-      <span style="font-size: 12px; font-weight: 600; color: var(--ion-color-medium);">
-        Instant hotkeys for high-speed emergency response
-      </span>
+  <!-- Workstation Keyboard Shortcuts Reference -->
+  <div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin: 0 6px 12px;">
+      <p style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0; display: flex; align-items: center; gap: 6px;">
+        <app-icon name="command" [size]="14" color="var(--ion-color-danger)"></app-icon> Desktop Workstation Hotkeys
+      </p>
+      <span style="font-size: 11.5px; color: var(--ion-color-medium); font-weight: 600;">Customizable via Settings</span>
     </div>
 
-    <!-- Shortcuts 2-Column Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-bottom: 16px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px;">
       
-      <!-- Card 1: Fast Panel Navigation -->
+      <!-- Card 1: Panel Navigation Shortcuts -->
       <div style="background: var(--ion-card-background, #ffffff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06));">
-          <app-icon name="compass" [size]="16" color="var(--ion-color-danger)"></app-icon>
+          <app-icon name="navigation" [size]="16" color="var(--ion-color-danger)"></app-icon>
           <span style="font-weight: 800; font-size: 13.5px; color: var(--ion-text-color);">Panel Navigation</span>
         </div>
 
@@ -96,28 +88,28 @@
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Incident Map</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">1</kbd>
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-map') }}</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Log Archive</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">2</kbd>
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-archive') }}</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Analytics &amp; Reports</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">3</kbd>
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-analytics') }}</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Alert Broadcast</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">4</kbd>
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-broadcast') }}</kbd>
             </span>
           </div>
 
@@ -126,28 +118,28 @@
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
               <span style="color: var(--ion-text-color); font-weight: 600;">Citizen Feedback</span>
               <span style="display: inline-flex; align-items: center; gap: 4px;">
-                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">5</kbd>
+                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-feedback') }}</kbd>
               </span>
             </div>
 
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
               <span style="color: var(--ion-text-color); font-weight: 600;">Citizen ID Verifications</span>
               <span style="display: inline-flex; align-items: center; gap: 4px;">
-                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">6</kbd>
+                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-verify') }}</kbd>
               </span>
             </div>
 
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
               <span style="color: var(--ion-text-color); font-weight: 600;">Dispatcher Personnel</span>
               <span style="display: inline-flex; align-items: center; gap: 4px;">
-                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">7</kbd>
+                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-dispatchers') }}</kbd>
               </span>
             </div>
 
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
               <span style="color: var(--ion-text-color); font-weight: 600;">Citizen Directory</span>
               <span style="display: inline-flex; align-items: center; gap: 4px;">
-                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">8</kbd>
+                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-citizens') }}</kbd>
               </span>
             </div>
           </ng-container>
@@ -155,14 +147,14 @@
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Settings &amp; Workstation Options</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">,</kbd>
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-settings') }}</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Help &amp; Operating Procedures</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">F1</kbd>
+              <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-help') }}</kbd>
               <span *ngIf="isMac" style="font-size: 11px; color: var(--ion-color-medium);">or</span>
               <kbd *ngIf="isMac" class="workstation-kbd">⌘</kbd><span *ngIf="isMac">+</span><kbd *ngIf="isMac" class="workstation-kbd">?</kbd>
             </span>
@@ -171,7 +163,7 @@
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Toggle Sidebar Collapse</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">B</kbd>
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('action-sidebar') }}</kbd>
             </span>
           </div>
         </div>
@@ -188,28 +180,28 @@
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Spotlight Quick Command Palette</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">F</kbd>
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('action-search') }}</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Compose New Announcement</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">N</kbd>
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('action-announcement') }}</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Toggle Dark / Light Theme</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">D</kbd>
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('action-darkmode') }}</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
-            <span style="color: var(--ion-text-color); font-weight: 600;">Refresh Incident &amp; Alert Feeds</span>
+            <span style="color: var(--ion-text-color); font-weight: 600;">Refresh Operational Feeds</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">F5</kbd> <span style="font-size: 11px; color: var(--ion-color-medium);">or</span> <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">R</kbd>
+              <kbd class="workstation-kbd">F5</kbd> <span style="font-size: 11px; color: var(--ion-color-medium);">or</span> <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('action-refresh') }}</kbd>
             </span>
           </div>
 
@@ -240,4 +232,3 @@
   </div>
 
 </div>
-
