@@ -9,7 +9,7 @@ import { UserSettingsService, SettingKey } from '../../../../../core/services/us
 import { AdminUiService } from '../../admin-ui.service';
 import { ApiService } from '../../../../../core/services/api';
 import { DesktopNotificationsService } from '../../../../../core/services/desktop-notifications';
-import { AudioService } from '../../../../../core/services/audio.service';
+import { AudioService, AVAILABLE_SOUNDS, SoundOption } from '../../../../../core/services/audio.service';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 
 interface SettingToggle {
@@ -18,6 +18,14 @@ interface SettingToggle {
   hint: (val: boolean) => string;
   value: boolean;
   icon: string;
+}
+
+interface IncidentSoundProfile {
+  key: string;
+  label: string;
+  icon: string;
+  color: string;
+  soundId: string;
 }
 
 @Component({
@@ -51,6 +59,18 @@ export class SettingsPanel implements OnInit {
 
   mapDefaultStyle = 'street';
 
+  availableSounds: SoundOption[] = AVAILABLE_SOUNDS;
+
+  incidentSoundProfiles: IncidentSoundProfile[] = [
+    { key: 'fire',     label: 'Fire Incident',      icon: 'flame',         color: '#eb445a', soundId: 'alert_urgent' },
+    { key: 'flood',    label: 'Flood Incident',     icon: 'droplet',       color: '#3880ff', soundId: 'sonar_depth' },
+    { key: 'medical',  label: 'Medical Incident',   icon: 'medical',       color: '#2dd36f', soundId: 'chime_harmonic' },
+    { key: 'crime',    label: 'Crime & Security',   icon: 'shield-alert',  color: '#bc6fff', soundId: 'siren_chirp' },
+    { key: 'accident', label: 'Vehicular Accident', icon: 'car',           color: '#ff9800', soundId: 'ping_strike' },
+    { key: 'hazard',   label: 'Hazard Alert',       icon: 'hazard',        color: '#ffc409', soundId: 'beacon_radar' },
+    { key: 'default',  label: 'General SOS',        icon: 'alert-triangle',color: '#92949c', soundId: 'chime_harmonic' },
+  ];
+
   get currentZoom(): number {
     return this.settings.getZoom();
   }
@@ -66,7 +86,7 @@ export class SettingsPanel implements OnInit {
     this.settings.setZoom(100);
   }
 
-    get soundVolume(): number {
+  get soundVolume(): number {
     return Math.round(this.audio.getVolume() * 100);
   }
 
@@ -80,6 +100,28 @@ export class SettingsPanel implements OnInit {
   testAudioSound(): void {
     this.audio.testChime();
     this.ui.showToast('Playing notification alert chime preview.', 'medium');
+  }
+
+  getSoundDescription(soundId: string): string {
+    const s = this.availableSounds.find(item => item.id === soundId);
+    return s?.description || 'Custom audible tone';
+  }
+
+  onSoundProfileChange(profileKey: string, soundId: string): void {
+    this.audio.setIncidentSound(profileKey, soundId);
+    const profile = this.incidentSoundProfiles.find(p => p.key === profileKey);
+    if (profile) {
+      profile.soundId = soundId;
+      this.audio.testSound(soundId);
+      this.ui.showToast(`Updated sound for ${profile.label}.`, 'medium');
+    }
+  }
+
+  previewSound(soundId: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.audio.testSound(soundId);
   }
 
   constructor(
@@ -109,6 +151,11 @@ export class SettingsPanel implements OnInit {
     this.appearance.forEach(s => s.value = this.settings.getBool(s.key));
     this.notifications.forEach(s => s.value = this.settings.getBool(s.key));
     this.mapDefaultStyle = this.settings.get('map_default_style') || 'street';
+
+    // Hydrate audio sound profiles
+    this.incidentSoundProfiles.forEach(p => {
+      p.soundId = this.audio.getIncidentSound(p.key);
+    });
   }
 
   private lastToggleOrigin: { x: number; y: number } | null = null;
@@ -138,53 +185,36 @@ export class SettingsPanel implements OnInit {
           };
         }
       }
-
-      this.settings.toggleDarkMode(isChecked, event, originCoords ?? toggleEl ?? undefined);
+      this.settings.toggleDarkMode(isChecked, undefined, originCoords || undefined);
     } else {
-      this.settings.setBool(setting.key, isChecked);
-      if (setting.key === 'reduce_animations') {
-        document.documentElement.classList.toggle('reduce-animations', isChecked);
-      }
+      this.settings.set(setting.key, String(isChecked));
       if (setting.key === 'notif_sound_effects') {
         this.audio.setMuted(!isChecked);
       }
     }
   }
 
-  onMapStyleChange(style: string): void {
+  onMapStyleChange(style: 'street' | 'satellite'): void {
     this.mapDefaultStyle = style;
     this.settings.set('map_default_style', style);
-    try { localStorage.setItem('sine_admin_map_style', style); } catch {}
-    this.ui.showToast(`Default map view set to ${style === 'satellite' ? 'Satellite' : 'Street'}.`, 'medium');
+    this.ui.showToast(`Default map layer set to ${style === 'street' ? 'Street' : 'Satellite'}.`, 'medium');
   }
 
   logout(): void {
-    this.ui.confirm({
-      title: 'Log Out',
-      message: 'Are you sure you want to end your session?',
-      icon: 'logout',
-      iconColor: '#eb445a',
-      confirmLabel: 'Log Out',
-      confirmColor: 'danger',
-      onConfirm: () => new Promise<void>(resolve => {
-        this.desktopNotifications.stop();
-        const finishLogout = () => {
-          this.settings.clear();
-          localStorage.removeItem('api_token');
-          localStorage.removeItem('user');
-          localStorage.removeItem('role');
-          ApiService.isLoggingOut = false;
-          this.router.navigate(['/login'], { replaceUrl: true });
-          resolve();
-        };
-        this.api.logout().pipe(
-          timeout(4000),
-          catchError(() => of(null))
-        ).subscribe({
-          next: finishLogout,
-          error: finishLogout
-        });
-      })
+    const performClientLogout = () => {
+      localStorage.removeItem('api_token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
+      this.desktopNotifications.stop();
+      this.router.navigate(['/login']);
+    };
+
+    this.api.logout().pipe(
+      timeout(3000),
+      catchError(() => of(null))
+    ).subscribe({
+      next: () => performClientLogout(),
+      error: () => performClientLogout()
     });
   }
 }

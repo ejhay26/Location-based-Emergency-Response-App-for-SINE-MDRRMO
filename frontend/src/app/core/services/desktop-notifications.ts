@@ -4,22 +4,26 @@ import { AudioService } from './audio.service';
 import { UserSettingsService } from './user-settings';
 import { isTauri } from '../../shared/utils/platform.util';
 
-const POLL_INTERVAL_MS = 5000; // matches IncidentMapPanel's existing active-emergencies poll cadence
-
 /**
  * DesktopNotificationsService — Cross-platform admin/dispatcher alert system.
- * Dispatches native OS notifications across Windows, Linux, and macOS via Tauri v2 IPC,
- * with standard browser Notification fallback, accompanied by audio chimes.
+ *
+ * Polls active emergencies and hazards every 5 seconds. On any new entry:
+ *  1. Plays the configured audio alert chime for that incident type via AudioService.
+ *  2. Dispatches a desktop notification (native OS notification via Tauri on desktop,
+ *     or Web Notifications API in browser).
+ *
+ * Scoped to active sessions for admin/dispatcher roles.
  */
+const POLL_INTERVAL_MS = 5000;
+
 @Injectable({ providedIn: 'root' })
 export class DesktopNotificationsService {
-  private pollHandle: ReturnType<typeof setInterval> | null = null;
-  /** ids currently known "active" (Pending/Dispatched, or active hazards) — pruned every poll so this never grows unbounded. */
+  private pollHandle: any = null;
   private seenEmergencyIds = new Set<number>();
-  private seenHazardIds = new Set<number>();
+  private seenHazardIds    = new Set<number>();
   private pollCount = 0;
   private running = false;
-  private tauriInvoke: ((cmd: string, args?: any) => Promise<any>) | null = null;
+  private tauriInvoke: any = null;
 
   constructor(
     private api: ApiService,
@@ -27,31 +31,24 @@ export class DesktopNotificationsService {
     private settings: UserSettingsService,
   ) {}
 
-  private get isDesktop(): boolean {
+  get isDesktop(): boolean {
     return isTauri();
   }
 
-  private get notificationsSupported(): boolean {
+  get notificationsSupported(): boolean {
     return typeof window !== 'undefined' && ('Notification' in window || isTauri());
   }
 
-  /** Idempotent — safe to call every time the dashboard shell mounts without stacking duplicate intervals. */
   async start(): Promise<void> {
-    if (this.running) return;
-    if (!this.notificationsSupported) return;
+    if (this.running || !this.notificationsSupported) return;
 
     if (this.isDesktop) {
       try {
         const { invoke } = await import('@tauri-apps/api/core');
         this.tauriInvoke = invoke;
-        // Request permission via Tauri notification plugin
-        try {
-          const granted = await invoke<boolean>('plugin:notification|is_permission_granted');
-          if (!granted) {
-            await invoke('plugin:notification|request_permission');
-          }
-        } catch {
-          // Fallback if plugin permissions query fails
+        const granted = await invoke('plugin:notification|is_permission_granted');
+        if (!granted) {
+          await invoke('plugin:notification|request_permission');
         }
       } catch (err) {
         console.warn('[DesktopNotifications] Failed to load Tauri core invoke:', err);
@@ -62,15 +59,15 @@ export class DesktopNotificationsService {
       if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
         await Notification.requestPermission();
       }
-    } catch {
-      // Non-fatal if browser blocks permission prompt outside gesture
-    }
+    } catch {}
 
     this.running = true;
     this.pollCount = 0;
     this.seenEmergencyIds.clear();
     this.seenHazardIds.clear();
-    this.poll(); // immediate first poll to seed
+
+    // Fire immediately, then on interval
+    this.poll();
     this.pollHandle = setInterval(() => this.poll(), POLL_INTERVAL_MS);
   }
 
@@ -83,10 +80,12 @@ export class DesktopNotificationsService {
   }
 
   private poll(): void {
-    if (!localStorage.getItem('api_token')) {
+    const token = localStorage.getItem('api_token');
+    if (!token) {
       this.stop();
       return;
     }
+
     const role = localStorage.getItem('role');
     if (role !== 'admin' && role !== 'dispatcher') {
       this.stop();
@@ -97,20 +96,32 @@ export class DesktopNotificationsService {
     const isSeedingPoll = this.pollCount === 1;
 
     this.api.getActiveEmergencies().subscribe({
-      next: (res: any) => this.diff(Array.isArray(res) ? res : [], this.seenEmergencyIds, 'request_id', isSeedingPoll,
+      next: (res: any) => this.diff(
+        Array.isArray(res) ? res : [],
+        this.seenEmergencyIds,
+        'request_id',
+        isSeedingPoll,
         (r: any) => ({
           title: 'New Emergency SOS',
           body: `${r.incident_name || 'Emergency'} — ${r.barangay_name || 'San Isidro'}`,
-        })),
+          incidentType: r.incident_name || 'Emergency',
+        })
+      ),
       error: () => {},
     });
 
     this.api.getActiveHazards().subscribe({
-      next: (res: any) => this.diff(Array.isArray(res) ? res : [], this.seenHazardIds, 'hazard_id', isSeedingPoll,
+      next: (res: any) => this.diff(
+        Array.isArray(res) ? res : [],
+        this.seenHazardIds,
+        'hazard_id',
+        isSeedingPoll,
         (r: any) => ({
           title: 'New Hazard Report',
           body: `${r.hazard_type || 'Hazard'} — ${r.barangay_name || 'San Isidro'}`,
-        })),
+          incidentType: r.hazard_type || 'Hazard',
+        })
+      ),
       error: () => {},
     });
   }
@@ -125,7 +136,7 @@ export class DesktopNotificationsService {
     seenIds: Set<number>,
     idKey: 'request_id' | 'hazard_id',
     isSeedingPoll: boolean,
-    describe: (r: any) => { title: string; body: string },
+    describe: (r: any) => { title: string; body: string; incidentType?: string },
   ): void {
     const currentIds = new Set<number>();
     for (const r of list) {
@@ -133,18 +144,18 @@ export class DesktopNotificationsService {
       if (!Number.isFinite(id)) continue;
       currentIds.add(id);
       if (!isSeedingPoll && !seenIds.has(id)) {
-        const { title, body } = describe(r);
-        this.notify(title, body);
+        const { title, body, incidentType } = describe(r);
+        this.notify(title, body, incidentType);
       }
     }
     seenIds.clear();
     for (const id of currentIds) seenIds.add(id);
   }
 
-  private async notify(title: string, body: string): Promise<void> {
-    // 1. Play alert chime sound
+  private async notify(title: string, body: string, incidentType?: string): Promise<void> {
+    // 1. Play alert chime sound by incident type
     try {
-      this.audio.playNotificationChime();
+      this.audio.playNotificationChime(incidentType);
     } catch {}
 
     // Check if visual notifications are disabled in settings
@@ -159,21 +170,25 @@ export class DesktopNotificationsService {
           options: {
             title,
             body,
-          }
+          },
         });
         return;
-      } catch (tauriErr) {
-        console.warn('[DesktopNotifications] Tauri native notification error:', tauriErr);
+      } catch (err) {
+        console.warn('[DesktopNotifications] Tauri native notification error:', err);
       }
     }
 
-    // 3. Fallback to standard web Notification API
+    // 3. Fallback to browser Notification API
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        const n = new Notification(title, { body });
-        n.onclick = () => {
+        const notif = new Notification(title, {
+          body,
+          icon: '/assets/icon/favicon.png',
+          badge: '/assets/icon/favicon.png',
+        });
+        notif.onclick = () => {
           window.focus();
-          n.close();
+          notif.close();
         };
       } catch {}
     }

@@ -2,26 +2,75 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 14px;
+
+  .archive-card-item {
+    align-self: start;
+    transform-origin: center center;
+    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.25s ease;
+    will-change: transform, box-shadow;
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        transform: scale(1.025);
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14), 0 3px 10px rgba(0, 0, 0, 0.06) !important;
+        border-color: var(--ion-color-step-300, rgba(0, 0, 0, 0.18));
+        z-index: 5;
+      }
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      &:active,
+      &.is-active {
+        transform: scale(1.015);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12) !important;
+        z-index: 5;
+      }
+    }
+  }
 }
 
 .archive-cards-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
+
+  .archive-card-item {
+    transform-origin: center center;
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.25s ease;
+    will-change: transform, box-shadow;
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1) !important;
+        border-color: var(--ion-color-step-300, rgba(0, 0, 0, 0.18));
+        z-index: 5;
+      }
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      &:active,
+      &.is-active {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08) !important;
+        z-index: 5;
+      }
+    }
+  }
 }
 
 .archive-card-item {
+  position: relative;
   background: var(--ion-card-background, #fff);
   border-radius: 14px;
   padding: 16px;
   color: var(--ion-text-color);
   box-shadow: var(--card-shadow, 0 2px 6px rgba(0, 0, 0, 0.03));
   border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.06)));
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-
-  &:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  }
 }
 
 .archive-audit-box {

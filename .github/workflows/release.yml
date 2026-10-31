@@ -33,8 +33,9 @@ jobs:
           echo "Preparing draft release for $TARGET_TAG..."
           EXISTING_ID=$(gh api "repos/${{ github.repository }}/releases" --jq ".[] | select(.tag_name == \"$TARGET_TAG\") | .id" | head -n 1)
           if [ -n "$EXISTING_ID" ]; then
-            echo "Draft release already exists with ID: $EXISTING_ID. Preserving existing body and title..."
-            # Not patching the name and body to preserve existing release info
+            echo "Release exists with ID: $EXISTING_ID. Updating body from .github/release_notes.md..."
+            gh api -X PATCH "repos/${{ github.repository }}/releases/$EXISTING_ID" \
+              -F body=@.github/release_notes.md
           else
             echo "Creating new draft release for $TARGET_TAG..."
             gh api -X POST "repos/${{ github.repository }}/releases" \
