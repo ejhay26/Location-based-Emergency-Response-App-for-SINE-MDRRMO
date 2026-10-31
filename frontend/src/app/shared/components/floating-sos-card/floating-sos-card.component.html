@@ -11,13 +11,14 @@
       <app-icon [name]="pills[0]?.icon || 'alert'" [size]="16" [color]="pills[0]?.state === 'dispatched' ? '#10b981' : '#d32f2f'"></app-icon>
     </div>
     <span class="beacon-label">{{ pills[0]?.state === 'dispatched' ? 'En Route' : 'SOS Active' }}</span>
-    <app-icon name="chevron-right" [size]="13" color="var(--ion-color-medium, #8e8e93)"></app-icon>
+    <div class="beacon-chevron-box">
+      <app-icon name="chevron-forward" [size]="14" color="var(--ion-color-medium, #8e8e93)"></app-icon>
+    </div>
   </div>
 
   <!-- Expanded Floating SOS Card Stack -->
   <div *ngIf="!isMinimized" class="sos-pill-stack">
     <div *ngFor="let pill of pills; trackBy: trackByKey"
-         appPressFeedback
          (click)="onTap()"
          class="sos-pill"
          [class.sos-pill--offline]="pill.state === 'offline'"
@@ -43,23 +44,13 @@
         <p class="sos-pill__sublabel">{{ pill.sublabel }}</p>
       </div>
 
-      <!-- Right Action & Quick Minimize Button -->
+      <!-- Right Action & Enlarged Quick Minimize Button -->
       <div class="sos-pill__right">
-        <!-- Quick Minimize Chevron Button -->
-        <button type="button"
-                class="sos-pill__minimize-btn"
-                (touchstart)="$event.stopPropagation()"
-                (touchend)="$event.stopPropagation()"
-                (mousedown)="$event.stopPropagation()"
-                (click)="minimizeCard($event)"
-                aria-label="Minimize SOS Card">
-          <app-icon name="chevron-left" [size]="12"></app-icon>
-        </button>
-
         <!-- Cancel button — Apple capsule style -->
         <button *ngIf="pill.cancellable"
                 type="button"
                 class="sos-pill__cancel-action-btn"
+                (pointerdown)="$event.stopPropagation()"
                 (touchstart)="$event.stopPropagation()"
                 (touchend)="$event.stopPropagation()"
                 (mousedown)="$event.stopPropagation()"
@@ -70,7 +61,20 @@
         </button>
 
         <!-- Chevron for dispatched (tappable) -->
-        <app-icon *ngIf="!pill.cancellable" name="chevron-right" [size]="14" class="sos-pill__chevron"></app-icon>
+        <app-icon *ngIf="!pill.cancellable" name="chevron-forward" [size]="14" class="sos-pill__chevron"></app-icon>
+
+        <!-- Enlarged Minimize Button at the Far Right -->
+        <button type="button"
+                class="sos-pill__minimize-btn"
+                (pointerdown)="$event.stopPropagation()"
+                (touchstart)="$event.stopPropagation()"
+                (touchend)="$event.stopPropagation()"
+                (mousedown)="$event.stopPropagation()"
+                (click)="minimizeCard($event)"
+                aria-label="Minimize SOS Card"
+                title="Minimize">
+          <app-icon name="chevron-back" [size]="16"></app-icon>
+        </button>
       </div>
     </div>
   </div>

@@ -1,9 +1,11 @@
-import { Component, OnInit, ElementRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
-  IonItem, IonLabel, IonToggle, IonToast, IonRange
+  IonItem, IonLabel, IonToggle, IonToast, IonRange,
+  IonButtons, IonButton, Platform
 } from '@ionic/angular/standalone';
 import { UserSettingsService, SettingKey } from '../../../core/services/user-settings';
 import { LocationService } from '../../../core/services/location';
@@ -27,13 +29,18 @@ interface SettingSelect { key: SettingKey; label: string; hint: string; value: s
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonItem, IonLabel, IonToggle, IonToast, IonRange,
+    IonButtons, IonButton,
     AppIconComponent
   ]
 })
-export class SettingsPage implements OnInit {
+export class SettingsPage implements OnInit, OnDestroy {
   audio = inject(AudioService);
+  platform = inject(Platform);
 
   activeSubPage: CitizenSettingsSubPage = 'main';
+  isExitingSubPage = false;
+  private exitTimer: any = null;
+  private backButtonSub?: Subscription;
 
   get soundVolume(): number {
     return Math.round(this.audio.getVolume() * 100);
@@ -46,12 +53,47 @@ export class SettingsPage implements OnInit {
     }
   }
 
+  resetSoundVolume(): void {
+    this.audio.setVolume(1.0);
+  }
+
   testAudioSound(): void {
     this.audio.testChime();
   }
 
   setSubPage(page: CitizenSettingsSubPage): void {
+    if (this.exitTimer) {
+      clearTimeout(this.exitTimer);
+      this.exitTimer = null;
+    }
+    this.isExitingSubPage = false;
     this.activeSubPage = page;
+  }
+
+  goBackToSettings(): void {
+    if (this.activeSubPage === 'main') return;
+    if (this.settings.getBool('reduce_animations')) {
+      this.activeSubPage = 'main';
+      return;
+    }
+    this.isExitingSubPage = true;
+    this.exitTimer = setTimeout(() => {
+      this.activeSubPage = 'main';
+      this.isExitingSubPage = false;
+      this.exitTimer = null;
+    }, 240);
+  }
+
+  getSubPageTitle(): string {
+    switch (this.activeSubPage) {
+      case 'appearance': return 'Appearance & Theme';
+      case 'audio': return 'Audio & Alert Chimes';
+      case 'map': return 'Map & Location';
+      case 'notifications': return 'Notifications & Alerts';
+      case 'reporting': return 'Reporting Media';
+      case 'widgets': return 'Home Screen Widgets';
+      default: return 'Settings';
+    }
   }
 
   get mapDefaultStyle(): 'street' | 'satellite' {
@@ -117,6 +159,24 @@ export class SettingsPage implements OnInit {
   ngOnInit() {
     this.syncSettings();
     this.widgetPin.isAvailable().then(v => this.widgetAvailable = v);
+
+    this.backButtonSub = this.platform.backButton.subscribeWithPriority(100, (processNextHandler) => {
+      if (this.activeSubPage !== 'main') {
+        this.goBackToSettings();
+      } else {
+        processNextHandler();
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.backButtonSub) {
+      this.backButtonSub.unsubscribe();
+    }
+    if (this.exitTimer) {
+      clearTimeout(this.exitTimer);
+      this.exitTimer = null;
+    }
   }
 
   ionViewWillEnter() {

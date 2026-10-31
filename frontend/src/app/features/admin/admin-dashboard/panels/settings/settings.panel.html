@@ -238,6 +238,10 @@
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <span class="zoom-value-badge" style="background: rgba(56,128,255,0.1); color: var(--ion-color-primary);">{{ soundVolume }}%</span>
+          <button type="button" class="preview-btn-pill" (click)="resetSoundVolume()" title="Reset master volume to 100%">
+            <app-icon name="rotate-left" [size]="12" color="currentColor"></app-icon>
+            <span>Reset</span>
+          </button>
           <button type="button" class="preview-btn-pill" (click)="testAudioSound()">
             <app-icon name="play" [size]="12" color="currentColor"></app-icon>
             <span>Test Alert</span>

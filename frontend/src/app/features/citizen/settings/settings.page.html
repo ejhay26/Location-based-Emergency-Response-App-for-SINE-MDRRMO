@@ -1,6 +1,17 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="danger">
-    <ion-title style="color:white;font-weight:bold;">Settings</ion-title>
+    <ion-buttons slot="start">
+      <ion-button *ngIf="activeSubPage !== 'main'"
+                  (click)="goBackToSettings()"
+                  class="settings-header-back-btn"
+                  aria-label="Back to Settings">
+        <app-icon name="chevron-back" [size]="20" color="#ffffff"></app-icon>
+        <span class="settings-header-back-text">Settings</span>
+      </ion-button>
+    </ion-buttons>
+    <ion-title style="color:white;font-weight:bold;">
+      {{ activeSubPage === 'main' ? 'Settings' : getSubPageTitle() }}
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -10,7 +21,7 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- MAIN CATEGORY DIRECTORY                                    -->
     <!-- ══════════════════════════════════════════════════════════ -->
-    <div *ngIf="activeSubPage === 'main'" class="settings-view-anim">
+    <div *ngIf="activeSubPage === 'main'" class="settings-main-container">
       <p class="section-badge-caption">Application Preferences</p>
 
       <div class="category-cards-col">
@@ -94,15 +105,8 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- SUB-PAGE: APPEARANCE & THEME                               -->
     <!-- ══════════════════════════════════════════════════════════ -->
-    <div *ngIf="activeSubPage === 'appearance'" class="subpage-view-anim">
-      <div class="subpage-top-nav">
-        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
-          <app-icon name="chevron-back" [size]="16"></app-icon>
-          <span>Back to Settings</span>
-        </button>
-        <h3 class="subpage-title">Appearance &amp; Theme</h3>
-      </div>
-
+    <div *ngIf="activeSubPage === 'appearance'" class="subpage-container" [class.is-exiting]="isExitingSubPage">
+      
       <div class="inset-card">
         <ion-item *ngFor="let s of appearance; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
           <ion-label style="padding:12px 0 10px;">
@@ -123,15 +127,8 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- SUB-PAGE: AUDIO & ALERT CHIMES                             -->
     <!-- ══════════════════════════════════════════════════════════ -->
-    <div *ngIf="activeSubPage === 'audio'" class="subpage-view-anim">
-      <div class="subpage-top-nav">
-        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
-          <app-icon name="chevron-back" [size]="16"></app-icon>
-          <span>Back to Settings</span>
-        </button>
-        <h3 class="subpage-title">Audio &amp; Alert Chimes</h3>
-      </div>
-
+    <div *ngIf="activeSubPage === 'audio'" class="subpage-container" [class.is-exiting]="isExitingSubPage">
+      
       <div class="inset-card" style="padding: 18px 16px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
           <div>
@@ -168,15 +165,8 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- SUB-PAGE: MAP & LOCATION                                   -->
     <!-- ══════════════════════════════════════════════════════════ -->
-    <div *ngIf="activeSubPage === 'map'" class="subpage-view-anim">
-      <div class="subpage-top-nav">
-        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
-          <app-icon name="chevron-back" [size]="16"></app-icon>
-          <span>Back to Settings</span>
-        </button>
-        <h3 class="subpage-title">Map &amp; Location</h3>
-      </div>
-
+    <div *ngIf="activeSubPage === 'map'" class="subpage-container" [class.is-exiting]="isExitingSubPage">
+      
       <!-- Dual Map Preview Cards -->
       <div class="citizen-map-cards-grid">
         <!-- Street Card -->
@@ -235,15 +225,8 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- SUB-PAGE: NOTIFICATIONS                                    -->
     <!-- ══════════════════════════════════════════════════════════ -->
-    <div *ngIf="activeSubPage === 'notifications'" class="subpage-view-anim">
-      <div class="subpage-top-nav">
-        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
-          <app-icon name="chevron-back" [size]="16"></app-icon>
-          <span>Back to Settings</span>
-        </button>
-        <h3 class="subpage-title">Notifications &amp; Alerts</h3>
-      </div>
-
+    <div *ngIf="activeSubPage === 'notifications'" class="subpage-container" [class.is-exiting]="isExitingSubPage">
+      
       <div class="inset-card">
         <ion-item *ngFor="let s of notifications; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
           <ion-label style="padding:12px 0 10px;">
@@ -261,15 +244,8 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- SUB-PAGE: REPORTING MEDIA PREFERENCES                      -->
     <!-- ══════════════════════════════════════════════════════════ -->
-    <div *ngIf="activeSubPage === 'reporting'" class="subpage-view-anim">
-      <div class="subpage-top-nav">
-        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
-          <app-icon name="chevron-back" [size]="16"></app-icon>
-          <span>Back to Settings</span>
-        </button>
-        <h3 class="subpage-title">Reporting Preferences</h3>
-      </div>
-
+    <div *ngIf="activeSubPage === 'reporting'" class="subpage-container" [class.is-exiting]="isExitingSubPage">
+      
       <div class="inset-card">
         <ion-item *ngFor="let s of reporting; let last = last" [lines]="last ? 'none' : 'full'" style="--background:transparent;--inner-padding-end:16px;">
           <ion-label style="padding:12px 0 10px;">
@@ -287,15 +263,8 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- SUB-PAGE: HOME SCREEN WIDGETS (ANDROID)                    -->
     <!-- ══════════════════════════════════════════════════════════ -->
-    <div *ngIf="activeSubPage === 'widgets'" class="subpage-view-anim">
-      <div class="subpage-top-nav">
-        <button type="button" class="subpage-back-pill" (click)="setSubPage('main')">
-          <app-icon name="chevron-back" [size]="16"></app-icon>
-          <span>Back to Settings</span>
-        </button>
-        <h3 class="subpage-title">Home Screen Widgets</h3>
-      </div>
-
+    <div *ngIf="activeSubPage === 'widgets'" class="subpage-container" [class.is-exiting]="isExitingSubPage">
+      
       <div class="inset-card" style="padding: 16px;">
         <p style="font-size: 13px; color: var(--ion-color-medium); margin: 0 0 16px 0; line-height: 1.45;">
           Place one-tap emergency action buttons directly on your Android home screen to report incidents immediately without unlocking through app tabs.

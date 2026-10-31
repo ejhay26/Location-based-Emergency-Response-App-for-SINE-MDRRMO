@@ -1,6 +1,5 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PressFeedbackDirective } from '../../directives/press-feedback.directive';
 import { parseServerDate } from '../../pipes/utc-date.pipe';
 import { QueuedReport } from '../../../core/services/offline-queue';
 
@@ -35,24 +34,44 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
 @Component({
   selector: 'app-floating-sos-card',
   standalone: true,
-  imports: [CommonModule, PressFeedbackDirective, AppIconComponent],
+  imports: [CommonModule, AppIconComponent],
   templateUrl: './floating-sos-card.component.html',
   styleUrl: './floating-sos-card.component.scss',
 })
 export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
+  private cdr = inject(ChangeDetectorRef);
+
   isMinimized = false;
   private autoMinimizeTimer: any = null;
+  private prevItemIds = new Set<string>();
 
   ngOnInit() {
-    this.scheduleAutoMinimize(5000);
+    if (this.visible) {
+      this.scheduleAutoMinimize(5000);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['activeReports'] || changes['queuedItems']) {
-      if (this.visible && this.isMinimized) {
-        this.expandCard();
+    const currentIds = new Set<string>();
+    (this.activeReports || []).forEach(r => currentIds.add(`r:${r.request_id}`));
+    (this.queuedItems || []).forEach(q => currentIds.add(`q:${q.id}`));
+
+    // Check if genuinely NEW items were added (not just polling or array reference churn)
+    let hasNewItem = false;
+    for (const id of currentIds) {
+      if (!this.prevItemIds.has(id)) {
+        hasNewItem = true;
+        break;
       }
     }
+
+    if (hasNewItem && this.prevItemIds.size > 0) {
+      this.expandCard();
+    } else if (this.prevItemIds.size === 0 && currentIds.size > 0 && !this.isMinimized) {
+      this.scheduleAutoMinimize(5000);
+    }
+
+    this.prevItemIds = currentIds;
   }
 
   ngOnDestroy() {
@@ -63,6 +82,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     this.clearAutoMinimize();
     this.autoMinimizeTimer = setTimeout(() => {
       this.isMinimized = true;
+      this.cdr.markForCheck();
     }, delayMs);
   }
 
@@ -74,14 +94,20 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   expandCard() {
+    this.clearAutoMinimize();
     this.isMinimized = false;
+    this.cdr.markForCheck();
     this.scheduleAutoMinimize(6000);
   }
 
   minimizeCard(event?: Event) {
-    if (event) event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     this.clearAutoMinimize();
     this.isMinimized = true;
+    this.cdr.markForCheck();
   }
 
   @Input() activeReports: FloatingSosStatus[] = [];

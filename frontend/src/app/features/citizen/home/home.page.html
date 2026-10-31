@@ -170,6 +170,8 @@
       </div>
     </div>
   </div>
+      <!-- Bottom buffer inside scrollable list so last announcement card is completely visible -->
+      <div style="height: 48px; flex-shrink: 0;"></div>
     </div>
   </div>
 
@@ -184,8 +186,5 @@
     (cardTap)="goToSosStatus()"
     (cancelTap)="onSosCancel($event)">
   </app-floating-sos-card>
-
-  <!-- Bottom buffer so last card is completely visible above the tab bar -->
-  <div style="height: 36px; flex-shrink: 0;"></div>
 
 </ion-content>

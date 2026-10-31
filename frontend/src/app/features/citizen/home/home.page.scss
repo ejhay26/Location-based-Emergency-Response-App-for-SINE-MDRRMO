@@ -167,7 +167,14 @@
   flex-direction: column;
 }
 
-@media (min-height: 720px) {
+@media (min-height: 700px) {
+  :host {
+    height: 100%;
+    overflow: hidden;
+  }
+  ion-content.tab-page-content {
+    --overflow: hidden;
+  }
   .home-page-container {
     height: 100%;
     overflow: hidden;
@@ -180,6 +187,7 @@
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
     padding-bottom: 24px;
   }
 }

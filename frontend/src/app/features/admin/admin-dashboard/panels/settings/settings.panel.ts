@@ -107,6 +107,10 @@ export class SettingsPanel implements OnInit {
     }
   }
 
+  resetSoundVolume(): void {
+    this.audio.setVolume(1.0);
+  }
+
   testAudioSound(): void {
     this.audio.testChime();
     this.ui.showToast('Playing notification alert chime preview.', 'medium');

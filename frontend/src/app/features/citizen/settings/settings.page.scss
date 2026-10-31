@@ -7,19 +7,91 @@
   margin: 0 4px 12px;
 }
 
-.settings-view-anim,
-.subpage-view-anim {
-  animation: citizenSettingsSlideIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* ── Toolbar Header Back Button ── */
+.settings-header-back-btn {
+  --color: #ffffff;
+  --padding-start: 4px;
+  --padding-end: 8px;
+  font-weight: 700;
+  font-size: 14.5px;
+  text-transform: none;
+
+  .settings-header-back-text {
+    margin-left: 2px;
+    letter-spacing: -0.2px;
+  }
 }
 
-@keyframes citizenSettingsSlideIn {
+/* ── Main Category Directory Animation ── */
+.settings-main-container {
+  animation: settingsMainEnter 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes settingsMainEnter {
   from {
-    opacity: 0;
-    transform: translateX(20px);
+    opacity: 0.01;
+    transform: translate3d(-16px, 0, 0);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ── Subpage Slide Transitions (Mirroring Report Modal Architecture) ── */
+.subpage-container {
+  will-change: transform, opacity;
+  animation: settingsSubpageSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  &.is-exiting {
+    animation: settingsSubpageSlideOut 0.22s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+}
+
+@keyframes settingsSubpageSlideIn {
+  from {
+    opacity: 0.01;
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes settingsSubpageSlideOut {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0.01;
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+/* ── Volume Reset Pill Button ── */
+.volume-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+  color: var(--ion-color-step-600, #666666);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--ion-color-step-150, rgba(0, 0, 0, 0.1));
+    color: var(--ion-text-color);
+  }
+
+  &:active {
+    transform: scale(0.94);
   }
 }
 
