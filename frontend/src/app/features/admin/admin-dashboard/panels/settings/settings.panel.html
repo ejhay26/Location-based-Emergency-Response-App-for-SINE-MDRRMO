@@ -454,6 +454,10 @@
         <div class="keybind-meta">
           <p class="keybind-name">{{ item.label }}</p>
           <span class="keybind-cat-badge">{{ item.category }}</span>
+          <div *ngIf="conflictKeybindId === item.id" style="font-size: 11px; font-weight: 700; color: #f59e0b; margin-top: 4px; display: flex; align-items: center; gap: 5px;">
+            <app-icon name="alert-triangle" [size]="12" color="#f59e0b"></app-icon>
+            <span>{{ conflictMessage }}</span>
+          </div>
         </div>
 
         <div class="keybind-action-col" style="display: flex; align-items: center; gap: 8px;">
@@ -462,6 +466,8 @@
             type="button"
             class="keybind-record-btn"
             [class.is-recording]="recordingKeybindId === item.id"
+            [style.border-color]="conflictKeybindId === item.id ? '#f59e0b' : null"
+            [style.background]="conflictKeybindId === item.id ? 'rgba(245,158,11,0.08)' : null"
             (click)="startRecordingKeybind(item, $event)"
             [appTooltip]="recordingKeybindId === item.id ? 'Press any key combo (Esc to cancel)' : 'Click to record new keybind'"
             tooltipPlacement="top"

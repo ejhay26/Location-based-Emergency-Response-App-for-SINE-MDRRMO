@@ -68,6 +68,16 @@ export class KeyboardShortcutsService {
   private isInitialized = false;
 
   private keybindMap: Record<string, string> = { ...DEFAULT_KEYBINDS };
+  readonly keybindMapSignal = signal<Record<string, string>>({ ...DEFAULT_KEYBINDS });
+  private isRecording = false;
+
+  setRecording(recording: boolean): void {
+    this.isRecording = recording;
+  }
+
+  isRecordingActive(): boolean {
+    return this.isRecording;
+  }
 
   constructor(private router: Router, private userSettings: UserSettingsService) {
     this.hydrateKeybinds();
@@ -84,10 +94,11 @@ export class KeyboardShortcutsService {
         }
       } catch {}
     }
+    this.keybindMapSignal.set({ ...this.keybindMap });
   }
 
   getKeybind(id: string): string {
-    return this.keybindMap[id] || DEFAULT_KEYBINDS[id] || '';
+    return this.keybindMapSignal()[id] || DEFAULT_KEYBINDS[id] || '';
   }
 
   static formatKeyEvent(e: KeyboardEvent): string {
@@ -123,6 +134,7 @@ export class KeyboardShortcutsService {
     try {
       localStorage.setItem(KEYBIND_STORAGE_KEY, JSON.stringify(this.keybindMap));
     } catch {}
+    this.keybindMapSignal.set({ ...this.keybindMap });
     return { success: true };
   }
 
@@ -132,6 +144,7 @@ export class KeyboardShortcutsService {
     try {
       localStorage.setItem(KEYBIND_STORAGE_KEY, JSON.stringify(this.keybindMap));
     } catch {}
+    this.keybindMapSignal.set({ ...this.keybindMap });
     return def;
   }
 
@@ -140,6 +153,7 @@ export class KeyboardShortcutsService {
     try {
       localStorage.removeItem(KEYBIND_STORAGE_KEY);
     } catch {}
+    this.keybindMapSignal.set({ ...this.keybindMap });
   }
 
   getKeybindList(): KeybindDef[] {
@@ -265,6 +279,10 @@ export class KeyboardShortcutsService {
   }
 
   private handleGlobalKeyDown(e: KeyboardEvent): void {
+    if (this.isRecording) {
+      // Suppress global keyboard shortcuts while keybind recording is in progress
+      return;
+    }
     const isMac = this.isMac;
     const isStaff = this.isAdminOrDispatcher();
     const combo = KeyboardShortcutsService.formatKeyEvent(e);

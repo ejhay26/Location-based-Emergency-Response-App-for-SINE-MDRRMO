@@ -1399,11 +1399,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       (marker as any)._incidentData = req;
       (marker as any)._incidentType = 'emergency';
       marker.on('click', () => {
-        this.selectedRequestId = req.request_id;
-        this.previewType = 'emergency';
-        if (!this.isQueueHidden) {
-          setTimeout(() => { document.getElementById('request-card-' + req.request_id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
-        }
+        this.selectIncidentCard(req, 'emergency');
       });
       this.mapMarkers.push(marker);
     });
@@ -1432,11 +1428,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       (marker as any)._incidentData = haz;
       (marker as any)._incidentType = 'hazard';
       marker.on('click', () => {
-        this.selectedRequestId = haz.hazard_id;
-        this.previewType = 'hazard';
-        if (!this.isQueueHidden) {
-          setTimeout(() => { document.getElementById('hazard-card-' + haz.hazard_id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
-        }
+        this.selectIncidentCard(haz, 'hazard');
       });
       this.mapMarkers.push(marker);
     });
@@ -1470,8 +1462,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         </div></div>`;
       const marker = L.marker([demoReq.latitude, demoReq.longitude], { icon }).bindPopup(popup).addTo(this.map);
       marker.on('click', () => {
-        this.selectedRequestId = demoReq.request_id;
-        this.previewType = 'emergency';
+        this.selectIncidentCard(demoReq, 'emergency');
       });
       this.mapMarkers.push(marker);
     }
@@ -1721,6 +1712,12 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       this.map.flyTo([lat, lng], 16, { animate: true, duration: 0.5 });
       setTimeout(() => {
         let targetMarker = this.mapMarkers.find(m => {
+          const mData = (m as any)._incidentData;
+          const mType = (m as any)._incidentType;
+          if (mData && mType) {
+            const mId = mType === 'emergency' ? mData.request_id : mData.hazard_id;
+            return mId === id && mType === type;
+          }
           const latLng = m.getLatLng();
           return Math.abs(latLng.lat - lat) < 0.001 && Math.abs(latLng.lng - lng) < 0.001;
         });
@@ -1731,6 +1728,13 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
           targetMarker.openPopup();
         }
       }, 250);
+    }
+
+    if (!this.isQueueHidden) {
+      const cardElId = type === 'emergency' ? 'request-card-' + id : 'hazard-card-' + id;
+      setTimeout(() => {
+        document.getElementById(cardElId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
     }
   }
 

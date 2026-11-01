@@ -84,6 +84,8 @@ export class SettingsPanel implements OnInit, OnDestroy {
   ];
 
   recordingKeybindId: string | null = null;
+  conflictKeybindId: string | null = null;
+  conflictMessage: string | null = null;
   private keyRecordingListener: ((e: KeyboardEvent) => void) | null = null;
 
   keybindList: KeybindDef[] = [];
@@ -169,11 +171,15 @@ export class SettingsPanel implements OnInit, OnDestroy {
   startRecordingKeybind(item: KeybindDef, event?: Event): void {
     if (event) event.stopPropagation();
     this.stopRecordingKeybind();
+    this.conflictKeybindId = null;
+    this.conflictMessage = null;
     this.recordingKeybindId = item.id;
+    this.shortcuts.setRecording(true);
 
     this.keyRecordingListener = (e: KeyboardEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      e.stopImmediatePropagation();
 
       if (e.key === 'Escape') {
         this.stopRecordingKeybind();
@@ -188,10 +194,21 @@ export class SettingsPanel implements OnInit, OnDestroy {
       if (combo) {
         const res = this.shortcuts.setKeybind(item.id, combo);
         if (res.success) {
+          this.conflictKeybindId = null;
+          this.conflictMessage = null;
           this.refreshKeybindList();
           this.ui.showToast(`Updated shortcut for ${item.label} to "${combo}".`, 'success');
         } else {
-          this.ui.showToast(`Conflict: "${combo}" is already assigned to ${res.conflictWith?.label || 'another action'}.`, 'warning');
+          this.conflictKeybindId = item.id;
+          const assignedTo = res.conflictWith?.label || 'another action';
+          this.conflictMessage = `Blocked: "${combo}" is already assigned to ${assignedTo}.`;
+          this.ui.showToast(`Shortcut Blocked: "${combo}" is already assigned to "${assignedTo}". Please choose a different shortcut combination.`, 'warning');
+          setTimeout(() => {
+            if (this.conflictKeybindId === item.id) {
+              this.conflictKeybindId = null;
+              this.conflictMessage = null;
+            }
+          }, 4500);
         }
         this.stopRecordingKeybind();
       }
@@ -201,6 +218,7 @@ export class SettingsPanel implements OnInit, OnDestroy {
   }
 
   stopRecordingKeybind(): void {
+    this.shortcuts.setRecording(false);
     if (this.keyRecordingListener) {
       window.removeEventListener('keydown', this.keyRecordingListener, { capture: true });
       this.keyRecordingListener = null;

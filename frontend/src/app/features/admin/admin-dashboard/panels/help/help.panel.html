@@ -88,28 +88,28 @@
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Incident Map</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-map') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('nav-map'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Log Archive</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-archive') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('nav-archive'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Analytics &amp; Reports</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-analytics') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('nav-analytics'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Alert Broadcast</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-broadcast') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('nav-broadcast'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
             </span>
           </div>
 
@@ -118,28 +118,28 @@
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
               <span style="color: var(--ion-text-color); font-weight: 600;">Citizen Feedback</span>
               <span style="display: inline-flex; align-items: center; gap: 4px;">
-                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-feedback') }}</kbd>
+                <ng-container *ngFor="let k of getKeyParts('nav-feedback'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
               </span>
             </div>
 
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
               <span style="color: var(--ion-text-color); font-weight: 600;">Citizen ID Verifications</span>
               <span style="display: inline-flex; align-items: center; gap: 4px;">
-                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-verify') }}</kbd>
+                <ng-container *ngFor="let k of getKeyParts('nav-verify'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
               </span>
             </div>
 
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
               <span style="color: var(--ion-text-color); font-weight: 600;">Dispatcher Personnel</span>
               <span style="display: inline-flex; align-items: center; gap: 4px;">
-                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-dispatchers') }}</kbd>
+                <ng-container *ngFor="let k of getKeyParts('nav-dispatchers'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
               </span>
             </div>
 
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
               <span style="color: var(--ion-text-color); font-weight: 600;">Citizen Directory</span>
               <span style="display: inline-flex; align-items: center; gap: 4px;">
-                <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-citizens') }}</kbd>
+                <ng-container *ngFor="let k of getKeyParts('nav-citizens'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
               </span>
             </div>
           </ng-container>
@@ -147,23 +147,23 @@
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Settings &amp; Workstation Options</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-settings') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('nav-settings'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Help &amp; Operating Procedures</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ shortcuts.getKeybind('nav-help') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('nav-help'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
               <span *ngIf="isMac" style="font-size: 11px; color: var(--ion-color-medium);">or</span>
-              <kbd *ngIf="isMac" class="workstation-kbd">⌘</kbd><span *ngIf="isMac">+</span><kbd *ngIf="isMac" class="workstation-kbd">?</kbd>
+              <kbd *ngIf="isMac" class="workstation-kbd">⌘</kbd><span *ngIf="isMac" style="color: var(--ion-color-medium); font-weight: 700;">+</span><kbd *ngIf="isMac" class="workstation-kbd">?</kbd>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Toggle Sidebar Collapse</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('action-sidebar') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('action-sidebar'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
             </span>
           </div>
         </div>
@@ -180,28 +180,28 @@
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Spotlight Quick Command Palette</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('action-search') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('action-search'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Compose New Announcement</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('action-announcement') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('action-announcement'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Toggle Dark / Light Theme</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('action-darkmode') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('action-darkmode'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
             </span>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
             <span style="color: var(--ion-text-color); font-weight: 600;">Refresh Operational Feeds</span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <kbd class="workstation-kbd">F5</kbd> <span style="font-size: 11px; color: var(--ion-color-medium);">or</span> <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">{{ shortcuts.getKeybind('action-refresh') }}</kbd>
+              <ng-container *ngFor="let k of getKeyParts('action-refresh'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
             </span>
           </div>
 

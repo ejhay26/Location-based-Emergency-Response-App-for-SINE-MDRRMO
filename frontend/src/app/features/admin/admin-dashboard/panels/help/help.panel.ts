@@ -289,6 +289,12 @@ export class HelpPanel {
     return this.isMac ? '⌘' : 'Ctrl';
   }
 
+  getKeyParts(id: string): string[] {
+    const raw = this.shortcuts.getKeybind(id);
+    if (!raw) return [];
+    return raw.split('+').map(k => k.trim()).filter(Boolean);
+  }
+
   startWalkthrough(procedure: ProcedureGuide): void {
     const isMobile = window.innerWidth <= 768;
     if (!isMobile) {
