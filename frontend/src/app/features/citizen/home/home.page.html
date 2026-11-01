@@ -181,6 +181,7 @@
        above the announcements section, so it doesn't interrupt the primary
        SOS/Hazard action area. Hidden when no active or queued reports. -->
   <app-floating-sos-card
+    slot="fixed"
     [activeReports]="activeSosReports"
     [queuedItems]="queuedSosItems"
     (cardTap)="goToSosStatus()"

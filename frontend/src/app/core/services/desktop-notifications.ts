@@ -16,6 +16,8 @@ import { isTauri } from '../../shared/utils/platform.util';
  */
 const POLL_INTERVAL_MS = 5000;
 
+export type NotificationPermissionStatus = 'granted' | 'denied' | 'default';
+
 @Injectable({ providedIn: 'root' })
 export class DesktopNotificationsService {
   private pollHandle: any = null;
@@ -23,7 +25,7 @@ export class DesktopNotificationsService {
   private seenHazardIds    = new Set<number>();
   private pollCount = 0;
   private running = false;
-  private tauriInvoke: any = null;
+  private tauriModule: any = null;
 
   constructor(
     private api: ApiService,
@@ -39,25 +41,94 @@ export class DesktopNotificationsService {
     return typeof window !== 'undefined' && ('Notification' in window || isTauri());
   }
 
-  async start(): Promise<void> {
-    if (this.running || !this.notificationsSupported) return;
+  private async getTauriNotification(): Promise<any> {
+    if (!this.isDesktop) return null;
+    if (this.tauriModule) return this.tauriModule;
+    try {
+      this.tauriModule = await import('@tauri-apps/plugin-notification');
+      return this.tauriModule;
+    } catch (e) {
+      console.warn('[DesktopNotifications] Failed to load @tauri-apps/plugin-notification:', e);
+      return null;
+    }
+  }
 
+  /**
+   * Retrieves current OS/browser notification permission state.
+   */
+  async getPermissionStatus(): Promise<NotificationPermissionStatus> {
     if (this.isDesktop) {
       try {
-        const { invoke } = await import('@tauri-apps/api/core');
-        this.tauriInvoke = invoke;
-        const granted = await invoke('plugin:notification|is_permission_granted');
-        if (!granted) {
-          await invoke('plugin:notification|request_permission');
+        const mod = await this.getTauriNotification();
+        if (mod && typeof mod.isPermissionGranted === 'function') {
+          const granted = await mod.isPermissionGranted();
+          return granted ? 'granted' : 'default';
+        }
+      } catch {}
+    }
+
+    if (typeof Notification !== 'undefined') {
+      return Notification.permission as NotificationPermissionStatus;
+    }
+
+    return 'denied';
+  }
+
+  /**
+   * Requests OS/browser desktop notification permission (must be called from a user gesture in web).
+   */
+  async requestPermission(): Promise<NotificationPermissionStatus> {
+    if (this.isDesktop) {
+      try {
+        const mod = await this.getTauriNotification();
+        if (mod) {
+          if (typeof mod.requestPermission === 'function') {
+            const res = await mod.requestPermission();
+            if (res === 'granted' || res === true) return 'granted';
+          }
+          if (typeof mod.isPermissionGranted === 'function') {
+            const granted = await mod.isPermissionGranted();
+            if (granted) return 'granted';
+          }
         }
       } catch (err) {
-        console.warn('[DesktopNotifications] Failed to load Tauri core invoke:', err);
+        console.warn('[DesktopNotifications] Tauri requestPermission error:', err);
       }
     }
 
+    if (typeof Notification !== 'undefined') {
+      try {
+        const result = await Notification.requestPermission();
+        return result as NotificationPermissionStatus;
+      } catch (err) {
+        console.warn('[DesktopNotifications] Web Notification.requestPermission error:', err);
+      }
+    }
+
+    return 'denied';
+  }
+
+  /**
+   * Dispatches a test notification and plays an audio chime to verify end-to-end functionality.
+   */
+  async sendTestNotification(): Promise<boolean> {
     try {
-      if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-        await Notification.requestPermission();
+      this.audio.playNotificationChime('test');
+    } catch {}
+
+    const title = 'MDRRMO Notification Test';
+    const body = 'Desktop notifications and alert chimes are operational.';
+
+    return this.notify(title, body, 'test', true);
+  }
+
+  async start(): Promise<void> {
+    if (this.running || !this.notificationsSupported) return;
+
+    try {
+      const status = await this.getPermissionStatus();
+      if (status === 'default') {
+        await this.requestPermission();
       }
     } catch {}
 
@@ -152,45 +223,71 @@ export class DesktopNotificationsService {
     for (const id of currentIds) seenIds.add(id);
   }
 
-  private async notify(title: string, body: string, incidentType?: string): Promise<void> {
-    // 1. Play alert chime sound by incident type
-    try {
-      this.audio.playNotificationChime(incidentType);
-    } catch {}
+  async notify(title: string, body: string, incidentType?: string, bypassToggle = false): Promise<boolean> {
+    if (!bypassToggle) {
+      // 1. Play alert chime sound by incident type
+      try {
+        this.audio.playNotificationChime(incidentType);
+      } catch {}
 
-    // Check if visual notifications are disabled in settings
-    if (!this.settings.getBool('notif_emergency_alerts')) {
-      return;
+      // Check if visual notifications are disabled in settings
+      if (!this.settings.getBool('notif_emergency_alerts')) {
+        return false;
+      }
     }
 
+    let dispatched = false;
+
     // 2. Send native desktop OS notification via Tauri if running in desktop app
-    if (this.isDesktop && this.tauriInvoke) {
+    if (this.isDesktop) {
       try {
-        await this.tauriInvoke('plugin:notification|notify', {
+        const mod = await this.getTauriNotification();
+        if (mod && typeof mod.sendNotification === 'function') {
+          mod.sendNotification({
+            title,
+            body,
+            icon: 'icons/icon.png',
+          });
+          return true;
+        }
+      } catch (err) {
+        console.warn('[DesktopNotifications] Tauri sendNotification error:', err);
+      }
+
+      try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        await invoke('plugin:notification|notify', {
           options: {
             title,
             body,
           },
         });
-        return;
+        return true;
       } catch (err) {
-        console.warn('[DesktopNotifications] Tauri native notification error:', err);
+        console.warn('[DesktopNotifications] Tauri invoke notify error:', err);
       }
     }
 
     // 3. Fallback to browser Notification API
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      try {
-        const notif = new Notification(title, {
-          body,
-          icon: '/assets/icon/favicon.png',
-          badge: '/assets/icon/favicon.png',
-        });
-        notif.onclick = () => {
-          window.focus();
-          notif.close();
-        };
-      } catch {}
+    if (typeof Notification !== 'undefined') {
+      if (Notification.permission === 'granted') {
+        try {
+          const notif = new Notification(title, {
+            body,
+            icon: '/assets/icon/favicon.png',
+            badge: '/assets/icon/favicon.png',
+          });
+          notif.onclick = () => {
+            window.focus();
+            notif.close();
+          };
+          dispatched = true;
+        } catch (err) {
+          console.warn('[DesktopNotifications] Web Notification error:', err);
+        }
+      }
     }
+
+    return dispatched;
   }
 }

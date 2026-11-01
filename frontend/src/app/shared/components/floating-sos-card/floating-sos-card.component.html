@@ -1,74 +1,111 @@
-<ng-container *ngIf="visible">
-  <div class="sos-pill-stack" [class.is-minimized-mode]="isMinimized">
-    <div *ngFor="let pill of pills; trackBy: trackByKey"
+<ng-container *ngIf="visible && currentPill as pill">
+  <div class="sos-stacked-container" [class.is-minimized-mode]="isMinimized">
+    
+    <!-- MINIMIZED SINGLE PILL -->
+    <div *ngIf="isMinimized"
+         class="sos-morphic-pill"
          (click)="onCardContainerClick($event)"
-         class="sos-pill-card"
-         [class.is-minimized]="isMinimized"
-         [class.sos-pill--offline]="pill.state === 'offline'"
-         [class.sos-pill--pending]="pill.state === 'pending'"
-         [class.sos-pill--dispatched]="pill.state === 'dispatched'"
          role="button"
          tabindex="0"
-         [attr.aria-label]="isMinimized ? 'Expand Emergency SOS Status' : 'Emergency SOS Details'">
-
-      <!-- Left State Beacon / Icon Badge (Fixed Anchor) -->
-      <div class="sos-pill__icon-wrap">
-        <span class="sos-pill__pulse" *ngIf="pill.state === 'pending' || pill.state === 'dispatched'"></span>
-        <app-icon [name]="pill.icon" [size]="18" [color]="pill.state === 'dispatched' ? '#10b981' : (pill.state === 'offline' ? '#f59e0b' : '#d32f2f')"></app-icon>
+         [attr.aria-label]="'Expand ' + summaryMinimizedLabel">
+      <div class="pill-beacon" [class.is-dispatched]="hasDispatched" [class.is-offline]="pill.state === 'offline'">
+        <span class="beacon-pulse"></span>
+        <app-icon [name]="summaryIcon" [size]="16" [color]="summaryIconColor"></app-icon>
       </div>
+      <div class="pill-label-group">
+        <span class="pill-text">{{ summaryMinimizedLabel }}</span>
+        <span *ngIf="pills.length > 1" class="pill-count-badge">{{ pills.length }}</span>
+      </div>
+      <div class="pill-expand-arrow">
+        <app-icon name="chevron-forward" [size]="14" color="var(--ion-color-medium, #8e8e93)"></app-icon>
+      </div>
+    </div>
 
-      <!-- Minimized Label & Chevron: Revealed when closed/minimized -->
-      <div class="sos-pill__min-segment" [class.is-active]="isMinimized">
-        <span class="sos-pill__min-label">{{ pill.state === 'dispatched' ? 'En Route' : 'SOS Active' }}</span>
-        <div class="sos-pill__min-chevron">
-          <app-icon name="chevron-forward" [size]="14" color="var(--ion-color-medium, #8e8e93)"></app-icon>
+    <!-- EXPANDED CONSOLIDATED CARD (Single Container) -->
+    <div *ngIf="!isMinimized"
+         class="sos-expanded-card"
+         (click)="onCardContainerClick($event)"
+         role="button"
+         tabindex="0"
+         aria-label="Emergency SOS Details">
+      
+      <!-- Top Bar: Status Badge, Stepper (if >1), and Minimize Button -->
+      <div class="card-top-bar">
+        <div class="status-badge-wrap">
+          <span class="beacon-dot" [class.is-dispatched]="pill.state === 'dispatched'" [class.is-offline]="pill.state === 'offline'"></span>
+          <span class="status-badge" [class.is-dispatched]="pill.state === 'dispatched'" [class.is-offline]="pill.state === 'offline'">
+            {{ pill.state === 'dispatched' ? 'DISPATCHED' : (pill.state === 'offline' ? 'OFFLINE' : 'PENDING') }}
+          </span>
+          <span *ngIf="pill.timeAgo" class="time-badge">{{ pill.timeAgo }}</span>
         </div>
-      </div>
 
-      <!-- Expanded Center Title & Description: Slides in/out smoothly -->
-      <div class="sos-pill__expanded-body" [class.is-collapsed]="isMinimized">
-        <div class="sos-pill__header-row">
-          <span class="sos-pill__live-indicator" *ngIf="pill.state === 'dispatched'">DISPATCHED</span>
-          <span class="sos-pill__pending-indicator" *ngIf="pill.state === 'pending'">PENDING</span>
-          <span *ngIf="pill.timeAgo" class="sos-pill__time-header">{{ pill.timeAgo }}</span>
-          <p class="sos-pill__label">{{ pill.label }}</p>
+        <!-- Pager Stepper if multiple alerts exist -->
+        <div *ngIf="pills.length > 1" class="stepper-controls" (click)="$event.stopPropagation()">
+          <button type="button" class="stepper-btn" (click)="prevPill($event)" aria-label="Previous alert" title="Previous alert">
+            <app-icon name="chevron-back" [size]="13"></app-icon>
+          </button>
+          <span class="stepper-text">{{ currentIndex + 1 }} of {{ pills.length }}</span>
+          <button type="button" class="stepper-btn" (click)="nextPill($event)" aria-label="Next alert" title="Next alert">
+            <app-icon name="chevron-forward" [size]="13"></app-icon>
+          </button>
         </div>
-        <p class="sos-pill__sublabel">{{ pill.sublabel }}</p>
-      </div>
 
-      <!-- Expanded Right Actions: Cancel Button & Minimize (<) Button -->
-      <div class="sos-pill__expanded-actions" [class.is-collapsed]="isMinimized">
-        <!-- Cancel button — Apple capsule style -->
-        <button *ngIf="pill.cancellable"
-                type="button"
-                class="sos-pill__cancel-action-btn"
-                (pointerdown)="$event.stopPropagation()"
-                (touchstart)="$event.stopPropagation()"
-                (touchend)="$event.stopPropagation()"
-                (mousedown)="$event.stopPropagation()"
-                (click)="onCancel($event, pill)"
-                aria-label="Cancel this SOS report">
-          <app-icon name="close" [size]="11" color="var(--ion-color-danger, #d32f2f)"></app-icon>
-          <span>Cancel</span>
-        </button>
-
-        <!-- Chevron for dispatched (tappable) -->
-        <app-icon *ngIf="!pill.cancellable" name="chevron-forward" [size]="14" class="sos-pill__chevron"></app-icon>
-
-        <!-- Enlarged Minimize Button at the Far Right (Slides right side to left) -->
+        <!-- Single Minimize Button -->
         <button type="button"
-                class="sos-pill__minimize-btn"
-                (pointerdown)="$event.stopPropagation()"
-                (touchstart)="$event.stopPropagation()"
-                (touchend)="$event.stopPropagation()"
-                (mousedown)="$event.stopPropagation()"
+                class="card-minimize-btn"
                 (click)="minimizeCard($event)"
                 aria-label="Minimize SOS Card"
                 title="Minimize">
-          <app-icon name="chevron-back" [size]="16"></app-icon>
+          <app-icon name="chevron-down" [size]="15"></app-icon>
         </button>
       </div>
 
+      <!-- Main Body -->
+      <div class="card-main-body">
+        <div class="icon-title-row">
+          <div class="card-icon-squircle" [class.is-dispatched]="pill.state === 'dispatched'" [class.is-offline]="pill.state === 'offline'">
+            <app-icon [name]="pill.icon" [size]="20" [color]="pill.state === 'dispatched' ? '#10b981' : (pill.state === 'offline' ? '#f59e0b' : '#d32f2f')"></app-icon>
+          </div>
+          <div class="card-title-col">
+            <h4 class="card-label">{{ pill.label }}</h4>
+            <p class="card-sublabel">{{ pill.sublabel }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Actions & Pagination Dots -->
+      <div class="card-footer-row" (click)="$event.stopPropagation()">
+        <!-- Dots indicator for multiple alerts -->
+        <div *ngIf="pills.length > 1" class="dots-indicator">
+          <span *ngFor="let p of pills; let i = index"
+                class="dot"
+                [class.is-active]="i === currentIndex"
+                (click)="goToPill(i, $event)"
+                role="button"
+                [attr.aria-label]="'Go to alert ' + (i + 1)">
+          </span>
+        </div>
+        <div *ngIf="pills.length <= 1" class="tap-hint">
+          <span>Tap to view emergency details</span>
+        </div>
+
+        <!-- Cancel Button if cancellable -->
+        <button *ngIf="pill.cancellable"
+                type="button"
+                class="btn-cancel-alert"
+                (click)="onCancel($event, pill)"
+                aria-label="Cancel this SOS alert">
+          <app-icon name="close" [size]="12" color="#d32f2f"></app-icon>
+          <span>Cancel Alert</span>
+        </button>
+
+        <span *ngIf="!pill.cancellable" class="en-route-chip">
+          <app-icon name="truck-medical" [size]="13" color="#10b981"></app-icon>
+          <span>Responder en route</span>
+        </span>
+      </div>
+
     </div>
+
   </div>
 </ng-container>

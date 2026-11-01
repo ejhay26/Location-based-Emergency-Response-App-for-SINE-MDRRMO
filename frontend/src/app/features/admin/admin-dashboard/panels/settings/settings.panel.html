@@ -534,6 +534,55 @@
       </div>
     </div>
 
+    <!-- Desktop Notification System Permission Card -->
+    <div class="settings-inset-card" style="margin-bottom: 16px;">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 14px 16px;">
+        <div style="display: flex; gap: 12px; align-items: flex-start; flex: 1; min-width: 0;">
+          <div class="row-icon-capsule" [style.background]="notificationPermission === 'granted' ? 'rgba(45,211,111,0.12)' : 'rgba(255,196,9,0.12)'">
+            <app-icon [name]="notificationPermission === 'granted' ? 'shield-check' : 'bell'" [size]="18" [color]="notificationPermission === 'granted' ? '#2dd36f' : '#ffc409'"></app-icon>
+          </div>
+          <div class="row-text-col" style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <p class="row-title" style="margin: 0;">Desktop System Permissions</p>
+              <span class="badge" [style.background]="notificationPermission === 'granted' ? 'rgba(45,211,111,0.18)' : 'rgba(255,196,9,0.18)'" [style.color]="notificationPermission === 'granted' ? '#2dd36f' : '#ffc409'" style="font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 6px; text-transform: uppercase;">
+                {{ notificationPermission === 'granted' ? 'Authorized' : 'Action Required' }}
+              </span>
+            </div>
+            <p class="row-hint" style="margin: 4px 0 0 0;">
+              {{ notificationPermission === 'granted'
+                 ? 'System notifications are authorized to alert you on emergency SOS and hazards even when the app is in the background.'
+                 : 'The operating system requires explicit permission to display desktop notifications for new emergency reports.' }}
+            </p>
+            <div *ngIf="testNotifFeedback" style="margin-top: 6px; font-size: 11.5px; font-weight: 700; color: #2dd36f;">
+              {{ testNotifFeedback }}
+            </div>
+          </div>
+        </div>
+
+        <div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+          <button *ngIf="notificationPermission !== 'granted'"
+                  type="button"
+                  class="btn-setting-action"
+                  (click)="requestNotificationPermission()"
+                  [disabled]="isRequestingPermission"
+                  style="background: #e53935; color: #ffffff; border: none; border-radius: 10px; padding: 8px 14px; font-size: 12.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <app-icon name="bell" [size]="14" color="#ffffff"></app-icon>
+            <span>{{ isRequestingPermission ? 'Authorizing...' : 'Enable System Alerts' }}</span>
+          </button>
+
+          <button *ngIf="notificationPermission === 'granted'"
+                  type="button"
+                  class="btn-setting-action"
+                  (click)="triggerTestNotification()"
+                  [disabled]="isTestingNotification"
+                  style="background: var(--ion-color-step-150, rgba(255,255,255,0.08)); color: var(--ion-text-color, #ffffff); border: 1px solid var(--ion-color-step-250, rgba(255,255,255,0.15)); border-radius: 10px; padding: 8px 14px; font-size: 12.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <app-icon name="paper-plane" [size]="14" color="currentColor"></app-icon>
+            <span>{{ isTestingNotification ? 'Sending...' : 'Send Test Notification' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Toggles Card -->
     <div class="settings-inset-card">
       <div *ngFor="let s of notifications" class="settings-row-item">

@@ -633,8 +633,12 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     };
     this.api.getActiveEmergencies().subscribe({
       next: (res: any) => {
-        this.activeRequests = res;
-        this.plotMarkers();
+        const nextReqs = Array.isArray(res) ? res : [];
+        const isSame = this.areItemsEqual(this.activeRequests, nextReqs, 'request_id');
+        this.activeRequests = nextReqs;
+        if (!isSame || this.mapMarkers.length === 0) {
+          this.plotMarkers();
+        }
         emergenciesDone = true;
         checkDone();
       },
@@ -642,13 +646,29 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     });
     this.api.getActiveHazards().subscribe({
       next: (res: any) => {
-        this.activeHazards = res;
-        this.plotMarkers();
+        const nextHazards = Array.isArray(res) ? res : [];
+        const isSame = this.areItemsEqual(this.activeHazards, nextHazards, 'hazard_id');
+        this.activeHazards = nextHazards;
+        if (!isSame || this.mapMarkers.length === 0) {
+          this.plotMarkers();
+        }
         hazardsDone = true;
         checkDone();
       },
       error: () => { hazardsDone = true; checkDone(); }
     });
+  }
+
+  private areItemsEqual(prev: any[], next: any[], key: string): boolean {
+    if (!prev && !next) return true;
+    if (!prev || !next) return false;
+    if (prev.length !== next.length) return false;
+    for (let i = 0; i < prev.length; i++) {
+      if (prev[i][key] !== next[i][key] || prev[i].status !== next[i].status || prev[i].agency !== next[i].agency || prev[i].unit_name !== next[i].unit_name) {
+        return false;
+      }
+    }
+    return true;
   }
 
   invalidateMapSize() {
@@ -1159,13 +1179,17 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         return;
       }
       document.getElementById('dispatch-map')?.classList.remove('map-has-selection');
-      if (e.popup._source?._icon) e.popup._source._icon.classList.remove('selected-pin');
-      setTimeout(() => {
-        // Only clear if no card was clicked
-        if (!this.isReplottingMarkers) {
-          this.selectedRequestId = null;
-          this.previewType = null;
-        }
+      if (e.popup?._source?._icon) {
+        e.popup._source._icon.classList.remove('selected-pin');
+      }
+    });
+
+    this.map.on('click', () => {
+      this.selectedRequestId = null;
+      this.previewType = null;
+      document.getElementById('dispatch-map')?.classList.remove('map-has-selection');
+      this.mapMarkers.forEach((m: any) => {
+        if (m._icon) m._icon.classList.remove('selected-pin');
       });
     });
 
@@ -1248,7 +1272,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   private createEmergencyPopupContent(req: any): string {
-    const rawTime = req.request_time || req.created_at;
+    const rawTime = req.created_at || req.request_time;
     let formattedTime = 'Recently';
     if (rawTime) {
       try {
@@ -1260,8 +1284,6 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       } catch {}
     }
 
-    const typeMeta = this.getIncidentColorMeta(req.incident_name);
-    const typeLabel = (req.incident_name || 'Emergency').toUpperCase();
     const citizenName = `${req.first_name || ''} ${req.last_name || ''}`.trim() || 'Citizen';
     const phone = req.phone || 'N/A';
     const barangay = this.getBarangayDisplay(req);
@@ -1274,7 +1296,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       const allergies = req.allergies ? `<span>${req.allergies}</span>` : 'No known allergies';
       const sep = blood && allergies ? ' | ' : '';
       medicalHtml = `
-        <div class="pin-medical-badge">
+        <div class="pin-medical-badge" style="margin-top: 6px;">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#2dd36f" stroke-width="2.2" style="flex-shrink:0;">
             <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
           </svg>
@@ -1285,11 +1307,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     let dispatchedHtml = '';
     if (req.agency) {
       const unit = req.unit_name ? ` (${req.unit_name})` : '';
-      const dispBy = req.dispatched_by_name ? `<p class="pin-dispatcher-info">Dispatched by: <strong>${req.dispatched_by_name}</strong></p>` : '';
+      const dispBy = req.dispatched_by_name ? `<p class="pin-dispatcher-info" style="margin: 3px 0 0; font-size: 11px; color: var(--ion-color-medium);">Dispatched by: <strong>${req.dispatched_by_name}</strong></p>` : '';
       dispatchedHtml = `
-        <div class="pin-dispatched-box">
+        <div class="pin-dispatched-box" style="margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(56,128,255,0.08); border: 1px solid rgba(56,128,255,0.2);">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
-            <span class="pin-unit-name">${req.agency}${unit}</span>
+            <span class="pin-unit-name" style="font-weight:700; color:var(--ion-color-primary, #3880ff); font-size:12px;">${req.agency}${unit}</span>
             <button type="button" onclick="window.__copyDispatchBrief(${req.request_id})" class="pin-copy-brief-btn">Brief</button>
           </div>
           ${dispBy}
@@ -1307,60 +1329,44 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
             ${isVideo ? '<span class="pin-video-badge">▶</span>' : ''}
           </div>`;
       }).join('');
-      mediaHtml = `<div class="pin-proof-strip">${thumbs}</div>`;
+      mediaHtml = `<div class="pin-proof-strip" style="margin-top:8px;">${thumbs}</div>`;
     }
 
     const dispatchBtn = req.status === 'Pending'
       ? `<button type="button" class="btn-pin-dispatch" onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${req.request_id}}))">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/><path d="M8 8v4"/><path d="M6 10h4"/></svg>
-          <span>Dispatch</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1c1c1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/><path d="M8 8v4"/><path d="M6 10h4"/></svg>
+          <span style="color:#1c1c1e;font-weight:800;">Dispatch</span>
         </button>`
       : '';
 
     return `
-      <div class="accessible-popup-box dispatch-pin-card">
-        <div class="pin-card-header">
-          <div class="pin-type-badge" style="background:${typeMeta.bg};color:${typeMeta.color};border:1px solid ${typeMeta.border};">
-            <span class="pin-type-dot" style="background:${typeMeta.color};"></span>
-            <span>${typeLabel}</span>
+      <div class="accessible-popup-box dispatch-pin-card unified-match-card">
+        <!-- Top header row: matching active alert queue card -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:38px;height:38px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(235,68,90,0.15);">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#eb445a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 18v-6a5 5 0 0 1 10 0v6"/><path d="M5 21h14"/><path d="M21 12h1"/><path d="M2 12h1"/><path d="M12 2v1"/>
+            </svg>
           </div>
-          <span class="pin-timestamp">${formattedTime}</span>
-        </div>
-
-        <p class="pin-desc-box">${description}</p>
-
-        <div class="pin-info-card">
-          <div class="pin-info-row">
-            <span class="pin-info-label">Citizen</span>
-            <span class="pin-info-value">
-              <span>${citizenName}</span>
-            </span>
-          </div>
-          ${phone !== 'N/A' ? `
-          <div class="pin-info-row">
-            <span class="pin-info-label">Contact</span>
-            <div class="pin-contact-chip-wrap">
-              <a href="tel:${phone}" class="pin-phone-chip" title="Call ${phone}">
-                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <span>${phone}</span>
-              </a>
-              <button type="button" onclick="window.__copyCitizenPhone('${phone}', this)" class="pin-copy-coords-btn" title="Copy Phone Number">
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
-                <span>Copy</span>
-              </button>
-            </div>
-          </div>` : ''}
-          <div class="pin-info-row">
-            <span class="pin-info-label">Barangay</span>
-            <span class="pin-info-value">${barangay}</span>
+          <div style="flex:1;min-width:0;">
+            <span style="font-size:11px;font-weight:700;color:var(--ion-color-medium, #8e8e93);">${formattedTime}</span>
+            <h3 style="margin:1px 0 0 0;font-weight:800;font-size:16px;color:var(--ion-color-danger, #eb445a);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${req.incident_name || 'Emergency SOS'}</h3>
           </div>
         </div>
 
-        <div class="pin-coords-bar">
-          <div class="pin-coords-left">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
-            <code class="pin-coords-text">${coords}</code>
-          </div>
+        <p style="font-size:13.5px;margin:3px 0 5px 0;font-weight:500;line-height:1.35;color:var(--ion-text-color, #111);">${description}</p>
+        <p style="font-size:12px;color:var(--ion-color-medium, #8e8e93);margin:3px 0 0 0;"><strong>Citizen:</strong> ${citizenName}</p>
+        ${phone !== 'N/A' ? `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:3px 0 0 0;font-size:11.5px;color:var(--ion-color-medium, #8e8e93);">
+          <span><strong>Contact:</strong> <a href="tel:${phone}" style="color:inherit;text-decoration:none;font-weight:600;">${phone}</a></span>
+          <button type="button" onclick="window.__copyCitizenPhone('${phone}', this)" class="pin-copy-coords-btn" title="Copy Phone Number">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+            <span>Copy</span>
+          </button>
+        </div>` : ''}
+        <p style="font-size:12px;color:var(--ion-color-medium, #8e8e93);margin:3px 0 0 0;"><strong>Barangay:</strong> ${barangay}</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 0 0;font-size:11.5px;color:var(--ion-color-medium, #8e8e93);">
+          <span><strong>GPS:</strong> ${coords}</span>
           <button type="button" onclick="window.__copyIncidentCoords('${req.latitude}','${req.longitude}', this)" class="pin-copy-coords-btn" title="Copy GPS Coordinates">
             <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
             <span>Copy</span>
@@ -1369,12 +1375,12 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
         ${medicalHtml}
         ${dispatchedHtml}
-        ${mediaHtml}
+        ${mediaHtml ? mediaHtml : '<p style="font-size:11.5px;color:var(--ion-color-medium, #8e8e93);margin:8px 0 0 0;">No files attached</p>'}
 
-        <div class="pin-action-row">
+        <div class="pin-action-row" style="display:flex;gap:8px;margin-top:14px;">
           ${dispatchBtn}
           <button type="button" class="btn-pin-resolve" onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${req.request_id}}))">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ffffff" stroke-width="2.5" style="margin-right: 6px;"><polyline points="20 6 9 17 4 12"/></svg>
             <span>Resolve</span>
           </button>
         </div>
@@ -1399,7 +1405,6 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     const barangay = this.getBarangayDisplay(haz);
     const coords = this.formatCoords(haz.latitude, haz.longitude);
     const description = haz.description || 'Public hazard report';
-    const hazardType = (haz.hazard_type || 'Public Hazard').toUpperCase();
 
     let mediaHtml = '';
     const files = haz.proof_files || (haz.proof_photo ? [haz.proof_photo] : []);
@@ -1413,48 +1418,40 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
             ${isVideo ? '<span class="pin-video-badge">▶</span>' : ''}
           </div>`;
       }).join('');
-      mediaHtml = `<div class="pin-proof-strip">${thumbs}</div>`;
+      mediaHtml = `<div class="pin-proof-strip" style="margin-top:8px;">${thumbs}</div>`;
     }
 
     return `
-      <div class="accessible-popup-box dispatch-pin-card">
-        <div class="pin-card-header">
-          <div class="pin-type-badge" style="background:rgba(255,196,9,0.16);color:#ffc409;border:1px solid rgba(255,196,9,0.32);">
-            <span class="pin-type-dot" style="background:#ffc409;"></span>
-            <span>${hazardType}</span>
+      <div class="accessible-popup-box dispatch-pin-card unified-match-card">
+        <!-- Top header row: matching hazard queue card -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:38px;height:38px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,196,9,0.15);">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#ffc409" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/>
+            </svg>
           </div>
-          <span class="pin-timestamp">${formattedTime}</span>
-        </div>
-
-        <p class="pin-desc-box">${description}</p>
-
-        <div class="pin-info-card">
-          <div class="pin-info-row">
-            <span class="pin-info-label">Reporter</span>
-            <span class="pin-info-value">${reporterName}</span>
-          </div>
-          <div class="pin-info-row">
-            <span class="pin-info-label">Barangay</span>
-            <span class="pin-info-value">${barangay}</span>
+          <div style="flex:1;min-width:0;">
+            <span style="font-size:11px;font-weight:700;color:var(--ion-color-medium, #8e8e93);">${formattedTime}</span>
+            <h3 style="margin:1px 0 0 0;font-weight:800;font-size:16px;color:#ffc409;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${haz.hazard_type || 'Public Hazard'}</h3>
           </div>
         </div>
 
-        <div class="pin-coords-bar">
-          <div class="pin-coords-left">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
-            <code class="pin-coords-text">${coords}</code>
-          </div>
+        <p style="font-size:13.5px;margin:3px 0 5px 0;font-weight:500;line-height:1.35;color:var(--ion-text-color, #111);">${description}</p>
+        <p style="font-size:12px;color:var(--ion-color-medium, #8e8e93);margin:3px 0 0 0;"><strong>Reporter:</strong> ${reporterName}</p>
+        <p style="font-size:12px;color:var(--ion-color-medium, #8e8e93);margin:3px 0 0 0;"><strong>Barangay:</strong> ${barangay}</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 0 0;font-size:11.5px;color:var(--ion-color-medium, #8e8e93);">
+          <span><strong>GPS:</strong> ${coords}</span>
           <button type="button" onclick="window.__copyIncidentCoords('${haz.latitude}','${haz.longitude}', this)" class="pin-copy-coords-btn" title="Copy GPS Coordinates">
             <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
             <span>Copy</span>
           </button>
         </div>
 
-        ${mediaHtml}
+        ${mediaHtml ? mediaHtml : '<p style="font-size:11.5px;color:var(--ion-color-medium, #8e8e93);margin:8px 0 0 0;">No files attached</p>'}
 
-        <div class="pin-action-row">
-          <button type="button" class="btn-pin-resolve" onclick="window.dispatchEvent(new CustomEvent('map-resolve-hazard',{detail:${haz.hazard_id}}))">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <div class="pin-action-row" style="display:flex;gap:8px;margin-top:14px;">
+          <button type="button" class="btn-pin-resolve" onclick="window.dispatchEvent(new CustomEvent('map-resolve-hazard',{detail:${haz.hazard_id}}))" style="width:100%;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ffffff" stroke-width="2.5" style="margin-right: 6px;"><polyline points="20 6 9 17 4 12"/></svg>
             <span>Resolve Hazard</span>
           </button>
         </div>

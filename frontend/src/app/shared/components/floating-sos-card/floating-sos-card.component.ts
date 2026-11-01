@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, OnChanges, S
 import { CommonModule } from '@angular/common';
 import { parseServerDate } from '../../pipes/utc-date.pipe';
 import { QueuedReport } from '../../../core/services/offline-queue';
+import { AppIconComponent } from '../app-icon/app-icon.component';
 
 export interface FloatingSosStatus {
   request_id: number;
@@ -14,7 +15,7 @@ export interface FloatingSosStatus {
 
 type PillState = 'offline' | 'pending' | 'dispatched';
 
-interface SosPill {
+export interface SosPill {
   key: number;
   state: PillState;
   label: string;
@@ -29,8 +30,6 @@ interface SosPill {
   cancellable: boolean;
 }
 
-import { AppIconComponent } from '../app-icon/app-icon.component';
-
 @Component({
   selector: 'app-floating-sos-card',
   standalone: true,
@@ -42,8 +41,15 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
   private cdr = inject(ChangeDetectorRef);
 
   isMinimized = false;
+  currentIndex = 0;
   private autoMinimizeTimer: any = null;
   private prevItemIds = new Set<string>();
+
+  @Input() activeReports: FloatingSosStatus[] = [];
+  @Input() queuedItems: QueuedReport[] = [];
+  @Output() cardTap = new EventEmitter<void>();
+  /** Emits request_id for server-confirmed pills, null for offline-queue pills (use queueId instead) */
+  @Output() cancelTap = new EventEmitter<{ requestId: number | null; queueId: string | null }>();
 
   ngOnInit() {
     if (this.visible) {
@@ -72,6 +78,14 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     this.prevItemIds = currentIds;
+
+    // Ensure currentIndex stays within bounds
+    const len = this.pills.length;
+    if (len === 0) {
+      this.currentIndex = 0;
+    } else if (this.currentIndex >= len) {
+      this.currentIndex = len - 1;
+    }
   }
 
   ngOnDestroy() {
@@ -118,12 +132,6 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
       this.onTap();
     }
   }
-
-  @Input() activeReports: FloatingSosStatus[] = [];
-  @Input() queuedItems: QueuedReport[] = [];
-  @Output() cardTap = new EventEmitter<void>();
-  /** Emits request_id for server-confirmed pills, null for offline-queue pills (use queueId instead) */
-  @Output() cancelTap = new EventEmitter<{ requestId: number | null; queueId: string | null }>();
 
   get pills(): SosPill[] {
     const result: SosPill[] = [];
@@ -173,8 +181,6 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
         timeAgo: this.calcTimeAgo(r.request_time),
         requestId: r.request_id,
         queueId: null,
-        // Only Pending can be cancelled — Dispatched means a responder is
-        // already en route, cancelling at that point is handled by History.
         cancellable: state === 'pending',
       });
     }
@@ -182,7 +188,73 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     return result;
   }
 
+  get currentPill(): SosPill | null {
+    const p = this.pills;
+    if (p.length === 0) return null;
+    return p[this.currentIndex] ?? p[0];
+  }
+
+  get hasDispatched(): boolean {
+    return this.pills.some(p => p.state === 'dispatched');
+  }
+
+  get summaryMinimizedLabel(): string {
+    const len = this.pills.length;
+    if (len === 1) {
+      return this.pills[0].state === 'dispatched' ? 'En Route' : 'SOS Active';
+    }
+    return `${len} Active Alerts`;
+  }
+
+  get summaryIcon(): string {
+    if (this.hasDispatched) return 'truck-medical';
+    if (this.pills.some(p => p.state === 'offline')) return 'cloud-arrow-up';
+    return 'clock';
+  }
+
+  get summaryIconColor(): string {
+    if (this.hasDispatched) return '#10b981';
+    if (this.pills.some(p => p.state === 'offline')) return '#f59e0b';
+    return '#d32f2f';
+  }
+
   get visible(): boolean { return this.pills.length > 0; }
+
+  prevPill(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    const len = this.pills.length;
+    if (len <= 1) return;
+    this.currentIndex = (this.currentIndex - 1 + len) % len;
+    this.scheduleAutoMinimize(8000);
+    this.cdr.markForCheck();
+  }
+
+  nextPill(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    const len = this.pills.length;
+    if (len <= 1) return;
+    this.currentIndex = (this.currentIndex + 1) % len;
+    this.scheduleAutoMinimize(8000);
+    this.cdr.markForCheck();
+  }
+
+  goToPill(index: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (index >= 0 && index < this.pills.length) {
+      this.currentIndex = index;
+      this.scheduleAutoMinimize(8000);
+      this.cdr.markForCheck();
+    }
+  }
 
   private calcTimeAgo(dateStr: string): string {
     const date = parseServerDate(dateStr);
@@ -194,12 +266,11 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     return hrs < 24 ? `${hrs}h ago` : `${Math.floor(hrs / 24)}d ago`;
   }
 
-  trackByKey(_: number, pill: SosPill): number { return pill.key; }
-
   onTap() { this.cardTap.emit(); }
 
-  onCancel(ev: MouseEvent, pill: SosPill) {
-    ev.stopPropagation(); // don't also fire cardTap
+  onCancel(ev: MouseEvent, pill: SosPill | null) {
+    ev.stopPropagation();
+    if (!pill) return;
     this.cancelTap.emit({ requestId: pill.requestId, queueId: pill.queueId });
   }
 }

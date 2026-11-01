@@ -49,6 +49,12 @@ interface IncidentSoundProfile {
 export class SettingsPanel implements OnInit, OnDestroy {
 
   activeSubPage: SettingsSubPage = 'main';
+
+  // Desktop Notifications Permission & Testing
+  notificationPermission: 'granted' | 'denied' | 'default' = 'default';
+  isRequestingPermission = false;
+  isTestingNotification = false;
+  testNotifFeedback: string | null = null;
   isExitingSubPage = false;
   private exitTimer: any = null;
   private backButtonSub?: Subscription;
@@ -366,6 +372,9 @@ export class SettingsPanel implements OnInit, OnDestroy {
     }
     this.isExitingSubPage = false;
     this.activeSubPage = page;
+    if (page === 'notifications') {
+      this.checkNotificationPermission();
+    }
     if (page !== 'main') {
       try {
         window.history.pushState({ sine_admin_subpage: page }, '');
@@ -449,6 +458,8 @@ export class SettingsPanel implements OnInit, OnDestroy {
     this.mapDefaultStyle = (this.settings.get('map_default_style') as 'street' | 'satellite') || 'street';
 
     // Hydrate audio sound profiles
+    this.checkNotificationPermission();
+
     this.incidentSoundProfiles.forEach(p => {
       p.soundId = this.audio.getIncidentSound(p.key);
       p.volume = Math.round(this.audio.getIncidentVolume(p.key) * 100);
@@ -525,6 +536,48 @@ export class SettingsPanel implements OnInit, OnDestroy {
     this.mapDefaultStyle = style;
     this.settings.set('map_default_style', style);
     this.ui.showToast(`Default map layer set to ${style === 'street' ? 'Street' : 'Satellite'}.`, 'medium');
+  }
+
+  async checkNotificationPermission(): Promise<void> {
+    try {
+      this.notificationPermission = await this.desktopNotifications.getPermissionStatus();
+    } catch {}
+  }
+
+  async requestNotificationPermission(): Promise<void> {
+    this.isRequestingPermission = true;
+    try {
+      this.notificationPermission = await this.desktopNotifications.requestPermission();
+      if (this.notificationPermission === 'granted') {
+        this.ui.showToast('Desktop notification permission granted!', 'success');
+      } else {
+        this.ui.showToast('Notification permission was not granted.', 'warning');
+      }
+    } finally {
+      this.isRequestingPermission = false;
+    }
+  }
+
+  async triggerTestNotification(): Promise<void> {
+    this.isTestingNotification = true;
+    this.testNotifFeedback = null;
+    try {
+      const dispatched = await this.desktopNotifications.sendTestNotification();
+      if (dispatched) {
+        this.testNotifFeedback = 'Desktop alert dispatched successfully!';
+        this.ui.showToast('Test notification dispatched to your desktop.', 'success');
+      } else {
+        this.testNotifFeedback = 'Alert sound played. Visual notification blocked by OS permissions.';
+        this.ui.showToast('Alert sound played. Visual notification blocked.', 'warning');
+      }
+    } catch {
+      this.testNotifFeedback = 'Failed to trigger test notification.';
+    } finally {
+      setTimeout(() => {
+        this.isTestingNotification = false;
+        setTimeout(() => this.testNotifFeedback = null, 4000);
+      }, 400);
+    }
   }
 
   ngOnDestroy(): void {

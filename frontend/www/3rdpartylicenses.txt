@@ -66,6 +66,11 @@ License: "MIT"
 
 
 --------------------------------------------------------------------------------
+Package: @tauri-apps/plugin-notification
+License: "MIT OR Apache-2.0"
+
+
+--------------------------------------------------------------------------------
 Package: @kurkle/color
 License: "MIT"
 

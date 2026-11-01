@@ -503,15 +503,23 @@ html.ion-palette-dark .custom-overhead-popup {
     }
 
     .btn-pin-dispatch {
-      background: #ffc409;
-      color: #000000;
+      background: #ffc409 !important;
+      color: #1c1c1e !important;
       box-shadow: 0 3px 10px rgba(255, 196, 9, 0.35);
+
+      svg {
+        stroke: #1c1c1e !important;
+      }
     }
 
     .btn-pin-resolve {
-      background: #2dd36f;
-      color: #ffffff;
+      background: #2dd36f !important;
+      color: #ffffff !important;
       box-shadow: 0 3px 10px rgba(45, 211, 111, 0.35);
+
+      svg {
+        stroke: #ffffff !important;
+      }
     }
   }
 }
