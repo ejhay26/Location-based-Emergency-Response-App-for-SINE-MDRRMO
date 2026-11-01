@@ -641,6 +641,12 @@
   &:active {
     transform: scale(0.96);
   }
+
+  &.is-copied {
+    color: #2dd36f !important;
+    background: rgba(45, 211, 111, 0.14) !important;
+    border-color: rgba(45, 211, 111, 0.35) !important;
+  }
 }
 
 .media-thumb-grid {

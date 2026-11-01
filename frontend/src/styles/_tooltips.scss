@@ -28,10 +28,12 @@
   will-change: transform, opacity;
 
   &.custom-story-tooltip--active {
+    opacity: 1;
     animation: tooltipSpringPop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   &.custom-story-tooltip--exit {
+    opacity: 0;
     animation: tooltipSpringFadeOut 0.1s cubic-bezier(0.4, 0, 1, 1) forwards;
   }
 
@@ -344,5 +346,37 @@ body.dark .workstation-kbd,
   100% {
     opacity: 0;
     transform: scale(0.96);
+  }
+}
+
+/* Reduced Motion Support for Story Dialog Tooltip */
+@media (prefers-reduced-motion: reduce) {
+  .custom-story-tooltip.custom-story-tooltip--active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .custom-story-tooltip.custom-story-tooltip--exit {
+    opacity: 0 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+html.reduce-motion,
+body.reduce-motion,
+html.reduce-animations,
+body.reduce-animations {
+  .custom-story-tooltip.custom-story-tooltip--active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .custom-story-tooltip.custom-story-tooltip--exit {
+    opacity: 0 !important;
+    transform: none !important;
+    animation: none !important;
   }
 }

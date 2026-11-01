@@ -963,6 +963,22 @@ export class IconRegistryService {
       }
     ],
     [
+      'sidebar-right-collapse',
+      {
+        name: 'sidebar-right-collapse',
+        faClass: 'fa-solid fa-chevron-right',
+        lucideSvg: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/><path d="m16.5 9.5 2.5 2.5-2.5 2.5"/>'
+      }
+    ],
+    [
+      'sidebar-right-expand',
+      {
+        name: 'sidebar-right-expand',
+        faClass: 'fa-solid fa-chevron-left',
+        lucideSvg: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/><path d="m19 9.5-2.5 2.5 2.5 2.5"/>'
+      }
+    ],
+    [
       'trash',
       {
         name: 'trash',
@@ -1177,6 +1193,11 @@ export class IconRegistryService {
       'panel-left': 'sidebar-collapse',
       'panel-left-close': 'sidebar-collapse',
       'panel-left-open': 'sidebar-expand',
+      'panel-right': 'sidebar-right-collapse',
+      'panel-right-close': 'sidebar-right-collapse',
+      'panel-right-open': 'sidebar-right-expand',
+      'collapse-right-sidebar': 'sidebar-right-collapse',
+      'expand-right-sidebar': 'sidebar-right-expand',
       'alert-circle': 'circle-alert',
       'x': 'close',
       'sort': 'arrow-up-down',

@@ -483,8 +483,29 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   };
 
   ngAfterViewInit() {
-    (window as any).__copyIncidentCoords = (lat: any, lng: any) => {
+    (window as any).__copyIncidentCoords = (lat: any, lng: any, btnEl?: HTMLElement) => {
       this.copyCoordinates(lat, lng);
+      if (btnEl) {
+        const originalHtml = btnEl.innerHTML;
+        btnEl.innerHTML = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#2dd36f" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="color:#2dd36f;font-weight:800;">Copied</span>`;
+        btnEl.classList.add('pin-copied');
+        setTimeout(() => {
+          btnEl.innerHTML = originalHtml;
+          btnEl.classList.remove('pin-copied');
+        }, 1800);
+      }
+    };
+    (window as any).__copyCitizenPhone = (phone: string, btnEl?: HTMLElement) => {
+      this.copyText(phone);
+      if (btnEl) {
+        const originalHtml = btnEl.innerHTML;
+        btnEl.innerHTML = `<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#2dd36f" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="color:#2dd36f;font-weight:800;">Copied</span>`;
+        btnEl.classList.add('pin-copied');
+        setTimeout(() => {
+          btnEl.innerHTML = originalHtml;
+          btnEl.classList.remove('pin-copied');
+        }, 1800);
+      }
     };
     (window as any).__copyDispatchBrief = (requestId: number) => {
       const item = this.unifiedActiveItems.find(i => i.type === 'emergency' && i.data.request_id === requestId);
@@ -575,6 +596,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     window.removeEventListener('map-resolve-hazard', this.handleMapResolveHazard);
     try {
       delete (window as any).__copyIncidentCoords;
+      delete (window as any).__copyCitizenPhone;
       delete (window as any).__copyDispatchBrief;
       delete (window as any).__openProofPhoto;
     } catch {}
@@ -663,6 +685,28 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       }, 2000);
     }
     this.ui.showToast(`Coordinates copied: ${text}`, 'medium');
+  }
+
+  copyText(text: string, itemId?: string, event?: Event): void {
+    if (event) event.stopPropagation();
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    if (itemId) {
+      this.copiedCoordId = itemId;
+      setTimeout(() => {
+        if (this.copiedCoordId === itemId) this.copiedCoordId = null;
+      }, 2000);
+    }
+    this.ui.showToast(`Copied ${text} to clipboard.`, 'medium');
   }
 
   isNewlyArrived(item: any): boolean {
@@ -1268,8 +1312,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
     const dispatchBtn = req.status === 'Pending'
       ? `<button type="button" class="btn-pin-dispatch" onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${req.request_id}}))">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          <span>Dispatch Team</span>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/><path d="M8 8v4"/><path d="M6 10h4"/></svg>
+          <span>Dispatch</span>
         </button>`
       : '';
 
@@ -1290,9 +1334,22 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
             <span class="pin-info-label">Citizen</span>
             <span class="pin-info-value">
               <span>${citizenName}</span>
-              ${phone !== 'N/A' ? `<a href="tel:${phone}" class="pin-phone-chip"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${phone}</a>` : ''}
             </span>
           </div>
+          ${phone !== 'N/A' ? `
+          <div class="pin-info-row">
+            <span class="pin-info-label">Contact</span>
+            <div class="pin-contact-chip-wrap">
+              <a href="tel:${phone}" class="pin-phone-chip" title="Call ${phone}">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>${phone}</span>
+              </a>
+              <button type="button" onclick="window.__copyCitizenPhone('${phone}', this)" class="pin-copy-coords-btn" title="Copy Phone Number">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                <span>Copy</span>
+              </button>
+            </div>
+          </div>` : ''}
           <div class="pin-info-row">
             <span class="pin-info-label">Barangay</span>
             <span class="pin-info-value">${barangay}</span>
@@ -1304,7 +1361,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
             <code class="pin-coords-text">${coords}</code>
           </div>
-          <button type="button" onclick="window.__copyIncidentCoords('${req.latitude}','${req.longitude}')" class="pin-copy-coords-btn" title="Copy GPS Coordinates">
+          <button type="button" onclick="window.__copyIncidentCoords('${req.latitude}','${req.longitude}', this)" class="pin-copy-coords-btn" title="Copy GPS Coordinates">
             <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
             <span>Copy</span>
           </button>
@@ -1387,7 +1444,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
             <code class="pin-coords-text">${coords}</code>
           </div>
-          <button type="button" onclick="window.__copyIncidentCoords('${haz.latitude}','${haz.longitude}')" class="pin-copy-coords-btn" title="Copy GPS Coordinates">
+          <button type="button" onclick="window.__copyIncidentCoords('${haz.latitude}','${haz.longitude}', this)" class="pin-copy-coords-btn" title="Copy GPS Coordinates">
             <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
             <span>Copy</span>
           </button>

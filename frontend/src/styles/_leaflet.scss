@@ -314,6 +314,14 @@ html.ion-palette-dark .custom-overhead-popup {
     }
   }
 
+  .pin-contact-chip-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
   .pin-coords-bar {
     display: flex;
     align-items: center;
@@ -366,6 +374,12 @@ html.ion-palette-dark .custom-overhead-popup {
 
     &:active {
       transform: scale(0.95);
+    }
+
+    &.pin-copied {
+      background: rgba(45, 211, 111, 0.16) !important;
+      border-color: rgba(45, 211, 111, 0.35) !important;
+      color: #2dd36f !important;
     }
   }
 
@@ -548,6 +562,12 @@ html.ion-palette-dark .dispatch-pin-card {
 
     &:hover {
       background: rgba(255, 255, 255, 0.16);
+    }
+
+    &.pin-copied {
+      background: rgba(45, 211, 111, 0.22) !important;
+      border-color: rgba(45, 211, 111, 0.45) !important;
+      color: #2dd36f !important;
     }
   }
 

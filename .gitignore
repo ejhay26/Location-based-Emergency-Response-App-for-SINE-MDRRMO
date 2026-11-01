@@ -37,5 +37,6 @@ old-backend/.env
 frontend2/
 frontend3/
 replica/
+glass-frontend/
 TODO.md
 todo.md
