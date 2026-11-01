@@ -961,7 +961,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   toggleImmersiveMap(): void {
     this.isImmersiveMap = !this.isImmersiveMap;
-    this.isQueueHidden = this.isImmersiveMap;
+    // Keep floating cards visible by default when entering immersive full screen
+    this.isQueueHidden = false;
     this.runMapInvalidationLoop();
   }
 
