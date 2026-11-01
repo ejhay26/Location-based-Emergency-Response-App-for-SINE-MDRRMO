@@ -126,3 +126,53 @@ html.ion-palette-dark .leaflet-popup-tip {
   position: absolute !important;
   inset: 0 !important;
 }
+
+
+/* ── CUSTOM OVERHEAD DISPATCH POPUP ── */
+.custom-overhead-popup .leaflet-popup-content-wrapper {
+  padding: 0 !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12)) !important;
+  background: var(--ion-card-background, #ffffff) !important;
+}
+
+html.ion-palette-dark .custom-overhead-popup .leaflet-popup-content-wrapper {
+  background: var(--ion-card-background, #1c1c1e) !important;
+  border-color: var(--card-border, rgba(255, 255, 255, 0.14)) !important;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.65) !important;
+}
+
+.custom-overhead-popup .leaflet-popup-content {
+  margin: 12px 14px !important;
+  line-height: 1.4 !important;
+}
+
+.custom-overhead-popup .leaflet-popup-tip {
+  background: var(--ion-card-background, #ffffff) !important;
+}
+
+html.ion-palette-dark .custom-overhead-popup .leaflet-popup-tip {
+  background: var(--ion-card-background, #1c1c1e) !important;
+}
+
+.custom-overhead-popup a.leaflet-popup-close-button {
+  top: 8px !important;
+  right: 8px !important;
+  color: var(--ion-color-medium, #8e8e93) !important;
+  font-size: 18px !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+
+  &:hover {
+    color: var(--ion-color-danger, #eb445a) !important;
+    background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06)) !important;
+  }
+}

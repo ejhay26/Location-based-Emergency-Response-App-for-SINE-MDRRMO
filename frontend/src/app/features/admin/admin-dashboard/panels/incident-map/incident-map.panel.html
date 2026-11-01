@@ -313,7 +313,7 @@
 </div>
 
 <!-- ── WORKSPACE SPLIT (MAP + RESIZER + QUEUE) ── -->
-<div class="map-workspace-split" [class.is-immersive-workspace]="isImmersiveMap">
+<div class="map-workspace-split">
   
   <!-- Left / Main: Map Container -->
   <div id="dispatch-map-container" class="map-container-col">
@@ -371,29 +371,26 @@
               <app-icon name="minus" [size]="13"></app-icon>
             </button>
           </div>
-
-          <!-- Divider -->
-          <div class="dock-divider"></div>
-
-          <!-- 3. Fullscreen / Immersive Toggle -->
-          <button
-            type="button"
-            class="dock-icon-btn dock-fullscreen-btn"
-            [class.active]="isImmersiveMap"
-            (click)="toggleImmersiveMap()"
-            [appTooltip]="isImmersiveMap ? 'Exit Full Screen' : 'Full Screen Immersive Map'"
-            tooltipPlacement="bottom"
-            aria-label="Toggle Full Screen Immersive Map">
-            <app-icon [name]="isImmersiveMap ? 'minimize-2' : 'maximize-2'" [size]="14"></app-icon>
-          </button>
         </div>
+      
+        <!-- Floating Restore Queue Button when hidden (Matching Sidebar Expand design) -->
+        <button *ngIf="isQueueHidden"
+                type="button"
+                class="floating-show-queue-btn"
+                (click)="toggleQueueHidden()"
+                [appTooltip]="'Expand Active Alerts Panel'"
+                tooltipPlacement="left"
+                aria-label="Show Active Alerts Queue">
+          <app-icon name="sidebar-expand" [size]="16" color="var(--ion-color-danger, #eb445a)"></app-icon>
+          <span>Alerts ({{ unifiedActiveItems.length }})</span>
+        </button>
       </ion-card-content>
     </ion-card>
   </div>
 
   <!-- Middle: Draggable Splitter Divider (Desktop Only) -->
   <div class="map-split-resizer"
-       [class.is-collapsed]="isQueueHidden || isImmersiveMap"
+       [class.is-collapsed]="isQueueHidden"
        [class.resizing]="isResizingQueue"
        (mousedown)="onSplitterMouseDown($event)"
        [appTooltip]="'Resize Queue'"
@@ -406,7 +403,7 @@
   <div id="admin-queue-container"
        class="map-queue-col"
        [class.is-queue-collapsed]="isQueueHidden"
-       [style.width.px]="isImmersiveMap ? null : (isQueueHidden ? 0 : queueWidth)">
+       [style.width.px]="isQueueHidden ? 0 : queueWidth">
     
     <div class="queue-header-row" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 28px;">
       <h3 style="margin: 0; font-weight: 800; font-size: 14.5px; color: var(--ion-text-color); display: flex; align-items: center; gap: 8px;">
@@ -417,12 +414,12 @@
       </h3>
 
       <button type="button"
-              class="immersive-hide-queue-btn"
+              class="sidebar-toggle-btn queue-toggle-btn"
               (click)="toggleQueueHidden()"
-              [appTooltip]="'Hide Cards'"
-              tooltipPlacement="left">
-        <span>Hide</span>
-        <app-icon name="chevron-right" [size]="12" color="currentColor"></app-icon>
+              [appTooltip]="'Collapse Alerts Panel'"
+              tooltipPlacement="left"
+              aria-label="Collapse Active Alerts Panel">
+        <app-icon name="sidebar-collapse" [size]="18" color="var(--ion-color-danger, #d32f2f)"></app-icon>
       </button>
     </div>
 
@@ -609,18 +606,6 @@
       </div>
     </ng-container>
   </div>
-
-  <!-- Floating Restore Queue Button when hidden -->
-  <button *ngIf="isQueueHidden"
-          type="button"
-          class="floating-show-queue-btn"
-          (click)="toggleQueueHidden()"
-          [appTooltip]="'Show Alerts Queue'"
-          tooltipPlacement="left"
-          aria-label="Show Active Alerts Queue">
-    <app-icon name="chevron-left" [size]="14"></app-icon>
-    <span>Alerts ({{ unifiedActiveItems.length }})</span>
-  </button>
 
   <!-- ── MOBILE PULLABLE BOTTOM SHEET QUEUE (MOBILE ONLY) ── -->
   <div class="mobile-queue-sheet"

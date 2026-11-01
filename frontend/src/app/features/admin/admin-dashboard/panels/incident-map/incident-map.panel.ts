@@ -91,8 +91,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   previewType: 'emergency' | 'hazard' | null = null;
 
   mapStyle: 'street' | 'satellite' = 'street';
-  isImmersiveMap = false;
-  private isReplottingMarkers = false;
+    private isReplottingMarkers = false;
   private map: any;
   private mapMarkers: any[] = [];
   private streetLayer: any;
@@ -468,10 +467,38 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   copiedCoordId: string | null = null;
   newlyArrivedIds = new Set<string>();
 
+  private handleMapDispatch = (e: any) => {
+    this.map?.closePopup();
+    if (e.detail) this.openDispatchModal(e.detail);
+  };
+
+  private handleMapResolve = (e: any) => {
+    this.map?.closePopup();
+    if (e.detail) this.resolveEmergency(e.detail);
+  };
+
+  private handleMapResolveHazard = (e: any) => {
+    this.map?.closePopup();
+    if (e.detail) this.dismissHazard(e.detail);
+  };
+
   ngAfterViewInit() {
     (window as any).__copyIncidentCoords = (lat: any, lng: any) => {
       this.copyCoordinates(lat, lng);
     };
+    (window as any).__copyDispatchBrief = (requestId: number) => {
+      const item = this.unifiedActiveItems.find(i => i.type === 'emergency' && i.data.request_id === requestId);
+      if (item) {
+        this.copyDispatchBrief(item);
+      }
+    };
+    (window as any).__openProofPhoto = (url: string, isVideo = false) => {
+      this.ui.openLightbox(url, isVideo);
+    };
+
+    window.addEventListener('map-dispatch', this.handleMapDispatch);
+    window.addEventListener('map-resolve', this.handleMapResolve);
+    window.addEventListener('map-resolve-hazard', this.handleMapResolveHazard);
 
     this.loadData();
     setTimeout(() => this.initMap(), 250);
@@ -543,6 +570,14 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    window.removeEventListener('map-dispatch', this.handleMapDispatch);
+    window.removeEventListener('map-resolve', this.handleMapResolve);
+    window.removeEventListener('map-resolve-hazard', this.handleMapResolveHazard);
+    try {
+      delete (window as any).__copyIncidentCoords;
+      delete (window as any).__copyDispatchBrief;
+      delete (window as any).__openProofPhoto;
+    } catch {}
     this.tourSub?.unsubscribe();
     this.barangayJumpSub?.unsubscribe();
     this.fallbackPollSub?.unsubscribe();
@@ -957,16 +992,10 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   toggleQueueHidden(): void {
     this.isQueueHidden = !this.isQueueHidden;
-    this.runMapInvalidationLoop();
+    this.runMapInvalidationLoop(280);
   }
 
-  toggleImmersiveMap(): void {
-    this.isImmersiveMap = !this.isImmersiveMap;
-    // Preserve whether the cards list was hidden or visible!
-    this.runMapInvalidationLoop(350);
-  }
-
-  private runMapInvalidationLoop(duration = 400): void {
+  private runMapInvalidationLoop(duration = 280): void {
     const start = performance.now();
     const step = (time: number) => {
       if (this.map) {
@@ -1153,6 +1182,163 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     });
   }
 
+  private createEmergencyPopupContent(req: any): string {
+    const rawTime = req.request_time || req.created_at;
+    let formattedTime = 'Recently';
+    if (rawTime) {
+      try {
+        const d = new Date(rawTime);
+        if (!isNaN(d.getTime())) {
+          formattedTime = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+                          d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+      } catch {}
+    }
+
+    const citizenName = `${req.first_name || ''} ${req.last_name || ''}`.trim() || 'Citizen';
+    const phone = req.phone || 'N/A';
+    const barangay = this.getBarangayDisplay(req);
+    const coords = this.formatCoords(req.latitude, req.longitude);
+    const description = req.description || 'Emergency alert triggered';
+
+    let medicalHtml = '';
+    if (req.blood_type || req.allergies) {
+      const blood = req.blood_type ? `<strong>${req.blood_type}</strong>` : '';
+      const allergies = req.allergies ? `<span>${req.allergies}</span>` : 'No known allergies';
+      const sep = blood && allergies ? ' | ' : '';
+      medicalHtml = `
+        <div class="pin-medical-badge">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#2dd36f" stroke-width="2" style="flex-shrink:0;">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+          </svg>
+          <span>${blood}${sep}${allergies}</span>
+        </div>`;
+    }
+
+    let dispatchedHtml = '';
+    if (req.agency) {
+      const unit = req.unit_name ? ` (${req.unit_name})` : '';
+      const dispBy = req.dispatched_by_name ? `<p class="pin-dispatcher-info">Dispatched by: <strong>${req.dispatched_by_name}</strong></p>` : '';
+      dispatchedHtml = `
+        <div class="pin-dispatched-box">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+            <span class="pin-unit-name">${req.agency}${unit}</span>
+            <button type="button" onclick="window.__copyDispatchBrief(${req.request_id})" class="pin-copy-brief-btn">Brief</button>
+          </div>
+          ${dispBy}
+        </div>`;
+    }
+
+    let mediaHtml = '';
+    if (req.proof_files && Array.isArray(req.proof_files) && req.proof_files.length > 0) {
+      const thumbs = req.proof_files.slice(0, 3).map((f: string) => {
+        const url = this.ui.getProxyUrl(f);
+        const isVideo = this.ui.isVideoFile(f);
+        return `
+          <div onclick="window.__openProofPhoto('${f}', ${isVideo})" class="pin-thumb-item">
+            <img src="${url}" alt="Incident proof" />
+            ${isVideo ? '<span class="pin-video-badge">▶</span>' : ''}
+          </div>`;
+      }).join('');
+      mediaHtml = `<div class="pin-proof-strip">${thumbs}</div>`;
+    }
+
+    const dispatchBtn = req.status === 'Pending'
+      ? `<button type="button" class="btn-pin-dispatch" onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${req.request_id}}))">Dispatch Team</button>`
+      : '';
+
+    return `
+      <div class="accessible-popup-box dispatch-pin-card">
+        <div class="pin-card-header">
+          <span class="pin-type-title" style="color:#eb445a;">${(req.incident_name || 'Emergency').toUpperCase()}</span>
+          <span class="pin-timestamp">${formattedTime}</span>
+        </div>
+
+        <p class="pin-desc-box">${description}</p>
+
+        <div class="pin-meta-section">
+          <div><strong>Citizen:</strong> ${citizenName} · <a href="tel:${phone}" style="color:var(--ion-color-primary, #3880ff);text-decoration:none;font-weight:700;">${phone}</a></div>
+          <div><strong>Barangay:</strong> ${barangay}</div>
+        </div>
+
+        <div class="pin-coords-bar">
+          <span><strong>GPS:</strong> ${coords}</span>
+          <button type="button" onclick="window.__copyIncidentCoords('${req.latitude}','${req.longitude}')" class="pin-copy-coords-btn">Copy</button>
+        </div>
+
+        ${medicalHtml}
+        ${dispatchedHtml}
+        ${mediaHtml}
+
+        <div class="pin-action-row">
+          ${dispatchBtn}
+          <button type="button" class="btn-pin-resolve" onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${req.request_id}}))">Resolve</button>
+        </div>
+      </div>
+    `;
+  }
+
+  private createHazardPopupContent(haz: any): string {
+    const rawTime = haz.created_at || haz.report_time;
+    let formattedTime = 'Recently';
+    if (rawTime) {
+      try {
+        const d = new Date(rawTime);
+        if (!isNaN(d.getTime())) {
+          formattedTime = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+                          d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+      } catch {}
+    }
+
+    const reporterName = `${haz.first_name || ''} ${haz.last_name || ''}`.trim() || 'Resident';
+    const barangay = this.getBarangayDisplay(haz);
+    const coords = this.formatCoords(haz.latitude, haz.longitude);
+    const description = haz.description || 'Public hazard report';
+
+    let mediaHtml = '';
+    const files = haz.proof_files || (haz.proof_photo ? [haz.proof_photo] : []);
+    if (files && Array.isArray(files) && files.length > 0) {
+      const thumbs = files.slice(0, 3).map((f: string) => {
+        const url = this.ui.getProxyUrl(f);
+        const isVideo = this.ui.isVideoFile(f);
+        return `
+          <div onclick="window.__openProofPhoto('${f}', ${isVideo})" class="pin-thumb-item">
+            <img src="${url}" alt="Hazard proof" />
+            ${isVideo ? '<span class="pin-video-badge">▶</span>' : ''}
+          </div>`;
+      }).join('');
+      mediaHtml = `<div class="pin-proof-strip">${thumbs}</div>`;
+    }
+
+    return `
+      <div class="accessible-popup-box dispatch-pin-card">
+        <div class="pin-card-header">
+          <span class="pin-type-title" style="color:#e0ac00;">${(haz.hazard_type || 'Public Hazard').toUpperCase()}</span>
+          <span class="pin-timestamp">${formattedTime}</span>
+        </div>
+
+        <p class="pin-desc-box" style="background:rgba(255,196,9,0.08);border:1px solid rgba(255,196,9,0.2);padding:6px 8px;border-radius:8px;">${description}</p>
+
+        <div class="pin-meta-section">
+          <div><strong>Reported by:</strong> ${reporterName}</div>
+          <div><strong>Barangay:</strong> ${barangay}</div>
+        </div>
+
+        <div class="pin-coords-bar">
+          <span><strong>GPS:</strong> ${coords}</span>
+          <button type="button" onclick="window.__copyIncidentCoords('${haz.latitude}','${haz.longitude}')" class="pin-copy-coords-btn">Copy</button>
+        </div>
+
+        ${mediaHtml}
+
+        <div class="pin-action-row">
+          <button type="button" class="btn-pin-resolve" onclick="window.dispatchEvent(new CustomEvent('map-resolve-hazard',{detail:${haz.hazard_id}}))">Resolve Hazard</button>
+        </div>
+      </div>
+    `;
+  }
+
   plotMarkers() {
     if (!this.map) return;
     this.isReplottingMarkers = true;
@@ -1204,30 +1390,23 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         </div>`,
         className: 'leaflet-blank-div-icon', iconSize: [45,60], iconAnchor: [22.5,60], popupAnchor: [0,-52]
       });
-      const popup = `<div class="accessible-popup-box">
-        <h2 style="color:#eb445a;font-size:18px;font-weight:bold;margin:0 0 8px 0;border-bottom:2px solid #eb445a20;padding-bottom:4px;">${req.incident_name.toUpperCase()} EMERGENCY</h2>
-        <p style="font-size:15px;margin:4px 0;"><b>Citizen:</b> ${req.first_name} ${req.last_name}</p>
-        <p style="font-size:15px;margin:4px 0;"><b>Contact:</b> ${req.phone}</p>
-        <div style="font-size:13px;margin:4px 0;color:gray;background:var(--ion-color-light);padding:4px 8px;border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
-          <span><b>Coords:</b> ${req.latitude}, ${req.longitude}</span>
-          <button onclick="window.__copyIncidentCoords('${req.latitude}','${req.longitude}')" style="background:var(--ion-color-step-100, #eee);border:1px solid var(--ion-color-step-200, #ccc);color:var(--ion-text-color, #111);padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">Copy</button>
-        </div>
-        <p style="font-size:13px;margin:4px 0;"><b>Barangay:</b> ${this.getBarangayDisplay(req)}</p>
-        <div style="margin-top:12px;display:flex;gap:8px;">
-          <button onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${req.request_id}}))" style="background:#ffc409;color:black;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">DISPATCH UNIT</button>
-          <button onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${req.request_id}}))"  style="background:#2dd36f;color:white;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">RESOLVE</button>
-        </div></div>`;
-      const marker = L.marker([req.latitude, req.longitude], { icon }).bindPopup(popup).addTo(this.map);
+      const popup = this.createEmergencyPopupContent(req);
+      const marker = L.marker([req.latitude, req.longitude], { icon }).bindPopup(popup, {
+        maxWidth: 340,
+        minWidth: 280,
+        className: 'custom-overhead-popup'
+      }).addTo(this.map);
       (marker as any)._incidentData = req;
       (marker as any)._incidentType = 'emergency';
       marker.on('click', () => {
-        this.selectedRequestId = req.request_id; this.previewType = 'emergency';
-        setTimeout(() => { document.getElementById('request-card-' + req.request_id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+        this.selectedRequestId = req.request_id;
+        this.previewType = 'emergency';
+        if (!this.isQueueHidden) {
+          setTimeout(() => { document.getElementById('request-card-' + req.request_id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+        }
       });
       this.mapMarkers.push(marker);
     });
-    window.addEventListener('map-dispatch', (e: any) => { this.map.closePopup(); this.openDispatchModal(e.detail); }, { once: true });
-    window.addEventListener('map-resolve',  (e: any) => { this.map.closePopup(); this.resolveEmergency(e.detail); }, { once: true });
 
     const hazardBarrierPath = 'M32 32C14.3 32 0 46.3 0 64L0 448c0 17.7 14.3 32 32 32s32-14.3 32-32L64 266.3 149.2 96 64 96 64 64c0-17.7-14.3-32-32-32zM405.2 96l-74.3 0-5.4 10.7-90.6 181.3 74.3 0 5.4-10.7 90.6-181.3zM362.8 288l74.3 0 5.4-10.7 90.6-181.3-74.3 0-5.4 10.7-90.6 181.3zM202.8 96l-5.4 10.7-90.6 181.3 74.3 0 5.4-10.7 90.6-181.3-74.3 0zm288 192l85.2 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-384c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 53.7-85.2 170.3z';
 
@@ -1244,21 +1423,20 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         </div>`,
         className: 'leaflet-blank-div-icon', iconSize: [45,60], iconAnchor: [22.5,60], popupAnchor: [0,-52]
       });
-      const popup = `<div class="accessible-popup-box">
-        <h2 style="color:#e0ac00;font-size:17px;font-weight:bold;margin:0 0 6px 0;border-bottom:2px solid #ffc40930;padding-bottom:4px;">PUBLIC HAZARD LOG</h2>
-        <p style="font-size:15px;margin:4px 0;line-height:1.4;background:var(--ion-color-light);padding:8px;border-radius:6px;border:1px solid #ffc40940;">"${haz.description}"</p>
-        <p style="font-size:12px;color:gray;margin:6px 0 0 0;">Reported by: ${haz.first_name} ${haz.last_name}</p>
-        <p style="font-size:12px;color:gray;margin:2px 0 0 0;"><b>Barangay:</b> ${this.getBarangayDisplay(haz)}</p>
-        <div style="font-size:12px;color:gray;margin:4px 0 0 0;background:var(--ion-color-light);padding:4px 8px;border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
-          <span><b>Coords:</b> ${haz.latitude}, ${haz.longitude}</span>
-          <button onclick="window.__copyIncidentCoords('${haz.latitude}','${haz.longitude}')" style="background:var(--ion-color-step-100, #eee);border:1px solid var(--ion-color-step-200, #ccc);color:var(--ion-text-color, #111);padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">Copy</button>
-        </div></div>`;
-      const marker = L.marker([haz.latitude, haz.longitude], { icon }).bindPopup(popup).addTo(this.map);
+      const popup = this.createHazardPopupContent(haz);
+      const marker = L.marker([haz.latitude, haz.longitude], { icon }).bindPopup(popup, {
+        maxWidth: 340,
+        minWidth: 280,
+        className: 'custom-overhead-popup'
+      }).addTo(this.map);
       (marker as any)._incidentData = haz;
       (marker as any)._incidentType = 'hazard';
       marker.on('click', () => {
-        this.selectedRequestId = haz.hazard_id; this.previewType = 'hazard';
-        setTimeout(() => { document.getElementById('hazard-card-' + haz.hazard_id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+        this.selectedRequestId = haz.hazard_id;
+        this.previewType = 'hazard';
+        if (!this.isQueueHidden) {
+          setTimeout(() => { document.getElementById('hazard-card-' + haz.hazard_id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+        }
       });
       this.mapMarkers.push(marker);
     });
