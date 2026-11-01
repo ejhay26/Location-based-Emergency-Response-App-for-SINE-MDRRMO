@@ -86,7 +86,36 @@ export class SettingsPanel implements OnInit, OnDestroy {
   recordingKeybindId: string | null = null;
   conflictKeybindId: string | null = null;
   conflictMessage: string | null = null;
-  private keyRecordingListener: ((e: KeyboardEvent) => void) | null = null;
+
+  liveChordKeys: string[] = [];
+  private heldKeysSet: Set<string> = new Set();
+  private cumulativeChordKeys: string[] = [];
+  private keydownListener: ((e: KeyboardEvent) => void) | null = null;
+  private keyupListener: ((e: KeyboardEvent) => void) | null = null;
+  private windowBlurListener: (() => void) | null = null;
+
+  getKeyParts(combo: string): string[] {
+    if (!combo) return [];
+    return combo.split('+').map(k => k.trim()).filter(Boolean);
+  }
+
+  private normalizeKey(e: KeyboardEvent): string {
+    if (e.key === 'Control') return 'Ctrl';
+    if (e.key === 'Meta') return this.shortcuts.isMac ? 'Cmd' : 'Win';
+    if (e.key === 'Alt') return 'Alt';
+    if (e.key === 'Shift') return 'Shift';
+    if (e.key === ' ') return 'Space';
+    if (e.key.length === 1) return e.key.toUpperCase();
+    return e.key;
+  }
+
+  private formatChordArray(keys: string[]): string[] {
+    const modifierOrder = ['Ctrl', 'Cmd', 'Win', 'Alt', 'Shift'];
+    const mods = keys.filter(k => modifierOrder.includes(k));
+    const nonMods = keys.filter(k => !modifierOrder.includes(k));
+    mods.sort((a, b) => modifierOrder.indexOf(a) - modifierOrder.indexOf(b));
+    return [...mods, ...nonMods];
+  }
 
   keybindList: KeybindDef[] = [];
   availableKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', ',', '.', '/'];
@@ -175,8 +204,11 @@ export class SettingsPanel implements OnInit, OnDestroy {
     this.conflictMessage = null;
     this.recordingKeybindId = item.id;
     this.shortcuts.setRecording(true);
+    this.heldKeysSet.clear();
+    this.cumulativeChordKeys = [];
+    this.liveChordKeys = [];
 
-    this.keyRecordingListener = (e: KeyboardEvent) => {
+    this.keydownListener = (e: KeyboardEvent) => {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -186,44 +218,96 @@ export class SettingsPanel implements OnInit, OnDestroy {
         return;
       }
 
-      if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) {
-        return;
+      const keyName = this.normalizeKey(e);
+      this.heldKeysSet.add(keyName);
+
+      if (!this.cumulativeChordKeys.includes(keyName)) {
+        this.cumulativeChordKeys.push(keyName);
       }
 
-      const combo = KeyboardShortcutsService.formatKeyEvent(e);
-      if (combo) {
-        const res = this.shortcuts.setKeybind(item.id, combo);
-        if (res.success) {
-          this.conflictKeybindId = null;
-          this.conflictMessage = null;
-          this.refreshKeybindList();
-          this.ui.showToast(`Updated shortcut for ${item.label} to "${combo}".`, 'success');
-        } else {
-          this.conflictKeybindId = item.id;
-          const assignedTo = res.conflictWith?.label || 'another action';
-          this.conflictMessage = `Blocked: "${combo}" is already assigned to ${assignedTo}.`;
-          this.ui.showToast(`Shortcut Blocked: "${combo}" is already assigned to "${assignedTo}". Please choose a different shortcut combination.`, 'warning');
-          setTimeout(() => {
-            if (this.conflictKeybindId === item.id) {
-              this.conflictKeybindId = null;
-              this.conflictMessage = null;
-            }
-          }, 4500);
-        }
-        this.stopRecordingKeybind();
+      this.liveChordKeys = this.formatChordArray(this.cumulativeChordKeys);
+    };
+
+    this.keyupListener = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      const keyName = this.normalizeKey(e);
+      this.heldKeysSet.delete(keyName);
+
+      // Once all held keys are released, commit the chord
+      if (this.heldKeysSet.size === 0 && this.cumulativeChordKeys.length > 0) {
+        const chord = this.formatChordArray(this.cumulativeChordKeys);
+        this.finalizeKeybind(item, chord.join(' + '));
       }
     };
 
-    window.addEventListener('keydown', this.keyRecordingListener, { capture: true });
+    this.windowBlurListener = () => {
+      this.stopRecordingKeybind();
+    };
+
+    window.addEventListener('keydown', this.keydownListener, { capture: true });
+    window.addEventListener('keyup', this.keyupListener, { capture: true });
+    window.addEventListener('blur', this.windowBlurListener);
+  }
+
+  private finalizeKeybind(item: KeybindDef, combo: string): void {
+    if (!combo) {
+      this.stopRecordingKeybind();
+      return;
+    }
+
+    const parts = combo.split('+').map(p => p.trim());
+    const modifierOrder = ['Ctrl', 'Cmd', 'Win', 'Alt', 'Shift'];
+    const hasNonModifier = parts.some(p => !modifierOrder.includes(p));
+
+    if (!hasNonModifier) {
+      this.ui.showToast('Please include a trigger key along with modifiers (e.g., Ctrl + Shift + 1).', 'warning');
+      this.stopRecordingKeybind();
+      return;
+    }
+
+    const res = this.shortcuts.setKeybind(item.id, combo);
+    if (res.success) {
+      this.conflictKeybindId = null;
+      this.conflictMessage = null;
+      this.refreshKeybindList();
+      this.ui.showToast(`Updated shortcut for ${item.label} to "${combo}".`, 'success');
+    } else {
+      this.conflictKeybindId = item.id;
+      const assignedTo = res.conflictWith?.label || 'another action';
+      this.conflictMessage = `Blocked: "${combo}" is already assigned to ${assignedTo}.`;
+      this.ui.showToast(`Shortcut Blocked: "${combo}" is already assigned to "${assignedTo}". Please choose a different shortcut combination.`, 'warning');
+      setTimeout(() => {
+        if (this.conflictKeybindId === item.id) {
+          this.conflictKeybindId = null;
+          this.conflictMessage = null;
+        }
+      }, 4500);
+    }
+
+    this.stopRecordingKeybind();
   }
 
   stopRecordingKeybind(): void {
     this.shortcuts.setRecording(false);
-    if (this.keyRecordingListener) {
-      window.removeEventListener('keydown', this.keyRecordingListener, { capture: true });
-      this.keyRecordingListener = null;
+    if (this.keydownListener) {
+      window.removeEventListener('keydown', this.keydownListener, { capture: true });
+      this.keydownListener = null;
+    }
+    if (this.keyupListener) {
+      window.removeEventListener('keyup', this.keyupListener, { capture: true });
+      this.keyupListener = null;
+    }
+    if (this.windowBlurListener) {
+      window.removeEventListener('blur', this.windowBlurListener);
+      this.windowBlurListener = null;
     }
     this.recordingKeybindId = null;
+    this.heldKeysSet.clear();
+    this.cumulativeChordKeys = [];
+    this.liveChordKeys = [];
   }
 
   resetIndividualKeybind(item: KeybindDef, event?: Event): void {
@@ -369,6 +453,16 @@ export class SettingsPanel implements OnInit, OnDestroy {
       this.settings.toggleDarkMode(isChecked, undefined, originCoords || undefined);
     } else {
       this.settings.set(setting.key, String(isChecked));
+      if (setting.key === 'reduce_animations') {
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.toggle('reduce-animations', isChecked);
+          document.documentElement.classList.toggle('reduce-motion', isChecked);
+          if (document.body) {
+            document.body.classList.toggle('reduce-animations', isChecked);
+            document.body.classList.toggle('reduce-motion', isChecked);
+          }
+        }
+      }
       if (setting.key === 'notif_sound_effects') {
         this.audio.setMuted(!isChecked);
       }

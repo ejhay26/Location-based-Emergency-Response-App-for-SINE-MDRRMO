@@ -992,7 +992,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   toggleQueueHidden(): void {
     this.isQueueHidden = !this.isQueueHidden;
-    this.runMapInvalidationLoop(280);
+    const duration = this.userSettings.getBool('reduce_animations') ? 0 : 280;
+    this.runMapInvalidationLoop(duration);
   }
 
   private runMapInvalidationLoop(duration = 280): void {
@@ -1708,9 +1709,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     const lat = parseFloat(String(item.latitude));
     const lng = parseFloat(String(item.longitude));
 
+    const isReduced = this.userSettings.getBool('reduce_animations');
+
     if (!isNaN(lat) && !isNaN(lng) && this.map) {
-      this.map.flyTo([lat, lng], 16, { animate: true, duration: 0.5 });
-      setTimeout(() => {
+      if (isReduced) {
+        this.map.setView([lat, lng], 16, { animate: false });
         let targetMarker = this.mapMarkers.find(m => {
           const mData = (m as any)._incidentData;
           const mType = (m as any)._incidentType;
@@ -1727,14 +1730,35 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         if (targetMarker) {
           targetMarker.openPopup();
         }
-      }, 250);
+      } else {
+        this.map.flyTo([lat, lng], 16, { animate: true, duration: 0.5 });
+        setTimeout(() => {
+          let targetMarker = this.mapMarkers.find(m => {
+            const mData = (m as any)._incidentData;
+            const mType = (m as any)._incidentType;
+            if (mData && mType) {
+              const mId = mType === 'emergency' ? mData.request_id : mData.hazard_id;
+              return mId === id && mType === type;
+            }
+            const latLng = m.getLatLng();
+            return Math.abs(latLng.lat - lat) < 0.001 && Math.abs(latLng.lng - lng) < 0.001;
+          });
+          if (!targetMarker && this.mapMarkers.length > 0) {
+            targetMarker = this.mapMarkers[0];
+          }
+          if (targetMarker) {
+            targetMarker.openPopup();
+          }
+        }, 250);
+      }
     }
 
     if (!this.isQueueHidden) {
       const cardElId = type === 'emergency' ? 'request-card-' + id : 'hazard-card-' + id;
+      const scrollBehavior = isReduced ? 'auto' : 'smooth';
       setTimeout(() => {
-        document.getElementById(cardElId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 100);
+        document.getElementById(cardElId)?.scrollIntoView({ behavior: scrollBehavior, block: 'center' });
+      }, isReduced ? 0 : 100);
     }
   }
 

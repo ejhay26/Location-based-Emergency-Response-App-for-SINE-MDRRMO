@@ -817,23 +817,120 @@
     gap: 4px;
   }
 
-  .key-kbd {
-    display: inline-block;
-    padding: 3px 7px;
-    font-size: 11px;
-    font-family: inherit;
-    font-weight: 800;
-    line-height: 1;
+  .keybind-record-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 9px;
+    background: var(--ion-color-step-50, #f8f9fa);
+    border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.14));
     color: var(--ion-text-color);
-    background-color: var(--ion-color-step-100, #f7f7f7);
-    border: 1px solid var(--ion-color-step-250, #ccc);
-    border-radius: 6px;
-    box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
 
-    &.active {
-      background: rgba(188, 111, 255, 0.12);
-      border-color: rgba(188, 111, 255, 0.35);
-      color: #bc6fff;
+    &:hover {
+      background: var(--ion-color-step-100, #f1f3f5);
+      border-color: var(--ion-color-step-300, rgba(0, 0, 0, 0.22));
+    }
+
+    &.is-recording {
+      background: rgba(235, 68, 90, 0.08) !important;
+      border-color: var(--ion-color-danger, #eb445a) !important;
+      box-shadow: 0 0 0 2px rgba(235, 68, 90, 0.2);
+    }
+
+    &.is-conflict {
+      background: rgba(245, 158, 11, 0.08) !important;
+      border-color: #f59e0b !important;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+
+    .recording-pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #f59e0b;
+      display: inline-block;
+      animation: pulseRecord 1.2s infinite;
+    }
+
+    .recording-text {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f59e0b;
+    }
+
+    .live-chord-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .live-recording-kbd {
+      border-color: var(--ion-color-danger, #eb445a) !important;
+      color: var(--ion-color-danger, #eb445a) !important;
+      font-weight: 900 !important;
+      background: rgba(235, 68, 90, 0.1) !important;
+    }
+
+    .release-keys-tag {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ion-color-danger, #eb445a);
+      margin-left: 4px;
+      letter-spacing: 0.2px;
+    }
+
+    .chord-separator {
+      color: var(--ion-color-medium, #6b7280);
+      font-weight: 700;
+      font-size: 11px;
+      margin: 0 1px;
+    }
+
+    .record-hint-tag {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: var(--ion-color-step-150, rgba(0, 0, 0, 0.06));
+      border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.08));
+      color: var(--ion-color-medium, #6b7280);
+      transition: all 0.15s ease;
+    }
+
+    &:hover .record-hint-tag {
+      color: var(--ion-color-danger, #eb445a);
+      background: rgba(235, 68, 90, 0.1);
+      border-color: rgba(235, 68, 90, 0.25);
+    }
+  }
+
+  .ind-keybind-reset-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+    background: var(--ion-color-step-50, rgba(0, 0, 0, 0.02));
+    color: var(--ion-color-medium);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
+      color: var(--ion-color-danger, #eb445a);
+      border-color: rgba(235, 68, 90, 0.3);
+    }
+
+    &:active {
+      transform: scale(0.92);
     }
   }
 
@@ -852,4 +949,11 @@
       border-color: #bc6fff;
     }
   }
+}
+
+
+@keyframes pulseRecord {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
 }

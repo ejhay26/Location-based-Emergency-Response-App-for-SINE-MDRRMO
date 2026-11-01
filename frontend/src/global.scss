@@ -30,18 +30,43 @@
 /* ── Global Accessibility & Reduced Motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
+    animation: none !important;
+    animation-duration: 0.0001ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition: none !important;
+    transition-duration: 0.0001ms !important;
+    transition-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
 }
 
-html.reduce-animations {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+html.reduce-animations,
+body.reduce-animations,
+html.reduce-motion,
+body.reduce-motion {
+  animation: none !important;
+  transition: none !important;
+}
+
+html.reduce-animations *,
+body.reduce-animations *,
+html.reduce-motion *,
+body.reduce-motion *,
+html.reduce-animations *::before,
+body.reduce-animations *::before,
+html.reduce-motion *::before,
+body.reduce-motion *::before,
+html.reduce-animations *::after,
+body.reduce-animations *::after,
+html.reduce-motion *::after,
+body.reduce-motion *::after {
+  animation: none !important;
+  animation-duration: 0.0001ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  transition-duration: 0.0001ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
 }

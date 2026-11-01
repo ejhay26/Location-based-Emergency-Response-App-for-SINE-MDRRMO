@@ -460,25 +460,41 @@
           </div>
         </div>
 
-        <div class="keybind-action-col" style="display: flex; align-items: center; gap: 8px;">
+        <div class="keybind-action-col">
           <!-- Record Trigger Button / Pill -->
           <button
             type="button"
             class="keybind-record-btn"
             [class.is-recording]="recordingKeybindId === item.id"
-            [style.border-color]="conflictKeybindId === item.id ? '#f59e0b' : null"
-            [style.background]="conflictKeybindId === item.id ? 'rgba(245,158,11,0.08)' : null"
+            [class.is-conflict]="conflictKeybindId === item.id"
             (click)="startRecordingKeybind(item, $event)"
-            [appTooltip]="recordingKeybindId === item.id ? 'Press any key combo (Esc to cancel)' : 'Click to record new keybind'"
-            tooltipPlacement="top"
-            style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 9px; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.12)); cursor: pointer; transition: all 0.15s ease;">
+            [appTooltip]="recordingKeybindId === item.id ? 'Hold keys together and release all to bind (Esc to cancel)' : 'Click to record new keybind'"
+            tooltipPlacement="top">
+            <!-- Recording State -->
             <ng-container *ngIf="recordingKeybindId === item.id">
-              <span class="recording-pulse-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
-              <span class="recording-text" style="font-size: 12px; font-weight: 700; color: #f59e0b;">Press key combo...</span>
+              <span class="recording-pulse-dot"></span>
+              <ng-container *ngIf="liveChordKeys.length === 0">
+                <span class="recording-text">Press keys...</span>
+              </ng-container>
+              <ng-container *ngIf="liveChordKeys.length > 0">
+                <span class="live-chord-wrap">
+                  <ng-container *ngFor="let k of liveChordKeys; let last = last">
+                    <kbd class="workstation-kbd live-recording-kbd">{{ k }}</kbd>
+                    <span *ngIf="!last" class="chord-separator">+</span>
+                  </ng-container>
+                </span>
+                <span class="release-keys-tag">Release to save</span>
+              </ng-container>
             </ng-container>
+            <!-- Idle / Display State -->
             <ng-container *ngIf="recordingKeybindId !== item.id">
-              <kbd class="key-kbd active" style="font-family: inherit; font-size: 12px; font-weight: 800; color: var(--ion-text-color);">{{ item.currentKey }}</kbd>
-              <span class="record-hint-tag" style="font-size: 9.5px; font-weight: 800; color: var(--ion-color-medium); text-transform: uppercase; background: var(--ion-color-step-150, rgba(0,0,0,0.06)); padding: 1px 5px; border-radius: 4px;">Record</span>
+              <div class="key-pill-display">
+                <ng-container *ngFor="let k of getKeyParts(item.currentKey); let last = last">
+                  <kbd class="workstation-kbd">{{ k }}</kbd>
+                  <span *ngIf="!last" class="chord-separator">+</span>
+                </ng-container>
+              </div>
+              <span class="record-hint-tag">Record</span>
             </ng-container>
           </button>
 
@@ -489,8 +505,7 @@
             (click)="resetIndividualKeybind(item, $event)"
             [appTooltip]="'Reset to default (' + item.defaultKey + ')'"
             tooltipPlacement="left"
-            [attr.aria-label]="'Reset ' + item.label + ' to default'"
-            style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.1)); background: transparent; color: var(--ion-color-medium); cursor: pointer;">
+            [attr.aria-label]="'Reset ' + item.label + ' to default'">
             <app-icon name="rotate-left" [size]="12" color="currentColor"></app-icon>
           </button>
         </div>

@@ -80,6 +80,17 @@ export class UserSettingsService {
   /** Write a setting locally and fire-and-forget sync to the server. */
   set(key: SettingKey, value: string): void {
     this.cache[key] = value;
+    if (key === 'reduce_animations') {
+      const isReduce = value === 'true';
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.toggle('reduce-animations', isReduce);
+        document.documentElement.classList.toggle('reduce-motion', isReduce);
+        if (document.body) {
+          document.body.classList.toggle('reduce-animations', isReduce);
+          document.body.classList.toggle('reduce-motion', isReduce);
+        }
+      }
+    }
     this.persistSetting(key, value);
   }
 
@@ -180,8 +191,14 @@ export class UserSettingsService {
       try { this.cache = { ...DEFAULTS, ...JSON.parse(stored) }; } catch {}
     }
     const isDark = this.getBool('dark_mode');
+    const isReduce = this.getBool('reduce_animations');
     document.documentElement.classList.toggle('ion-palette-dark',    isDark);
-    document.documentElement.classList.toggle('reduce-animations',   this.getBool('reduce_animations'));
+    document.documentElement.classList.toggle('reduce-animations',   isReduce);
+    document.documentElement.classList.toggle('reduce-motion',       isReduce);
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.classList.toggle('reduce-animations', isReduce);
+      document.body.classList.toggle('reduce-motion',     isReduce);
+    }
     this.applyZoom();
   }
 
