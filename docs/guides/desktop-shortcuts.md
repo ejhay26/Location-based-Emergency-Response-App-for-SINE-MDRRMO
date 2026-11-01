@@ -80,7 +80,19 @@ The Alert Broadcast Center features hardware-accelerated CSS Grid stretching ani
 
 ---
 
-## 5. Workstation Security & Hidden Browser Panel Suppression
+## 5. Custom Keybinding Recorder & Reset Safeguards
+
+In **Settings > Keyboard Shortcuts**, administrators and dispatchers can rebind workstation hotkeys to suit custom ergonomic profiles:
+
+- **Progressive Multi-Key Chord Recording:** Click **Record** on any shortcut and press your desired key combination. The system progressively tracks all keys pressed and held simultaneously (e.g. <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd>) and finalizes the binding only when all keys are fully released.
+- **Live Held-Key Badge Display:** While recording, the keycap pills update in real time to show all keys currently depressed before you lift your fingers.
+- **Collision Detection & Blocking:** If a chosen combination is already assigned to another action, the binding is blocked, the conflict is highlighted with an amber alert, and global shortcuts are suppressed while recording to prevent accidental panel jumps.
+- **Safeguarded Reset Protection:** Resetting all shortcuts to system defaults or resetting an individual keybind prompts an Apple-style confirmation dialog to prevent accidental erasure of customized workstation layouts.
+- **Dynamic Help & Guided Tours Synchronization:** Remapped keyboard shortcuts instantly update in the **Help & Procedures** quick reference table without requiring an application reload.
+
+---
+
+## 6. Workstation Security & Hidden Browser Panel Suppression
 
 To maintain an authentic native desktop workstation experience and prevent accidental interruptions during emergency operations, the following browser hotkeys and hidden webview panels are explicitly intercepted and suppressed:
 

@@ -1183,6 +1183,26 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     });
   }
 
+  private getIncidentColorMeta(name: string): { color: string; bg: string; border: string } {
+    const n = (name || '').toLowerCase();
+    if (n.includes('fire')) {
+      return { color: '#eb445a', bg: 'rgba(235, 68, 90, 0.15)', border: 'rgba(235, 68, 90, 0.3)' };
+    }
+    if (n.includes('flood')) {
+      return { color: '#3880ff', bg: 'rgba(56, 128, 255, 0.15)', border: 'rgba(56, 128, 255, 0.3)' };
+    }
+    if (n.includes('medical')) {
+      return { color: '#2dd36f', bg: 'rgba(45, 211, 111, 0.15)', border: 'rgba(45, 211, 111, 0.3)' };
+    }
+    if (n.includes('crime') || n.includes('security')) {
+      return { color: '#bc6fff', bg: 'rgba(188, 111, 255, 0.15)', border: 'rgba(188, 111, 255, 0.3)' };
+    }
+    if (n.includes('vehicular') || n.includes('accident')) {
+      return { color: '#ff7979', bg: 'rgba(255, 121, 121, 0.15)', border: 'rgba(255, 121, 121, 0.3)' };
+    }
+    return { color: '#eb445a', bg: 'rgba(235, 68, 90, 0.15)', border: 'rgba(235, 68, 90, 0.3)' };
+  }
+
   private createEmergencyPopupContent(req: any): string {
     const rawTime = req.request_time || req.created_at;
     let formattedTime = 'Recently';
@@ -1190,12 +1210,14 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       try {
         const d = new Date(rawTime);
         if (!isNaN(d.getTime())) {
-          formattedTime = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+          formattedTime = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' +
                           d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
         }
       } catch {}
     }
 
+    const typeMeta = this.getIncidentColorMeta(req.incident_name);
+    const typeLabel = (req.incident_name || 'Emergency').toUpperCase();
     const citizenName = `${req.first_name || ''} ${req.last_name || ''}`.trim() || 'Citizen';
     const phone = req.phone || 'N/A';
     const barangay = this.getBarangayDisplay(req);
@@ -1209,7 +1231,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       const sep = blood && allergies ? ' | ' : '';
       medicalHtml = `
         <div class="pin-medical-badge">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#2dd36f" stroke-width="2" style="flex-shrink:0;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#2dd36f" stroke-width="2.2" style="flex-shrink:0;">
             <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
           </svg>
           <span>${blood}${sep}${allergies}</span>
@@ -1245,26 +1267,47 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     }
 
     const dispatchBtn = req.status === 'Pending'
-      ? `<button type="button" class="btn-pin-dispatch" onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${req.request_id}}))">Dispatch Team</button>`
+      ? `<button type="button" class="btn-pin-dispatch" onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${req.request_id}}))">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          <span>Dispatch Team</span>
+        </button>`
       : '';
 
     return `
       <div class="accessible-popup-box dispatch-pin-card">
         <div class="pin-card-header">
-          <span class="pin-type-title" style="color:#eb445a;">${(req.incident_name || 'Emergency').toUpperCase()}</span>
+          <div class="pin-type-badge" style="background:${typeMeta.bg};color:${typeMeta.color};border:1px solid ${typeMeta.border};">
+            <span class="pin-type-dot" style="background:${typeMeta.color};"></span>
+            <span>${typeLabel}</span>
+          </div>
           <span class="pin-timestamp">${formattedTime}</span>
         </div>
 
         <p class="pin-desc-box">${description}</p>
 
-        <div class="pin-meta-section">
-          <div><strong>Citizen:</strong> ${citizenName} · <a href="tel:${phone}" style="color:var(--ion-color-primary, #3880ff);text-decoration:none;font-weight:700;">${phone}</a></div>
-          <div><strong>Barangay:</strong> ${barangay}</div>
+        <div class="pin-info-card">
+          <div class="pin-info-row">
+            <span class="pin-info-label">Citizen</span>
+            <span class="pin-info-value">
+              <span>${citizenName}</span>
+              ${phone !== 'N/A' ? `<a href="tel:${phone}" class="pin-phone-chip"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${phone}</a>` : ''}
+            </span>
+          </div>
+          <div class="pin-info-row">
+            <span class="pin-info-label">Barangay</span>
+            <span class="pin-info-value">${barangay}</span>
+          </div>
         </div>
 
         <div class="pin-coords-bar">
-          <span><strong>GPS:</strong> ${coords}</span>
-          <button type="button" onclick="window.__copyIncidentCoords('${req.latitude}','${req.longitude}')" class="pin-copy-coords-btn">Copy</button>
+          <div class="pin-coords-left">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+            <code class="pin-coords-text">${coords}</code>
+          </div>
+          <button type="button" onclick="window.__copyIncidentCoords('${req.latitude}','${req.longitude}')" class="pin-copy-coords-btn" title="Copy GPS Coordinates">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+            <span>Copy</span>
+          </button>
         </div>
 
         ${medicalHtml}
@@ -1273,7 +1316,10 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
         <div class="pin-action-row">
           ${dispatchBtn}
-          <button type="button" class="btn-pin-resolve" onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${req.request_id}}))">Resolve</button>
+          <button type="button" class="btn-pin-resolve" onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${req.request_id}}))">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Resolve</span>
+          </button>
         </div>
       </div>
     `;
@@ -1286,7 +1332,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       try {
         const d = new Date(rawTime);
         if (!isNaN(d.getTime())) {
-          formattedTime = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+          formattedTime = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' +
                           d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
         }
       } catch {}
@@ -1296,6 +1342,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     const barangay = this.getBarangayDisplay(haz);
     const coords = this.formatCoords(haz.latitude, haz.longitude);
     const description = haz.description || 'Public hazard report';
+    const hazardType = (haz.hazard_type || 'Public Hazard').toUpperCase();
 
     let mediaHtml = '';
     const files = haz.proof_files || (haz.proof_photo ? [haz.proof_photo] : []);
@@ -1315,26 +1362,44 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     return `
       <div class="accessible-popup-box dispatch-pin-card">
         <div class="pin-card-header">
-          <span class="pin-type-title" style="color:#e0ac00;">${(haz.hazard_type || 'Public Hazard').toUpperCase()}</span>
+          <div class="pin-type-badge" style="background:rgba(255,196,9,0.16);color:#ffc409;border:1px solid rgba(255,196,9,0.32);">
+            <span class="pin-type-dot" style="background:#ffc409;"></span>
+            <span>${hazardType}</span>
+          </div>
           <span class="pin-timestamp">${formattedTime}</span>
         </div>
 
-        <p class="pin-desc-box" style="background:rgba(255,196,9,0.08);border:1px solid rgba(255,196,9,0.2);padding:6px 8px;border-radius:8px;">${description}</p>
+        <p class="pin-desc-box">${description}</p>
 
-        <div class="pin-meta-section">
-          <div><strong>Reported by:</strong> ${reporterName}</div>
-          <div><strong>Barangay:</strong> ${barangay}</div>
+        <div class="pin-info-card">
+          <div class="pin-info-row">
+            <span class="pin-info-label">Reporter</span>
+            <span class="pin-info-value">${reporterName}</span>
+          </div>
+          <div class="pin-info-row">
+            <span class="pin-info-label">Barangay</span>
+            <span class="pin-info-value">${barangay}</span>
+          </div>
         </div>
 
         <div class="pin-coords-bar">
-          <span><strong>GPS:</strong> ${coords}</span>
-          <button type="button" onclick="window.__copyIncidentCoords('${haz.latitude}','${haz.longitude}')" class="pin-copy-coords-btn">Copy</button>
+          <div class="pin-coords-left">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+            <code class="pin-coords-text">${coords}</code>
+          </div>
+          <button type="button" onclick="window.__copyIncidentCoords('${haz.latitude}','${haz.longitude}')" class="pin-copy-coords-btn" title="Copy GPS Coordinates">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+            <span>Copy</span>
+          </button>
         </div>
 
         ${mediaHtml}
 
         <div class="pin-action-row">
-          <button type="button" class="btn-pin-resolve" onclick="window.dispatchEvent(new CustomEvent('map-resolve-hazard',{detail:${haz.hazard_id}}))">Resolve Hazard</button>
+          <button type="button" class="btn-pin-resolve" onclick="window.dispatchEvent(new CustomEvent('map-resolve-hazard',{detail:${haz.hazard_id}}))">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Resolve Hazard</span>
+          </button>
         </div>
       </div>
     `;
@@ -1451,17 +1516,12 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         </div>`,
         className: 'leaflet-blank-div-icon', iconSize: [45, 60], iconAnchor: [22.5, 60], popupAnchor: [0, -52]
       });
-      const popup = `<div class="accessible-popup-box">
-        <h2 style="color:#eb445a;font-size:18px;font-weight:bold;margin:0 0 8px 0;border-bottom:2px solid #eb445a20;padding-bottom:4px;">MEDICAL EMERGENCY (DEMO)</h2>
-        <p style="font-size:15px;margin:4px 0;"><b>Citizen:</b> ${demoReq.first_name} ${demoReq.last_name}</p>
-        <p style="font-size:15px;margin:4px 0;"><b>Contact:</b> ${demoReq.phone}</p>
-        <p style="font-size:13px;margin:4px 0;color:gray;background:var(--ion-color-light);padding:4px;border-radius:4px;"><b>Coords:</b> ${demoReq.latitude}, ${demoReq.longitude}</p>
-        <p style="font-size:13px;margin:4px 0;"><b>Barangay:</b> ${demoReq.barangay_name}</p>
-        <div style="margin-top:12px;display:flex;gap:8px;">
-          <button onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${demoReq.request_id}}))" style="background:#ffc409;color:black;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">DISPATCH UNIT</button>
-          <button onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${demoReq.request_id}}))"  style="background:#2dd36f;color:white;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">RESOLVE</button>
-        </div></div>`;
-      const marker = L.marker([demoReq.latitude, demoReq.longitude], { icon }).bindPopup(popup).addTo(this.map);
+      const popup = this.createEmergencyPopupContent(demoReq);
+      const marker = L.marker([demoReq.latitude, demoReq.longitude], { icon }).bindPopup(popup, {
+        maxWidth: 340,
+        minWidth: 280,
+        className: 'custom-overhead-popup'
+      }).addTo(this.map);
       marker.on('click', () => {
         this.selectIncidentCard(demoReq, 'emergency');
       });
@@ -1671,10 +1731,21 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   resetUnitsToDefault(): void {
-    this.availableUnits = this.defaultUnits.map(u => ({ ...u }));
-    this.saveAvailableUnits();
-    this.editingUnitIndex = null;
-    this.isAddingUnit = false;
+    this.ui.showConfirm({
+      title: 'Reset Response Units',
+      message: 'Restore response units to system defaults? Any customized units will be replaced with the default MDRRMO roster.',
+      icon: 'rotate-ccw',
+      iconColor: '#ffc409',
+      confirmLabel: 'Reset Units',
+      confirmColor: '#eb445a',
+      action: () => {
+        this.availableUnits = this.defaultUnits.map(u => ({ ...u }));
+        this.saveAvailableUnits();
+        this.editingUnitIndex = null;
+        this.isAddingUnit = false;
+        this.ui.showToast('Response units restored to default roster.', 'medium');
+      }
+    });
   }
 
   submitDispatch() {

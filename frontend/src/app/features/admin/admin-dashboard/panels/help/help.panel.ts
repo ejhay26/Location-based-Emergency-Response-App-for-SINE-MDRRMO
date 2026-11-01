@@ -54,15 +54,15 @@ export class HelpPanel {
         {
           id: 'admin-queue-container',
           panel: 'active',
-          callout: 'Incoming Alerts List',
-          subtext: 'All incoming emergency calls and hazard reports appear in this list. Click any card to view photos, medical info, and assign responder units.',
+          callout: 'Collapsible Active Alerts Drawer & Overhead Pins',
+          subtext: 'Incoming emergency calls and hazard reports appear in this list. You can toggle the drawer to maximize map view, or click pins directly on the map to inspect rich overhead cards with 1-click Dispatch and Resolve actions.',
           waitForInteraction: false,
         },
         {
           id: 'admin-queue-container',
           panel: 'active',
           callout: 'Customizable Responder Units & Callsigns',
-          subtext: 'When dispatching response teams, choose pre-configured units or type custom callsigns (e.g. MDRRMO Alpha, Patrol 3) with full edit and delete controls.',
+          subtext: 'When dispatching response teams, choose pre-configured units or type custom callsigns (e.g. MDRRMO Alpha, Patrol 3) with full edit, delete, and confirmation-safeguarded reset controls.',
           waitForInteraction: false,
         },
       ]

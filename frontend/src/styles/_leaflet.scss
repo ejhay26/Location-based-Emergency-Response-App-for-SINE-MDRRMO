@@ -128,51 +128,434 @@ html.ion-palette-dark .leaflet-popup-tip {
 }
 
 
-/* ── CUSTOM OVERHEAD DISPATCH POPUP ── */
-.custom-overhead-popup .leaflet-popup-content-wrapper {
-  padding: 0 !important;
-  border-radius: 16px !important;
-  overflow: hidden !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25) !important;
-  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12)) !important;
-  background: var(--ion-card-background, #ffffff) !important;
+/* ── CUSTOM OVERHEAD DISPATCH POPUP (APPLE FROSTED-GLASS DESIGN) ── */
+.custom-overhead-popup {
+  .leaflet-popup-content-wrapper {
+    padding: 0 !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    backdrop-filter: blur(28px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    border: 1px solid rgba(0, 0, 0, 0.09) !important;
+    box-shadow: 0 20px 48px -8px rgba(0, 0, 0, 0.18), 0 4px 14px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 0 !important;
+    padding: 14px 16px !important;
+    line-height: 1.4 !important;
+    width: auto !important;
+  }
+
+  .leaflet-popup-tip-container {
+    overflow: visible !important;
+  }
+
+  .leaflet-popup-tip {
+    background: rgba(255, 255, 255, 0.94) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  a.leaflet-popup-close-button {
+    top: 10px !important;
+    right: 10px !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    color: #8e8e93 !important;
+    background: rgba(0, 0, 0, 0.06) !important;
+    text-decoration: none !important;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease !important;
+    z-index: 10 !important;
+
+    &:hover {
+      color: #eb445a !important;
+      background: rgba(235, 68, 90, 0.12) !important;
+      transform: scale(1.08) !important;
+    }
+  }
 }
 
-html.ion-palette-dark .custom-overhead-popup .leaflet-popup-content-wrapper {
-  background: var(--ion-card-background, #1c1c1e) !important;
-  border-color: var(--card-border, rgba(255, 255, 255, 0.14)) !important;
-  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.65) !important;
+html.ion-palette-dark .custom-overhead-popup {
+  .leaflet-popup-content-wrapper {
+    background: rgba(26, 26, 28, 0.94) !important;
+    border-color: rgba(255, 255, 255, 0.13) !important;
+    box-shadow: 0 24px 52px -8px rgba(0, 0, 0, 0.75), 0 0 1px rgba(255, 255, 255, 0.2) inset !important;
+  }
+
+  .leaflet-popup-tip {
+    background: rgba(26, 26, 28, 0.94) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  a.leaflet-popup-close-button {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+
+    &:hover {
+      background: rgba(235, 68, 90, 0.22) !important;
+      color: #ff5c72 !important;
+    }
+  }
 }
 
-.custom-overhead-popup .leaflet-popup-content {
-  margin: 12px 14px !important;
-  line-height: 1.4 !important;
+/* ── OVERHEAD PIN CARD CONTENT (GLOBAL SCOPE) ── */
+.dispatch-pin-card {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1c1c1e;
+
+  .pin-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-right: 22px; /* clearance for Leaflet close button */
+    margin-bottom: 8px;
+  }
+
+  .pin-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .pin-type-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .pin-timestamp {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #6e6e73;
+    white-space: nowrap;
+  }
+
+  .pin-desc-box {
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 4px 0 10px;
+    color: #1c1c1e;
+    word-break: break-word;
+  }
+
+  .pin-info-card {
+    background: rgba(0, 0, 0, 0.035);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    border-radius: 12px;
+    padding: 8px 11px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .pin-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .pin-info-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #8e8e93;
+    flex-shrink: 0;
+  }
+
+  .pin-info-value {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #1c1c1e;
+    font-weight: 600;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pin-phone-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    background: rgba(56, 128, 255, 0.12);
+    color: #3880ff;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: rgba(56, 128, 255, 0.22);
+    }
+  }
+
+  .pin-coords-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.035);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    padding: 5px 9px;
+    border-radius: 9px;
+    margin-bottom: 8px;
+  }
+
+  .pin-coords-left {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #8e8e93;
+    min-width: 0;
+  }
+
+  .pin-coords-text {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1c1c1e;
+    letter-spacing: -0.2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pin-copy-coords-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    color: #1c1c1e;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.12s ease, background 0.12s ease;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.11);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  .pin-medical-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(45, 211, 111, 0.12);
+    border: 1px solid rgba(45, 211, 111, 0.28);
+    color: #2dd36f;
+    padding: 6px 10px;
+    border-radius: 9px;
+    font-size: 11.5px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .pin-dispatched-box {
+    background: rgba(56, 128, 255, 0.1);
+    border: 1px solid rgba(56, 128, 255, 0.25);
+    border-radius: 9px;
+    padding: 7px 10px;
+    margin-bottom: 8px;
+
+    .pin-unit-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: #3880ff;
+    }
+
+    .pin-copy-brief-btn {
+      background: rgba(56, 128, 255, 0.14);
+      border: 1px solid rgba(56, 128, 255, 0.28);
+      color: #3880ff;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.12s ease;
+
+      &:hover {
+        background: rgba(56, 128, 255, 0.24);
+      }
+    }
+
+    .pin-dispatcher-info {
+      font-size: 11px;
+      color: #64748b;
+      margin: 3px 0 0 0;
+    }
+  }
+
+  .pin-proof-strip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+
+    .pin-thumb-item {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      flex-shrink: 0;
+      transition: transform 0.15s ease;
+
+      &:hover {
+        transform: scale(1.06);
+      }
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .pin-video-badge {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 10px;
+      }
+    }
+  }
+
+  .pin-action-row {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+
+    button {
+      flex: 1;
+      height: 36px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 12.5px;
+      letter-spacing: 0.2px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.12s ease, filter 0.12s ease;
+
+      &:hover {
+        filter: brightness(1.08);
+      }
+
+      &:active {
+        transform: scale(0.96);
+      }
+    }
+
+    .btn-pin-dispatch {
+      background: #ffc409;
+      color: #000000;
+      box-shadow: 0 3px 10px rgba(255, 196, 9, 0.35);
+    }
+
+    .btn-pin-resolve {
+      background: #2dd36f;
+      color: #ffffff;
+      box-shadow: 0 3px 10px rgba(45, 211, 111, 0.35);
+    }
+  }
 }
 
-.custom-overhead-popup .leaflet-popup-tip {
-  background: var(--ion-card-background, #ffffff) !important;
-}
+/* ── DARK PALETTE OVERRIDES FOR OVERHEAD PIN CARD ── */
+html.ion-palette-dark .dispatch-pin-card {
+  color: #f2f2f7;
 
-html.ion-palette-dark .custom-overhead-popup .leaflet-popup-tip {
-  background: var(--ion-card-background, #1c1c1e) !important;
-}
+  .pin-timestamp {
+    color: rgba(255, 255, 255, 0.6);
+  }
 
-.custom-overhead-popup a.leaflet-popup-close-button {
-  top: 8px !important;
-  right: 8px !important;
-  color: var(--ion-color-medium, #8e8e93) !important;
-  font-size: 18px !important;
-  width: 24px !important;
-  height: 24px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border-radius: 8px !important;
-  text-decoration: none !important;
-  transition: all 0.15s ease !important;
+  .pin-desc-box {
+    color: #ffffff;
+  }
 
-  &:hover {
-    color: var(--ion-color-danger, #eb445a) !important;
-    background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06)) !important;
+  .pin-info-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .pin-info-label {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .pin-info-value {
+    color: #ffffff;
+  }
+
+  .pin-phone-chip {
+    background: rgba(56, 128, 255, 0.2);
+    color: #5ea1ff;
+  }
+
+  .pin-coords-bar {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .pin-coords-text {
+    color: #e5e5ea;
+  }
+
+  .pin-copy-coords-btn {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.16);
+    }
+  }
+
+  .pin-proof-strip .pin-thumb-item {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+
+  .pin-dispatched-box .pin-dispatcher-info {
+    color: rgba(255, 255, 255, 0.6);
   }
 }

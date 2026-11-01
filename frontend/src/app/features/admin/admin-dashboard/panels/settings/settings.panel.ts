@@ -132,7 +132,18 @@ export class SettingsPanel implements OnInit, OnDestroy {
   }
 
   resetZoom(): void {
-    this.settings.setZoom(100);
+    this.ui.showConfirm({
+      title: 'Reset Interface Zoom',
+      message: 'Restore workstation interface scaling back to 100% (default size)?',
+      icon: 'rotate-ccw',
+      iconColor: '#3880ff',
+      confirmLabel: 'Reset Scale',
+      confirmColor: '#3880ff',
+      action: () => {
+        this.settings.setZoom(100);
+        this.ui.showToast('Workstation display scale reset to 100%.', 'medium');
+      }
+    });
   }
 
   get soundVolume(): number {
@@ -147,7 +158,18 @@ export class SettingsPanel implements OnInit, OnDestroy {
   }
 
   resetSoundVolume(): void {
-    this.audio.setVolume(1.0);
+    this.ui.showConfirm({
+      title: 'Reset Master Volume',
+      message: 'Restore master notification alert volume to default (100%)?',
+      icon: 'volume-2',
+      iconColor: '#3880ff',
+      confirmLabel: 'Reset Volume',
+      confirmColor: '#3880ff',
+      action: () => {
+        this.audio.setVolume(1.0);
+        this.ui.showToast('Master alert volume reset to 100%.', 'medium');
+      }
+    });
   }
 
   testAudioSound(): void {
@@ -192,9 +214,19 @@ export class SettingsPanel implements OnInit, OnDestroy {
 
   resetIncidentVolume(profile: IncidentSoundProfile, event?: Event): void {
     if (event) event.stopPropagation();
-    profile.volume = 100;
-    this.audio.setIncidentVolume(profile.key, 1.0);
-    this.ui.showToast(`Reset ${profile.label} volume to 100%.`, 'medium');
+    this.ui.showConfirm({
+      title: `Reset ${profile.label} Volume`,
+      message: `Restore alert chime volume for ${profile.label} back to 100%?`,
+      icon: 'volume-2',
+      iconColor: '#3880ff',
+      confirmLabel: 'Reset Volume',
+      confirmColor: '#3880ff',
+      action: () => {
+        profile.volume = 100;
+        this.audio.setIncidentVolume(profile.key, 1.0);
+        this.ui.showToast(`Reset ${profile.label} volume to 100%.`, 'medium');
+      }
+    });
   }
 
   startRecordingKeybind(item: KeybindDef, event?: Event): void {
@@ -312,9 +344,19 @@ export class SettingsPanel implements OnInit, OnDestroy {
 
   resetIndividualKeybind(item: KeybindDef, event?: Event): void {
     if (event) event.stopPropagation();
-    this.shortcuts.resetIndividualKeybind(item.id);
-    this.refreshKeybindList();
-    this.ui.showToast(`Reset ${item.label} to default shortcut.`, 'medium');
+    this.ui.showConfirm({
+      title: `Reset ${item.label}`,
+      message: `Restore shortcut for "${item.label}" back to system default (${item.defaultKey})?`,
+      icon: 'rotate-ccw',
+      iconColor: '#3880ff',
+      confirmLabel: 'Reset Shortcut',
+      confirmColor: '#3880ff',
+      action: () => {
+        this.shortcuts.resetIndividualKeybind(item.id);
+        this.refreshKeybindList();
+        this.ui.showToast(`Reset ${item.label} to default shortcut.`, 'medium');
+      }
+    });
   }
 
   setSubPage(page: SettingsSubPage): void {
@@ -361,9 +403,19 @@ export class SettingsPanel implements OnInit, OnDestroy {
   }
 
   resetAllKeybinds(): void {
-    this.shortcuts.resetKeybinds();
-    this.refreshKeybindList();
-    this.ui.showToast('Reset all keyboard shortcuts to system defaults.', 'medium');
+    this.ui.showConfirm({
+      title: 'Reset All Keyboard Shortcuts',
+      message: 'Restore all workstation keyboard shortcuts to system factory defaults? Any custom recorded key combinations will be overwritten.',
+      icon: 'rotate-ccw',
+      iconColor: '#ffc409',
+      confirmLabel: 'Reset All Shortcuts',
+      confirmColor: '#eb445a',
+      action: () => {
+        this.shortcuts.resetKeybinds();
+        this.refreshKeybindList();
+        this.ui.showToast('Reset all keyboard shortcuts to system defaults.', 'medium');
+      }
+    });
   }
 
   constructor(

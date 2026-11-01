@@ -69,8 +69,28 @@ export class BroadcastPanel implements OnInit, OnDestroy {
     );
   }
 
-  /** Reset the dirty form draft. */
+  /** Reset the dirty form draft with confirmation safeguard. */
   clearDraft(): void {
+    const isDirty = !!(this.broadcastForm.title?.trim() || this.broadcastForm.message?.trim() || this.selectedMedia?.length);
+    if (!isDirty) {
+      this.doClearDraft();
+      return;
+    }
+    this.ui.showConfirm({
+      title: 'Discard Draft Changes',
+      message: 'Discard changes in this advisory draft? The title, notice text, and attached media will be cleared.',
+      icon: 'rotate-ccw',
+      iconColor: '#eb445a',
+      confirmLabel: 'Discard Changes',
+      confirmColor: '#eb445a',
+      action: () => {
+        this.doClearDraft();
+        this.ui.showToast('Composer draft discarded.', 'medium');
+      }
+    });
+  }
+
+  private doClearDraft(): void {
     this.editingDraftId = null;
     this.broadcastForm = { title: '', message: '' };
     this.selectedMedia = [];

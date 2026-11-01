@@ -14,7 +14,9 @@ Master Admin accounts hold full system abilities (`['admin', 'dispatcher', 'citi
 
 The **Incident Map** serves as the central operational hub:
 - **Emergency SOS Alerts:** Live GPS pins with golden-minute medical info, caller phone, and attached photo/video proof.
-- **Public Hazards:** Orange caution markers for reported road blockages, flooded streets, fallen trees, and downed electrical lines.
+- **Overhead Pin Cards:** High-fidelity frosted-glass Apple-design popup cards directly above map pins displaying citizen name, one-tap phone dialer, barangay, copyable GPS coordinates, and instant **Dispatch Team** or **Resolve** action buttons.
+- **Public Hazards:** Orange caution markers for reported road blockages, flooded streets, fallen trees, and downed electrical lines with overhead hazard resolution cards.
+- **Collapsible Active Alerts Drawer:** Hide or show the active alerts queue sidebar to maximize map situational awareness while preserving incoming alert badges and overhead pin interaction.
 - **Desktop Split View:** Resizable split-pane layout showing the full-width map on the left and the active incidents queue on the right with custom divider dragging.
 - **Mobile Bottom Sheet:** Interactive draggable drawer at the bottom of mobile screens supporting **Peek** (170px for quick glance), **Half** (50% screen for queue browsing), and **Full** expansion.
 - **Mobile Filter Drawer:** Tap the floating **Filter** button to filter by alert type pills (All, Emergency SOS, Hazards), date range, and target barangays.
@@ -147,13 +149,13 @@ In addition to live response, administrators have deep visibility into historica
 ## 9. Dashboard Settings & Guided Operations Tours
 
 - **Dark Theme:** Toggle between High-Contrast Dark Mode and Clean Light Mode with a seamless 250ms cross-dissolve transition across desktop and mobile.
-- **Reduce Animations:** Minimize UI transition effects for maximum performance on lower-spec workstations.
+- **Reduce Animations:** Zero-motion accessibility mode that instantaneously eliminates all transitions and spring transforms across every workstation panel.
+- **Customizable Keyboard Shortcuts:** Interactive multi-key progressive chord recorder with live held-key preview, collision blocking, and confirmation safeguards on resetting all or individual keybinds.
 - **Emergency Audio & Push Alerts:** Enable or mute real-time sound cues and push alerts for incoming SOS calls. Supports native desktop OS notifications across Windows, Linux, and macOS via Tauri v2 IPC.
-- **Sound Effects & Chimes:** Audible alert chimes on incoming emergencies and subtle tactile feedback on key UI interactions with mute toggle in Settings.
-- **Default Map Style & Immersive Map Mode:** Set the default tile layer for the Incident Map (**Street View** vs. **Satellite Imagery**) and toggle the full-screen immersive map workspace (<kbd>Shift</kbd> + <kbd>F</kbd>).
-- **Universal Display Scaling & Zoom:** Fine-tune workstation interface scaling between 75% and 150% via the granular zoom slider, instantly stored and synchronized with keyboard shortcuts (<kbd>Ctrl</kbd> + <kbd>+</kbd>, <kbd>-</kbd>, <kbd>0</kbd>).
-- **Interactive Guided Tours:** Step-by-step walkthroughs for dispatch, broadcasts, archiving, and staff management with viewport-adaptive mobile steps, interactive element tracking (including expanding the broadcast composer and inspecting saved drafts), and mock demo fallbacks.
-- **Unsaved Changes Guard:** Protection dialogs on Help, Profile, and Emergency reports to prevent unintentional loss of draft content when changing views.
+- **Custom Sound Profiles:** Per-category alert tones (Urgent Alert, Sonner, Radar, Harmonic, Security Chirp, Twin Strike) with granular volume sliders and reset confirmation dialogs.
+- **Universal Display Scaling & Zoom:** Fine-tune workstation interface scaling between 75% and 150% via the granular zoom slider, instantly stored and synchronized with keyboard shortcuts (<kbd>Ctrl</kbd> + <kbd>+</kbd>, <kbd>-</kbd>, <kbd>0</kbd>), protected by reset confirmation.
+- **Interactive Guided Tours:** Step-by-step walkthroughs for dispatch, broadcasts, archiving, and staff management with viewport-adaptive mobile steps, interactive element tracking, dynamic keyboard shortcut callouts, and mock demo fallbacks.
+- **Destructive Action & Reset Protection:** High-contrast Apple-style `UIAlertController` confirmation dialogs protect against accidental resets of hotkeys, volume settings, response unit rosters, and broadcast drafts.
 - **Concurrent Device Sessions:** Admin accounts support simultaneous logins across the native desktop workstation (Tauri) and mobile devices without expiring active sessions.
 - **Session Logout:** Safely terminate the administrative session and clear local credentials.
 
