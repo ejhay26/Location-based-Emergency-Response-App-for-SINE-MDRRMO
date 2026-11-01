@@ -18,7 +18,7 @@
 ### What's New in v0.93.4
 
 - **Log Archive & Analytics Official PDF Situational Reports**: Certified export workflow with editable titles, signatory details, operational notes, and high-resolution official MDRRMO branding.
-- **Incident Map Morphic Fullscreen & Controls**: Morphic seamless transition between split pane and immersive views, unified top-right dock with Street/Satellite toggle, custom Zoom (`+`/`-`) pill, and compact fullscreen icon toggle.
+- **Incident Map Morphic Fullscreen & Controls**: Fluid cubic-bezier transitions between split pane and immersive views, persistent report selection focus across background syncs, preserved queue visibility state, high-specificity selected card borders, unified dock with Street/Satellite toggle, custom Zoom controls, and responsive mobile horizontal cluster snapping.
 - **Customizable Shortcuts & Conflict Guard**: Interactive key recording engine supporting custom modifiers and function keys, conflict detection, and individual row resets.
 - **Per-Incident Audio Alert Library**: 16 categorized alert tones with individual volume sliders and live preview test capability.
 - **Realistic Cartography Previews**: OpenStreetMap and satellite aerial textures in display settings.

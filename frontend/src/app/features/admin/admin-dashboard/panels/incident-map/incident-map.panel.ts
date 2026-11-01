@@ -92,6 +92,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   mapStyle: 'street' | 'satellite' = 'street';
   isImmersiveMap = false;
+  private isReplottingMarkers = false;
   private map: any;
   private mapMarkers: any[] = [];
   private streetLayer: any;
@@ -961,9 +962,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   toggleImmersiveMap(): void {
     this.isImmersiveMap = !this.isImmersiveMap;
-    // Keep floating cards visible by default when entering immersive full screen
-    this.isQueueHidden = false;
-    this.runMapInvalidationLoop();
+    // Preserve whether the cards list was hidden or visible!
+    this.runMapInvalidationLoop(350);
   }
 
   private runMapInvalidationLoop(duration = 400): void {
@@ -1080,7 +1080,20 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     }
 
     this.map.on('popupopen',  (e: any) => { document.getElementById('dispatch-map')?.classList.add('map-has-selection');    if (e.popup._source?._icon) e.popup._source._icon.classList.add('selected-pin'); });
-    this.map.on('popupclose', (e: any) => { document.getElementById('dispatch-map')?.classList.remove('map-has-selection'); if (e.popup._source?._icon) e.popup._source._icon.classList.remove('selected-pin'); setTimeout(() => { this.selectedRequestId = null; this.previewType = null; }); });
+    this.map.on('popupclose', (e: any) => {
+      if (this.isReplottingMarkers) {
+        return;
+      }
+      document.getElementById('dispatch-map')?.classList.remove('map-has-selection');
+      if (e.popup._source?._icon) e.popup._source._icon.classList.remove('selected-pin');
+      setTimeout(() => {
+        // Only clear if no card was clicked
+        if (!this.isReplottingMarkers) {
+          this.selectedRequestId = null;
+          this.previewType = null;
+        }
+      });
+    });
 
     // Local GeoJSON layers loaded directly from project assets
     this.http.get('assets/data/bgysubmuns-municity-304925000.0.1.json').subscribe((json: any) => {
@@ -1142,6 +1155,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   plotMarkers() {
     if (!this.map) return;
+    this.isReplottingMarkers = true;
     this.mapMarkers.forEach(m => this.map.removeLayer(m));
     this.mapMarkers = [];
     const iconConfig: Record<string, { viewBox: string; path: string; color: string }> = {
@@ -1204,6 +1218,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
           <button onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${req.request_id}}))"  style="background:#2dd36f;color:white;border:none;padding:10px 14px;font-weight:bold;border-radius:8px;cursor:pointer;font-size:14px;flex:1;">RESOLVE</button>
         </div></div>`;
       const marker = L.marker([req.latitude, req.longitude], { icon }).bindPopup(popup).addTo(this.map);
+      (marker as any)._incidentData = req;
+      (marker as any)._incidentType = 'emergency';
       marker.on('click', () => {
         this.selectedRequestId = req.request_id; this.previewType = 'emergency';
         setTimeout(() => { document.getElementById('request-card-' + req.request_id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
@@ -1238,6 +1254,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
           <button onclick="window.__copyIncidentCoords('${haz.latitude}','${haz.longitude}')" style="background:var(--ion-color-step-100, #eee);border:1px solid var(--ion-color-step-200, #ccc);color:var(--ion-text-color, #111);padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">Copy</button>
         </div></div>`;
       const marker = L.marker([haz.latitude, haz.longitude], { icon }).bindPopup(popup).addTo(this.map);
+      (marker as any)._incidentData = haz;
+      (marker as any)._incidentType = 'hazard';
       marker.on('click', () => {
         this.selectedRequestId = haz.hazard_id; this.previewType = 'hazard';
         setTimeout(() => { document.getElementById('hazard-card-' + haz.hazard_id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
@@ -1279,6 +1297,25 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       });
       this.mapMarkers.push(marker);
     }
+
+    // Preserve active selection and re-open popup if already selected
+    if (this.selectedRequestId !== null) {
+      const selectedMarker = this.mapMarkers.find(m => {
+        const mData = (m as any)._incidentData;
+        const mType = (m as any)._incidentType;
+        if (!mData || !mType) return false;
+        const id = mType === 'emergency' ? mData.request_id : mData.hazard_id;
+        return id === this.selectedRequestId && mType === this.previewType;
+      });
+      if (selectedMarker) {
+        selectedMarker.openPopup();
+        if ((selectedMarker as any)._icon) {
+          (selectedMarker as any)._icon.classList.add('selected-pin');
+        }
+        document.getElementById('dispatch-map')?.classList.add('map-has-selection');
+      }
+    }
+    this.isReplottingMarkers = false;
   }
 
   openDispatchModal(requestId: number) {
