@@ -1,14 +1,14 @@
-<ng-container *ngIf="visible && currentPill as pill">
+<ng-container *ngIf="visible && currentPill">
   <div class="sos-stacked-container" [class.is-minimized-mode]="isMinimized">
-    
-    <!-- MINIMIZED SINGLE PILL -->
+
+    <!-- 1. MINIMIZED SLIM PILL (Shown when isMinimized is true) -->
     <div *ngIf="isMinimized"
          class="sos-morphic-pill"
          (click)="onCardContainerClick($event)"
          role="button"
          tabindex="0"
          [attr.aria-label]="'Expand ' + summaryMinimizedLabel">
-      <div class="pill-beacon" [class.is-dispatched]="hasDispatched" [class.is-offline]="pill.state === 'offline'">
+      <div class="pill-beacon" [class.is-dispatched]="hasDispatched" [class.is-offline]="currentPill.state === 'offline'">
         <span class="beacon-pulse"></span>
         <app-icon [name]="summaryIcon" [size]="16" [color]="summaryIconColor"></app-icon>
       </div>
@@ -21,25 +21,25 @@
       </div>
     </div>
 
-    <!-- EXPANDED CONSOLIDATED CARD (Single Container) -->
+    <!-- 2. EXPANDED CONSOLIDATED CARD (Shown when isMinimized is false) -->
     <div *ngIf="!isMinimized"
          class="sos-expanded-card"
          (click)="onCardContainerClick($event)"
          role="button"
          tabindex="0"
          aria-label="Emergency SOS Details">
-      
-      <!-- Top Bar: Status Badge, Stepper (if >1), and Minimize Button -->
+
+      <!-- Header row: Status badge, relative time, stepper (if >1), single minimize button -->
       <div class="card-top-bar">
         <div class="status-badge-wrap">
-          <span class="beacon-dot" [class.is-dispatched]="pill.state === 'dispatched'" [class.is-offline]="pill.state === 'offline'"></span>
-          <span class="status-badge" [class.is-dispatched]="pill.state === 'dispatched'" [class.is-offline]="pill.state === 'offline'">
-            {{ pill.state === 'dispatched' ? 'DISPATCHED' : (pill.state === 'offline' ? 'OFFLINE' : 'PENDING') }}
+          <span class="beacon-dot" [class.is-dispatched]="currentPill.state === 'dispatched'" [class.is-offline]="currentPill.state === 'offline'"></span>
+          <span class="status-badge" [class.is-dispatched]="currentPill.state === 'dispatched'" [class.is-offline]="currentPill.state === 'offline'">
+            {{ currentPill.state === 'dispatched' ? 'DISPATCHED' : (currentPill.state === 'offline' ? 'OFFLINE' : 'PENDING') }}
           </span>
-          <span *ngIf="pill.timeAgo" class="time-badge">{{ pill.timeAgo }}</span>
+          <span *ngIf="currentPill.timeAgo" class="time-badge">{{ currentPill.timeAgo }}</span>
         </div>
 
-        <!-- Pager Stepper if multiple alerts exist -->
+        <!-- Stepper controls if multiple alerts exist -->
         <div *ngIf="pills.length > 1" class="stepper-controls" (click)="$event.stopPropagation()">
           <button type="button" class="stepper-btn" (click)="prevPill($event)" aria-label="Previous alert" title="Previous alert">
             <app-icon name="chevron-back" [size]="13"></app-icon>
@@ -50,7 +50,7 @@
           </button>
         </div>
 
-        <!-- Single Minimize Button -->
+        <!-- Single minimize button (replaces multiple hide buttons) -->
         <button type="button"
                 class="card-minimize-btn"
                 (click)="minimizeCard($event)"
@@ -60,20 +60,20 @@
         </button>
       </div>
 
-      <!-- Main Body -->
+      <!-- Main Body: icon & titles -->
       <div class="card-main-body">
         <div class="icon-title-row">
-          <div class="card-icon-squircle" [class.is-dispatched]="pill.state === 'dispatched'" [class.is-offline]="pill.state === 'offline'">
-            <app-icon [name]="pill.icon" [size]="20" [color]="pill.state === 'dispatched' ? '#10b981' : (pill.state === 'offline' ? '#f59e0b' : '#d32f2f')"></app-icon>
+          <div class="card-icon-squircle" [class.is-dispatched]="currentPill.state === 'dispatched'" [class.is-offline]="currentPill.state === 'offline'">
+            <app-icon [name]="currentPill.icon" [size]="20" [color]="currentPill.state === 'dispatched' ? '#10b981' : (currentPill.state === 'offline' ? '#f59e0b' : '#d32f2f')"></app-icon>
           </div>
           <div class="card-title-col">
-            <h4 class="card-label">{{ pill.label }}</h4>
-            <p class="card-sublabel">{{ pill.sublabel }}</p>
+            <h4 class="card-label">{{ currentPill.label }}</h4>
+            <p class="card-sublabel">{{ currentPill.sublabel }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Footer Actions & Pagination Dots -->
+      <!-- Footer: Pagination dots & Cancel / Status actions -->
       <div class="card-footer-row" (click)="$event.stopPropagation()">
         <!-- Dots indicator for multiple alerts -->
         <div *ngIf="pills.length > 1" class="dots-indicator">
@@ -89,17 +89,18 @@
           <span>Tap to view emergency details</span>
         </div>
 
-        <!-- Cancel Button if cancellable -->
-        <button *ngIf="pill.cancellable"
+        <!-- Cancel button if cancellable -->
+        <button *ngIf="currentPill.cancellable"
                 type="button"
                 class="btn-cancel-alert"
-                (click)="onCancel($event, pill)"
+                (click)="onCancel($event, currentPill)"
                 aria-label="Cancel this SOS alert">
           <app-icon name="close" [size]="12" color="#d32f2f"></app-icon>
           <span>Cancel Alert</span>
         </button>
 
-        <span *ngIf="!pill.cancellable" class="en-route-chip">
+        <!-- Dispatched indicator if non-cancellable -->
+        <span *ngIf="!currentPill.cancellable" class="en-route-chip">
           <app-icon name="truck-medical" [size]="13" color="#10b981"></app-icon>
           <span>Responder en route</span>
         </span>

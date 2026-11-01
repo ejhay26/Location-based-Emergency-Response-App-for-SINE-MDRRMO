@@ -1,4 +1,15 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnInit,
+  OnDestroy,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectorRef,
+  inject
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { parseServerDate } from '../../pipes/utc-date.pipe';
 import { QueuedReport } from '../../../core/services/offline-queue';
@@ -42,6 +53,11 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
 
   isMinimized = false;
   currentIndex = 0;
+  pills: SosPill[] = [];
+  currentPill: SosPill | null = null;
+  visible = false;
+  hasDispatched = false;
+
   private autoMinimizeTimer: any = null;
   private prevItemIds = new Set<string>();
 
@@ -51,13 +67,14 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
   /** Emits request_id for server-confirmed pills, null for offline-queue pills (use queueId instead) */
   @Output() cancelTap = new EventEmitter<{ requestId: number | null; queueId: string | null }>();
 
-  ngOnInit() {
+  ngOnInit(): void {
+    this.rebuildPills();
     if (this.visible) {
       this.scheduleAutoMinimize(5000);
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges): void {
     const currentIds = new Set<string>();
     (this.activeReports || []).forEach(r => currentIds.add(`r:${r.request_id}`));
     (this.queuedItems || []).forEach(q => currentIds.add(`q:${q.id}`));
@@ -71,6 +88,8 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
 
+    this.rebuildPills();
+
     if (hasNewItem && this.prevItemIds.size > 0) {
       this.expandCard();
     } else if (this.prevItemIds.size === 0 && currentIds.size > 0 && !this.isMinimized) {
@@ -78,65 +97,16 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     this.prevItemIds = currentIds;
-
-    // Ensure currentIndex stays within bounds
-    const len = this.pills.length;
-    if (len === 0) {
-      this.currentIndex = 0;
-    } else if (this.currentIndex >= len) {
-      this.currentIndex = len - 1;
-    }
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.clearAutoMinimize();
   }
 
-  scheduleAutoMinimize(delayMs = 5000) {
-    this.clearAutoMinimize();
-    this.autoMinimizeTimer = setTimeout(() => {
-      this.isMinimized = true;
-      this.cdr.markForCheck();
-    }, delayMs);
-  }
-
-  clearAutoMinimize() {
-    if (this.autoMinimizeTimer) {
-      clearTimeout(this.autoMinimizeTimer);
-      this.autoMinimizeTimer = null;
-    }
-  }
-
-  expandCard() {
-    this.clearAutoMinimize();
-    this.isMinimized = false;
-    this.cdr.markForCheck();
-    this.scheduleAutoMinimize(6000);
-  }
-
-  minimizeCard(event?: Event) {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
-    this.clearAutoMinimize();
-    this.isMinimized = true;
-    this.cdr.markForCheck();
-  }
-
-  onCardContainerClick(event: MouseEvent) {
-    if (this.isMinimized) {
-      event.stopPropagation();
-      this.expandCard();
-    } else {
-      this.onTap();
-    }
-  }
-
-  get pills(): SosPill[] {
+  rebuildPills(): void {
     const result: SosPill[] = [];
 
-    for (let i = 0; i < this.queuedItems.length; i++) {
+    for (let i = 0; i < (this.queuedItems || []).length; i++) {
       const item = this.queuedItems[i];
       result.push({
         key: -(i + 1),
@@ -151,7 +121,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
       });
     }
 
-    for (const r of this.activeReports) {
+    for (const r of (this.activeReports || [])) {
       const state: PillState = r.status === 'Dispatched' ? 'dispatched' : 'pending';
       const label = r.incident_name
         ? `${r.incident_name} Emergency`
@@ -185,23 +155,70 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
       });
     }
 
-    return result;
+    this.pills = result;
+    this.visible = result.length > 0;
+    this.hasDispatched = result.some(p => p.state === 'dispatched');
+
+    // Keep currentIndex within valid bounds
+    if (result.length === 0) {
+      this.currentIndex = 0;
+      this.currentPill = null;
+    } else {
+      if (this.currentIndex >= result.length) {
+        this.currentIndex = result.length - 1;
+      }
+      this.currentPill = result[this.currentIndex] ?? result[0];
+    }
+
+    this.cdr.markForCheck();
   }
 
-  get currentPill(): SosPill | null {
-    const p = this.pills;
-    if (p.length === 0) return null;
-    return p[this.currentIndex] ?? p[0];
+  scheduleAutoMinimize(delayMs = 5000): void {
+    this.clearAutoMinimize();
+    this.autoMinimizeTimer = setTimeout(() => {
+      this.isMinimized = true;
+      this.cdr.markForCheck();
+    }, delayMs);
   }
 
-  get hasDispatched(): boolean {
-    return this.pills.some(p => p.state === 'dispatched');
+  clearAutoMinimize(): void {
+    if (this.autoMinimizeTimer) {
+      clearTimeout(this.autoMinimizeTimer);
+      this.autoMinimizeTimer = null;
+    }
+  }
+
+  expandCard(): void {
+    this.clearAutoMinimize();
+    this.isMinimized = false;
+    this.cdr.markForCheck();
+    this.scheduleAutoMinimize(6000);
+  }
+
+  minimizeCard(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    this.clearAutoMinimize();
+    this.isMinimized = true;
+    this.cdr.markForCheck();
+  }
+
+  onCardContainerClick(event: MouseEvent): void {
+    if (this.isMinimized) {
+      event.stopPropagation();
+      this.expandCard();
+    } else {
+      this.onTap();
+    }
   }
 
   get summaryMinimizedLabel(): string {
     const len = this.pills.length;
     if (len === 1) {
-      return this.pills[0].state === 'dispatched' ? 'En Route' : 'SOS Active';
+      const first = this.pills[0];
+      return first?.state === 'dispatched' ? 'En Route' : 'SOS Active';
     }
     return `${len} Active Alerts`;
   }
@@ -218,8 +235,6 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     return '#d32f2f';
   }
 
-  get visible(): boolean { return this.pills.length > 0; }
-
   prevPill(event?: Event): void {
     if (event) {
       event.stopPropagation();
@@ -228,6 +243,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     const len = this.pills.length;
     if (len <= 1) return;
     this.currentIndex = (this.currentIndex - 1 + len) % len;
+    this.currentPill = this.pills[this.currentIndex];
     this.scheduleAutoMinimize(8000);
     this.cdr.markForCheck();
   }
@@ -240,6 +256,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     const len = this.pills.length;
     if (len <= 1) return;
     this.currentIndex = (this.currentIndex + 1) % len;
+    this.currentPill = this.pills[this.currentIndex];
     this.scheduleAutoMinimize(8000);
     this.cdr.markForCheck();
   }
@@ -251,6 +268,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     }
     if (index >= 0 && index < this.pills.length) {
       this.currentIndex = index;
+      this.currentPill = this.pills[this.currentIndex];
       this.scheduleAutoMinimize(8000);
       this.cdr.markForCheck();
     }
@@ -260,15 +278,17 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     const date = parseServerDate(dateStr);
     if (!date) return '';
     const mins = Math.floor((Date.now() - date.getTime()) / 60000);
-    if (mins < 1)  return 'Just now';
+    if (mins < 1) return 'Just now';
     if (mins < 60) return `${mins}m ago`;
     const hrs = Math.floor(mins / 60);
     return hrs < 24 ? `${hrs}h ago` : `${Math.floor(hrs / 24)}d ago`;
   }
 
-  onTap() { this.cardTap.emit(); }
+  onTap(): void {
+    this.cardTap.emit();
+  }
 
-  onCancel(ev: MouseEvent, pill: SosPill | null) {
+  onCancel(ev: MouseEvent, pill: SosPill | null): void {
     ev.stopPropagation();
     if (!pill) return;
     this.cancelTap.emit({ requestId: pill.requestId, queueId: pill.queueId });
