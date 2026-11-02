@@ -37,14 +37,8 @@ old-backend/.env
 frontend2/
 frontend3/
 replica/
-glass-frontend/node_modules/
-glass-frontend/www/
-glass-frontend/src-tauri/target/
 TODO.md
 todo.md
  
 .cargo/
 frontend/src-tauri/.cargo/
-glass-frontend/node_modules/
-glass-frontend/www/
-glass-frontend/src-tauri/target/src-tauri/.cargo/
