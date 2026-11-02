@@ -53,6 +53,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
 
   isMinimized = false;
   currentIndex = 0;
+  isSliding = false;
   pills: SosPill[] = [];
   currentPill: SosPill | null = null;
   visible = false;
@@ -79,7 +80,6 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     (this.activeReports || []).forEach(r => currentIds.add(`r:${r.request_id}`));
     (this.queuedItems || []).forEach(q => currentIds.add(`q:${q.id}`));
 
-    // Check if genuinely NEW items were added (not just polling or array reference churn)
     let hasNewItem = false;
     for (const id of currentIds) {
       if (!this.prevItemIds.has(id)) {
@@ -111,8 +111,8 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
       result.push({
         key: -(i + 1),
         state: 'offline',
-        label: 'SOS Queued — Offline',
-        sublabel: "Will send automatically once you're back online.",
+        label: 'SOS Queued',
+        sublabel: "Sending once online",
         icon: 'cloud-arrow-up',
         timeAgo: '',
         requestId: null,
@@ -125,21 +125,21 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
       const state: PillState = r.status === 'Dispatched' ? 'dispatched' : 'pending';
       const label = r.incident_name
         ? `${r.incident_name} Emergency`
-        : (state === 'dispatched' ? 'Help Is On The Way' : 'Emergency SOS');
+        : (state === 'dispatched' ? 'Help En Route' : 'Emergency SOS');
 
       let sublabel = '';
       if (state === 'dispatched') {
         if (r.agency && r.unit_name) {
-          sublabel = `${r.agency} (${r.unit_name}) is en route to your location.`;
+          sublabel = `${r.agency} (${r.unit_name}) en route`;
         } else if (r.agency) {
-          sublabel = `${r.agency} is en route to your location.`;
+          sublabel = `${r.agency} en route`;
         } else if (r.unit_name) {
-          sublabel = `${r.unit_name} is en route to your location.`;
+          sublabel = `${r.unit_name} en route`;
         } else {
-          sublabel = 'A responder has been dispatched to your location.';
+          sublabel = 'Responder dispatched';
         }
       } else {
-        sublabel = 'MDRRMO has received your request and is reviewing it.';
+        sublabel = 'MDRRMO reviewing request';
       }
 
       result.push({
@@ -159,7 +159,6 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     this.visible = result.length > 0;
     this.hasDispatched = result.some(p => p.state === 'dispatched');
 
-    // Keep currentIndex within valid bounds
     if (result.length === 0) {
       this.currentIndex = 0;
       this.currentPill = null;
@@ -173,7 +172,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     this.cdr.markForCheck();
   }
 
-  scheduleAutoMinimize(delayMs = 5000): void {
+  scheduleAutoMinimize(delayMs = 6000): void {
     this.clearAutoMinimize();
     this.autoMinimizeTimer = setTimeout(() => {
       this.isMinimized = true;
@@ -192,7 +191,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     this.clearAutoMinimize();
     this.isMinimized = false;
     this.cdr.markForCheck();
-    this.scheduleAutoMinimize(6000);
+    this.scheduleAutoMinimize(7000);
   }
 
   minimizeCard(event?: Event): void {
@@ -205,7 +204,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     this.cdr.markForCheck();
   }
 
-  onCardContainerClick(event: MouseEvent): void {
+  onCapsuleClick(event: MouseEvent): void {
     if (this.isMinimized) {
       event.stopPropagation();
       this.expandCard();
@@ -220,7 +219,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
       const first = this.pills[0];
       return first?.state === 'dispatched' ? 'En Route' : 'SOS Active';
     }
-    return `${len} Active Alerts`;
+    return `${len} Active`;
   }
 
   get summaryIcon(): string {
@@ -242,6 +241,7 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     }
     const len = this.pills.length;
     if (len <= 1) return;
+    this.triggerSlideTransition();
     this.currentIndex = (this.currentIndex - 1 + len) % len;
     this.currentPill = this.pills[this.currentIndex];
     this.scheduleAutoMinimize(8000);
@@ -255,23 +255,19 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     }
     const len = this.pills.length;
     if (len <= 1) return;
+    this.triggerSlideTransition();
     this.currentIndex = (this.currentIndex + 1) % len;
     this.currentPill = this.pills[this.currentIndex];
     this.scheduleAutoMinimize(8000);
     this.cdr.markForCheck();
   }
 
-  goToPill(index: number, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
-    if (index >= 0 && index < this.pills.length) {
-      this.currentIndex = index;
-      this.currentPill = this.pills[this.currentIndex];
-      this.scheduleAutoMinimize(8000);
+  private triggerSlideTransition(): void {
+    this.isSliding = true;
+    setTimeout(() => {
+      this.isSliding = false;
       this.cdr.markForCheck();
-    }
+    }, 180);
   }
 
   private calcTimeAgo(dateStr: string): string {
