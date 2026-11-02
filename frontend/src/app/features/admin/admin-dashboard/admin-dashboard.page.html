@@ -254,7 +254,7 @@
              [class.panel-slide-back]="navDirection === 'back'"
              style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
           <app-mobile-menu-panel
-            [currentRole]="currentRole || 'admin'"
+            [currentRole]="currentRole || 'dispatcher'"
             [pendingVerificationsCount]="pendingVerificationsCount"
             (viewSelect)="navigateToSubPanel($any($event))"
             (logout)="logout()">

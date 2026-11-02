@@ -50,7 +50,10 @@ export class ErrorInterceptorService implements HttpInterceptor {
               void this.authSession.terminateSession('Your session has expired. Please log in again to continue.');
             }
           } else if (error.status === 403) {
-            message = 'Access restricted. You do not have permission to perform this action.';
+            const isBackgroundPoll = req.url.includes('/pending-verifications');
+            if (!isBackgroundPoll) {
+              message = 'Access restricted. You do not have permission to perform this action.';
+            }
           } else if (error.status === 429) {
             message = 'Too many requests. Please pause for a few seconds before trying again.';
           } else if (error.status === 502 || error.status === 503) {

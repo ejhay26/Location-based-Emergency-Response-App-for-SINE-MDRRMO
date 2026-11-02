@@ -53,7 +53,7 @@ type ViewMode =
 })
 export class AdminDashboardPage implements OnInit, OnDestroy {
 
-  currentRole: string | null = '';
+  currentRole: string | null = typeof window !== 'undefined' ? localStorage.getItem('role') : '';
   viewMode: ViewMode = 'active';
   lastActiveDesktopView: ViewMode = 'active';
   navDirection: 'forward' | 'back' = 'forward';
@@ -223,6 +223,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.currentRole = localStorage.getItem('role');
     this.echo.connect();
     this.isServerConnected = this.echo.isConnected;
     this.echoConnectedSub = this.echo.onConnected.subscribe(connected => {
@@ -317,7 +318,9 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     });
 
     this.echoUserSub = this.echo.onUserVerified.subscribe(() => {
-      this.refreshPendingVerificationsCount();
+      if (this.currentRole?.toLowerCase() === 'admin') {
+        this.refreshPendingVerificationsCount();
+      }
     });
 
     // Initial load of counts
@@ -350,7 +353,11 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
 
   refreshAllCounts(): void {
     this.refreshActiveIncidentsCount();
-    this.refreshPendingVerificationsCount();
+    if (this.currentRole?.toLowerCase() === 'admin') {
+      this.refreshPendingVerificationsCount();
+    } else {
+      this.pendingVerificationsCount = 0;
+    }
   }
 
   refreshActiveIncidentsCount(): void {
@@ -365,6 +372,10 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   refreshPendingVerificationsCount(): void {
+    if (this.currentRole?.toLowerCase() !== 'admin') {
+      this.pendingVerificationsCount = 0;
+      return;
+    }
     this.api.getPendingVerifications().pipe(
       catchError(() => of([]))
     ).subscribe((res: any) => {
