@@ -1,234 +1,362 @@
-# Database Normalization: SINE MDRRMO Emergency Response System
+# Database Normalization Reference: SINE MDRRMO Emergency Response System (`emergencydb`)
 
-This document presents the step-by-step relational database normalization process for the **SINE MDRRMO Emergency Response System** (`emergencydb`). It traces the transformation of the system's data from an Unnormalized Form (UNF) through First Normal Form (1NF), Second Normal Form (2NF), Third Normal Form (3NF), and Boyce-Codd Normal Form (BCNF).
+This document demonstrates the formal database normalization process for the **SINE MDRRMO Emergency Response System**. It traces the relational schema from an **Unnormalized Form (UNF)** through **First Normal Form (1NF)**, **Second Normal Form (2NF)**, **Third Normal Form (3NF)**, and **Boyce-Codd Normal Form (BCNF)** using the actual municipal database schema and operational data.
 
 ---
 
 ## 1. Unnormalized Form (UNF)
 
-In an unnormalized structure, all municipal emergency response data, citizen personal details, medical history, incident reports, and dispatch logs are stored in a single flat ledger.
+All citizen demographics, medical records, government ID verifications, emergency SOS requests, hazard reports, dispatch deployments, and municipal geographic data are merged into a single universal relation.
 
-### 1.1 UNF Universal Table Representation
+### 1.1 Universal Relation Schema
+```text
+R_UNF( user_id, email, password, role, first_name, last_name, phone_number, birthdate,
+       barangay_name, blood_type, allergies, medical_conditions, pwd_status,
+       id_type, id_number, id_front_path, id_back_path, selfie_path, verification_status,
+       request_id, incident_name, description, proof_files, latitude, longitude,
+       request_status, is_false_alarm, request_time,
+       dispatch_id, agency, notes, dispatched_at, arrived_at, dispatch_status )
+```
 
-| user_id | email | full_name | phone | barangay | blood_type | allergies | id_type | id_number | request_id | incident_type | lat | lng | req_time | dispatch_id | agency | dispatch_time | arrival_time |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 101 | juan@sine.gov.ph | Juan Dela Cruz | 09171234567 | Tabon | O+ | Penicillin, Dust | PhilSys | 1234-5678-9012 | 5001, 5004 | Flood, Medical | 15.2612, 15.2620 | 120.9105, 120.9110 | 10:30, 14:15 | 801, 804 | Rescue Team A, Ambulance | 10:35, 14:20 | 10:48, 14:32 |
-| 102 | maria@sine.gov.ph | Maria Santos | 09189876543 | Alua | AB- | None | Driver's | D02-19-123456 | 5002 | Vehicular Accident | 15.2750 | 120.9230 | 11:00 | 802 | PNP, BFP | 11:05 | 11:18 |
-| 103 | pedro@sine.gov.ph | Pedro Reyes | 09205551234 | Malapit | B+ | Aspirin | PhilSys | 9876-5432-1098 | (null) | (null) | (null) | (null) | (null) | (null) | (null) | (null) | (null) |
+### 1.2 UNF Universal Table with Operational Data
+The table below illustrates multi-valued fields and repeating groups (e.g., a citizen filing multiple emergency requests, multi-agency dispatches, multiple allergies):
 
-### 1.2 Anomalies Present in UNF
+| user_id | email | first_name | last_name | phone_number | barangay_name | blood_type | allergies | id_type | id_number | request_id | incident_name | latitude | longitude | request_time | dispatch_id | agency | dispatched_at | arrived_at |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **101** | juan@gmail.com | Juan | Dela Cruz | 09171234567 | Tabon | O+ | Penicillin, Dust | PhilSys | 1234-5678-9012 | 5001, 5004 | Flood, Medical | 15.261240, 15.262000 | 120.910510, 120.911000 | 10:30, 14:15 | 801, 804 | Rescue A, Ambulance | 10:35, 14:20 | 10:48, 14:32 |
+| **102** | maria@yahoo.com | Maria | Santos | 09189876543 | Alua | AB- | None | Driver's | D02-19-123456 | 5002 | Vehicular Accident | 15.275000 | 120.923000 | 11:00 | 802, 803 | PNP, BFP | 11:05, 11:06 | 11:18, 11:22 |
+| **103** | pedro@sine.gov.ph | Pedro | Reyes | 09205551234 | Malapit | B+ | Aspirin | PhilSys | 9876-5432-1098 | *NULL* | *NULL* | *NULL* | *NULL* | *NULL* | *NULL* | *NULL* | *NULL* | *NULL* |
+
+### 1.3 Concrete Anomalies in UNF
 
 1. **Insertion Anomaly**:
-   - A new barangay (e.g., *Poblacion*) cannot be recorded unless an emergency or citizen is registered in it.
-   - A newly registered citizen (e.g., Pedro Reyes, `user_id = 103`) has null values for all emergency and dispatch attributes.
+   - A new municipal barangay (e.g., `San Roque`) cannot be registered in the system unless a citizen registers or an emergency is filed from that location.
+   - Registering a citizen who has not yet filed an emergency (e.g., Pedro Reyes, `user_id = 103`) forces all emergency and dispatch fields to store dummy `NULL` values.
+
 2. **Update Anomaly**:
-   - If Juan Dela Cruz updates his mobile phone number, every row where Juan has filed an emergency must be updated. Any missed row results in data inconsistency during critical dispatch calls.
+   - If Juan Dela Cruz updates his contact phone number from `09171234567` to `09179998888`, every emergency row filed by Juan must be updated. If any record is missed, dispatchers will call an outdated number during an SOS crisis.
+
 3. **Deletion Anomaly**:
-   - If the vehicular incident `request_id = 5002` is resolved and purged from the emergency log, Maria Santos's citizen account, valid government ID verification, and medical profile are deleted from the system.
+   - When the resolved emergency `request_id = 5002` is archived or purged from transactional storage, Maria Santos's citizen account, government ID verification, and medical allergy records are permanently deleted.
 
 ---
 
-## 2. Conversion to First Normal Form (1NF)
+## 2. First Normal Form (1NF)
 
-### 2.1 1NF Requirements
-- Remove repeating groups and multi-valued attributes (e.g., comma-separated `request_id`, `incident_type`, `agency`, `allergies`).
-- Ensure all attribute values are atomic.
-- Define a primary key that uniquely identifies each tuple.
+To reach 1NF, all multi-valued attributes and repeating groups are eliminated, ensuring every column contains atomic (indivisible) values. A composite primary key is defined to uniquely identify each row.
 
-### 2.2 1NF Flattened Relation
-
-Repeating groups are split into discrete rows. The composite primary key is defined as:
-`{ user_id, request_id, dispatch_id }` (with surrogate null-handling for inactive accounts).
-
-| user_id [PK] | email | first_name | last_name | phone | barangay | blood_type | allergies | valid_id_type | valid_id_number | request_id [PK] | incident_type | latitude | longitude | req_time | dispatch_id [PK] | agency | dispatch_time | arrival_time |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 101 | juan@sine.gov.ph | Juan | Dela Cruz | 09171234567 | Tabon | O+ | Penicillin | PhilSys | 1234-5678-9012 | 5001 | Flood | 15.261240 | 120.910510 | 10:30:00 | 801 | Rescue Team A | 10:35:00 | 10:48:00 |
-| 101 | juan@sine.gov.ph | Juan | Dela Cruz | 09171234567 | Tabon | O+ | Dust | PhilSys | 1234-5678-9012 | 5001 | Flood | 15.261240 | 120.910510 | 10:30:00 | 801 | Rescue Team A | 10:35:00 | 10:48:00 |
-| 101 | juan@sine.gov.ph | Juan | Dela Cruz | 09171234567 | Tabon | O+ | Penicillin | PhilSys | 1234-5678-9012 | 5004 | Medical | 15.262000 | 120.911000 | 14:15:00 | 804 | Ambulance | 14:20:00 | 14:32:00 |
-| 102 | maria@sine.gov.ph | Maria | Santos | 09189876543 | Alua | AB- | None | Driver's | D02-19-123456 | 5002 | Vehicular Accident | 15.275000 | 120.923000 | 11:00:00 | 802 | PNP | 11:05:00 | 11:18:00 |
-| 102 | maria@sine.gov.ph | Maria | Santos | 09189876543 | Alua | AB- | None | Driver's | D02-19-123456 | 5002 | Vehicular Accident | 15.275000 | 120.923000 | 11:00:00 | 803 | BFP | 11:05:00 | 11:22:00 |
-
-### 2.3 1NF Relation Schema
+### 2.1 Composite Primary Key
+The composite primary key is:
 ```text
-R_1NF( user_id [PK], request_id [PK], dispatch_id [PK], email, first_name, last_name, 
-       phone, barangay, blood_type, allergies, valid_id_type, valid_id_number, 
-       incident_type, latitude, longitude, req_time, agency, dispatch_time, arrival_time )
+PK = { user_id, request_id, dispatch_id }
 ```
+*(For citizens without emergency requests, surrogate incident identifiers `0` are used to prevent null primary key violations).*
+
+### 2.2 1NF Relation Schema
+```text
+R_1NF( user_id [PK], request_id [PK], dispatch_id [PK], email, first_name, last_name,
+       phone_number, barangay_name, blood_type, allergy_item, id_type, id_number,
+       verification_status, incident_name, latitude, longitude, request_status,
+       request_time, agency, dispatched_at, arrived_at, dispatch_status )
+```
+
+### 2.3 1NF Atomic Table Data
+
+| user_id [PK] | request_id [PK] | dispatch_id [PK] | email | first_name | last_name | phone_number | barangay_name | blood_type | allergy_item | id_type | id_number | incident_name | latitude | longitude | agency | dispatched_at | arrived_at |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **101** | **5001** | **801** | juan@gmail.com | Juan | Dela Cruz | 09171234567 | Tabon | O+ | Penicillin | PhilSys | 1234-5678-9012 | Flood | 15.261240 | 120.910510 | Rescue A | 10:35:00 | 10:48:00 |
+| **101** | **5001** | **801** | juan@gmail.com | Juan | Dela Cruz | 09171234567 | Tabon | O+ | Dust | PhilSys | 1234-5678-9012 | Flood | 15.261240 | 120.910510 | Rescue A | 10:35:00 | 10:48:00 |
+| **101** | **5004** | **804** | juan@gmail.com | Juan | Dela Cruz | 09171234567 | Tabon | O+ | Penicillin | PhilSys | 1234-5678-9012 | Medical | 15.262000 | 120.911000 | Ambulance | 14:20:00 | 14:32:00 |
+| **102** | **5002** | **802** | maria@yahoo.com | Maria | Santos | 09189876543 | Alua | AB- | None | Driver's | D02-19-123456 | Vehicular | 15.275000 | 120.923000 | PNP | 11:05:00 | 11:18:00 |
+| **102** | **5002** | **803** | maria@yahoo.com | Maria | Santos | 09189876543 | Alua | AB- | None | Driver's | D02-19-123456 | Vehicular | 15.275000 | 120.923000 | BFP | 11:06:00 | 11:22:00 |
+
+### 2.4 Flaws in 1NF (Partial Functional Dependencies)
+Notice the extensive data duplication: Juan Dela Cruz's email, name, phone, barangay, and ID number are repeated across multiple rows because they depend only on `user_id`, not on `request_id` or `dispatch_id`. This violates 2NF.
 
 ---
 
-## 3. Conversion to Second Normal Form (2NF)
+## 3. Second Normal Form (2NF)
 
-### 3.1 2NF Requirements
-- The relation must be in 1NF.
-- Eliminate all **Partial Functional Dependencies**: Every non-key attribute must depend on the *entire* primary key, not just a subset of the composite key `{ user_id, request_id, dispatch_id }`.
+To reach 2NF, all **Partial Functional Dependencies** are removed. Every non-key attribute must depend on the **entire** composite primary key, not a proper subset of it.
 
-### 3.2 Identification of Partial Dependencies in 1NF
+### 3.1 Identification of Functional Dependencies
 
-- **Dependency 1 (Depends only on `user_id`)**:
+1. **Partial Dependency on `user_id`**:
+   ```text
+   FD1: user_id -> email, password, role, first_name, last_name, phone_number,
+                   birthdate, barangay_name, blood_type, allergy_item,
+                   id_type, id_number, verification_status
+   ```
+   *(Citizen identity and medical data depend solely on user_id).*
+
+2. **Partial Dependency on `request_id`**:
+   ```text
+   FD2: request_id -> user_id, incident_name, description, proof_files,
+                      latitude, longitude, request_status, is_false_alarm, request_time
+   ```
+   *(Emergency SOS reports depend solely on request_id).*
+
+3. **Full Dependency on `dispatch_id`**:
+   ```text
+   FD3: dispatch_id -> request_id, agency, notes, dispatched_at, arrived_at, dispatch_status
+   ```
+   *(Responder unit deployment depends solely on dispatch_id).*
+
+### 3.2 2NF Decomposition
+
+The relation is decomposed into three separate relations where every non-key attribute depends on the full primary key:
+
+#### 1. `USERS_2NF`
+- **Primary Key**: `user_id`
+- **Schema**:
   ```text
-  user_id -> { email, first_name, last_name, phone, barangay, blood_type, allergies, valid_id_type, valid_id_number }
+  USERS_2NF( user_id [PK], email, first_name, last_name, phone_number,
+             barangay_name, blood_type, allergy_item, id_type, id_number, verification_status )
   ```
-  *(Citizen profile and ID data depend solely on user_id, not on the emergency or dispatch incident.)*
 
-- **Dependency 2 (Depends only on `request_id`)**:
+| user_id [PK] | email | first_name | last_name | phone_number | barangay_name | blood_type | allergy_item | id_type | id_number | verification_status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **101** | juan@gmail.com | Juan | Dela Cruz | 09171234567 | Tabon | O+ | Penicillin | PhilSys | 1234-5678-9012 | verified |
+| **102** | maria@yahoo.com | Maria | Santos | 09189876543 | Alua | AB- | None | Driver's | D02-19-123456 | verified |
+| **103** | pedro@sine.gov.ph | Pedro | Reyes | 09205551234 | Malapit | B+ | Aspirin | PhilSys | 9876-5432-1098 | pending |
+
+#### 2. `EMERGENCY_REQUESTS_2NF`
+- **Primary Key**: `request_id`
+- **Foreign Key**: `user_id` references `USERS_2NF(user_id)`
+- **Schema**:
   ```text
-  request_id -> { user_id, incident_type, latitude, longitude, req_time }
+  EMERGENCY_REQUESTS_2NF( request_id [PK], user_id [FK], incident_name,
+                          latitude, longitude, request_status, is_false_alarm, request_time )
   ```
-  *(Emergency report details depend solely on the incident request_id, not on the responding agency dispatch.)*
 
-- **Dependency 3 (Depends on `dispatch_id`)**:
+| request_id [PK] | user_id [FK] | incident_name | latitude | longitude | request_status | is_false_alarm | request_time |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **5001** | 101 | Flood | 15.261240 | 120.910510 | resolved | 0 | 2026-08-20 10:30:00 |
+| **5002** | 102 | Vehicular Accident | 15.275000 | 120.923000 | in_progress | 0 | 2026-08-20 11:00:00 |
+| **5004** | 101 | Medical | 15.262000 | 120.911000 | resolved | 0 | 2026-08-21 14:15:00 |
+
+#### 3. `DISPATCH_2NF`
+- **Primary Key**: `dispatch_id`
+- **Foreign Key**: `request_id` references `EMERGENCY_REQUESTS_2NF(request_id)`
+- **Schema**:
   ```text
-  dispatch_id -> { request_id, agency, dispatch_time, arrival_time }
+  DISPATCH_2NF( dispatch_id [PK], request_id [FK], agency,
+                dispatched_at, arrived_at, dispatch_status )
   ```
-  *(Dispatch deployment logs depend on dispatch_id.)*
 
-### 3.3 2NF Decomposition Result
-
-#### Table 1: `USERS_2NF`
-```text
-USERS_2NF( user_id [PK], email, first_name, last_name, phone, barangay, 
-           blood_type, allergies, valid_id_type, valid_id_number )
-```
-
-#### Table 2: `EMERGENCY_REQUESTS_2NF`
-```text
-EMERGENCY_REQUESTS_2NF( request_id [PK], user_id [FK], incident_type, 
-                        latitude, longitude, req_time )
-```
-
-#### Table 3: `DISPATCH_2NF`
-```text
-DISPATCH_2NF( dispatch_id [PK], request_id [FK], agency, 
-              dispatch_time, arrival_time )
-```
+| dispatch_id [PK] | request_id [FK] | agency | dispatched_at | arrived_at | dispatch_status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **801** | 5001 | Rescue Team A | 2026-08-20 10:35:00 | 2026-08-20 10:48:00 | completed |
+| **802** | 5002 | PNP | 2026-08-20 11:05:00 | 2026-08-20 11:18:00 | on_scene |
+| **803** | 5002 | BFP | 2026-08-20 11:06:00 | 2026-08-20 11:22:00 | on_scene |
+| **804** | 5004 | Ambulance Unit 1 | 2026-08-21 14:20:00 | 2026-08-21 14:32:00 | completed |
 
 ---
 
-## 4. Conversion to Third Normal Form (3NF)
+## 4. Third Normal Form (3NF)
 
-### 4.1 3NF Requirements
-- The relation must be in 2NF.
-- Eliminate all **Transitive Dependencies**: Non-key attributes must not depend on other non-key attributes (`X -> Y -> Z`).
+To reach 3NF, all **Transitive Dependencies** are removed. No non-key attribute may depend on another non-key attribute (`X -> Y -> Z` where `X` is a primary key and `Y` is a non-key attribute).
 
-### 4.2 Identification of Transitive Dependencies
+### 4.1 Identification of Transitive Dependencies in 2NF
 
-#### A. Transitive Dependencies in `USERS_2NF`:
-1. **Demographics vs. Authentication**:
-   - `user_id -> username, first_name, last_name, phone, birthdate, barangay_id`
-   - Authentication credentials (`email`, `password_hash`, `role`, `account_status`) must be separated from profile demographics.
-2. **Identity Document Verification**:
-   - Verification documents have their own review lifecycle (`pending`, `approved`, `rejected`) and reviewer audits (`reviewed_by`, `reviewed_at`). They do not describe the user core credentials.
-3. **Medical Health Profile**:
-   - `user_id -> profile_id -> { blood_type, allergies, medical_conditions, pwd_status }`
-   - Paramedic medical records are governed by medical privacy laws and belong to their own domain.
-4. **Barangay Geography**:
-   - `user_id -> barangay_id -> barangay_name`
-   - `barangay_name` is transitively dependent on `user_id` through `barangay_id`.
+1. **Transitive Dependency in `USERS_2NF`**:
+   - `user_id -> barangay_id -> barangay_name`: Barangay names depend on `barangay_id`, not directly on `user_id`.
+   - `user_id -> id_number -> verification_status`: Government identity verification lifecycle is independent of user authentication.
+   - `user_id -> { blood_type, allergies, medical_conditions, pwd_status }`: Citizen medical data is a distinct profile domain.
+   - `user_id -> { email, password, role }` vs. `{ first_name, last_name, phone_number, birthdate }`: Authentication credentials belong to core security, while demographics belong to citizen profiles.
 
-#### B. Transitive Dependencies in `EMERGENCY_REQUESTS_2NF`:
-1. **Incident Classification**:
-   - `request_id -> incident_type_id -> incident_name`
-   - `incident_name` is transitively dependent on `request_id` through `incident_type_id`.
-2. **Barangay Location**:
-   - `request_id -> barangay_id -> barangay_name`
-   - The geographic barangay of the emergency is determined by `barangay_id`.
+2. **Transitive Dependency in `EMERGENCY_REQUESTS_2NF`**:
+   - `request_id -> incident_type_id -> incident_name`: Incident names depend on `incident_type_id`, not directly on `request_id`.
+   - `request_id -> barangay_id -> barangay_name`: Incident locations are geographically bound by `barangay_id`.
 
-### 4.3 3NF Decomposition Result
+### 4.2 3NF Decomposed Entities with Concrete Data
 
-Decomposing the relations to remove transitive dependencies yields the following normalized entities:
-
-#### 1. `users` (Core IAM & Authentication)
-```text
-users( user_id [PK], email [UK], password, role, account_status, false_alarm_strikes, created_at, updated_at )
-```
-
-#### 2. `user_profiles` (Citizen & Personnel Demographics)
-```text
-user_profiles( profile_id [PK], user_id [FK, UK], first_name, last_name, username [UK], phone, birthdate, profile_picture, barangay_id [FK], setup_completed )
-```
-
-#### 3. `user_verifications` (KYC Government ID Audits)
-```text
-user_verifications( verification_id [PK], user_id [FK], valid_id_type, valid_id_number, valid_id_expiry, valid_id_proof, valid_id_proof_back, selfie_with_id_proof, verification_status, rejection_reason, reviewed_by [FK], reviewed_at )
-```
-
-#### 4. `user_medical_profiles` (Emergency Paramedic Records)
-```text
-user_medical_profiles( profile_id [PK], user_id [FK, UK], blood_type, allergies, medical_conditions, pwd_status, created_at, updated_at )
-```
-
-#### 5. `barangays` (Municipal Geographic Reference)
+#### 1. `barangays` (Reference Lookup)
 ```text
 barangays( barangay_id [PK], barangay_name )
 ```
+| barangay_id [PK] | barangay_name |
+| :--- | :--- |
+| **1** | Alua |
+| **2** | Calaba |
+| **3** | Malapit |
+| **4** | Mangga |
+| **5** | Poblacion |
+| **6** | Pulo |
+| **7** | San Roque |
+| **8** | Santo Cristo |
+| **9** | Tabon |
 
-#### 6. `incident_types` (Emergency Classification)
+#### 2. `incident_types` (Reference Lookup)
 ```text
 incident_types( incident_type_id [PK], incident_name )
 ```
+| incident_type_id [PK] | incident_name |
+| :--- | :--- |
+| **1** | Flood |
+| **2** | Fire |
+| **3** | Vehicular Accident |
+| **4** | Medical |
+| **5** | Earthquake |
+
+#### 3. `users` (Core IAM & Authentication)
+```text
+users( user_id [PK], email [UK], password, role, is_active, strikes, created_at, updated_at )
+```
+| user_id [PK] | email [UK] | password (hash) | role | is_active | strikes | created_at |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **101** | juan@gmail.com | $2y$10$e8Q... | citizen | 1 | 0 | 2026-01-10 08:00:00 |
+| **102** | maria@yahoo.com | $2y$10$w9Z... | citizen | 1 | 0 | 2026-02-14 09:30:00 |
+| **103** | pedro@sine.gov.ph | $2y$10$k1M... | dispatcher | 1 | 0 | 2026-03-01 10:15:00 |
+
+#### 4. `user_profiles` (Citizen Demographics)
+```text
+user_profiles( profile_id [PK], user_id [FK, UK], first_name, last_name, username [UK], phone_number, birthdate, barangay_id [FK], profile_photo )
+```
+| profile_id [PK] | user_id [FK, UK] | first_name | last_name | username [UK] | phone_number | birthdate | barangay_id [FK] |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | 101 | Juan | Dela Cruz | juandc | 09171234567 | 1990-05-12 | 9 |
+| **2** | 102 | Maria | Santos | marias | 09189876543 | 1995-11-23 | 1 |
+| **3** | 103 | Pedro | Reyes | pedror | 09205551234 | 1988-08-04 | 3 |
+
+#### 5. `user_medical_profiles` (Paramedic Health Records)
+```text
+user_medical_profiles( medical_profile_id [PK], user_id [FK, UK], blood_type, allergies, medical_conditions, pwd_status )
+```
+| medical_profile_id [PK] | user_id [FK, UK] | blood_type | allergies | medical_conditions | pwd_status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | 101 | O+ | Penicillin, Dust | Asthma | 0 |
+| **2** | 102 | AB- | None | None | 0 |
+| **3** | 103 | B+ | Aspirin | Hypertension | 0 |
+
+#### 6. `user_verifications` (Government KYC Identity Audits)
+```text
+user_verifications( verification_id [PK], user_id [FK], id_type, id_number, id_front_path, id_back_path, selfie_path, verification_status, rejection_reason, reviewed_by [FK], reviewed_at )
+```
+| verification_id [PK] | user_id [FK] | id_type | id_number | verification_status | reviewed_by [FK] | reviewed_at |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | 101 | PhilSys | 1234-5678-9012 | verified | 103 | 2026-01-11 09:00:00 |
+| **2** | 102 | Driver's License | D02-19-123456 | verified | 103 | 2026-02-15 11:20:00 |
+| **3** | 103 | MDRRMO Badge | EMP-2026-088 | verified | 1 | 2026-03-01 10:30:00 |
 
 #### 7. `emergency_requests` (Incident Filings)
 ```text
-emergency_requests( request_id [PK], user_id [FK], incident_type_id [FK], barangay_id [FK], description, proof_files, latitude, longitude, status, is_false_alarm, request_time )
+emergency_requests( request_id [PK], user_id [FK], incident_type_id [FK], barangay_id [FK], description, proof_files, latitude, longitude, status, is_false_alarm, created_at )
 ```
+| request_id [PK] | user_id [FK] | incident_type_id [FK] | barangay_id [FK] | description | latitude | longitude | status | is_false_alarm | created_at |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **5001** | 101 | 1 | 9 | Floodwaters rising near riverbank | 15.261240 | 120.910510 | resolved | 0 | 2026-08-20 10:30:00 |
+| **5002** | 102 | 3 | 1 | Two-motorcycle collision on highway | 15.275000 | 120.923000 | in_progress | 0 | 2026-08-20 11:00:00 |
+| **5004** | 101 | 4 | 9 | Senior citizen experiencing chest pains | 15.262000 | 120.911000 | resolved | 0 | 2026-08-21 14:15:00 |
 
-#### 8. `hazards` (Public Safety Hazard Reports)
+#### 8. `dispatch` (Responder Deployment Logs)
+```text
+dispatch( dispatch_id [PK], request_id [FK], agency, notes, dispatched_at, arrived_at, resolved_at, status )
+```
+| dispatch_id [PK] | request_id [FK] | agency | notes | dispatched_at | arrived_at | status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **801** | 5001 | Rescue Team A | Deployed rubber boat 02 | 2026-08-20 10:35:00 | 2026-08-20 10:48:00 | completed |
+| **802** | 5002 | PNP | Traffic cordoned off | 2026-08-20 11:05:00 | 2026-08-20 11:18:00 | on_scene |
+| **803** | 5002 | BFP | Extrication gear deployed | 2026-08-20 11:06:00 | 2026-08-20 11:22:00 | on_scene |
+| **804** | 5004 | Ambulance Unit 1 | Patient stabilized | 2026-08-21 14:20:00 | 2026-08-21 14:32:00 | completed |
+
+#### 9. `hazards` (Community Hazard Reports)
 ```text
 hazards( hazard_id [PK], user_id [FK], barangay_id [FK], hazard_type, description, proof_files, latitude, longitude, status, created_at )
 ```
+| hazard_id [PK] | user_id [FK] | barangay_id [FK] | hazard_type | description | latitude | longitude | status | created_at |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | 101 | 9 | Fallen Tree | High voltage powerline blocked | 15.263500 | 120.912400 | active | 2026-08-22 08:00:00 |
 
-#### 9. `dispatch` (Responder Deployment Logs)
+#### 10. `broadcasts` (Public Advisories)
 ```text
-dispatch( dispatch_id [PK], request_id [FK], agency, notes, dispatch_time, arrival_time, status )
+broadcasts( broadcast_id [PK], title, message, media_files, is_active, scheduled_at, created_at )
 ```
-
-#### 10. `broadcasts` (MDRRMO Public Advisories)
-```text
-broadcasts( broadcast_id [PK], title, message, media_files, is_active, is_draft, scheduled_at, created_at )
-```
+| broadcast_id [PK] | title | message | is_active | created_at |
+| :--- | :--- | :--- | :--- | :--- |
+| **17** | Weather Advisory | Tropical Depression signal #1 declared | 1 | 2026-08-21 18:40:06 |
 
 #### 11. `broadcast_barangays` (Targeted Broadcast Junction)
 ```text
 broadcast_barangays( broadcast_id [PK, FK], barangay_id [PK, FK] )
 ```
+| broadcast_id [PK, FK] | barangay_id [PK, FK] |
+| :--- | :--- |
+| **17** | 1 |
+| **17** | 9 |
 
 #### 12. `user_settings` (Client Preferences)
 ```text
-user_settings( id [PK], user_id [FK], key, value, updated_at )
+user_settings( setting_id [PK], user_id [FK], setting_key, setting_value, updated_at )
 ```
+| setting_id [PK] | user_id [FK] | setting_key | setting_value | updated_at |
+| :--- | :--- | :--- | :--- | :--- |
+| **1** | 101 | dark_mode | true | 2026-08-20 18:00:00 |
+| **2** | 101 | high_contrast | false | 2026-08-20 18:00:00 |
+| **3** | 102 | push_notifications | true | 2026-08-21 09:00:00 |
 
 ---
 
 ## 5. Boyce-Codd Normal Form (BCNF) Verification
 
-### 5.1 BCNF Rule
-A relation is in **BCNF** if and only if for every functional dependency `X -> Y`, the determinant **`X` is a superkey**.
+A relation is in **Boyce-Codd Normal Form (BCNF)** if and only if for every non-trivial functional dependency `X -> Y`, the determinant **`X` is a superkey** (candidate key).
 
-### 5.2 Table-by-Table Verification
+### 5.1 Verification Matrix
 
-| Relation | Candidate Keys | Functional Dependencies | Determinant Status | Satisfies BCNF? |
+| Table Name | Candidate Keys | Functional Dependency (`X -> Y`) | Determinant `X` Status | Satisfies BCNF? |
 | :--- | :--- | :--- | :--- | :--- |
-| `users` | `user_id`, `email` | `user_id -> { email, password, role, account_status }`<br>`email -> { user_id }` | Both `user_id` and `email` are candidate keys | **Yes** |
-| `user_profiles` | `profile_id`, `user_id`, `username` | `profile_id -> { ... }`<br>`user_id -> { ... }`<br>`username -> { ... }` | All determinants are candidate keys | **Yes** |
-| `user_verifications` | `verification_id` | `verification_id -> { user_id, valid_id_number, verification_status, ... }` | `verification_id` is candidate key | **Yes** |
-| `user_medical_profiles` | `profile_id`, `user_id` | `profile_id -> { user_id, blood_type, allergies, ... }`<br>`user_id -> { profile_id, ... }` | All determinants are candidate keys | **Yes** |
-| `barangays` | `barangay_id`, `barangay_name` | `barangay_id -> barangay_name`<br>`barangay_name -> barangay_id` | Both determinants are candidate keys | **Yes** |
-| `incident_types` | `incident_type_id`, `incident_name` | `incident_type_id -> incident_name`<br>`incident_name -> incident_type_id` | Both determinants are candidate keys | **Yes** |
-| `dispatch` | `dispatch_id` | `dispatch_id -> { request_id, agency, dispatch_time, arrival_time, status }` | `dispatch_id` is candidate key | **Yes** |
-| `broadcast_barangays` | `{ broadcast_id, barangay_id }` | No non-trivial dependencies beyond candidate key | Composite key is primary key | **Yes** |
-| `user_settings` | `id`, `{ user_id, key }` | `id -> { user_id, key, value }`<br>`{ user_id, key } -> { value, updated_at }` | Both are candidate keys | **Yes** |
-| `emergency_requests` | `request_id` | `request_id -> { user_id, incident_type_id, barangay_id, lat, lng, status }` | `request_id` is candidate key | **Yes** |
+| `users` | `user_id`, `email` | `user_id -> { email, password, role, is_active, strikes }`<br>`email -> { user_id, password, role }` | Both `user_id` and `email` are Candidate Keys | **Yes** |
+| `user_profiles` | `profile_id`, `user_id`, `username` | `profile_id -> { user_id, first_name, last_name, phone_number, ... }`<br>`user_id -> { profile_id, ... }`<br>`username -> { profile_id, ... }` | All determinants are Candidate Keys | **Yes** |
+| `user_medical_profiles` | `medical_profile_id`, `user_id` | `medical_profile_id -> { user_id, blood_type, allergies, ... }`<br>`user_id -> { medical_profile_id, ... }` | All determinants are Candidate Keys | **Yes** |
+| `user_verifications` | `verification_id` | `verification_id -> { user_id, id_type, id_number, verification_status, ... }` | `verification_id` is Primary Key | **Yes** |
+| `barangays` | `barangay_id`, `barangay_name` | `barangay_id -> barangay_name`<br>`barangay_name -> barangay_id` | Both determinants are Candidate Keys | **Yes** |
+| `incident_types` | `incident_type_id`, `incident_name` | `incident_type_id -> incident_name`<br>`incident_name -> incident_type_id` | Both determinants are Candidate Keys | **Yes** |
+| `emergency_requests` | `request_id` | `request_id -> { user_id, incident_type_id, barangay_id, lat, lng, status, ... }` | `request_id` is Primary Key | **Yes** |
+| `dispatch` | `dispatch_id` | `dispatch_id -> { request_id, agency, notes, dispatched_at, arrived_at, status }` | `dispatch_id` is Primary Key | **Yes** |
+| `hazards` | `hazard_id` | `hazard_id -> { user_id, barangay_id, hazard_type, lat, lng, status, ... }` | `hazard_id` is Primary Key | **Yes** |
+| `broadcasts` | `broadcast_id` | `broadcast_id -> { title, message, media_files, is_active, ... }` | `broadcast_id` is Primary Key | **Yes** |
+| `broadcast_barangays` | `{ broadcast_id, barangay_id }` | `{ broadcast_id, barangay_id } -> NULL` (all attributes are prime) | Composite Key is Primary Key | **Yes** |
+| `user_settings` | `setting_id`, `{ user_id, setting_key }` | `setting_id -> { user_id, setting_key, setting_value, updated_at }`<br>`{ user_id, setting_key } -> { setting_id, setting_value, updated_at }` | Both determinants are Candidate Keys | **Yes** |
+
+**Conclusion**: Since every determinant in all twelve decomposed relations is a superkey, the schema strictly satisfies **Boyce-Codd Normal Form (BCNF)**.
 
 ---
 
-## 6. Controlled Denormalization Justification
+## 6. Mathematical Verification: Lossless Join & Dependency Preservation
 
-While the schema satisfies 3NF and BCNF, controlled denormalization is purposefully adopted for mission-critical emergency dispatch performance:
+### 6.1 Lossless Join Verification
+A decomposition of relation `R` into `R1` and `R2` is guaranteed to be **lossless** if and only if the intersection of their attribute sets forms a superkey of at least one of the decomposed relations:
+```text
+(R1 ∩ R2) -> R1   OR   (R1 ∩ R2) -> R2
+```
 
-1. **Direct GPS Coordinates on Emergency Requests & Hazards**:
-   - Instead of linking each incident to an address lookup table or street centerline relation, `latitude` (`DECIMAL(10,8)`) and `longitude` (`DECIMAL(11,8)`) are embedded directly in `emergency_requests` and `hazards`.
-   - *Justification*: Enables sub-millisecond bounding-box B-Tree index scans (`WHERE latitude BETWEEN ... AND longitude BETWEEN ...`) for real-time radar mapping and dispatcher screen refreshes without expensive relational joins.
-2. **Structured JSON Arrays for Media Proofs (`proof_files`)**:
-   - Mobile citizen incident uploads store image/video file path arrays directly in a `longtext` JSON column rather than a dedicated 1:N `incident_attachments` table.
-   - *Justification*: Guarantees single-transaction atomic ingestion during offline-to-online queue synchronization when citizens re-establish intermittent 4G/LTE connectivity.
+- **Example: Decomposition of `USERS_2NF` and `EMERGENCY_REQUESTS_2NF`**:
+  - `USERS_2NF ∩ EMERGENCY_REQUESTS_2NF = { user_id }`
+  - In `USERS_2NF`, `{ user_id }` is the Primary Key (`user_id -> USERS_2NF`).
+  - Therefore, the natural inner join `USERS_2NF ⨝ EMERGENCY_REQUESTS_2NF` produces no spurious tuples. The decomposition is strictly **lossless**.
+
+- **Example: Decomposition of `emergency_requests` and `dispatch`**:
+  - `emergency_requests ∩ dispatch = { request_id }`
+  - In `emergency_requests`, `{ request_id }` is the Primary Key (`request_id -> emergency_requests`).
+  - Therefore, joining incident reports with responder dispatch logs preserves the original relation without data distortion.
+
+### 6.2 Dependency Preservation
+A decomposition is **dependency preserving** if the union of functional dependencies in the decomposed relations (`F1 ∪ F2 ∪ ... ∪ Fn`) logically implies all functional dependencies in the original relation `F`:
+```text
+(F1 ∪ F2 ∪ ... ∪ Fn)+ = F+
+```
+Every operational dependency (`user_id -> profile`, `request_id -> incident details`, `dispatch_id -> responder notes`, `barangay_id -> barangay_name`) is directly enforced by the primary and unique keys of the individual decomposed tables. Foreign key constraints maintain referential integrity without cross-table dependency violations.
+
+---
+
+## 7. Controlled Denormalization Justifications
+
+In high-concurrency municipal emergency response systems, real-time spatial queries and offline queue synchronization require targeted architectural optimizations:
+
+1. **Direct GPS Coordinate Attributes on Incident Records**:
+   - `latitude` (`DECIMAL(10,8)`) and `longitude` (`DECIMAL(11,8)`) are maintained directly in `emergency_requests` and `hazards` rather than normalized into a separate spatial point lookup entity.
+   - **Performance Justification**: Allows spatial composite B-Tree index scans (`(latitude, longitude)`) during dispatch map viewport clustering. This eliminates multi-table join latency during high-volume disaster filings.
+
+2. **JSON Serialization for Incident Attachments (`proof_files`)**:
+   - Multiple emergency photo and video proof paths are serialized into a `longtext` JSON column (`proof_files`) instead of a separate 1:N junction table.
+   - **Resilience Justification**: Enables atomic single-query ingestion during intermittent 4G/LTE mobile connectivity. When a citizen submits a distress SOS in an area with degraded cellular coverage, the incident and its accompanying evidence are committed in a single atomic database transaction.
