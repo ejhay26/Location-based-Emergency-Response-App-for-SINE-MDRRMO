@@ -1,0 +1,615 @@
+import { Component, OnInit, OnDestroy, ElementRef } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { Platform } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { of } from 'rxjs';
+import { timeout, catchError } from 'rxjs/operators';
+import { IonRange } from '@ionic/angular/standalone';
+import { UserSettingsService, SettingKey } from '../../../../../core/services/user-settings';
+import { AdminUiService } from '../../admin-ui.service';
+import { ApiService } from '../../../../../core/services/api';
+import { DesktopNotificationsService } from '../../../../../core/services/desktop-notifications';
+import { AudioService, AVAILABLE_SOUNDS, SoundOption } from '../../../../../core/services/audio.service';
+import { KeyboardShortcutsService, KeybindDef } from '../../../../../core/services/keyboard-shortcuts.service';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
+import { LiquidGlassToggleComponent } from '../../../../../shared/components/liquid-glass-toggle/liquid-glass-toggle.component';
+
+export type SettingsSubPage = 'main' | 'appearance' | 'audio' | 'map' | 'keybinds' | 'notifications' | 'account';
+
+interface SettingToggle {
+  key: SettingKey;
+  label: string;
+  hint: (val: boolean) => string;
+  value: boolean;
+  icon: string;
+}
+
+interface IncidentSoundProfile {
+  key: string;
+  label: string;
+  icon: string;
+  color: string;
+  soundId: string;
+  volume: number;
+}
+
+@Component({
+  selector: 'app-settings-panel',
+  standalone: true,
+  imports: [
+    CommonModule, FormsModule,
+    IonRange,
+    AppIconComponent, CustomTooltipDirective, LiquidGlassToggleComponent
+  ],
+  templateUrl: './settings.panel.html',
+  styleUrls: ['./settings.panel.scss']
+})
+export class SettingsPanel implements OnInit, OnDestroy {
+
+  activeSubPage: SettingsSubPage = 'main';
+
+  // Desktop Notifications Permission & Testing
+  notificationPermission: 'granted' | 'denied' | 'default' = 'default';
+  isRequestingPermission = false;
+  isTestingNotification = false;
+  testNotifFeedback: string | null = null;
+  isExitingSubPage = false;
+  private exitTimer: any = null;
+  private backButtonSub?: Subscription;
+
+  userName = '';
+  userEmail = '';
+  username = '';
+  userRole = '';
+  rawRole = 'admin';
+  phone = '';
+
+  appearance: SettingToggle[] = [
+    { key: 'dark_mode',         label: 'Dark Theme',          hint: v => v ? 'Dark theme is active across the dashboard.' : 'Light theme is active.',               value: false, icon: 'moon' },
+    { key: 'reduce_animations', label: 'Reduce Animations',   hint: v => v ? 'Interface animations are minimized.' : 'Full interface animations are active.',       value: false, icon: 'sliders' }
+  ];
+
+  notifications: SettingToggle[] = [
+    { key: 'notif_emergency_alerts', label: 'Emergency Alerts', hint: v => v ? 'Desktop alerts for incoming citizen SOS reports are active.' : 'Desktop alerts are muted.', value: true, icon: 'bell' },
+    { key: 'notif_sound_effects',    label: 'Sound Effects & Chimes', hint: v => v ? 'Audible chimes on new emergencies and tactile interaction feedback are active.' : 'All system audio is muted.', value: true, icon: 'volume-2' }
+  ];
+
+  mapDefaultStyle: 'street' | 'satellite' = 'street';
+
+  availableSounds: SoundOption[] = AVAILABLE_SOUNDS;
+
+  incidentSoundProfiles: IncidentSoundProfile[] = [
+    { key: 'fire',     label: 'Fire Incident',      icon: 'flame',         color: '#eb445a', soundId: 'alert_urgent',   volume: 100 },
+    { key: 'flood',    label: 'Flood Incident',     icon: 'droplet',       color: '#3880ff', soundId: 'sonar_depth',    volume: 100 },
+    { key: 'medical',  label: 'Medical Incident',   icon: 'medical',       color: '#2dd36f', soundId: 'chime_harmonic', volume: 100 },
+    { key: 'crime',    label: 'Crime & Security',   icon: 'shield-alert',  color: '#bc6fff', soundId: 'siren_chirp',    volume: 100 },
+    { key: 'hazard',   label: 'Hazard Alert',       icon: 'hazard',        color: '#ffc409', soundId: 'beacon_radar',   volume: 100 },
+    { key: 'default',  label: 'General SOS',        icon: 'alert-triangle',color: '#92949c', soundId: 'chime_harmonic', volume: 100 },
+  ];
+
+  recordingKeybindId: string | null = null;
+  conflictKeybindId: string | null = null;
+  conflictMessage: string | null = null;
+
+  liveChordKeys: string[] = [];
+  private heldKeysSet: Set<string> = new Set();
+  private cumulativeChordKeys: string[] = [];
+  private keydownListener: ((e: KeyboardEvent) => void) | null = null;
+  private keyupListener: ((e: KeyboardEvent) => void) | null = null;
+  private windowBlurListener: (() => void) | null = null;
+
+  getKeyParts(combo: string): string[] {
+    if (!combo) return [];
+    return combo.split('+').map(k => k.trim()).filter(Boolean);
+  }
+
+  private normalizeKey(e: KeyboardEvent): string {
+    if (e.key === 'Control') return 'Ctrl';
+    if (e.key === 'Meta') return this.shortcuts.isMac ? 'Cmd' : 'Win';
+    if (e.key === 'Alt') return 'Alt';
+    if (e.key === 'Shift') return 'Shift';
+    if (e.key === ' ') return 'Space';
+    if (e.key.length === 1) return e.key.toUpperCase();
+    return e.key;
+  }
+
+  private formatChordArray(keys: string[]): string[] {
+    const modifierOrder = ['Ctrl', 'Cmd', 'Win', 'Alt', 'Shift'];
+    const mods = keys.filter(k => modifierOrder.includes(k));
+    const nonMods = keys.filter(k => !modifierOrder.includes(k));
+    mods.sort((a, b) => modifierOrder.indexOf(a) - modifierOrder.indexOf(b));
+    return [...mods, ...nonMods];
+  }
+
+  keybindList: KeybindDef[] = [];
+  availableKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', ',', '.', '/'];
+
+  get currentZoom(): number {
+    return this.settings.getZoom();
+  }
+
+  onZoomChange(event: any): void {
+    const val = event?.detail?.value;
+    if (typeof val === 'number') {
+      this.settings.setZoom(val);
+    }
+  }
+
+  resetZoom(): void {
+    this.ui.showConfirm({
+      title: 'Reset Interface Zoom',
+      message: 'Restore workstation interface scaling back to 100% (default size)?',
+      icon: 'rotate-ccw',
+      iconColor: '#3880ff',
+      confirmLabel: 'Reset Scale',
+      confirmColor: '#3880ff',
+      action: () => {
+        this.settings.setZoom(100);
+        this.ui.showToast('Workstation display scale reset to 100%.', 'medium');
+      }
+    });
+  }
+
+  get soundVolume(): number {
+    return Math.round(this.audio.getVolume() * 100);
+  }
+
+  onSoundVolumeChange(event: any): void {
+    const val = Number(event.target?.value ?? event.detail?.value);
+    if (!isNaN(val)) {
+      this.audio.setVolume(val / 100);
+    }
+  }
+
+  resetSoundVolume(): void {
+    this.ui.showConfirm({
+      title: 'Reset Master Volume',
+      message: 'Restore master notification alert volume to default (100%)?',
+      icon: 'volume-2',
+      iconColor: '#3880ff',
+      confirmLabel: 'Reset Volume',
+      confirmColor: '#3880ff',
+      action: () => {
+        this.audio.setVolume(1.0);
+        this.ui.showToast('Master alert volume reset to 100%.', 'medium');
+      }
+    });
+  }
+
+  testAudioSound(): void {
+    this.audio.testChime();
+    this.ui.showToast('Playing notification alert chime preview.', 'medium');
+  }
+
+  getSoundLabel(soundId: string): string {
+    const s = this.availableSounds.find(item => item.id === soundId);
+    return s?.label || soundId;
+  }
+
+  getSoundDescription(soundId: string): string {
+    const s = this.availableSounds.find(item => item.id === soundId);
+    return s?.label || 'Operational sound alert';
+  }
+
+  onSoundProfileChange(profileKey: string, soundId: string): void {
+    this.audio.setIncidentSound(profileKey, soundId);
+    const profile = this.incidentSoundProfiles.find(p => p.key === profileKey);
+    if (profile) {
+      profile.soundId = soundId;
+      this.audio.testSound(soundId);
+      this.ui.showToast(`Updated alert chime for ${profile.label}.`, 'medium');
+    }
+  }
+
+  previewSound(profileOrSoundId: IncidentSoundProfile | string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    const soundId = typeof profileOrSoundId === 'string' ? profileOrSoundId : profileOrSoundId.soundId;
+    const vol = typeof profileOrSoundId === 'object' && profileOrSoundId.volume !== undefined ? profileOrSoundId.volume / 100 : 1.0;
+    this.audio.playSound(soundId, vol);
+  }
+
+  onIncidentVolumeChange(profile: IncidentSoundProfile, event: any): void {
+    const val = typeof event?.detail?.value === 'number' ? event.detail.value : profile.volume;
+    profile.volume = val;
+    this.audio.setIncidentVolume(profile.key, val / 100);
+  }
+
+  resetIncidentVolume(profile: IncidentSoundProfile, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.ui.showConfirm({
+      title: `Reset ${profile.label} Volume`,
+      message: `Restore alert chime volume for ${profile.label} back to 100%?`,
+      icon: 'volume-2',
+      iconColor: '#3880ff',
+      confirmLabel: 'Reset Volume',
+      confirmColor: '#3880ff',
+      action: () => {
+        profile.volume = 100;
+        this.audio.setIncidentVolume(profile.key, 1.0);
+        this.ui.showToast(`Reset ${profile.label} volume to 100%.`, 'medium');
+      }
+    });
+  }
+
+  startRecordingKeybind(item: KeybindDef, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.stopRecordingKeybind();
+    this.conflictKeybindId = null;
+    this.conflictMessage = null;
+    this.recordingKeybindId = item.id;
+    this.shortcuts.setRecording(true);
+    this.heldKeysSet.clear();
+    this.cumulativeChordKeys = [];
+    this.liveChordKeys = [];
+
+    this.keydownListener = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      if (e.key === 'Escape') {
+        this.stopRecordingKeybind();
+        return;
+      }
+
+      const keyName = this.normalizeKey(e);
+      this.heldKeysSet.add(keyName);
+
+      if (!this.cumulativeChordKeys.includes(keyName)) {
+        this.cumulativeChordKeys.push(keyName);
+      }
+
+      this.liveChordKeys = this.formatChordArray(this.cumulativeChordKeys);
+    };
+
+    this.keyupListener = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      const keyName = this.normalizeKey(e);
+      this.heldKeysSet.delete(keyName);
+
+      // Once all held keys are released, commit the chord
+      if (this.heldKeysSet.size === 0 && this.cumulativeChordKeys.length > 0) {
+        const chord = this.formatChordArray(this.cumulativeChordKeys);
+        this.finalizeKeybind(item, chord.join(' + '));
+      }
+    };
+
+    this.windowBlurListener = () => {
+      this.stopRecordingKeybind();
+    };
+
+    window.addEventListener('keydown', this.keydownListener, { capture: true });
+    window.addEventListener('keyup', this.keyupListener, { capture: true });
+    window.addEventListener('blur', this.windowBlurListener);
+  }
+
+  private finalizeKeybind(item: KeybindDef, combo: string): void {
+    if (!combo) {
+      this.stopRecordingKeybind();
+      return;
+    }
+
+    const parts = combo.split('+').map(p => p.trim());
+    const modifierOrder = ['Ctrl', 'Cmd', 'Win', 'Alt', 'Shift'];
+    const hasNonModifier = parts.some(p => !modifierOrder.includes(p));
+
+    if (!hasNonModifier) {
+      this.ui.showToast('Please include a trigger key along with modifiers (e.g., Ctrl + Shift + 1).', 'warning');
+      this.stopRecordingKeybind();
+      return;
+    }
+
+    const res = this.shortcuts.setKeybind(item.id, combo);
+    if (res.success) {
+      this.conflictKeybindId = null;
+      this.conflictMessage = null;
+      this.refreshKeybindList();
+      this.ui.showToast(`Updated shortcut for ${item.label} to "${combo}".`, 'success');
+    } else {
+      this.conflictKeybindId = item.id;
+      const assignedTo = res.conflictWith?.label || 'another action';
+      this.conflictMessage = `Blocked: "${combo}" is already assigned to ${assignedTo}.`;
+      this.ui.showToast(`Shortcut Blocked: "${combo}" is already assigned to "${assignedTo}". Please choose a different shortcut combination.`, 'warning');
+      setTimeout(() => {
+        if (this.conflictKeybindId === item.id) {
+          this.conflictKeybindId = null;
+          this.conflictMessage = null;
+        }
+      }, 4500);
+    }
+
+    this.stopRecordingKeybind();
+  }
+
+  stopRecordingKeybind(): void {
+    this.shortcuts.setRecording(false);
+    if (this.keydownListener) {
+      window.removeEventListener('keydown', this.keydownListener, { capture: true });
+      this.keydownListener = null;
+    }
+    if (this.keyupListener) {
+      window.removeEventListener('keyup', this.keyupListener, { capture: true });
+      this.keyupListener = null;
+    }
+    if (this.windowBlurListener) {
+      window.removeEventListener('blur', this.windowBlurListener);
+      this.windowBlurListener = null;
+    }
+    this.recordingKeybindId = null;
+    this.heldKeysSet.clear();
+    this.cumulativeChordKeys = [];
+    this.liveChordKeys = [];
+  }
+
+  resetIndividualKeybind(item: KeybindDef, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.ui.showConfirm({
+      title: `Reset ${item.label}`,
+      message: `Restore shortcut for "${item.label}" back to system default (${item.defaultKey})?`,
+      icon: 'rotate-ccw',
+      iconColor: '#3880ff',
+      confirmLabel: 'Reset Shortcut',
+      confirmColor: '#3880ff',
+      action: () => {
+        this.shortcuts.resetIndividualKeybind(item.id);
+        this.refreshKeybindList();
+        this.ui.showToast(`Reset ${item.label} to default shortcut.`, 'medium');
+      }
+    });
+  }
+
+  setSubPage(page: SettingsSubPage): void {
+    if (this.exitTimer) {
+      clearTimeout(this.exitTimer);
+      this.exitTimer = null;
+    }
+    this.isExitingSubPage = false;
+    this.activeSubPage = page;
+    if (page === 'notifications') {
+      this.checkNotificationPermission();
+    }
+    if (page !== 'main') {
+      try {
+        window.history.pushState({ sine_admin_subpage: page }, '');
+      } catch {}
+    }
+  }
+
+  goBackToSettings(triggerHistoryBack = true): void {
+    if (this.activeSubPage === 'main') return;
+    if (triggerHistoryBack && typeof window !== 'undefined' && window.history.state?.sine_admin_subpage) {
+      window.history.back();
+      return;
+    }
+    if (this.settings.getBool('reduce_animations')) {
+      this.activeSubPage = 'main';
+      this.isExitingSubPage = false;
+      return;
+    }
+    this.isExitingSubPage = true;
+    this.exitTimer = setTimeout(() => {
+      this.activeSubPage = 'main';
+      this.isExitingSubPage = false;
+      this.exitTimer = null;
+    }, 260);
+  }
+
+  refreshKeybindList(): void {
+    this.keybindList = this.shortcuts.getKeybindList();
+  }
+
+  onKeybindChange(id: string, newKey: string): void {
+    this.shortcuts.setKeybind(id, newKey);
+    this.refreshKeybindList();
+    this.ui.showToast(`Shortcut updated to Ctrl + ${newKey.toUpperCase()}.`, 'medium');
+  }
+
+  resetAllKeybinds(): void {
+    this.ui.showConfirm({
+      title: 'Reset All Keyboard Shortcuts',
+      message: 'Restore all workstation keyboard shortcuts to system factory defaults? Any custom recorded key combinations will be overwritten.',
+      icon: 'rotate-ccw',
+      iconColor: '#ffc409',
+      confirmLabel: 'Reset All Shortcuts',
+      confirmColor: '#eb445a',
+      action: () => {
+        this.shortcuts.resetKeybinds();
+        this.refreshKeybindList();
+        this.ui.showToast('Reset all keyboard shortcuts to system defaults.', 'medium');
+      }
+    });
+  }
+
+  constructor(
+    private settings: UserSettingsService,
+    private ui: AdminUiService,
+    private api: ApiService,
+    private desktopNotifications: DesktopNotificationsService,
+    private audio: AudioService,
+    private shortcuts: KeyboardShortcutsService,
+    private router: Router,
+    private elRef: ElementRef<HTMLElement>,
+    private platform: Platform,
+  ) {}
+
+  ngOnInit(): void {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        this.userName  = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Officer';
+        this.userEmail = u.email || '';
+        this.phone     = u.phone || '';
+        this.username  = u.username || '';
+      } catch {}
+    }
+    this.rawRole = (localStorage.getItem('role') || 'admin').toLowerCase();
+    this.userRole = this.rawRole === 'admin' ? 'SUPERADMIN' : 'DISPATCHER';
+
+    this.appearance.forEach(s => s.value = this.settings.getBool(s.key));
+    this.notifications.forEach(s => s.value = this.settings.getBool(s.key));
+    this.mapDefaultStyle = (this.settings.get('map_default_style') as 'street' | 'satellite') || 'street';
+
+    // Hydrate audio sound profiles
+    this.checkNotificationPermission();
+
+    this.incidentSoundProfiles.forEach(p => {
+      p.soundId = this.audio.getIncidentSound(p.key);
+      p.volume = Math.round(this.audio.getIncidentVolume(p.key) * 100);
+    });
+
+    this.refreshKeybindList();
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('popstate', this.popStateListener);
+    }
+
+    this.backButtonSub = this.platform.backButton.subscribeWithPriority(99999, (processNextHandler) => {
+      if (this.activeSubPage !== 'main') {
+        this.goBackToSettings(true);
+      } else {
+        processNextHandler();
+      }
+    });
+  }
+
+  private popStateListener = () => {
+    if (this.activeSubPage !== 'main') {
+      this.goBackToSettings(false);
+    }
+  };
+
+  private lastToggleOrigin: { x: number; y: number } | null = null;
+
+  onTogglePointer(e: any): void {
+    const clientX = e?.clientX ?? e?.touches?.[0]?.clientX ?? e?.changedTouches?.[0]?.clientX;
+    const clientY = e?.clientY ?? e?.touches?.[0]?.clientY ?? e?.changedTouches?.[0]?.clientY;
+    if (typeof clientX === 'number' && typeof clientY === 'number' && clientX > 0 && clientY > 0) {
+      this.lastToggleOrigin = { x: Math.round(clientX), y: Math.round(clientY) };
+    }
+  }
+
+  onToggle(setting: SettingToggle, event?: any): void {
+    const isChecked = typeof event === 'boolean' ? event : (event?.detail?.checked !== undefined ? event.detail.checked : !setting.value);
+    setting.value = isChecked;
+    if (setting.key === 'dark_mode') {
+      const toggleEl = this.elRef.nativeElement.querySelector('.theme-toggle-live') as HTMLElement | null;
+      let originCoords = this.lastToggleOrigin;
+      this.lastToggleOrigin = null;
+
+      if (!originCoords && toggleEl && typeof toggleEl.getBoundingClientRect === 'function') {
+        const rect = toggleEl.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          originCoords = {
+            x: Math.round(rect.left + rect.width / 2),
+            y: Math.round(rect.top + rect.height / 2),
+          };
+        }
+      }
+      this.settings.toggleDarkMode(isChecked, undefined, originCoords || undefined);
+    } else {
+      this.settings.set(setting.key, String(isChecked));
+      if (setting.key === 'reduce_animations') {
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.toggle('reduce-animations', isChecked);
+          document.documentElement.classList.toggle('reduce-motion', isChecked);
+          if (document.body) {
+            document.body.classList.toggle('reduce-animations', isChecked);
+            document.body.classList.toggle('reduce-motion', isChecked);
+          }
+        }
+      }
+      if (setting.key === 'notif_sound_effects') {
+        this.audio.setMuted(!isChecked);
+      }
+    }
+  }
+
+  onMapStyleChange(style: 'street' | 'satellite'): void {
+    this.mapDefaultStyle = style;
+    this.settings.set('map_default_style', style);
+    this.ui.showToast(`Default map layer set to ${style === 'street' ? 'Street' : 'Satellite'}.`, 'medium');
+  }
+
+  async checkNotificationPermission(): Promise<void> {
+    try {
+      this.notificationPermission = await this.desktopNotifications.getPermissionStatus();
+    } catch {}
+  }
+
+  async requestNotificationPermission(): Promise<void> {
+    this.isRequestingPermission = true;
+    try {
+      this.notificationPermission = await this.desktopNotifications.requestPermission();
+      if (this.notificationPermission === 'granted') {
+        this.ui.showToast('Desktop notification permission granted!', 'success');
+      } else {
+        this.ui.showToast('Notification permission was not granted.', 'warning');
+      }
+    } finally {
+      this.isRequestingPermission = false;
+    }
+  }
+
+  async triggerTestNotification(): Promise<void> {
+    this.isTestingNotification = true;
+    this.testNotifFeedback = null;
+    try {
+      const dispatched = await this.desktopNotifications.sendTestNotification();
+      if (dispatched) {
+        this.testNotifFeedback = 'Desktop alert dispatched successfully!';
+        this.ui.showToast('Test notification dispatched to your desktop.', 'success');
+      } else {
+        this.testNotifFeedback = 'Alert sound played. Visual notification blocked by OS permissions.';
+        this.ui.showToast('Alert sound played. Visual notification blocked.', 'warning');
+      }
+    } catch {
+      this.testNotifFeedback = 'Failed to trigger test notification.';
+    } finally {
+      setTimeout(() => {
+        this.isTestingNotification = false;
+        setTimeout(() => this.testNotifFeedback = null, 4000);
+      }, 400);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.stopRecordingKeybind();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('popstate', this.popStateListener);
+    }
+    if (this.backButtonSub) {
+      this.backButtonSub.unsubscribe();
+    }
+    if (this.exitTimer) {
+      clearTimeout(this.exitTimer);
+      this.exitTimer = null;
+    }
+  }
+
+  logout(): void {
+    const performClientLogout = () => {
+      localStorage.removeItem('api_token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
+      this.desktopNotifications.stop();
+      this.router.navigate(['/login']);
+    };
+
+    this.api.logout().pipe(
+      timeout(3000),
+      catchError(() => of(null))
+    ).subscribe({
+      next: () => performClientLogout(),
+      error: () => performClientLogout()
+    });
+  }
+}

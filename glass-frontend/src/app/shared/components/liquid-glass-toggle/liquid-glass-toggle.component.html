@@ -1,0 +1,40 @@
+<div class="liquid-toggle-host"
+     [class.is-checked]="checked"
+     [class.is-pressed]="isPressed"
+     [class.is-dragging]="isDragging"
+     [class.is-disabled]="disabled"
+     [attr.role]="'switch'"
+     [attr.aria-checked]="checked"
+     [attr.aria-label]="ariaLabel"
+     [tabindex]="disabled ? -1 : 0"
+     (click)="onClick($event)"
+     (pointerdown)="onPointerDown($event)"
+     (pointermove)="onPointerMove($event)"
+     (pointerup)="onPointerUp($event)"
+     (pointercancel)="onPointerCancel()"
+     (keydown.space)="$event.preventDefault(); toggle()"
+     (keydown.enter)="$event.preventDefault(); toggle()">
+
+  <!-- Track Surface with Apple iOS Green / Slate with Specular Rim -->
+  <div class="toggle-track"
+       [style.background]="checked ? activeColor : inactiveColor">
+
+    <!-- Inner Specular Refraction Rim -->
+    <div class="track-specular-rim"></div>
+
+    <!-- Active Liquid Thumb: Smooth Pill Capsule with Chromatic Aberration Lens -->
+    <div class="liquid-thumb"
+         [class.is-lens-active]="isPressed || isDragging"
+         [style.transform]="'translateX(' + (progress * 20) + 'px)' + ((isPressed || isDragging) ? ' scaleX(1.35) scaleY(0.92)' : '')">
+      
+      <!-- Chromatic Aberration Iridescent Rainbow Border (Convx & Apple Liquid Lens) -->
+      <div class="chromatic-prism-ring"></div>
+
+      <!-- Specular Light Reflection Glare -->
+      <div class="thumb-glass-glare"></div>
+      
+      <!-- Solid Core for Resting State -->
+      <div class="thumb-solid-core"></div>
+    </div>
+  </div>
+</div>

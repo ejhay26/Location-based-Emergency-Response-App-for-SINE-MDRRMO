@@ -1,0 +1,248 @@
+/* ===========================================================================
+   LIQUID GLASS DESIGN SYSTEM (APPLE WWDC25 & CONVX REVERSE-ENGINEERED)
+   Exclusive to glass-frontend/
+   =========================================================================== */
+
+:root {
+  /* ── Liquid Glass Physics & Material Tokens ── */
+  --liquid-glass-bg: rgba(255, 255, 255, 0.65);
+  --liquid-glass-bg-prominent: rgba(255, 255, 255, 0.82);
+  --liquid-glass-bg-subtle: rgba(255, 255, 255, 0.45);
+  --liquid-glass-border: rgba(255, 255, 255, 0.45);
+  --liquid-glass-border-subtle: rgba(255, 255, 255, 0.25);
+  --liquid-glass-specular-top: rgba(255, 255, 255, 0.75);
+  --liquid-glass-specular-bottom: rgba(0, 0, 0, 0.06);
+  --liquid-glass-blur: blur(28px) saturate(190%);
+  --liquid-glass-blur-deep: blur(36px) saturate(210%);
+  --liquid-glass-shadow: 0 10px 36px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --liquid-glass-shadow-float: 0 16px 48px rgba(0, 0, 0, 0.20), 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* ── Liquid Colors (Apple HIG Vibrancy) ── */
+  --liquid-green: #34C759;
+  --liquid-green-glow: rgba(52, 199, 89, 0.35);
+  --liquid-red: #FF3B30;
+  --liquid-red-glow: rgba(255, 59, 48, 0.35);
+  --liquid-blue: #007AFF;
+  --liquid-blue-glow: rgba(0, 122, 255, 0.35);
+  --liquid-amber: #FF9500;
+  --liquid-amber-glow: rgba(255, 149, 0, 0.35);
+  --liquid-purple: #AF52DE;
+
+  /* ── Fluid Spring Physics Curves ── */
+  --ease-liquid-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-liquid-fluid: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-liquid-squish: cubic-bezier(0.2, 0.8, 0.2, 1.2);
+  --ease-apple-standard: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* ── Typography & Radius Scale ── */
+  --liquid-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --liquid-radius-sm: 10px;
+  --liquid-radius-md: 16px;
+  --liquid-radius-lg: 22px;
+  --liquid-radius-capsule: 9999px;
+}
+
+/* Dark Palette Liquid Glass Adjustments */
+body.dark,
+html.ion-palette-dark {
+  --liquid-glass-bg: rgba(28, 28, 34, 0.68);
+  --liquid-glass-bg-prominent: rgba(38, 38, 46, 0.82);
+  --liquid-glass-bg-subtle: rgba(20, 20, 24, 0.50);
+  --liquid-glass-border: rgba(255, 255, 255, 0.16);
+  --liquid-glass-border-subtle: rgba(255, 255, 255, 0.08);
+  --liquid-glass-specular-top: rgba(255, 255, 255, 0.28);
+  --liquid-glass-specular-bottom: rgba(0, 0, 0, 0.45);
+  --liquid-glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 2px 10px rgba(0, 0, 0, 0.25);
+  --liquid-glass-shadow-float: 0 20px 56px rgba(0, 0, 0, 0.60), 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+/* ── 1. LIQUID GLASS CARDS & SURFACES ── */
+.liquid-glass-card {
+  position: relative;
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  border-radius: var(--liquid-radius-lg);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow),
+              inset 0 1px 1px 0 var(--liquid-glass-specular-top),
+              inset 0 -1px 1px 0 var(--liquid-glass-specular-bottom);
+  overflow: hidden;
+  transition: transform 0.28s var(--ease-liquid-fluid),
+              box-shadow 0.28s ease,
+              border-color 0.24s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 55%);
+    border-radius: inherit;
+    z-index: 1;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--liquid-glass-shadow-float),
+                inset 0 1px 1px 0 var(--liquid-glass-specular-top);
+  }
+}
+
+/* ── 2. LIQUID GLASS BUTTONS ── */
+.btn-liquid-glass {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--liquid-font-family);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  padding: 10px 18px;
+  border-radius: var(--liquid-radius-md);
+  background: var(--liquid-glass-bg-prominent);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  border: 1px solid var(--liquid-glass-border);
+  color: var(--ion-text-color, #111111);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08),
+              inset 0 1px 1px 0 var(--liquid-glass-specular-top);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.18s var(--ease-liquid-spring),
+              background 0.2s ease,
+              box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12),
+                inset 0 1px 1px 0 var(--liquid-glass-specular-top);
+  }
+
+  &:active {
+    transform: scale(0.94);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  &.is-prominent-accent {
+    background: linear-gradient(135deg, var(--liquid-red) 0%, #d32f2f 100%);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 6px 20px var(--liquid-red-glow),
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.5);
+
+    &:hover {
+      box-shadow: 0 8px 26px var(--liquid-red-glow),
+                  inset 0 1px 1px 0 rgba(255, 255, 255, 0.6);
+    }
+  }
+
+  &.is-prominent-success {
+    background: linear-gradient(135deg, var(--liquid-green) 0%, #2e7d32 100%);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 6px 20px var(--liquid-green-glow),
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* ── 3. LIQUID GLASS NATIVE IONIC COMPONENT SKINS ── */
+
+/* Global Ion-Toggle Liquid Transformation (Convx & iOS Lens Physics) */
+ion-toggle {
+  --background: rgba(255, 255, 255, 0.18);
+  --background-checked: linear-gradient(135deg, #34C759 0%, #28CD41 100%);
+  --handle-background: #ffffff;
+  --handle-background-checked: #ffffff;
+  --handle-width: 20px;
+  --handle-height: 20px;
+  --handle-spacing: 3px;
+  --handle-box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22), 0 1px 2px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.85);
+  
+  width: 48px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0;
+  contain: layout;
+  transition: transform 0.22s var(--ease-liquid-spring);
+
+  &::part(track) {
+    width: 48px;
+    height: 26px;
+    border-radius: 9999px;
+    backdrop-filter: blur(18px) saturate(190%);
+    -webkit-backdrop-filter: blur(18px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15), inset 0 0 1px rgba(255, 255, 255, 0.4);
+    transition: background 0.3s var(--ease-liquid-fluid), border-color 0.3s ease;
+  }
+
+  &::part(handle) {
+    border-radius: 9999px;
+    transition: transform 0.28s var(--ease-liquid-spring), width 0.2s ease;
+  }
+
+  &:active::part(handle) {
+    transform: scaleX(1.35) !important;
+  }
+
+  &:hover {
+    transform: scale(1.03);
+  }
+}
+
+/* Ion-Card & Containers */
+ion-card, .status-card, .queue-card, .metric-card {
+  background: var(--liquid-glass-bg) !important;
+  backdrop-filter: var(--liquid-glass-blur) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
+  border: 1px solid var(--liquid-glass-border) !important;
+  border-radius: var(--liquid-radius-lg) !important;
+  box-shadow: var(--liquid-glass-shadow),
+              inset 0 1px 1px 0 var(--liquid-glass-specular-top),
+              inset 0 -1px 1px 0 var(--liquid-glass-specular-bottom) !important;
+  transition: transform 0.24s var(--ease-liquid-fluid), box-shadow 0.24s ease !important;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--liquid-glass-shadow-float),
+                inset 0 1px 1px 0 var(--liquid-glass-specular-top) !important;
+  }
+}
+
+/* Ion-Button & Action Pills */
+ion-button, .btn-action, .touch-btn {
+  --border-radius: var(--liquid-radius-md) !important;
+  font-family: var(--liquid-font-family) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.2px !important;
+  transition: transform 0.18s var(--ease-liquid-spring), filter 0.2s ease !important;
+
+  &:hover {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  &:active {
+    transform: scale(0.94) !important;
+  }
+}
+
+/* Titlebar & App Headers */
+.desktop-titlebar, app-titlebar {
+  background: rgba(22, 22, 26, 0.72) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Floating Navigation & Docks */
+ion-tab-bar, .bottom-nav-dock {
+  background: var(--liquid-glass-bg-prominent) !important;
+  backdrop-filter: var(--liquid-glass-blur-deep) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur-deep) !important;
+  border-top: 1px solid var(--liquid-glass-border) !important;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12),
+              inset 0 1px 1px 0 var(--liquid-glass-specular-top) !important;
+}

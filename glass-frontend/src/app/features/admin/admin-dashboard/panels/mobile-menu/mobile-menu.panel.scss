@@ -1,0 +1,191 @@
+.mobile-menu-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 14px 28px;
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+/* Officer Profile Header Card */
+.officer-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 20px;
+  border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.06)));
+  box-shadow: var(--card-shadow, 0 3px 12px rgba(0, 0, 0, 0.04));
+
+  .officer-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &.admin-avatar {
+      background: linear-gradient(135deg, #d32f2f, #b71c1c);
+      box-shadow: 0 4px 14px rgba(211, 47, 47, 0.32);
+    }
+
+    &.dispatcher-avatar {
+      background: linear-gradient(135deg, #3880ff, #1e88e5);
+      box-shadow: 0 4px 14px rgba(56, 128, 255, 0.32);
+    }
+  }
+
+  .officer-info {
+    flex: 1;
+    min-width: 0;
+
+    .officer-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .officer-name {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ion-text-color);
+      letter-spacing: -0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .role-badge {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 2px 7px;
+      border-radius: 6px;
+
+      &.admin-badge {
+        background: rgba(235, 68, 90, 0.12);
+        color: var(--ion-color-danger);
+        border: 1px solid rgba(235, 68, 90, 0.25);
+      }
+
+      &.dispatcher-badge {
+        background: rgba(56, 128, 255, 0.12);
+        color: var(--ion-color-primary);
+        border: 1px solid rgba(56, 128, 255, 0.25);
+      }
+    }
+
+    .officer-meta {
+      margin: 3px 0 0 0;
+      font-size: 12px;
+      color: var(--ion-color-medium);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+/* Menu Grouped Sections */
+.menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  .menu-section-header {
+    padding: 0 4px;
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ion-color-danger);
+    }
+  }
+
+  .menu-card-list {
+    background: var(--ion-card-background, #ffffff);
+    border-radius: 20px;
+    border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.06)));
+    box-shadow: var(--card-shadow, 0 3px 12px rgba(0, 0, 0, 0.04));
+    overflow: hidden;
+  }
+}
+
+/* Individual Interactive Item Buttons */
+.menu-item-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ion-color-step-150, rgba(128, 128, 128, 0.2));
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:active {
+    background-color: var(--ion-color-step-100, rgba(0, 0, 0, 0.04));
+    transform: scale(0.995);
+  }
+
+  .menu-item-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .menu-item-text {
+    flex: 1;
+    min-width: 0;
+
+    .menu-item-title {
+      display: block;
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--ion-text-color);
+      margin-bottom: 2px;
+    }
+
+    .menu-item-sub {
+      display: block;
+      font-size: 11.5px;
+      color: var(--ion-color-medium);
+      line-height: 1.35;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .menu-item-badge {
+    background: #eb445a;
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    margin-right: 4px;
+    box-shadow: 0 2px 6px rgba(235, 68, 90, 0.4);
+  }
+}

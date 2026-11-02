@@ -1,0 +1,76 @@
+/* ===========================================================================
+   SINE MDRRMO GLOBAL STYLESHEET (MASTER HUB)
+   =========================================================================== */
+
+/* ── SINE MDRRMO Modular SCSS Architecture ── */
+@use "styles/variables" as *;
+@use "styles/base" as *;
+@use "styles/scrollbar" as *;
+@use "styles/buttons" as *;
+@use "styles/leaflet" as *;
+@use "styles/lightbox" as *;
+@use "styles/dialogs" as *;
+@use "styles/desktop" as *;
+@use "styles/tooltips" as *;
+@use "styles/liquid-glass" as *;
+
+/* ── Third-Party & Ionic Core Stylesheets ── */
+@import "leaflet/dist/leaflet.css";
+@import "@ionic/angular/css/core.css";
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+@import "@ionic/angular/css/palettes/dark.class.css";
+
+/* ── Global Accessibility & Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    animation-duration: 0.0001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+    transition-duration: 0.0001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html.reduce-animations,
+body.reduce-animations,
+html.reduce-motion,
+body.reduce-motion {
+  animation: none !important;
+  transition: none !important;
+}
+
+html.reduce-animations *,
+body.reduce-animations *,
+html.reduce-motion *,
+body.reduce-motion *,
+html.reduce-animations *::before,
+body.reduce-animations *::before,
+html.reduce-motion *::before,
+body.reduce-motion *::before,
+html.reduce-animations *::after,
+body.reduce-animations *::after,
+html.reduce-motion *::after,
+body.reduce-motion *::after {
+  animation: none !important;
+  animation-duration: 0.0001ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  transition-duration: 0.0001ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Master Liquid Glass Overrides (Convx iOS Design System) */
+@import "styles/liquid-glass-master";

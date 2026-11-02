@@ -1,0 +1,234 @@
+<div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; padding-bottom: 40px;">
+
+  <!-- Header Banner -->
+  <div style="background: var(--ion-card-background, #ffffff); border-radius: 20px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)); box-shadow: 0 4px 16px rgba(0,0,0,0.04); padding: 24px 28px;">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(235,68,90,0.12); display: flex; align-items: center; justify-content: center;">
+            <app-icon name="help-circle" [size]="20" color="var(--ion-color-danger)"></app-icon>
+          </div>
+          <h2 style="margin: 0; font-size: 19px; font-weight: 800; color: var(--ion-text-color);">Interactive SOP Guides &amp; Procedures</h2>
+        </div>
+        <p style="margin: 0; font-size: 13.5px; color: var(--ion-color-medium); max-width: 620px; line-height: 1.5;">
+          Click any guided walkthrough below to trigger an interactive step-by-step visual tour with spotlight callouts explaining how to operate each MDRRMO dispatch and administrative module.
+        </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; background: rgba(235,68,90,0.08); border: 1px solid rgba(235,68,90,0.2);">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--ion-color-danger);"></span>
+        <span style="font-size: 12px; font-weight: 700; color: var(--ion-color-danger);">Live Guided Tours</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operational Guided Procedures -->
+  <div>
+    <p style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0 6px 12px; display: flex; align-items: center; gap: 6px;">
+      <app-icon name="compass" [size]="14" color="var(--ion-color-danger)"></app-icon> Operational Workflows
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <ng-container *ngFor="let p of procedures">
+        <div *ngIf="!p.adminOnly || isAdmin"
+             style="background: var(--ion-card-background, #ffffff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.06)); padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: flex-start; gap: 16px; flex: 1; min-width: 280px;">
+            <div [style.background]="p.badgeColor + '18'"
+                 style="width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+              <app-icon [name]="p.icon" [size]="20" [color]="p.badgeColor"></app-icon>
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+                <h3 style="margin: 0; font-size: 15.5px; font-weight: 800; color: var(--ion-text-color);">{{ p.title }}</h3>
+                <span [style.background]="p.badgeColor + '18'" [style.color]="p.badgeColor"
+                      style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 6px;">
+                  {{ p.category }}
+                </span>
+                <span *ngIf="p.adminOnly"
+                      style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 6px; background: rgba(0,0,0,0.06); color: var(--ion-color-medium);">
+                  Admin Only
+                </span>
+              </div>
+              <p style="margin: 0; font-size: 12.5px; color: var(--ion-color-medium); line-height: 1.45;">{{ p.description }}</p>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button"
+                    (click)="startWalkthrough(p)"
+                    style="display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 12px; background: var(--ion-color-danger, #eb445a); color: #ffffff; border: none; font-size: 12.5px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(235,68,90,0.28); transition: transform 0.12s ease;">
+              <app-icon name="play" [size]="13" color="#ffffff"></app-icon>
+              <span>Start Walkthrough</span>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Workstation Keyboard Shortcuts Reference -->
+  <div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin: 0 6px 12px;">
+      <p style="font-weight: 800; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ion-color-danger); margin: 0; display: flex; align-items: center; gap: 6px;">
+        <app-icon name="command" [size]="14" color="var(--ion-color-danger)"></app-icon> Desktop Workstation Hotkeys
+      </p>
+      <span style="font-size: 11.5px; color: var(--ion-color-medium); font-weight: 600;">Customizable via Settings</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px;">
+      
+      <!-- Card 1: Panel Navigation Shortcuts -->
+      <div style="background: var(--ion-card-background, #ffffff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06));">
+          <app-icon name="navigation" [size]="16" color="var(--ion-color-danger)"></app-icon>
+          <span style="font-weight: 800; font-size: 13.5px; color: var(--ion-text-color);">Panel Navigation</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Incident Map</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('nav-map'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Log Archive</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('nav-archive'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Analytics &amp; Reports</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('nav-analytics'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Alert Broadcast</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('nav-broadcast'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+            </span>
+          </div>
+
+          <!-- Admin-Only Panel Shortcuts -->
+          <ng-container *ngIf="isAdmin">
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--ion-text-color); font-weight: 600;">Citizen Feedback</span>
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <ng-container *ngFor="let k of getKeyParts('nav-feedback'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--ion-text-color); font-weight: 600;">Citizen ID Verifications</span>
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <ng-container *ngFor="let k of getKeyParts('nav-verify'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--ion-text-color); font-weight: 600;">Dispatcher Personnel</span>
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <ng-container *ngFor="let k of getKeyParts('nav-dispatchers'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--ion-text-color); font-weight: 600;">Citizen Directory</span>
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <ng-container *ngFor="let k of getKeyParts('nav-citizens'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+              </span>
+            </div>
+          </ng-container>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Settings &amp; Workstation Options</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('nav-settings'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Help &amp; Operating Procedures</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('nav-help'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+              <span *ngIf="isMac" style="font-size: 11px; color: var(--ion-color-medium);">or</span>
+              <kbd *ngIf="isMac" class="workstation-kbd">⌘</kbd><span *ngIf="isMac" style="color: var(--ion-color-medium); font-weight: 700;">+</span><kbd *ngIf="isMac" class="workstation-kbd">?</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Toggle Sidebar Collapse</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('action-sidebar'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Quick Actions & Media -->
+      <div style="background: var(--ion-card-background, #ffffff); border-radius: 16px; border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--ion-color-step-100, rgba(0,0,0,0.06));">
+          <app-icon name="sliders-horizontal" [size]="16" color="var(--ion-color-danger)"></app-icon>
+          <span style="font-weight: 800; font-size: 13.5px; color: var(--ion-text-color);">Actions &amp; Media Lightbox</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Spotlight Quick Command Palette</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('action-search'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Compose New Announcement</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('action-announcement'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Toggle Dark / Light Theme</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('action-darkmode'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Refresh Operational Feeds</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <ng-container *ngFor="let k of getKeyParts('action-refresh'); let last = last"><kbd class="workstation-kbd">{{ k }}</kbd><span *ngIf="!last" style="color: var(--ion-color-medium); font-weight: 700;">+</span></ng-container>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Zoom In (Scale Up)</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">+</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Zoom Out (Scale Down)</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">-</kbd>
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <span style="color: var(--ion-text-color); font-weight: 600;">Reset Zoom (100%)</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <kbd class="workstation-kbd">{{ modKey }}</kbd> + <kbd class="workstation-kbd">0</kbd>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

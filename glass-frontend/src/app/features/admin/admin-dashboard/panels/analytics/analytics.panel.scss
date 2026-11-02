@@ -1,0 +1,142 @@
+:host {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+.analytics-main-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.analytics-top-bar {
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  padding: 2px 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.analytics-range-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.range-pill-btn {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--ion-color-step-200, #ccc);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--ion-card-background, #ffffff);
+  color: var(--ion-text-color, #1c1c1e);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.analytics-side-col {
+  width: 360px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-left: 6px;
+}
+
+.chart-card {
+  margin: 0;
+  box-shadow: var(--card-shadow, 0 2px 8px rgba(0, 0, 0, 0.04));
+  border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.06)));
+  border-radius: 16px;
+  background: var(--ion-card-background, #ffffff);
+
+  ion-card-title {
+    font-weight: 800;
+    font-size: 15.5px;
+    color: var(--ion-text-color);
+  }
+}
+
+.chart-canvas-container {
+  position: relative;
+  height: 210px;
+  width: 100%;
+}
+
+.export-pdf-btn {
+  background: var(--ion-color-danger, #eb445a) !important;
+  color: #ffffff !important;
+  border-color: var(--ion-color-danger, #eb445a) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(235, 68, 90, 0.35);
+
+  &:hover {
+    background: #d32f2f !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(235, 68, 90, 0.45);
+  }
+}
+
+/* ── EXPORT MODAL OVERLAY (POPUP CENTERED) ── */
+.c-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2000000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  animation: cOverlayFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  .c-overlay-bg {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .c-panel {
+    position: relative;
+    background: var(--ion-card-background, #ffffff);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.15));
+    animation: cModalPop 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes cModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

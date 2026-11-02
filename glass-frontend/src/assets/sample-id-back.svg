@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" width="600" height="380">
+  <defs>
+    <linearGradient id="cardBgBack" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0f7fa"/>
+      <stop offset="100%" stop-color="#d4e8f0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card Body -->
+  <rect x="0" y="0" width="600" height="380" rx="16" fill="url(#cardBgBack)" stroke="#89b2c4" stroke-width="2"/>
+
+  <!-- Top Blue / Red Republic Stripe -->
+  <rect x="0" y="0" width="300" height="8" fill="#ce1126" rx="16"/>
+  <rect x="300" y="0" width="300" height="8" fill="#0038a8" rx="16"/>
+
+  <!-- Large QR Code Block -->
+  <rect x="40" y="40" width="160" height="160" rx="8" fill="#ffffff" stroke="#333" stroke-width="2"/>
+  <!-- QR Code pattern simulation -->
+  <rect x="55" y="55" width="40" height="40" fill="#000"/>
+  <rect x="63" y="63" width="24" height="24" fill="#fff"/>
+  <rect x="70" y="70" width="10" height="10" fill="#000"/>
+  
+  <rect x="145" y="55" width="40" height="40" fill="#000"/>
+  <rect x="153" y="63" width="24" height="24" fill="#fff"/>
+  <rect x="160" y="70" width="10" height="10" fill="#000"/>
+
+  <rect x="55" y="145" width="40" height="40" fill="#000"/>
+  <rect x="63" y="153" width="24" height="24" fill="#fff"/>
+  <rect x="70" y="160" width="10" height="10" fill="#000"/>
+
+  <!-- Random QR dots -->
+  <rect x="105" y="60" width="8" height="8" fill="#000"/>
+  <rect x="120" y="75" width="12" height="8" fill="#000"/>
+  <rect x="105" y="95" width="10" height="15" fill="#000"/>
+  <rect x="125" y="115" width="18" height="10" fill="#000"/>
+  <rect x="105" y="145" width="12" height="12" fill="#000"/>
+  <rect x="145" y="145" width="10" height="18" fill="#000"/>
+  <rect x="165" y="120" width="16" height="10" fill="#000"/>
+
+  <!-- Text / Information on Back -->
+  <text x="230" y="60" font-family="Arial, sans-serif" font-size="10" fill="#666" font-weight="bold">PETSA NG PAGPAPALABAS / DATE OF ISSUANCE</text>
+  <text x="230" y="78" font-family="Arial, sans-serif" font-size="13" fill="#111" font-weight="700">AUGUST 12, 2021</text>
+
+  <text x="230" y="110" font-family="Arial, sans-serif" font-size="10" fill="#666" font-weight="bold">URI NG DUGO / BLOOD TYPE</text>
+  <text x="230" y="128" font-family="Arial, sans-serif" font-size="14" fill="#ce1126" font-weight="900">O+</text>
+
+  <text x="380" y="110" font-family="Arial, sans-serif" font-size="10" fill="#666" font-weight="bold">KATAYUANG SIBIL / MARITAL STATUS</text>
+  <text x="380" y="128" font-family="Arial, sans-serif" font-size="13" fill="#111" font-weight="700">SINGLE</text>
+
+  <text x="230" y="160" font-family="Arial, sans-serif" font-size="10" fill="#666" font-weight="bold">SERIAL NUMBER</text>
+  <text x="230" y="178" font-family="monospace, Courier" font-size="13" fill="#333" font-weight="bold">PHL-2021-998841-A</text>
+
+  <!-- Legal Notice & Disclaimer -->
+  <rect x="40" y="220" width="520" height="60" rx="6" fill="#ffffff" stroke="#ccc" stroke-width="1"/>
+  <text x="50" y="238" font-family="Arial, sans-serif" font-size="8.5" fill="#444">Ang kard na ito ay pag-aari ng Pamahalaan ng Pilipinas. Kung matagpuan, mangyaring ibalik</text>
+  <text x="50" y="252" font-family="Arial, sans-serif" font-size="8.5" fill="#444">sa pinakamalapit na tanggapan ng Philippine Statistics Authority (PSA) o MDRRMO.</text>
+  <text x="50" y="268" font-family="Arial, sans-serif" font-size="8" fill="#777" font-style="italic">RA 11055 - Philippine Identification System Act</text>
+
+  <!-- Machine Readable Zone (MRZ) / Barcode -->
+  <rect x="40" y="295" width="520" height="65" rx="6" fill="#eef2f5" stroke="#90a4ae" stroke-width="1"/>
+  <text x="55" y="320" font-family="monospace, Courier" font-size="13" fill="#222" font-weight="bold" letter-spacing="3">IDPHL1234567890&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</text>
+  <text x="55" y="342" font-family="monospace, Courier" font-size="13" fill="#222" font-weight="bold" letter-spacing="3">0505267F3012315PHL&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;8SANTOS&lt;&lt;MARIA&lt;CLARA</text>
+</svg>

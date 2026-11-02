@@ -1,0 +1,126 @@
+<div style="border-radius:18px;overflow:hidden;margin-bottom:12px;position:relative;border:var(--card-border, 1px solid rgba(0,0,0,0.09));box-shadow:var(--card-shadow, 0 2px 10px rgba(0,0,0,0.05));">
+  <!-- report-map-slot: permanent Leaflet container home -->
+  
+  <!-- Out of bounds inline warning banner -->
+  <div *ngIf="isOutOfBounds || isActualLocationOutOfBounds" style="position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1000; background: var(--ion-card-background, #ffffff); border-radius: 14px; padding: 10px 14px; border: 1.5px solid var(--ion-color-danger, #eb445a); box-shadow: 0 4px 16px rgba(235, 68, 90, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+    <div style="display: flex; align-items: center; gap: 7px;">
+      <app-icon name="alert" [size]="15" color="var(--ion-color-danger, #eb445a)"></app-icon>
+      <span style="font-size: 12px; font-weight: 700; color: var(--ion-color-danger, #eb445a);">
+        {{ isActualLocationOutOfBounds ? 'Device is outside San Isidro — Pin positioned in town' : 'Outside San Isidro boundary' }}
+      </span>
+    </div>
+    <button type="button" (click)="snapToTownCenter()" style="display: inline-flex; align-items: center; gap: 5px; background: var(--ion-color-danger, #eb445a); color: white; border: none; border-radius: 9px; padding: 6px 10px; font-size: 11px; font-weight: 800; cursor: pointer;">
+      <app-icon name="map-pin" [size]="12" color="#ffffff"></app-icon>
+      <span>Snap Inside</span>
+    </button>
+  </div>
+
+  <div id="report-map-slot" #mapSlot style="height:280px;background:#e5e5e5;position:relative;overflow:hidden;">
+    <div id="report-map" #mapCanvas style="width:100%;height:100%;position:relative;"></div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:1000;pointer-events:none;display:flex;flex-direction:column;align-items:center;">
+      <app-icon name="map-pin" [size]="38" [color]="pinColor" style="filter:drop-shadow(0 4px 10px rgba(0,0,0,0.45));"></app-icon>
+      <div style="width:8px;height:4px;background:rgba(0,0,0,0.35);border-radius:50%;margin-top:-2px;filter:blur(1px);"></div>
+    </div>
+    <!-- Live-resolved barangay pill -->
+    <div *ngIf="resolvedBarangayName" style="position:absolute;top:10px;left:10px;z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.65);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:white;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+      <app-icon name="map-pin" [size]="12" color="var(--ion-color-danger)"></app-icon>{{ resolvedBarangayName }}
+    </div>
+    <div *ngIf="showMapHint && !mapExpanded" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(0,0,0,0.65);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:white;font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;">
+      <span>Drag the map to position pin</span>
+    </div>
+    <!-- Expand fullscreen button -->
+    <button type="button" #smallExpandBtn (click)="onFullscreenBtnClick($event)" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+      style="position:absolute;top:10px;right:10px;z-index:1002;width:44px;height:44px;border-radius:14px;border:none;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,0.3);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto !important;transition:transform 0.15s ease;">
+      <app-icon name="expand" [size]="18" color="#ffffff"></app-icon>
+    </button>
+  </div>
+</div>
+
+<!-- report-map-toggle-slot: iOS Segmented Pill Bar -->
+<div id="report-map-toggle-slot" #toggleSlot style="margin-bottom:14px;">
+  <ion-segment mode="ios" [value]="mapStyle" (ionChange)="onMapStyleChange($event)">
+    <ion-segment-button value="street">
+      <ion-label style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:700;">
+        <app-icon name="map" [size]="14"></app-icon> Street
+      </ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="satellite">
+      <ion-label style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:700;">
+        <app-icon name="satellite" [size]="14"></app-icon> Satellite
+      </ion-label>
+    </ion-segment-button>
+  </ion-segment>
+</div>
+
+<!-- Fullscreen Overlay with iOS Glassmorphism Layout -->
+<div *ngIf="mapExpanded || mapCollapsing" #fullscreenOverlay style="position:fixed;inset:0;z-index:10000;background:transparent;display:flex;flex-direction:column;pointer-events:auto;">
+  <div id="report-map-fullscreen-wrap" style="position:relative;flex:1;min-height:0;overflow:hidden;">
+
+    <!-- Curtain-clipped map visual layer. Clamped and smoothed with 4-sided inset and rounded corners. -->
+    <div id="report-map-fullscreen-mapvisual" #mapCurtainWrap style="position:absolute;inset:0;background:var(--ion-background-color,#1e1e1e);overflow:hidden;">
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:1000;pointer-events:none;display:flex;flex-direction:column;align-items:center;">
+        <app-icon name="map-pin" [size]="44" [color]="pinColor" style="filter:drop-shadow(0 6px 14px rgba(0,0,0,0.5));"></app-icon>
+        <div style="width:10px;height:5px;background:rgba(0,0,0,0.4);border-radius:50%;margin-top:-2px;filter:blur(1px);"></div>
+      </div>
+
+      <!-- Barangay preview -->
+      <div *ngIf="resolvedBarangayName" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:16px;z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(28,28,30,0.92);border:1px solid rgba(255,255,255,0.15);color:white;font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.35);">
+        <app-icon name="map-pin" [size]="13" color="var(--ion-color-danger)"></app-icon>{{ resolvedBarangayName }}
+      </div>
+
+      <!-- Drag hint -->
+      <div *ngIf="showMapHint" style="position:absolute;top:max(16px,calc(env(safe-area-inset-top,16px) + 8px));left:50%;transform:translateX(-50%);z-index:1001;pointer-events:none;white-space:nowrap;background:rgba(28,28,30,0.92);border:1px solid rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.35);">
+        <span>Drag map to position pin</span>
+      </div>
+
+      <!-- Leaflet Fullscreen Slot -->
+      <div id="report-map-fullscreen-slot" #fullscreenSlot style="position:absolute;inset:0;width:100%;height:100%;"></div>
+    </div>
+
+    <!-- Fullscreen Floating Chrome: Exit button, Use My Location pill, Floating Submit button -->
+    <div #fullscreenChrome class="fullscreen-chrome-layer" style="position:absolute;inset:0;pointer-events:none;z-index:1002;transition:opacity 0.16s ease, transform 0.16s ease;">
+      <!-- Compress (Exit Fullscreen) Button -->
+      <button type="button" (click)="onFullscreenBtnClick($event)" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+        style="position:absolute;top:max(12px,calc(env(safe-area-inset-top,12px) + 6px));right:14px;z-index:1002;width:44px;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);background:rgba(28,28,30,0.92);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.35);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto;transition:transform 0.15s ease;">
+        <app-icon name="compress" [size]="18" color="#ffffff"></app-icon>
+      </button>
+
+      <!-- Use My Location Floating Pill -->
+      <button type="button" (click)="getCurrentLocation()" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
+        style="position:absolute;bottom:calc(88px + env(safe-area-inset-bottom,0px));right:16px;z-index:1002;background:var(--ion-card-background,#fff);color:var(--ion-text-color);border:var(--card-border, 1px solid rgba(0,0,0,0.1));box-shadow:0 4px 18px rgba(0,0,0,0.25);border-radius:24px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;pointer-events:auto;transition:all 0.15s ease;">
+        <app-icon name="map-pin" [size]="15" color="var(--ion-color-danger)"></app-icon>
+        <span>Use My Location</span>
+      </button>
+
+      <!-- Floating Submit Button in Fullscreen -->
+      <div *ngIf="submitLabel" class="fullscreen-submit-container" style="position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:1002;pointer-events:auto;">
+        <button type="button" appPressFeedback [disabled]="submitDisabled" (click)="submitRequested.emit()"
+          [style.background]="submitLoading ? '#666' : (submitDisabled ? '#888' : (reportType === 'hazard' ? 'linear-gradient(135deg, #d97706, #f59e0b)' : 'var(--ion-color-danger)'))"
+          [style.box-shadow]="(submitDisabled || submitLoading) ? 'none' : '0 6px 24px rgba(0,0,0,0.35)'"
+          [style.cursor]="submitDisabled ? 'not-allowed' : 'pointer'"
+          style="width:100%;border:none;border-radius:18px;padding:15px;font-size:15px;font-weight:800;color:white;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;">
+          <ng-container *ngIf="!submitLoading">
+            <app-icon [name]="reportType === 'hazard' ? 'hazard' : 'alert'" [size]="18" color="#ffffff"></app-icon>{{ submitLabel }}
+          </ng-container>
+          <span *ngIf="submitLoading" class="dot-loader dot-loader-white"><span></span><span></span><span></span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Street | Satellite Toggle Bar -->
+  <div #fullscreenToggleBar style="flex-shrink:0;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--ion-card-background,#fff);border-top:var(--inset-divider, 1px solid rgba(0,0,0,0.06));z-index:1002;transition:opacity 0.16s ease, transform 0.16s ease;">
+    <ion-segment mode="ios" [value]="mapStyle" (ionChange)="onMapStyleChange($event)">
+      <ion-segment-button value="street">
+        <ion-label style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:700;">
+          <app-icon name="map" [size]="14"></app-icon> Street
+        </ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="satellite">
+        <ion-label style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:700;">
+          <app-icon name="satellite" [size]="14"></app-icon> Satellite
+        </ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+</div>

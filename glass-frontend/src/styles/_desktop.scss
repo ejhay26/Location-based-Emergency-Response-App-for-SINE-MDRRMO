@@ -1,0 +1,133 @@
+/* ===========================================================================
+   NATIVE TAURI DESKTOP SHELL, TITLEBAR DRAG REGIONS & OFFSETS
+   =========================================================================== */
+
+/* =========================================
+   TAURI DESKTOP: CUSTOM TITLEBAR & DRAG REGION
+   Only the dedicated top drag area (.app-titlebar__drag) is draggable.
+   All buttons, headers, sidebars, and panels remain standard interactive DOM elements.
+   ========================================= */
+ion-app.desktop-app app-titlebar .app-titlebar__drag {
+  -webkit-app-region: drag !important;
+}
+
+ion-app.desktop-app app-titlebar .app-titlebar__controls,
+ion-app.desktop-app app-titlebar .app-titlebar__btn,
+ion-app.desktop-app app-titlebar button,
+ion-app.desktop-app app-titlebar i {
+  -webkit-app-region: no-drag !important;
+  pointer-events: auto !important;
+}
+
+/* On desktop shells (Tauri), push page headers down by 32px
+   so the titlebar drag region (0-32px) never overlaps header buttons (e.g. Cancel / Back) */
+ion-app.desktop-app ion-header {
+  padding-top: 32px !important;
+  background: var(--ion-toolbar-background, var(--ion-background-color, #ffffff));
+}
+
+ion-app.desktop-app ion-header:has(ion-toolbar[color="danger"]) {
+  background: var(--ion-color-danger, #dc2626) !important;
+}
+
+ion-app.desktop-app ion-header ion-toolbar:first-of-type {
+  padding-top: 0 !important;
+}
+
+/* Ensure all header action buttons, back buttons, and controls are fully interactive and above drag overlay */
+ion-app.desktop-app ion-header ion-buttons,
+ion-app.desktop-app ion-header ion-button,
+ion-app.desktop-app ion-header button,
+ion-app.desktop-app ion-header ion-back-button {
+  -webkit-app-region: no-drag !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1000000;
+}
+
+/* Reserve space on the right for normal start-aligned titles */
+ion-app.desktop-app ion-toolbar ion-title {
+  padding-right: env(titlebar-area-width, 140px);
+}
+
+/* For centered titles (login, auth, modals), balance left and right padding */
+ion-app.desktop-app ion-toolbar ion-title.ion-text-center,
+ion-app.desktop-app ion-toolbar ion-title[style*="text-align: center"],
+ion-app.desktop-app ion-toolbar ion-title[style*="text-align:center"] {
+  padding-left: 140px !important;
+  padding-right: 140px !important;
+  text-align: center !important;
+}
+
+/* Admin Dashboard Tauri Desktop Top Spacing & Window Controls Clearance */
+ion-app.desktop-app:not(.mac-desktop) .admin-main-viewport {
+  padding: 34px 20px 18px 20px !important;
+}
+ion-app.desktop-app:not(.mac-desktop) .admin-sidebar {
+  padding-top: 24px !important;
+}
+
+/* Desktop Font Crispness & Subpixel Antialiasing (Windows ClearType Support) */
+ion-app.desktop-app {
+  -webkit-font-smoothing: subpixel-antialiased !important;
+  -moz-osx-font-smoothing: auto !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* =========================================
+   macOS NATIVE TRAFFIC LIGHT CONTROLS & SPACING
+   On macOS, native traffic lights are on the top-left (96px clearance).
+   ========================================= */
+ion-app.desktop-app.mac-desktop ion-toolbar ion-title {
+  padding-left: 96px !important;
+  padding-right: 20px !important;
+}
+
+ion-app.desktop-app.mac-desktop ion-toolbar ion-title.ion-text-center,
+ion-app.desktop-app.mac-desktop ion-toolbar ion-title[style*="text-align: center"],
+ion-app.desktop-app.mac-desktop ion-toolbar ion-title[style*="text-align:center"] {
+  padding-left: 96px !important;
+  padding-right: 96px !important;
+  text-align: center !important;
+}
+
+ion-app.desktop-app.mac-desktop .admin-sidebar,
+ion-app.mac-desktop .admin-sidebar {
+  padding-top: 54px !important;
+
+  &.is-collapsed {
+    padding-top: 56px !important;
+  }
+}
+
+ion-app.desktop-app.mac-desktop .admin-main-viewport,
+ion-app.mac-desktop .admin-main-viewport {
+  padding: 52px 20px 18px 20px !important;
+}
+
+ion-app.desktop-app.mac-desktop ion-header,
+ion-app.mac-desktop ion-header {
+  padding-top: 48px !important;
+}
+
+ion-app.desktop-app.mac-desktop {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* =========================================
+   SELECTIVE DESKTOP DEPTH & INTERACTION
+   Elevate only key actionable summary cards on desktop hover
+   ========================================= */
+@media (hover: hover) and (pointer: fine) {
+  .stat-card:hover,
+  .metric-card:hover,
+  .admin-summary-card:hover,
+  .incident-row:hover,
+  .actionable-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  }
+}
+

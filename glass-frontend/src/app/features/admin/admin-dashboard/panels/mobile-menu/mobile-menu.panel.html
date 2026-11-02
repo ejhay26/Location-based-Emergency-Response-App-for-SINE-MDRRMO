@@ -1,0 +1,137 @@
+<div class="mobile-menu-container">
+
+  <!-- Officer Identity Card -->
+  <div class="officer-profile-card">
+    <div class="officer-avatar" [class.admin-avatar]="isAdmin" [class.dispatcher-avatar]="!isAdmin">
+      <app-icon [name]="isAdmin ? 'shield-check' : 'user'" [size]="28" color="#ffffff"></app-icon>
+    </div>
+    <div class="officer-info">
+      <div class="officer-name-row">
+        <h3 class="officer-name">{{ userName }}</h3>
+        <span class="role-badge" [class.admin-badge]="isAdmin" [class.dispatcher-badge]="!isAdmin">
+          {{ isAdmin ? 'ADMINISTRATOR' : 'DISPATCHER' }}
+        </span>
+      </div>
+      <p class="officer-meta">
+        <span *ngIf="username">@{{ username }}</span>
+        <span *ngIf="username && userEmail">·</span>
+        <span *ngIf="userEmail">{{ userEmail }}</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- SECTION 1: ACCOUNTS & VERIFICATIONS (Admin Only) -->
+  <div *ngIf="isAdmin" class="menu-section">
+    <div class="menu-section-header">
+      <span class="section-title">Accounts &amp; Verifications</span>
+    </div>
+
+    <div class="menu-card-list">
+      <!-- ID Verifications -->
+      <button type="button" id="menu-item-verifications" class="menu-item-btn" (click)="onSelectView('verifications')">
+        <div class="menu-item-icon-box" style="background: rgba(45, 211, 111, 0.12); color: #2dd36f;">
+          <app-icon name="shield-check" [size]="22" color="#2dd36f"></app-icon>
+        </div>
+        <div class="menu-item-text">
+          <span class="menu-item-title">ID Verifications</span>
+          <span class="menu-item-sub">Review and approve resident IDs</span>
+        </div>
+        <span *ngIf="pendingVerificationsCount > 0" class="menu-item-badge">
+          {{ pendingVerificationsCount }}
+        </span>
+        <app-icon name="chevron-right" [size]="18" color="var(--ion-color-step-400, #999)"></app-icon>
+      </button>
+
+      <!-- Dispatchers & Responders -->
+      <button type="button" id="menu-item-dispatchers" class="menu-item-btn" (click)="onSelectView('dispatchers')">
+        <div class="menu-item-icon-box" style="background: rgba(56, 128, 255, 0.12); color: #3880ff;">
+          <app-icon name="users" [size]="22" color="#3880ff"></app-icon>
+        </div>
+        <div class="menu-item-text">
+          <span class="menu-item-title">Dispatchers &amp; Teams</span>
+          <span class="menu-item-sub">Manage staff accounts, responders &amp; vehicles</span>
+        </div>
+        <app-icon name="chevron-right" [size]="18" color="var(--ion-color-step-400, #999)"></app-icon>
+      </button>
+
+      <!-- Citizen Accounts -->
+      <button type="button" id="menu-item-citizens" class="menu-item-btn" (click)="onSelectView('citizens')">
+        <div class="menu-item-icon-box" style="background: rgba(188, 111, 255, 0.12); color: #bc6fff;">
+          <app-icon name="user" [size]="22" color="#bc6fff"></app-icon>
+        </div>
+        <div class="menu-item-text">
+          <span class="menu-item-title">Citizen Directory</span>
+          <span class="menu-item-sub">View registered residents and verify accounts</span>
+        </div>
+        <app-icon name="chevron-right" [size]="18" color="var(--ion-color-step-400, #999)"></app-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- SECTION 2: REPORTS & FEEDBACK -->
+  <div class="menu-section">
+    <div class="menu-section-header">
+      <span class="section-title">Reports &amp; Feedback</span>
+    </div>
+
+    <div class="menu-card-list">
+      <!-- Analytics & Statistics -->
+      <button type="button" id="menu-item-analytics" class="menu-item-btn" (click)="onSelectView('analytics')">
+        <div class="menu-item-icon-box" style="background: rgba(255, 196, 9, 0.12); color: #ffc409;">
+          <app-icon name="chart-pie" [size]="22" color="#ffc409"></app-icon>
+        </div>
+        <div class="menu-item-text">
+          <span class="menu-item-title">Analytics &amp; Trends</span>
+          <span class="menu-item-sub">Incident stats, heatmaps and response times</span>
+        </div>
+        <app-icon name="chevron-right" [size]="18" color="var(--ion-color-step-400, #999)"></app-icon>
+      </button>
+
+      <!-- Citizen Feedback (Admin Only) -->
+      <button *ngIf="isAdmin" type="button" id="menu-item-feedback" class="menu-item-btn" (click)="onSelectView('feedback')">
+        <div class="menu-item-icon-box" style="background: rgba(56, 128, 255, 0.12); color: #3880ff;">
+          <app-icon name="message-square" [size]="22" color="#3880ff"></app-icon>
+        </div>
+        <div class="menu-item-text">
+          <span class="menu-item-title">Citizen Feedback</span>
+          <span class="menu-item-sub">Read citizen reviews and service ratings</span>
+        </div>
+        <app-icon name="chevron-right" [size]="18" color="var(--ion-color-step-400, #999)"></app-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- SECTION 3: SETTINGS & HELP -->
+  <div class="menu-section">
+    <div class="menu-section-header">
+      <span class="section-title">Settings &amp; Help</span>
+    </div>
+
+    <div class="menu-card-list">
+      <!-- System Settings -->
+      <button type="button" id="menu-item-settings" class="menu-item-btn" (click)="onSelectView('settings')">
+        <div class="menu-item-icon-box" style="background: rgba(142, 142, 147, 0.12); color: #8e8e93;">
+          <app-icon name="settings" [size]="22" color="var(--ion-color-medium)"></app-icon>
+        </div>
+        <div class="menu-item-text">
+          <span class="menu-item-title">System Settings</span>
+          <span class="menu-item-sub">Alerts, sound rules, dark theme &amp; profile</span>
+        </div>
+        <app-icon name="chevron-right" [size]="18" color="var(--ion-color-step-400, #999)"></app-icon>
+      </button>
+
+      <!-- Help & User Guides -->
+      <button type="button" id="menu-item-help" class="menu-item-btn" (click)="onSelectView('help')">
+        <div class="menu-item-icon-box" style="background: rgba(45, 211, 111, 0.12); color: #2dd36f;">
+          <app-icon name="graduation-cap" [size]="22" color="#2dd36f"></app-icon>
+        </div>
+        <div class="menu-item-text">
+          <span class="menu-item-title">Help &amp; User Guides</span>
+          <span class="menu-item-sub">Interactive tutorials, steps &amp; response tips</span>
+        </div>
+        <app-icon name="chevron-right" [size]="18" color="var(--ion-color-step-400, #999)"></app-icon>
+      </button>
+    </div>
+  </div>
+
+</div>

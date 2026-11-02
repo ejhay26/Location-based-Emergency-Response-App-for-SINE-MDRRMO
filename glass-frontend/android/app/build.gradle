@@ -1,0 +1,125 @@
+plugins {
+  id 'com.android.application'
+  id 'com.google.gms.google-services'
+  id 'org.jetbrains.kotlin.android'
+}
+
+apply plugin: 'com.android.application'
+
+android {
+    namespace = "io.ionic.starter"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "ph.gov.sine.mdrrmo.emergencyresponse"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 24
+        versionName "0.93.4"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            Properties localProps = new Properties()
+            def localPropertiesFile = rootProject.file('local.properties')
+            if (localPropertiesFile.exists()) {
+                localProps.load(new FileInputStream(localPropertiesFile))
+            }
+            def ksPath = System.getenv("KEYSTORE_PATH") ?: localProps.getProperty("keystore.path")
+            def ksPass = System.getenv("KEYSTORE_PASSWORD") ?: localProps.getProperty("keystore.password")
+            def kAlias = System.getenv("KEY_ALIAS") ?: localProps.getProperty("key.alias")
+            def kPass = (System.getenv("KEY_PASSWORD") ?: localProps.getProperty("key.password")) ?: ksPass
+
+            if (ksPath && ksPass) {
+                def ksFile = file(ksPath)
+                if (!ksFile.exists()) {
+                    ksFile = rootProject.file(ksPath)
+                }
+                if (ksFile.exists()) {
+                    def determinedAlias = kAlias
+                    try {
+                        def ks = java.security.KeyStore.getInstance(ksFile.name.endsWith(".jks") ? "JKS" : "PKCS12")
+                        ksFile.withInputStream { is -> ks.load(is, ksPass.toCharArray()) }
+                        def aliases = ks.aliases().toList()
+                        if (aliases.size() > 0) {
+                            if (!determinedAlias || !ks.containsAlias(determinedAlias)) {
+                                println "Android Signing: Requested alias '${determinedAlias}' not found. Automatically using available alias '${aliases[0]}'"
+                                determinedAlias = aliases[0]
+                            }
+                        }
+                    } catch (Exception e) {
+                        println "Android Signing: Keystore validation notice: ${e.message}"
+                        determinedAlias = null
+                    }
+
+                    if (determinedAlias) {
+                        storeFile ksFile
+                        storePassword ksPass
+                        keyAlias determinedAlias
+                        keyPassword kPass ?: ksPass
+                        println "Android Release Signing: Configured with alias '${determinedAlias}' from '${ksFile.name}'"
+                    }
+                }
+            } else {
+                println "Android Release Signing: Keystore credentials not fully provided (path: ${ksPath ? 'yes' : 'no'}, password: ${ksPass ? 'yes' : 'no'}). Will build unsigned."
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (signingConfigs.release.storeFile != null && signingConfigs.release.storePassword != null) {
+                signingConfig signingConfigs.release
+            }
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    // Matches capacitor.build.gradle's sourceCompatibility/targetCompatibility
+    // (JavaVersion.VERSION_21) so the Kotlin (ReportWidgetProvider) and Java
+    // sources compile against the same JVM bytecode target.
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+    implementation platform('com.google.firebase:firebase-bom:34.15.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    // ReportWidgetProvider (Stage 3a) is written in Kotlin.
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.0'
+    // Needed to extend com.capacitorjs.plugins.pushnotifications.MessagingService
+    // (MdrrmoMessagingService) — the plugin declares this as `implementation`
+    // internally, so it isn't exposed transitively to this module.
+    implementation 'com.google.firebase:firebase-messaging'
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

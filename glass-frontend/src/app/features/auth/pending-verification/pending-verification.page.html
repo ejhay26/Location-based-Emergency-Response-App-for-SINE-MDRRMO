@@ -1,0 +1,90 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="danger">
+    <ion-title class="ion-text-center" style="color: white; font-weight: bold; font-size: 16px; letter-spacing: 0.5px;">MDRRMO SAN ISIDRO NE</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding ion-text-center">
+
+  <div class="ion-margin-vertical">
+    <img src="/assets/icon/logo.jpg" alt="MDRRMO Logo"
+         style="max-width: 90px; border-radius: 50%; box-shadow: var(--card-shadow, 0 8px 24px rgba(0,0,0,0.15));">
+  </div>
+
+  <!-- ── Still waiting ── -->
+  <div *ngIf="status === 'checking' || status === 'unverified' || status === 'pending_otp' || status === 'error'" style="max-width: 360px; margin: 0 auto;">
+    <div style="width: 76px; height: 76px; border-radius: 50%; background: var(--ion-color-step-100, rgba(0,0,0,0.06)); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+      <app-icon name="hourglass" [size]="36" color="var(--ion-color-medium)"></app-icon>
+    </div>
+    <h2 style="font-weight: 800; margin-bottom: 8px; font-size: 20px; color: var(--ion-text-color);">Account Pending Verification</h2>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin: 0 auto 20px auto;">
+      MDRRMO staff are reviewing your submitted valid ID before granting portal access.
+      This page updates automatically in real-time.
+    </p>
+    <p *ngIf="status === 'error'" style="color: var(--ion-color-danger); font-size: 13px; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+      <app-icon name="circle-alert" [size]="16" color="var(--ion-color-danger)"></app-icon>
+      <span>Couldn't reach the server on the last check — retrying...</span>
+    </p>
+
+    <ion-button expand="block" fill="outline" color="danger" class="ion-margin-top"
+                style="font-weight: 700; height: 50px; --border-radius: 14px;"
+                (click)="goToLogin()">
+      <app-icon name="log-in" [size]="16" color="var(--ion-color-danger)" style="margin-right: 8px;"></app-icon>
+      Logout
+    </ion-button>
+  </div>
+
+  <!-- ── Approved ── -->
+  <div *ngIf="status === 'active'" style="max-width: 360px; margin: 0 auto;">
+    <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(45,211,111,0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+      <app-icon name="check" [size]="38" color="#2dd36f"></app-icon>
+    </div>
+    <h2 style="font-weight: 800; margin-bottom: 8px; font-size: 22px; color: var(--ion-text-color);">You're Verified!</h2>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin: 0 auto 20px auto;">
+      Your account has been approved by MDRRMO San Isidro. You can log in now.
+    </p>
+    <ion-button expand="block" color="success" class="ion-margin-top"
+                style="font-weight: 800; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(45,211,111,0.3);"
+                (click)="goToLogin()">
+      Continue to Login
+    </ion-button>
+  </div>
+
+  <!-- ── Suspended/banned ── -->
+  <div *ngIf="status === 'banned'" style="max-width: 360px; margin: 0 auto;">
+    <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(235,68,90,0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+      <app-icon name="ban" [size]="36" color="var(--ion-color-danger)"></app-icon>
+    </div>
+    <h2 style="font-weight: 800; margin-bottom: 8px; font-size: 20px; color: var(--ion-text-color);">Account Suspended</h2>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin: 0 auto 20px auto;">
+      This account has been suspended. Contact MDRRMO San Isidro for more information.
+    </p>
+    <ion-button expand="block" fill="outline" color="danger" class="ion-margin-top"
+                style="font-weight: 700; height: 50px; --border-radius: 14px;"
+                (click)="goToLogin()">
+      Back to Login
+    </ion-button>
+  </div>
+
+  <!-- ── Rejected (account no longer exists) ── -->
+  <div *ngIf="status === 'not_found'" style="max-width: 360px; margin: 0 auto;">
+    <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(235,68,90,0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+      <app-icon name="circle-alert" [size]="36" color="var(--ion-color-danger)"></app-icon>
+    </div>
+    <h2 style="font-weight: 800; margin-bottom: 8px; font-size: 20px; color: var(--ion-text-color);">Registration Not Approved</h2>
+    <p style="color: var(--ion-color-medium); font-weight: 500; font-size: 13.5px; line-height: 1.5; margin: 0 auto 20px auto;">
+      This registration wasn't approved. You may contact MDRRMO San Isidro, or register again with valid credentials.
+    </p>
+    <ion-button expand="block" color="danger" class="ion-margin-top"
+                style="font-weight: 800; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(211,47,47,0.3);"
+                (click)="goToRegister()">
+      Register Again
+    </ion-button>
+    <ion-button expand="block" fill="clear" color="medium" class="ion-margin-top"
+                style="font-weight: 700; --border-radius: 12px;"
+                (click)="goToLogin()">
+      Back to Login
+    </ion-button>
+  </div>
+
+</ion-content>

@@ -1,0 +1,803 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import {
+  IonCard, IonCardContent,
+  IonItem, IonInput, IonButton,
+  IonSelect, IonSelectOption, IonSkeletonText
+} from '@ionic/angular/standalone';
+import { ApiService } from '../../../../../core/services/api';
+import { AdminUiService } from '../../admin-ui.service';
+import { EchoService } from '../../../../../core/services/echo.service';
+import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
+import { ListEnterDirective } from '../../../../../shared/directives/list-enter.directive';
+import { ProxyImageDirective } from '../../../../../shared/directives/proxy-image.directive';
+import { BARANGAYS, Barangay } from '../../../../../shared/constants/barangays';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { TourService } from '../../../../../core/services/tour';
+import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
+
+/**
+ * BroadcastPanel — admin alert broadcaster with immediate and scheduled modes.
+ */
+export interface BroadcastMediaItem {
+  preview: string;
+  type: 'image' | 'video';
+  file?: File;
+}
+
+@Component({
+  selector: 'app-broadcast-panel',
+  standalone: true,
+  imports: [
+    CommonModule, FormsModule,
+    IonCard, IonCardContent, IonItem, IonInput, IonButton,
+    IonSelect, IonSelectOption, IonSkeletonText,
+    UtcDatePipe, ListEnterDirective, ProxyImageDirective, AppIconComponent,
+    CustomTooltipDirective
+  ],
+  templateUrl: './broadcast.panel.html',
+  styleUrls: ['./broadcast.panel.scss'],
+})
+export class BroadcastPanel implements OnInit, OnDestroy {
+  isLoading = true;
+
+  barangays: readonly Barangay[] = BARANGAYS;
+
+  broadcastForm = { title: '', message: '' };
+  selectedMedia: BroadcastMediaItem[] = [];
+  selectedBarangayIds: number[] = []; // empty = town-wide
+  draftBroadcasts: any[] = [];
+  activeBroadcasts: any[] = [];
+  scheduledBroadcasts: any[] = [];
+  archivedBroadcasts: any[] = [];
+
+  // Currently loaded draft ID (if editing an existing saved draft)
+  editingDraftId: number | null = null;
+
+  // Drag & drop state for desktop
+  isDraggingFileOver = false;
+
+  /** Returns true if the composer has unsaved draft content. */
+  isDirty(): boolean {
+    return Boolean(
+      this.editingDraftId !== null ||
+      (this.broadcastForm.title && this.broadcastForm.title.trim().length > 0) ||
+      (this.broadcastForm.message && this.broadcastForm.message.trim().length > 0) ||
+      (this.selectedMedia && this.selectedMedia.length > 0)
+    );
+  }
+
+  /** Reset the dirty form draft with confirmation safeguard. */
+  clearDraft(): void {
+    const isDirty = !!(this.broadcastForm.title?.trim() || this.broadcastForm.message?.trim() || this.selectedMedia?.length);
+    if (!isDirty) {
+      this.doClearDraft();
+      return;
+    }
+    this.ui.showConfirm({
+      title: 'Discard Draft Changes',
+      message: 'Discard changes in this advisory draft? The title, notice text, and attached media will be cleared.',
+      icon: 'rotate-ccw',
+      iconColor: '#eb445a',
+      confirmLabel: 'Discard Changes',
+      confirmColor: '#eb445a',
+      action: () => {
+        this.doClearDraft();
+        this.ui.showToast('Composer draft discarded.', 'medium');
+      }
+    });
+  }
+
+  private doClearDraft(): void {
+    this.editingDraftId = null;
+    this.broadcastForm = { title: '', message: '' };
+    this.selectedMedia = [];
+    this.selectedBarangayIds = [];
+    this.isScheduled = false;
+    this.scheduledDateTime = '';
+    this.schedYear = '';
+    this.schedMonth = '';
+    this.schedDay = '';
+    this.deliveryMode = 'immediate';
+    try {
+      localStorage.removeItem('broadcast_composer_preset');
+    } catch {}
+  }
+
+  get isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  // Collapsible section states (Composer minimized by default to save screen space)
+  showComposer = false;
+  showDraftsSection = true;
+  showActiveSection = true;
+  showScheduledSection = true;
+  showArchivedSection = false;
+
+  toggleComposer(): void {
+    this.showComposer = !this.showComposer;
+    if (this.showComposer) {
+      this.saveComposerPreset();
+    }
+    if (this.tour.isActive()) {
+      this.tour.onInteraction();
+    }
+  }
+
+  openComposer(): void {
+    if (!this.showComposer) {
+      this.showComposer = true;
+      this.saveComposerPreset();
+    }
+    if (this.tour.isActive()) {
+      this.tour.onInteraction();
+    }
+  }
+
+  saveComposerPreset(): void {
+    try {
+      const preset = {
+        editingDraftId: this.editingDraftId,
+        title: this.broadcastForm.title,
+        message: this.broadcastForm.message,
+        selectedBarangayIds: this.selectedBarangayIds,
+        deliveryMode: this.deliveryMode,
+      };
+      localStorage.setItem('broadcast_composer_preset', JSON.stringify(preset));
+    } catch {}
+  }
+
+  loadComposerPreset(): void {
+    try {
+      const raw = localStorage.getItem('broadcast_composer_preset');
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p.editingDraftId) this.editingDraftId = p.editingDraftId;
+        if (p.title) this.broadcastForm.title = p.title;
+        if (p.message) this.broadcastForm.message = p.message;
+        if (Array.isArray(p.selectedBarangayIds)) this.selectedBarangayIds = p.selectedBarangayIds;
+        if (p.deliveryMode === 'scheduled' || p.deliveryMode === 'immediate') {
+          this.setDeliveryMode(p.deliveryMode);
+        }
+      }
+    } catch {}
+  }
+
+  clearComposerPreset(): void {
+    try {
+      localStorage.removeItem('broadcast_composer_preset');
+    } catch {}
+  }
+
+  // Post Scheduling
+  isScheduled = false;
+  scheduledDateTime = '';
+
+  months = [
+    { value: '01', label: 'Jan' }, { value: '02', label: 'Feb' },
+    { value: '03', label: 'Mar' }, { value: '04', label: 'Apr' },
+    { value: '05', label: 'May' }, { value: '06', label: 'Jun' },
+    { value: '07', label: 'Jul' }, { value: '08', label: 'Aug' },
+    { value: '09', label: 'Sep' }, { value: '10', label: 'Oct' },
+    { value: '11', label: 'Nov' }, { value: '12', label: 'Dec' },
+  ];
+
+  schedMonth = '';
+  schedDay = '';
+  schedYear = '';
+  schedHour = '09';
+  schedMinute = '00';
+  schedPeriod = 'AM';
+
+  hours = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+  minutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
+
+  private echoBroadcastSub?: Subscription;
+  private tourSub?: Subscription;
+
+  readonly DEMO_DRAFT_BROADCAST = {
+    broadcast_id: 999990,
+    title: 'Draft: Pre-emptive Evacuation Advisory for Low-lying Zones',
+    message: 'Water levels approaching critical flood stage. Dispatch teams on standby for evacuation assistance. Review before publishing.',
+    barangays: [{ barangay_id: 1, barangay_name: 'Poblacion' }],
+    location: 'Poblacion',
+    is_active: 0,
+    is_draft: 1,
+    scheduled_at: null,
+    created_at: new Date().toISOString(),
+    media_files: [],
+    is_demo: true
+  };
+
+  readonly DEMO_ACTIVE_BROADCAST = {
+    broadcast_id: 999991,
+    title: 'Severe Weather Warning: Heavy Rainfall & River Monitoring',
+    message: 'MDRRMO is monitoring water levels along riverbanks. All residents in low-lying barangays are advised to prepare emergency go-bags and stay alert.',
+    barangays: [{ barangay_id: 1, barangay_name: 'Poblacion' }, { barangay_id: 2, barangay_name: 'Alua' }],
+    location: 'Poblacion, Alua',
+    is_active: 1,
+    scheduled_at: null,
+    created_at: new Date().toISOString(),
+    media_files: [],
+    is_demo: true
+  };
+
+  readonly DEMO_SCHEDULED_BROADCAST = {
+    broadcast_id: 999992,
+    title: 'Scheduled Relief Goods Distribution at Municipal Gym',
+    message: 'Relief distribution for affected households begins tomorrow at 8:00 AM. Please present your verified Resident ID.',
+    barangays: [],
+    location: 'Town-Wide (All Barangays)',
+    is_active: 0,
+    scheduled_at: new Date(Date.now() + 86400000).toISOString(),
+    created_at: new Date().toISOString(),
+    media_files: [],
+    is_demo: true
+  };
+
+  readonly DEMO_ARCHIVED_BROADCAST = {
+    broadcast_id: 999993,
+    title: 'Cleared: Power Line Obstruction Along Highway',
+    message: 'Utility repair teams have cleared fallen electrical cables. Traffic flow along San Roque has returned to normal.',
+    barangays: [{ barangay_id: 3, barangay_name: 'San Roque' }],
+    location: 'San Roque',
+    is_active: 0,
+    scheduled_at: null,
+    created_at: new Date(Date.now() - 172800000).toISOString(),
+    media_files: [],
+    is_demo: true
+  };
+
+  constructor(
+    public api: ApiService,
+    public ui: AdminUiService,
+    private echo: EchoService,
+    public tour: TourService,
+  ) {}
+
+  ngOnInit() {
+    this.loadComposerPreset();
+    this.fetchBroadcasts();
+    this.echo.connect();
+    this.echoBroadcastSub = this.echo.onBroadcastUpdated.subscribe(() => {
+      this.fetchBroadcasts();
+    });
+
+    this.tourSub = this.tour.stepChange$.subscribe(({ id, active }) => {
+      if (active) {
+        this.showDraftsSection = true;
+        this.showScheduledSection = true;
+        this.showArchivedSection = true;
+        if (id && id !== 'broadcast-toggle-composer-btn' && (
+          id === 'broadcast-composer' ||
+          id === 'broadcast-barangay-selector' ||
+          id === 'broadcast-delivery-mode' ||
+          id === 'broadcast-submit-btn'
+        )) {
+          this.showComposer = true;
+        }
+        if (this.draftBroadcasts.length === 0) {
+          this.draftBroadcasts = [this.DEMO_DRAFT_BROADCAST];
+        }
+        if (this.activeBroadcasts.length === 0) {
+          this.activeBroadcasts = [this.DEMO_ACTIVE_BROADCAST];
+        }
+        if (this.scheduledBroadcasts.length === 0) {
+          this.scheduledBroadcasts = [this.DEMO_SCHEDULED_BROADCAST];
+        }
+        if (this.archivedBroadcasts.length === 0) {
+          this.archivedBroadcasts = [this.DEMO_ARCHIVED_BROADCAST];
+        }
+      } else {
+        if (this.draftBroadcasts.length === 1 && this.draftBroadcasts[0].is_demo) {
+          this.draftBroadcasts = [];
+        }
+        if (this.activeBroadcasts.length === 1 && this.activeBroadcasts[0].is_demo) {
+          this.activeBroadcasts = [];
+        }
+        if (this.scheduledBroadcasts.length === 1 && this.scheduledBroadcasts[0].is_demo) {
+          this.scheduledBroadcasts = [];
+        }
+        if (this.archivedBroadcasts.length === 1 && this.archivedBroadcasts[0].is_demo) {
+          this.archivedBroadcasts = [];
+        }
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.echoBroadcastSub?.unsubscribe();
+    this.tourSub?.unsubscribe();
+  }
+
+  get isTownWide(): boolean {
+    return this.selectedBarangayIds.length === 0;
+  }
+
+  selectTownWide(): void {
+    this.selectedBarangayIds = [];
+    this.saveComposerPreset();
+  }
+
+  toggleBarangay(id: number): void {
+    const idx = this.selectedBarangayIds.indexOf(id);
+    if (idx === -1) this.selectedBarangayIds.push(id);
+    else this.selectedBarangayIds.splice(idx, 1);
+    this.saveComposerPreset();
+  }
+
+  isBarangaySelected(id: number): boolean {
+    return this.selectedBarangayIds.includes(id);
+  }
+
+  get selectedBarangayNames(): string {
+    return this.selectedBarangayIds
+      .map(id => this.barangays.find(b => b.id === id)?.name)
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  get scheduledYears(): string[] {
+    const y = new Date().getFullYear();
+    return [String(y), String(y + 1)];
+  }
+
+  get daysInSchedMonth(): number[] {
+    const month = parseInt(this.schedMonth, 10) || 1;
+    const year = parseInt(this.schedYear, 10) || new Date().getFullYear();
+    const daysCount = new Date(year, month, 0).getDate();
+    return Array.from({ length: daysCount }, (_, i) => i + 1);
+  }
+
+  deliveryMode: 'immediate' | 'scheduled' = 'immediate';
+
+  setDeliveryMode(mode: 'immediate' | 'scheduled'): void {
+    this.deliveryMode = mode;
+    this.setScheduledMode(mode === 'scheduled');
+    this.saveComposerPreset();
+  }
+
+  onDeliveryModeChange(ev?: any): void {
+    const val = ev?.detail?.value || this.deliveryMode;
+    this.setDeliveryMode(val);
+  }
+
+  clearComposerForm(): void {
+    this.broadcastForm = { title: '', message: '' };
+    this.selectedMedia = [];
+    this.saveComposerPreset();
+  }
+
+  setScheduledMode(enable: boolean): void {
+    this.isScheduled = enable;
+    if (enable) {
+      this.deliveryMode = 'scheduled';
+      if (!this.schedYear) {
+        this.initScheduledDateTime();
+      } else {
+        this.autoCorrectIfPast(false);
+      }
+    } else if (this.deliveryMode === 'scheduled') {
+      this.deliveryMode = 'immediate';
+      this.scheduledDateTime = '';
+    } else {
+      this.scheduledDateTime = '';
+    }
+  }
+
+  initScheduledDateTime(): void {
+    const target = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    this.schedYear = String(target.getFullYear());
+    this.schedMonth = String(target.getMonth() + 1).padStart(2, '0');
+    this.schedDay = String(target.getDate());
+    let h = target.getHours();
+    this.schedPeriod = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    this.schedHour = String(h).padStart(2, '0');
+    this.schedMinute = '00';
+    this.updateScheduledDateTime();
+  }
+
+  autoCorrectIfPast(notify = false): boolean {
+    if (!this.isScheduled) return true;
+    this.updateScheduledDateTime();
+    if (!this.scheduledDateTime) return true;
+
+    const scheduledTime = new Date(this.scheduledDateTime).getTime();
+    const now = Date.now();
+
+    // If the scheduled time is in the past or within 1 minute of current time
+    if (isNaN(scheduledTime) || scheduledTime <= now) {
+      const corrected = new Date(now + 10 * 60 * 1000); // Set to +10 mins
+      this.schedYear = String(corrected.getFullYear());
+      this.schedMonth = String(corrected.getMonth() + 1).padStart(2, '0');
+      this.schedDay = String(corrected.getDate());
+      let h = corrected.getHours();
+      this.schedPeriod = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      this.schedHour = String(h).padStart(2, '0');
+      const m = Math.ceil(corrected.getMinutes() / 5) * 5;
+      this.schedMinute = String(m >= 60 ? 55 : m).padStart(2, '0');
+      this.updateScheduledDateTime();
+
+      if (notify) {
+        this.ui.showToast(
+          `Selected time was in the past. We automatically adjusted it to ${this.formattedSchedulePreview} (+10 mins).`,
+          'secondary'
+        );
+      }
+      return false;
+    }
+    return true;
+  }
+
+  updateScheduledDateTime(): void {
+    if (!this.schedYear || !this.schedMonth || !this.schedDay) {
+      this.scheduledDateTime = '';
+      return;
+    }
+    let hour24 = parseInt(this.schedHour, 10);
+    if (this.schedPeriod === 'PM' && hour24 < 12) hour24 += 12;
+    if (this.schedPeriod === 'AM' && hour24 === 12) hour24 = 0;
+    const hourStr = String(hour24).padStart(2, '0');
+    const dayStr = String(this.schedDay).padStart(2, '0');
+    this.scheduledDateTime = `${this.schedYear}-${this.schedMonth}-${dayStr}T${hourStr}:${this.schedMinute}`;
+  }
+
+  get formattedSchedulePreview(): string {
+    if (!this.schedYear || !this.schedMonth || !this.schedDay) return '';
+    let hour24 = parseInt(this.schedHour, 10);
+    if (this.schedPeriod === 'PM' && hour24 < 12) hour24 += 12;
+    if (this.schedPeriod === 'AM' && hour24 === 12) hour24 = 0;
+    const hourStr = String(hour24).padStart(2, '0');
+    const dayStr = String(this.schedDay).padStart(2, '0');
+    const dateObj = new Date(`${this.schedYear}-${this.schedMonth}-${dayStr}T${hourStr}:${this.schedMinute}:00`);
+    if (isNaN(dateObj.getTime())) return '';
+    return dateObj.toLocaleString([], {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  get isPastScheduleTime(): boolean {
+    if (!this.isScheduled || !this.scheduledDateTime) return false;
+    const target = new Date(this.scheduledDateTime).getTime();
+    return !isNaN(target) && target <= Date.now();
+  }
+
+  timeAgo(dateStr: string): string {
+    if (!dateStr) return '';
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  }
+
+  fetchBroadcasts() {
+    this.isLoading = true;
+    this.api.getActiveBroadcast().subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        if (res && typeof res === 'object' && !Array.isArray(res)) {
+          this.draftBroadcasts     = res.drafts || [];
+          this.activeBroadcasts    = res.active || [];
+          this.scheduledBroadcasts = res.scheduled || [];
+          this.archivedBroadcasts  = res.archived || [];
+        } else if (Array.isArray(res)) {
+          this.draftBroadcasts     = [];
+          this.activeBroadcasts    = res;
+          this.scheduledBroadcasts = [];
+          this.archivedBroadcasts  = [];
+        }
+      },
+      error: () => { this.isLoading = false; }
+    });
+  }
+
+  triggerFileInput(): void {
+    if (this.selectedMedia.length >= 4) {
+      this.ui.showToast('Maximum 4 media attachments allowed per announcement.', 'warning');
+      return;
+    }
+    document.getElementById('broadcastMediaInput')?.click();
+  }
+
+  onDragOver(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.isDraggingFileOver = true;
+  }
+
+  onDragLeave(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.isDraggingFileOver = false;
+  }
+
+  onFileDrop(e: DragEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.isDraggingFileOver = false;
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      this.handleFileList(e.dataTransfer.files);
+    }
+  }
+
+  onFilesSelected(event: any): void {
+    const files: FileList = event.target.files;
+    if (files && files.length > 0) {
+      this.handleFileList(files);
+    }
+    event.target.value = '';
+  }
+
+  handleFileList(files: FileList): void {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'video/mp4'];
+    const maxSizeBytes = 10 * 1024 * 1024; // 10MB
+
+    for (let i = 0; i < files.length; i++) {
+      if (this.selectedMedia.length >= 4) {
+        this.ui.showToast('Maximum 4 media attachments reached.', 'warning');
+        break;
+      }
+
+      const file = files[i];
+      if (!allowedTypes.includes(file.type.toLowerCase())) {
+        this.ui.showToast(`"${file.name}" is not supported. Only PNG, JPEG, and MP4 files are allowed.`, 'danger');
+        continue;
+      }
+
+      if (file.size > maxSizeBytes) {
+        this.ui.showToast(`"${file.name}" exceeds the 10MB size limit.`, 'danger');
+        continue;
+      }
+
+      const reader = new FileReader();
+      const isVideo = file.type.toLowerCase().includes('video') || file.name.toLowerCase().endsWith('.mp4');
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          this.selectedMedia.push({
+            preview: reader.result,
+            type: isVideo ? 'video' : 'image',
+            file
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeMedia(index: number): void {
+    this.selectedMedia.splice(index, 1);
+  }
+
+  /** Save currently composed announcement as a reviewable draft */
+  saveAsDraft(): void {
+    if (!this.broadcastForm.message.trim() && !this.broadcastForm.title.trim()) {
+      this.ui.showToast('Please enter a headline or message to save as draft.', 'warning');
+      return;
+    }
+
+    const payload: any = {
+      ...(this.editingDraftId ? { broadcast_id: this.editingDraftId } : {}),
+      title: this.broadcastForm.title.trim() || undefined,
+      message: this.broadcastForm.message.trim() || '(Draft announcement)',
+      media_files: this.selectedMedia.map(m => m.preview),
+      ...(this.isTownWide ? {} : { barangay_ids: this.selectedBarangayIds }),
+      is_draft: true,
+      ...(this.isScheduled && this.scheduledDateTime ? { scheduled_at: this.scheduledDateTime } : {}),
+    };
+
+    this.api.createBroadcast(payload).subscribe({
+      next: (res: any) => {
+        this.ui.showToast(res?.message || 'Announcement saved as draft for later review.', 'success');
+        this.clearDraft();
+        this.showComposer = false;
+        this.fetchBroadcasts();
+      },
+      error: (err: any) => {
+        this.ui.showToast(err?.error?.message || 'Failed to save announcement draft.', 'danger');
+      }
+    });
+  }
+
+  /** Load a draft back into composer for editing, reviewal, and publishing */
+  loadDraft(draft: any): void {
+    this.editingDraftId = draft.broadcast_id;
+    this.broadcastForm.title = draft.title || '';
+    this.broadcastForm.message = draft.message || '';
+    this.selectedBarangayIds = Array.isArray(draft.barangay_ids) ? [...draft.barangay_ids] : [];
+
+    if (Array.isArray(draft.media_files) && draft.media_files.length > 0) {
+      this.selectedMedia = draft.media_files.map((path: string) => ({
+        preview: path,
+        type: this.ui.isVideoFile(path) ? 'video' : 'image',
+      }));
+    } else {
+      this.selectedMedia = [];
+    }
+
+    if (draft.scheduled_at) {
+      this.setDeliveryMode('scheduled');
+      const d = new Date(draft.scheduled_at);
+      if (!isNaN(d.getTime())) {
+        this.schedYear = String(d.getFullYear());
+        this.schedMonth = String(d.getMonth() + 1).padStart(2, '0');
+        this.schedDay = String(d.getDate());
+        let h = d.getHours();
+        this.schedPeriod = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        this.schedHour = String(h).padStart(2, '0');
+        this.schedMinute = String(d.getMinutes()).padStart(2, '0');
+        this.updateScheduledDateTime();
+      }
+    } else {
+      this.setDeliveryMode('immediate');
+    }
+
+    this.showComposer = true;
+    this.ui.showToast(`Draft "${draft.title || 'Announcement'}" loaded into composer.`, 'primary');
+  }
+
+  /** Permanently discard a draft */
+  discardDraft(draft: any): void {
+    this.ui.confirm({
+      title: 'Discard Draft',
+      message: 'Are you sure you want to discard this draft? This cannot be undone.',
+      icon: 'trash',
+      iconColor: '#eb445a',
+      confirmLabel: 'Discard Draft',
+      confirmColor: 'danger',
+      details: [
+        { label: 'Target',  value: draft.location, icon: 'map-pin' },
+        { label: 'Message', value: draft.message,  icon: 'message-square' },
+      ],
+      onConfirm: () => new Promise<void>((resolve, reject) => {
+        this.api.deleteDraft(draft.broadcast_id).subscribe({
+          next: () => {
+            this.ui.showToast('Draft announcement discarded.', 'medium');
+            if (this.editingDraftId === draft.broadcast_id) {
+              this.clearDraft();
+            }
+            this.fetchBroadcasts();
+            resolve();
+          },
+          error: () => {
+            this.ui.showToast('Failed to discard draft.', 'danger');
+            reject();
+          }
+        });
+      })
+    });
+  }
+
+  /**
+   * Opens a confirmation dialog before sending. The HTTP call is placed
+   * inside `onConfirm` so the dialog's own Confirm button shows the loading
+   * spinner for the full duration of the request — no separate flag needed.
+   */
+  confirmSubmitBroadcast() {
+    if (!this.broadcastForm.message.trim()) return;
+
+    if (this.isScheduled) {
+      this.updateScheduledDateTime();
+      if (!this.scheduledDateTime) {
+        this.ui.showToast('Please select a release date and time for the scheduled announcement.', 'warning');
+        return;
+      }
+      if (this.isPastScheduleTime) {
+        this.ui.showToast('The selected date and time is in the past. Please choose a future time.', 'warning');
+        return;
+      }
+    }
+
+    const target = this.isTownWide
+      ? 'every citizen in San Isidro'
+      : `citizens in: ${this.selectedBarangayIds.map(id => this.barangays.find(b => b.id === id)?.name).join(', ')}`;
+
+    const details: any[] = [
+      { label: 'Target',  value: this.isTownWide ? 'Town-wide (all citizens)' : target, icon: 'map-pin' },
+    ];
+
+    if (this.editingDraftId) {
+      details.push({ label: 'Mode', value: 'Publishing Saved Draft', icon: 'draft' });
+    }
+
+    if (this.isScheduled) {
+      const scheduledFormatted = new Date(this.scheduledDateTime).toLocaleString([], {
+        month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      details.push({ label: 'Scheduled For', value: scheduledFormatted, icon: 'calendar-clock' });
+    }
+
+    if (this.broadcastForm.title.trim()) {
+      details.push({ label: 'Title', value: this.broadcastForm.title.trim(), icon: 'file-text' });
+    }
+
+    details.push({ label: 'Message', value: this.broadcastForm.message.trim(), icon: 'message-square' });
+
+    if (this.selectedMedia.length > 0) {
+      details.push({ label: 'Attachments', value: `${this.selectedMedia.length} file(s) attached`, icon: 'paperclip' });
+    }
+
+    this.ui.confirm({
+      title: this.isScheduled ? 'Schedule Alert / Announcement' : 'Send Alert / Announcement',
+      message: this.isScheduled
+        ? `This announcement will be automatically released to ${target} at the scheduled time.`
+        : `This will immediately push an official notification and notice to ${target}. This cannot be unsent — only stopped.`,
+      icon: this.isScheduled ? 'calendar-clock' : 'broadcast',
+      iconColor: '#eb445a',
+      confirmLabel: this.isScheduled ? 'Schedule Announcement' : 'Send Announcement',
+      confirmColor: 'danger',
+      details,
+      onConfirm: () => new Promise<void>((resolve, reject) => {
+        const payload: any = {
+          ...(this.editingDraftId ? { broadcast_id: this.editingDraftId } : {}),
+          title: this.broadcastForm.title.trim() || undefined,
+          message: this.broadcastForm.message.trim(),
+          media_files: this.selectedMedia.map(m => m.preview),
+          is_draft: false,
+          ...(this.isTownWide ? {} : { barangay_ids: this.selectedBarangayIds }),
+          ...(this.isScheduled ? { scheduled_at: this.scheduledDateTime } : {}),
+        };
+        this.api.createBroadcast(payload).subscribe({
+          next: (res: any) => {
+            this.ui.showToast(
+              res?.message || (this.isScheduled ? 'Announcement scheduled!' : 'Announcement sent!'),
+              'success',
+            );
+            this.clearDraft();
+            this.showComposer = false;
+            this.fetchBroadcasts();
+            resolve();
+          },
+          error: (err: any) => {
+            this.ui.showToast(err?.error?.message || 'Failed to send announcement.', 'danger');
+            reject();
+          },
+        });
+      }),
+    });
+  }
+
+  /**
+   * Opens a confirmation dialog before stopping the alert. Same pattern —
+   * the HTTP call lives inside `onConfirm` so the dialog button shows the
+   * spinner for the full request duration.
+   */
+  endBroadcast(broadcast: any) {
+    this.ui.confirm({
+      title: 'Stop Alert',
+      message: 'Citizens will immediately stop seeing this alert. This cannot be undone — you would need to send a new alert to notify them again.',
+      icon: 'close',
+      iconColor: '#eb445a',
+      confirmLabel: 'Stop Alert',
+      confirmColor: 'danger',
+      details: [
+        { label: 'Target',  value: broadcast.location,  icon: 'map-pin' },
+        { label: 'Message', value: broadcast.message,   icon: 'message-square' },
+      ],
+      onConfirm: () => new Promise<void>((resolve, reject) => {
+        this.api.clearBroadcast(broadcast.broadcast_id).subscribe({
+          next: () => {
+            this.ui.showToast('Alert stopped.', 'medium');
+            this.fetchBroadcasts();
+            resolve();
+          },
+          error: () => {
+            this.ui.showToast('Failed to stop alert.', 'danger');
+            reject();
+          },
+        });
+      }),
+    });
+  }
+
+  trackByBroadcastId(_index: number, b: any): number {
+    return b.broadcast_id;
+  }
+}

@@ -1,0 +1,113 @@
+/* ==========================================================================
+   Broadcast Panel — macOS Fluid Vertical Stretch Accordion Animations
+   ========================================================================== */
+
+.broadcast-composer-card {
+  margin: 0;
+  box-shadow: var(--card-shadow);
+  border: var(--card-border, 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.06)));
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* ── Apple macOS Fluid Accordion Expansion (Grid 0fr -> 1fr) ─────────────── */
+.mac-accordion-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition: grid-template-rows 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.26s ease,
+              visibility 0.36s;
+  overflow: hidden;
+  will-change: grid-template-rows, opacity;
+
+  &.is-expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.mac-accordion-inner {
+  min-height: 0;
+  overflow: hidden;
+  transform: translateY(-6px) scale(0.995);
+  transform-origin: top center;
+  transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mac-accordion-collapse.is-expanded .mac-accordion-inner {
+  transform: translateY(0) scale(1);
+}
+
+/* ── Interactive Rotating Chevron Indicator ──────────────────────────────── */
+.mac-chevron-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.is-expanded {
+    transform: rotate(180deg);
+  }
+}
+
+/* ── Header Toggle Hover Micro-Interactions ───────────────────────────────── */
+.broadcast-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+  background: var(--ion-card-background, #ffffff);
+  color: var(--ion-text-color);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    border-color: var(--ion-color-danger);
+    background: rgba(235, 68, 90, 0.04);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(235, 68, 90, 0.12);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
+  }
+}
+
+.section-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    border-color: var(--ion-color-step-400, #999);
+    color: var(--ion-text-color);
+    background: var(--ion-color-step-50, rgba(0, 0, 0, 0.03));
+    transform: translateY(-0.5px);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}

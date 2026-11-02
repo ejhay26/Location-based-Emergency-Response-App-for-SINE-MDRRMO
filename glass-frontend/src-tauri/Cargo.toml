@@ -1,0 +1,30 @@
+[package]
+name = "mdrrmo-emergency-response-app"
+version = "0.93.4"
+description = "MDRRMO Emergency Response App"
+authors = ["MDRRMO-SINE"]
+edition = "2021"
+
+[lib]
+# The `_lib` suffix is the Tauri v2 convention — main.rs stays a thin
+# entry point that just calls into this lib, which is what lets the same
+# lib target be reused for a future mobile (Android/iOS) Tauri target
+# without duplicating the app setup.
+name = "mdrrmo_emergency_response_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-notification = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "z"     # Optimize binary for minimum size
+lto = true          # Link-Time Optimization (dead-code elimination across all crates)
+codegen-units = 1   # Enables maximum optimization across the whole crate
+panic = "abort"     # Removes stack-unwinding landing pads
+strip = true        # Strips all debug symbols and symbol tables

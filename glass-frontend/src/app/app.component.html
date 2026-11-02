@@ -1,0 +1,20 @@
+@if (showSplash) {
+  <app-liquid-glass-splash (completed)="onSplashCompleted()"></app-liquid-glass-splash>
+}
+<ion-app [class.desktop-app]="isDesktop" [class.mac-desktop]="isMac">
+  <!-- Custom Desktop Titlebar with Minimize, Maximize, and Close -->
+  @if (isDesktop) {
+    <app-titlebar></app-titlebar>
+  }
+  <ion-router-outlet></ion-router-outlet>
+  <!-- Tour overlay at root level so it persists across all routes -->
+  @defer (when tour.isActive()) {
+    <app-tour-overlay></app-tour-overlay>
+  }
+  <!-- Shared confirm dialog + media lightbox, available app-wide -->
+  <app-dialogs></app-dialogs>
+  <!-- Apple Spotlight / Raycast Quick Search & Command Palette for Desktop Operators -->
+  @if (isDesktop) {
+    <app-quick-search-palette></app-quick-search-palette>
+  }
+</ion-app>

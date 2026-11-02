@@ -1,0 +1,112 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="danger">
+    <ion-title style="color: white; font-weight: bold;">My Account</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-toast [isOpen]="toastOpen" [message]="toastMessage" [color]="toastColor" [duration]="3000" position="bottom" (didDismiss)="toastOpen = false"></ion-toast>
+
+<ion-content class="ion-padding tab-page-content">
+  <app-profile-photo
+    [profilePicturePath]="userData.profile_picture"
+    [userId]="userData.user_id"
+    (userUpdated)="onUserUpdated($event)"
+    (toast)="onToast($event)">
+  </app-profile-photo>
+
+  <div *ngIf="userData.false_alarm_strikes > 0" style="background:#eb445a15;border:1.5px solid var(--ion-color-danger);border-radius:18px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px;">
+    <app-icon name="alert" [size]="20" color="var(--ion-color-danger)" style="margin-top:2px;flex-shrink:0;"></app-icon>
+    <div><p style="margin:0 0 4px 0;font-weight:700;font-size:14px;color:var(--ion-color-danger);">False Alarm Strike {{ userData.false_alarm_strikes }} of 3</p><p style="margin:0;font-size:12px;color:var(--ion-text-color);line-height:1.5;">One or more of your emergency reports were marked as false alarms by MDRRMO. Reaching <strong>3 strikes</strong> will result in automatic account suspension.</p></div>
+  </div>
+
+  <div style="margin-top: 16px;">
+    <!-- Personal Information Card -->
+    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:0 4px 8px;display:flex;align-items:center;gap:6px;">
+      <app-icon name="user" [size]="14" color="var(--ion-color-danger)"></app-icon>Personal Information
+    </p>
+    <div class="inset-card">
+      <ion-item lines="full" style="--inner-padding-end:16px;">
+        <app-icon name="user" slot="start" [size]="16" color="var(--ion-color-danger)" style="width:22px;"></app-icon>
+        <ion-label>
+          <h3 style="font-size:12px;color:var(--ion-color-medium);margin-bottom:2px;">Full Name</h3>
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);">{{ userData.first_name }} {{ userData.last_name }}</p>
+        </ion-label>
+      </ion-item>
+      <ion-item lines="full" style="--inner-padding-end:16px;">
+        <app-icon name="mail" slot="start" [size]="16" color="var(--ion-color-danger)" style="width:22px;"></app-icon>
+        <ion-label>
+          <h3 style="font-size:12px;color:var(--ion-color-medium);margin-bottom:2px;">Username</h3>
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);">{{ userData.username || 'Not set' }}</p>
+        </ion-label>
+      </ion-item>
+      <ion-item lines="none" style="--inner-padding-end:16px;">
+        <app-icon name="calendar" slot="start" [size]="16" color="var(--ion-color-danger)" style="width:22px;"></app-icon>
+        <ion-label>
+          <h3 style="font-size:12px;color:var(--ion-color-medium);margin-bottom:2px;">Birthdate & Age</h3>
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);">
+            {{ formattedBirthdate }}
+            <span *ngIf="userData.birthdate && calculatedAge !== 'N/A'"> ({{ calculatedAge }} years old)</span>
+          </p>
+        </ion-label>
+      </ion-item>
+    </div>
+
+    <!-- Contact & Location Card -->
+    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
+      <app-icon name="phone" [size]="14" color="var(--ion-color-danger)"></app-icon>Contact & Location
+    </p>
+    <div class="inset-card">
+      <ion-item lines="full" style="--inner-padding-end:16px;">
+        <app-icon name="phone" slot="start" [size]="16" color="var(--ion-color-danger)" style="width:22px;"></app-icon>
+        <ion-label>
+          <h3 style="font-size:12px;color:var(--ion-color-medium);margin-bottom:2px;">Phone Number</h3>
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);">{{ maskPhone(userData.phone) }}</p>
+        </ion-label>
+      </ion-item>
+      <ion-item lines="full" style="--inner-padding-end:16px;">
+        <app-icon name="mail" slot="start" [size]="16" color="var(--ion-color-danger)" style="width:22px;"></app-icon>
+        <ion-label>
+          <h3 style="font-size:12px;color:var(--ion-color-medium);margin-bottom:2px;">Email Address</h3>
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);">{{ maskEmail(userData.email) }}</p>
+        </ion-label>
+      </ion-item>
+      <ion-item lines="none" style="--inner-padding-end:16px;">
+        <app-icon name="map-pin" slot="start" [size]="16" color="var(--ion-color-danger)" style="width:22px;"></app-icon>
+        <ion-label>
+          <h3 style="font-size:12px;color:var(--ion-color-medium);margin-bottom:2px;">Barangay</h3>
+          <p style="font-weight:600;font-size:15px;color:var(--ion-text-color);">{{ barangayName }}</p>
+        </ion-label>
+      </ion-item>
+    </div>
+
+    <!-- Medical & Vulnerability Profile -->
+    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
+      <app-icon name="medical" [size]="14" color="var(--ion-color-danger)"></app-icon>Medical & Vulnerability Profile
+    </p>
+    <app-profile-medical
+      [userId]="userData.user_id"
+      [medicalData]="medicalData"
+      (userUpdated)="onUserUpdated($event)"
+      (toast)="onToast($event)">
+    </app-profile-medical>
+
+    <!-- Password Security -->
+    <p style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--ion-color-danger);margin:18px 4px 8px;display:flex;align-items:center;gap:6px;">
+      <app-icon name="lock" [size]="14" color="var(--ion-color-danger)"></app-icon>Password Security
+    </p>
+    <div class="inset-card" style="padding: 4px 0;">
+      <app-profile-password
+        [userId]="userData.user_id"
+        [maskedEmail]="maskEmail(userData.email)"
+        [maskedPhone]="maskPhone(userData.phone)"
+        (toast)="onToast($event)">
+      </app-profile-password>
+    </div>
+
+    <div style="padding:24px 0 12px 0;">
+      <ion-button expand="block" color="danger" fill="outline" (click)="logout()" style="font-weight:bold;height:48px;--border-radius:14px;">
+        <app-icon name="logout" [size]="16" color="var(--ion-color-danger)" style="margin-right:8px;"></app-icon> Logout
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

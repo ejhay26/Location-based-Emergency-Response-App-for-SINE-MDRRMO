@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AppWidgetProviderInfo for the rectangular "Report Hazard" home screen
+  widget. Sized as a 2×1 rectangle (wider than tall) matching the
+  home.page.html's full-width rectangular hazard card. Resizable
+  horizontally and vertically to let users scale the widget while the
+  rounded-rectangle background preserves its look at any size.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="146dp"
+    android:minHeight="72dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/widget_hazard"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:previewLayout="@layout/widget_hazard" />
