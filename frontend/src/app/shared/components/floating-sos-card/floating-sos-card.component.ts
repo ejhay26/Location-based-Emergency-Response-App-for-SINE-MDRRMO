@@ -59,6 +59,16 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
   visible = false;
   hasDispatched = false;
 
+  // Gesture tracking & physical spring manipulation
+  isDragging = false;
+  dragTranslateX = 0;
+  dragTranslateY = 0;
+  private pointerStartX = 0;
+  private pointerStartY = 0;
+  private pointerStartTime = 0;
+  private isPointerTracking = false;
+  private justSwiped = false;
+
   private autoMinimizeTimer: any = null;
   private prevItemIds = new Set<string>();
 
@@ -204,7 +214,110 @@ export class FloatingSosCardComponent implements OnInit, OnDestroy, OnChanges {
     this.cdr.markForCheck();
   }
 
+  // ── Touch & Gesture Direct Manipulation ──
+  onPointerDown(event: PointerEvent): void {
+    // Only respond to primary mouse click or touch contact
+    if (event.button !== 0 && event.pointerType === 'mouse') return;
+    this.pointerStartX = event.clientX;
+    this.pointerStartY = event.clientY;
+    this.pointerStartTime = Date.now();
+    this.isPointerTracking = true;
+    this.isDragging = false;
+    this.justSwiped = false;
+    this.dragTranslateX = 0;
+    this.dragTranslateY = 0;
+  }
+
+  onPointerMove(event: PointerEvent): void {
+    if (!this.isPointerTracking) return;
+
+    const dx = event.clientX - this.pointerStartX;
+    const dy = event.clientY - this.pointerStartY;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+
+    if (!this.isDragging && (absX > 8 || absY > 8)) {
+      this.isDragging = true;
+    }
+
+    if (this.isDragging) {
+      if (absX > absY && this.pills.length > 1 && !this.isMinimized) {
+        // Direct finger tracking with iOS rubber-band damping
+        this.dragTranslateX = dx * 0.45;
+        this.dragTranslateY = 0;
+        this.cdr.markForCheck();
+      } else if (dy > 0 && absY > absX && !this.isMinimized) {
+        // Pull-down to minimize affordance
+        this.dragTranslateY = Math.min(dy * 0.35, 18);
+        this.dragTranslateX = 0;
+        this.cdr.markForCheck();
+      }
+    }
+  }
+
+  onPointerUp(event: PointerEvent): void {
+    if (!this.isPointerTracking) return;
+
+    const dx = event.clientX - this.pointerStartX;
+    const dy = event.clientY - this.pointerStartY;
+    const dt = Math.max(Date.now() - this.pointerStartTime, 1);
+    const vx = dx / dt;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+
+    const wasDragging = this.isDragging;
+    this.isPointerTracking = false;
+    this.isDragging = false;
+    this.dragTranslateX = 0;
+    this.dragTranslateY = 0;
+    this.cdr.markForCheck();
+
+    // Check gesture thresholds
+    if (wasDragging) {
+      // Downward swipe to minimize
+      if (dy > 30 && absY > absX * 1.1 && !this.isMinimized) {
+        this.justSwiped = true;
+        this.minimizeCard();
+        return;
+      }
+
+      // Horizontal swipe to navigate between multiple alerts
+      if (this.pills.length > 1 && !this.isMinimized && (absX > 32 || Math.abs(vx) > 0.28)) {
+        this.justSwiped = true;
+        if (dx < 0) {
+          this.nextPill();
+        } else {
+          this.prevPill();
+        }
+        return;
+      }
+    }
+  }
+
+  onPointerCancel(event: PointerEvent): void {
+    this.isPointerTracking = false;
+    this.isDragging = false;
+    this.dragTranslateX = 0;
+    this.dragTranslateY = 0;
+    this.cdr.markForCheck();
+  }
+
+  getDragTransform(): string {
+    if (!this.isDragging) return '';
+    if (this.dragTranslateX !== 0) {
+      return `translateX(${this.dragTranslateX}px)`;
+    }
+    if (this.dragTranslateY !== 0) {
+      return `translateY(${this.dragTranslateY}px)`;
+    }
+    return '';
+  }
+
   onCapsuleClick(event: MouseEvent): void {
+    if (this.justSwiped) {
+      this.justSwiped = false;
+      return;
+    }
     if (this.isMinimized) {
       event.stopPropagation();
       this.expandCard();

@@ -7,25 +7,14 @@
 .sos-floating-host {
   position: fixed;
   left: 14px;
-  right: 14px;
   bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  margin: 0 auto;
   max-width: 440px;
-  width: calc(100% - 28px);
+  width: calc(100vw - 28px);
   z-index: 9100;
   pointer-events: none;
   box-sizing: border-box;
 
-  transition: width 0.36s cubic-bezier(0.16, 1, 0.3, 1),
-              max-width 0.36s cubic-bezier(0.16, 1, 0.3, 1);
-
-  &.is-minimized-mode {
-    left: 14px;
-    right: auto;
-    margin: 0;
-    max-width: 220px;
-    width: auto;
-  }
+  /* Fixed anchor: No layout coordinates (left/right/margin) are mutated during morph */
 }
 
 /* ── UNIFIED LIVING CAPSULE (Apple Live Activity / Dynamic Island Physics) ── */
@@ -39,32 +28,40 @@
   user-select: none;
   overflow: hidden;
   cursor: pointer;
+  touch-action: pan-y;
 
-  /* Default Expanded Compact Dimensions (Single 52px Bar) */
-  height: 52px;
-  min-height: 52px;
-  max-height: 52px;
+  /* Default Expanded Compact Dimensions (Single 54px Bar) */
+  height: 54px;
+  min-height: 54px;
+  max-height: 54px;
   width: 100%;
   max-width: 440px;
-  padding: 6px 8px 6px 8px;
-  border-radius: 16px;
+  padding: 6px 10px 6px 8px;
+  border-radius: 18px;
 
   /* Apple Translucent Frosted Glass Material */
   background: var(--ion-card-background, rgba(255, 255, 255, 0.96));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.12));
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.06);
 
-  /* Fluid Spring Morph Transition */
-  transition: width 0.36s cubic-bezier(0.16, 1, 0.3, 1),
-              max-width 0.36s cubic-bezier(0.16, 1, 0.3, 1),
-              height 0.36s cubic-bezier(0.16, 1, 0.3, 1),
-              border-radius 0.36s cubic-bezier(0.16, 1, 0.3, 1),
-              padding 0.36s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.25s ease,
+  /* Fluid Continuous Spring Morph Transition */
+  transition: width 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              max-width 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              min-height 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              max-height 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              border-radius 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s ease,
               background 0.25s ease,
-              transform 0.12s ease-out;
+              transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.is-dragging {
+    /* 1:1 Direct Manipulation: zero delay while user touches & drags */
+    transition: none !important;
+  }
 
   &:hover {
     transform: translateY(-1px);
@@ -80,9 +77,9 @@
     height: 42px;
     min-height: 42px;
     max-height: 42px;
-    width: 146px;
-    max-width: 146px;
-    padding: 4px 10px 4px 5px;
+    width: 144px;
+    max-width: 144px;
+    padding: 4px 10px 4px 6px;
     border-radius: 21px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
 
@@ -296,6 +293,29 @@
   flex-shrink: 0;
 }
 
+/* Apple-style pagination dots */
+.capsule-page-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 3px;
+  flex-shrink: 0;
+}
+
+.page-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--ion-color-step-300, rgba(0, 0, 0, 0.22));
+  transition: width 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.2s ease;
+
+  &.is-active {
+    width: 10px;
+    background: #d32f2f;
+  }
+}
+
 .info-sub-line {
   min-width: 0;
 }
@@ -314,8 +334,26 @@
 .expanded-actions-col {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex-shrink: 0;
+}
+
+/* 44x44px Touch Target Expansion Pseudo-Element (Apple HIG Standard) */
+.touch-target-expanded {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 44px;
+    min-height: 44px;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+  }
 }
 
 /* Mini Stepper < 1/3 > */
@@ -324,21 +362,23 @@
   align-items: center;
   background: var(--ion-color-step-100, rgba(0, 0, 0, 0.05));
   border: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
-  border-radius: 8px;
-  padding: 1px 3px;
+  border-radius: 10px;
+  height: 32px;
+  padding: 0 2px;
   gap: 2px;
 }
 
 .stepper-btn {
   background: transparent;
   border: none;
-  padding: 2px 3px;
+  width: 26px;
+  height: 26px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--ion-text-color, #111111);
-  border-radius: 5px;
+  border-radius: 6px;
   transition: transform 0.1s ease-out, background 0.12s ease;
 
   &:hover {
@@ -346,29 +386,31 @@
   }
 
   &:active {
-    transform: scale(0.9);
+    transform: scale(0.88);
   }
 }
 
 .stepper-indicator {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   color: var(--ion-text-color, #111111);
-  padding: 0 2px;
+  padding: 0 3px;
+  user-select: none;
 }
 
 /* Cancel Action */
 .btn-capsule-cancel {
   background: var(--ion-color-step-100, rgba(0, 0, 0, 0.05));
   color: var(--ion-color-danger, #d32f2f);
-  border: 1px solid rgba(211, 47, 47, 0.2);
-  border-radius: 9px;
-  padding: 4px 8px;
-  font-size: 11px;
+  border: 1px solid rgba(211, 47, 47, 0.22);
+  border-radius: 10px;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 11.5px;
   font-weight: 800;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   cursor: pointer;
   transition: transform 0.1s ease-out, background 0.15s ease, color 0.15s ease;
 
@@ -395,7 +437,8 @@
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.25);
   border-radius: 8px;
-  padding: 3px 7px;
+  height: 32px;
+  padding: 0 8px;
 }
 
 /* Minimize Button */
@@ -403,10 +446,10 @@
   background: var(--ion-color-step-100, rgba(0, 0, 0, 0.05));
   border: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
   color: var(--ion-color-step-600, #71717a);
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -421,7 +464,7 @@
   }
 
   &:active {
-    transform: scale(0.9);
+    transform: scale(0.88);
   }
 }
 
@@ -431,8 +474,13 @@ html.reduce-animations .sos-live-capsule,
 html.reduce-animations .capsule-beacon-badge,
 html.reduce-animations .capsule-minimized-content,
 html.reduce-animations .capsule-expanded-content,
-html.reduce-animations .expanded-info-col {
+html.reduce-animations .expanded-info-col,
+html.reduce-animations .page-dot,
+html.reduce-animations .stepper-btn,
+html.reduce-animations .btn-capsule-cancel,
+html.reduce-animations .btn-capsule-minimize {
   transition: none !important;
+  transform: none !important;
 }
 
 html.reduce-animations .beacon-pulse {
