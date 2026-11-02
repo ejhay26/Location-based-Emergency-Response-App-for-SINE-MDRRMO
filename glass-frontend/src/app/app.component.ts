@@ -24,8 +24,8 @@ import { AuthSessionService } from './core/services/auth-session.service';
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   showSplash = typeof window !== 'undefined' ? (!sessionStorage.getItem('splash_seen') && !window.location.search.includes('nosplash')) : true;
-  isDesktop = false;
-  isMac = false;
+  isDesktop = typeof window !== 'undefined' ? isDesktop() : false;
+  isMac = typeof window !== 'undefined' ? isMacDesktop() : false;
   private userVerifiedSub?: Subscription;
 
   constructor(

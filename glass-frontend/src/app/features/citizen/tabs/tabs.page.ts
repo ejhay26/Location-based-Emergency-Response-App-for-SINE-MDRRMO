@@ -91,13 +91,7 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
                   inset 0 1px 1.5px rgba(255, 255, 255, 0.35),
                   inset 0 -1px 1px rgba(0, 0, 0, 0.25);
 
-      :host-context(html:not(.ion-palette-dark)) &,
-      :host-context(body:not(.dark)) & {
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16),
-                    inset 0 1px 1.5px rgba(255, 255, 255, 0.95);
-      }
+
     }
 
     .convx-dock-btn {
@@ -120,10 +114,7 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
                   transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
       -webkit-tap-highlight-color: transparent;
 
-      :host-context(html:not(.ion-palette-dark)) &,
-      :host-context(body:not(.dark)) & {
-        color: rgba(60, 60, 67, 0.75);
-      }
+
 
       &:active {
         transform: scale(0.92);
@@ -143,10 +134,7 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
       pointer-events: none;
       z-index: 0;
 
-      :host-context(html:not(.ion-palette-dark)) &,
-      :host-context(body:not(.dark)) & {
-        background: rgba(0, 0, 0, 0.06);
-      }
+
     }
 
     /* Chromatic Aberration Dispersion Rim on Active Bubble (Convx) */

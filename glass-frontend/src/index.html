@@ -184,6 +184,22 @@
     </defs>
   </svg>
 
+  <script>
+    (function() {
+      var s = window.location.search;
+      if (s.indexOf('demo=citizen') !== -1) {
+        localStorage.setItem('user', JSON.stringify({ id: 1, first_name: 'Juan', last_name: 'Dela Cruz', role: 'citizen' }));
+        localStorage.setItem('role', 'citizen');
+        localStorage.setItem('token', 'demo_token');
+        sessionStorage.setItem('splash_seen', '1');
+      } else if (s.indexOf('demo=admin') !== -1) {
+        localStorage.setItem('user', JSON.stringify({ id: 2, first_name: 'Admin', role: 'admin' }));
+        localStorage.setItem('role', 'admin');
+        localStorage.setItem('token', 'demo_admin_token');
+        sessionStorage.setItem('splash_seen', '1');
+      }
+    })();
+  </script>
   <app-root></app-root>
 </body>
 
