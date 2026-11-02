@@ -1,7 +1,10 @@
 # Database Schema Documentation
 
 Database engine: **MariaDB 10.6+ / MySQL 8.0+** (`emergencydb`).  
-Schema source: `backend/database/migrations/` and `database/emergencydb.sql`.
+Schema source: `database/emergencydb.sql` and `backend/internal/models/models.go`.
+
+> [!NOTE]
+> For the theoretical and mathematical decomposition proofs (1NF, 2NF, 3NF, BCNF, functional dependencies, and anomaly prevention), refer to the companion [Database Normalization Reference](database-normalization.md).
 
 ---
 
