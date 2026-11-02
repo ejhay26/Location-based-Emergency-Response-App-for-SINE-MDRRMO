@@ -40,3 +40,7 @@ replica/
 glass-frontend/
 TODO.md
 todo.md
+ 
+.cargo/
+frontend/src-tauri/.cargo/
+glass-frontend/src-tauri/.cargo/
