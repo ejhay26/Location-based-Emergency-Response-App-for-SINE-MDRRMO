@@ -1,147 +1,110 @@
 {
-  description = "SINE MDRRMO Location-Based Emergency Response Desktop Application (Tauri v2 + Angular/Ionic)";
+  description = "SINE MDRRMO Location-Based Emergency Response Desktop Application (Tauri v2)";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs }:
     let
-      supportedSystems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      pname = "mdrrmo-emergency-response-app";
+      version = (builtins.fromTOML (builtins.readFile ./frontend/src-tauri/Cargo.toml)).package.version;
+      identifier = (builtins.fromJSON (builtins.readFile ./frontend/src-tauri/tauri.conf.json)).identifier;
+      supportedSystems = [ "x86_64-linux" "aarch64-linux" ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      nixpkgsFor = forAllSystems (system: import nixpkgs {
-        inherit system;
-        config = {
-          allowUnfree = true;
-        };
-      });
 
-      tauriLibraries = pkgs: with pkgs; [
+      runtimeLibs = pkgs: with pkgs; [
         webkitgtk_4_1
         gtk3
-        cairo
-        gdk-pixbuf
-        glib
-        glib-networking
-        gsettings-desktop-schemas
-        pango
         libsoup_3
+        glib-networking
         openssl
-        librsvg
-        dbus
-        libappindicator-gtk3
       ];
 
-      buildTools = pkgs: with pkgs; [
-        pkg-config
-        rustc
-        cargo
-        makeWrapper
-        nodejs_22
+      # WebKitGTK loads these at runtime for media/audio (appsink, autoaudiosink, ...).
+      gstPlugins = pkgs: with pkgs.gst_all_1; [
+        gstreamer
+        gst-plugins-base
+        gst-plugins-good
+        gst-plugins-bad
+        gst-libav
       ];
     in {
       packages = forAllSystems (system:
         let
-          pkgs = nixpkgsFor.${system};
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == pname;
+          };
+          inherit (pkgs) lib;
         in {
-          default = pkgs.stdenvNoCC.mkDerivation rec {
-            pname = "mdrrmo-emergency-response-app";
-            version = "0.84.7";
+          default = pkgs.rustPlatform.buildRustPackage {
+            inherit pname version;
 
-            src = ./.;
+            # Only the Rust crate and the prebuilt Angular output (tracked in git).
+            src = lib.fileset.toSource {
+              root = ./frontend;
+              fileset = lib.fileset.unions [
+                ./frontend/src-tauri
+                ./frontend/www
+              ];
+            };
+            sourceRoot = "source/src-tauri";
 
-            nativeBuildInputs = buildTools pkgs;
-            buildInputs = tauriLibraries pkgs;
+            cargoLock.lockFile = ./frontend/src-tauri/Cargo.lock;
 
-            dontUseNpmInstall = true;
+            # Embed ../www into the binary instead of loading devUrl.
+            buildFeatures = [ "tauri/custom-protocol" ];
+            doCheck = false;
 
-            buildPhase = ''
-              set -euo pipefail
+            nativeBuildInputs = with pkgs; [ pkg-config wrapGAppsHook3 copyDesktopItems ];
+            buildInputs = runtimeLibs pkgs ++ gstPlugins pkgs;
 
-              export HOME="$TMPDIR/home"
-              mkdir -p "$HOME"
-
-              mkdir -p "$TMPDIR/work"
-              cp -a "$src/frontend" "$TMPDIR/work/frontend"
-              chmod -R u+w "$TMPDIR/work/frontend"
-
-              cd "$TMPDIR/work/frontend"
-              npm install --legacy-peer-deps --include=dev
-              npm run build
-
-              cd "$TMPDIR/work/frontend/src-tauri"
-              cargo build --release
+            preFixup = ''
+              gappsWrapperArgs+=(
+                --prefix GST_PLUGIN_SYSTEM_PATH_1_0 : "${lib.makeSearchPath "lib/gstreamer-1.0" (gstPlugins pkgs)}"
+              )
             '';
 
-            installPhase = ''
-              set -euo pipefail
+            # File name = Tauri identifier, so Wayland app-id -> desktop entry -> icon matches.
+            desktopItems = [
+              (pkgs.makeDesktopItem {
+                name = identifier;
+                desktopName = "MDRRMO Emergency Response App";
+                comment = "Location-Based Emergency Response App for SINE MDRRMO";
+                exec = pname;
+                icon = pname;
+                terminal = false;
+                categories = [ "Utility" ];
+                startupWMClass = pname;
+              })
+            ];
 
-              mkdir -p "$out/bin"
-              mkdir -p "$out/share/applications"
-              mkdir -p "$out/share/icons/hicolor/128x128/apps"
-
-              cp "$TMPDIR/work/frontend/src-tauri/target/release/mdrrmo-emergency-response-app" \
-                "$out/bin/mdrrmo-emergency-response-app"
-
-              wrapProgram "$out/bin/mdrrmo-emergency-response-app" \
-                --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath (tauriLibraries pkgs)}" \
-                --set WEBKIT_DISABLE_DMABUF_RENDERER 1 \
-                --set WEBKIT_DISABLE_COMPOSITING_MODE 1 \
-                --set GIO_MODULE_DIR "${pkgs.glib-networking}/lib/gio/modules" \
-                --set XDG_DATA_DIRS "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS"
-
-              if [ -f "$TMPDIR/work/frontend/src-tauri/icons/128x128.png" ]; then
-                cp "$TMPDIR/work/frontend/src-tauri/icons/128x128.png" \
-                  "$out/share/icons/hicolor/128x128/apps/mdrrmo-emergency-response-app.png"
-              fi
-
-              cat > "$out/share/applications/mdrrmo-emergency-response-app.desktop" <<EOF
-[Desktop Entry]
-Name=MDRRMO Emergency Response App
-Comment=Location-Based Emergency Response App for SINE MDRRMO
-Exec=$out/bin/mdrrmo-emergency-response-app
-Icon=mdrrmo-emergency-response-app
-Terminal=false
-Type=Application
-Categories=Utility;Emergency;
-EOF
+            postInstall = ''
+              install -Dm644 icons/128x128.png \
+                "$out/share/icons/hicolor/128x128/apps/${pname}.png"
             '';
 
-            meta = with pkgs.lib; {
+            meta = {
               description = "Location-Based Emergency Response App for SINE MDRRMO";
               homepage = "https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO";
-              license = licenses.unfree;
-              platforms = platforms.linux;
-              mainProgram = "mdrrmo-emergency-response-app";
+              license = lib.licenses.unfree;
+              platforms = lib.platforms.linux;
+              mainProgram = pname;
             };
           };
-        }
-      );
-
-      apps = forAllSystems (system: {
-        default = {
-          type = "app";
-          program = "${self.packages.${system}.default}/bin/mdrrmo-emergency-response-app";
-        };
-      });
+        });
 
       devShells = forAllSystems (system:
-        let
-          pkgs = nixpkgsFor.${system};
-        in {
+        let pkgs = nixpkgs.legacyPackages.${system}; in {
           default = pkgs.mkShell {
-            nativeBuildInputs = buildTools pkgs;
-            buildInputs = tauriLibraries pkgs;
+            nativeBuildInputs = with pkgs; [ pkg-config rustc cargo cargo-tauri nodejs_22 ];
+            buildInputs = runtimeLibs pkgs ++ gstPlugins pkgs;
 
             shellHook = ''
-              export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath (tauriLibraries pkgs)}:$LD_LIBRARY_PATH"
-              export XDG_DATA_DIRS="${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS"
-              export GIO_MODULE_DIR="${pkgs.glib-networking}/lib/gio/modules"
-              export WEBKIT_DISABLE_COMPOSITING_MODE=1
-              export WEBKIT_DISABLE_DMABUF_RENDERER=1
+              export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath (runtimeLibs pkgs)}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+              export GIO_EXTRA_MODULES="${pkgs.glib-networking}/lib/gio/modules''${GIO_EXTRA_MODULES:+:$GIO_EXTRA_MODULES}"
+              export XDG_DATA_DIRS="${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}''${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}"
             '';
           };
-        }
-      );
+        });
     };
 }
