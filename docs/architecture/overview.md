@@ -112,8 +112,10 @@ The system enforces strict multi-tenant role isolation across three tiers: **`ci
 
 ## 6. Related Architectural Documents
 
-- [Database Schema](file:///C:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/docs/architecture/database-schema.md)
-- [Data Flow Diagram](file:///C:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/docs/architecture/data-flow-diagram.md)
-- [UML Use Case Diagram](file:///C:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/docs/architecture/use-case-diagram.md)
-- [Disaster Recovery & Backup Architecture](file:///C:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/docs/architecture/disaster-recovery.md)
-- [Inter-Agency Responder Framework & Operational Boundaries](file:///C:/Users/Administrator/Desktop/Capstone%20Project/Location-based-Emergency-Response-App-for-SINE-MDRRMO/docs/architecture/inter-agency-responder-framework.md)
+- [Technology Stack Architecture](tech-stack.md)
+- [Database Schema](database-schema.md)
+- [Database Normalization Reference](database-normalization.md)
+- [Data Flow Diagram](data-flow-diagram.md)
+- [UML Use Case Diagram](use-case-diagram.md)
+- [Disaster Recovery & Backup Architecture](disaster-recovery.md)
+- [Inter-Agency Responder Framework & Operational Boundaries](inter-agency-responder-framework.md)
