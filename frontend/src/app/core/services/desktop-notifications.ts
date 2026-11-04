@@ -132,6 +132,21 @@ export class DesktopNotificationsService {
       }
     } catch {}
 
+    // If still not granted on web (requires user gesture), schedule a
+    // one-time retry on the next user interaction.
+    if (!this.isDesktop) {
+      try {
+        const permAfter = await this.getPermissionStatus();
+        if (permAfter !== 'granted') {
+          const retryOnce = async () => {
+            document.removeEventListener('click', retryOnce, { capture: true });
+            await this.requestPermission();
+          };
+          document.addEventListener('click', retryOnce, { once: true, capture: true });
+        }
+      } catch {}
+    }
+
     this.running = true;
     this.pollCount = 0;
     this.seenEmergencyIds.clear();
@@ -270,6 +285,10 @@ export class DesktopNotificationsService {
 
     // 3. Fallback to browser Notification API
     if (typeof Notification !== 'undefined') {
+      // Request permission if not yet granted (may be a no-op if already granted or denied)
+      if (Notification.permission === 'default') {
+        try { await Notification.requestPermission(); } catch {}
+      }
       if (Notification.permission === 'granted') {
         try {
           const notif = new Notification(title, {
