@@ -427,6 +427,38 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     window.addEventListener('mouseup', this.onSplitterMouseUp);
   }
 
+  onSplitterTouchStart(event: TouchEvent) {
+    if (!event.touches || event.touches.length === 0) return;
+    event.preventDefault();
+    this.isResizingQueue = true;
+    this.startX = event.touches[0].clientX;
+    this.startWidth = this.queueWidth;
+    document.body.style.userSelect = 'none';
+    window.addEventListener('touchmove', this.onSplitterTouchMove, { passive: false } as any);
+    window.addEventListener('touchend', this.onSplitterTouchEnd);
+    window.addEventListener('touchcancel', this.onSplitterTouchEnd);
+  }
+
+  private onSplitterTouchMove = (event: TouchEvent) => {
+    if (!this.isResizingQueue || !event.touches || event.touches.length === 0) return;
+    if (event.cancelable) event.preventDefault();
+    const delta = this.startX - event.touches[0].clientX;
+    const newWidth = Math.max(300, Math.min(650, this.startWidth + delta));
+    this.queueWidth = newWidth;
+    if (this.map) { this.map.invalidateSize(); }
+  };
+
+  private onSplitterTouchEnd = () => {
+    if (!this.isResizingQueue) return;
+    this.isResizingQueue = false;
+    document.body.style.userSelect = '';
+    window.removeEventListener('touchmove', this.onSplitterTouchMove);
+    window.removeEventListener('touchend', this.onSplitterTouchEnd);
+    window.removeEventListener('touchcancel', this.onSplitterTouchEnd);
+    localStorage.setItem('admin_map_queue_width', String(this.queueWidth));
+    if (this.map) { this.map.invalidateSize(); }
+  };
+
   private onSplitterMouseMove = (event: MouseEvent) => {
     if (!this.isResizingQueue) return;
     const delta = this.startX - event.clientX;
@@ -444,6 +476,9 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     document.body.style.cursor = '';
     window.removeEventListener('mousemove', this.onSplitterMouseMove);
     window.removeEventListener('mouseup', this.onSplitterMouseUp);
+    window.removeEventListener('touchmove', this.onSplitterTouchMove);
+    window.removeEventListener('touchend', this.onSplitterTouchEnd);
+    window.removeEventListener('touchcancel', this.onSplitterTouchEnd);
     localStorage.setItem('admin_map_queue_width', String(this.queueWidth));
     if (this.map) {
       this.map.invalidateSize();
@@ -607,6 +642,9 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.echoHazardSub?.unsubscribe();
     window.removeEventListener('mousemove', this.onSplitterMouseMove);
     window.removeEventListener('mouseup', this.onSplitterMouseUp);
+    window.removeEventListener('touchmove', this.onSplitterTouchMove);
+    window.removeEventListener('touchend', this.onSplitterTouchEnd);
+    window.removeEventListener('touchcancel', this.onSplitterTouchEnd);
     if (this.resizeRafId !== null) {
       cancelAnimationFrame(this.resizeRafId);
       this.resizeRafId = null;
