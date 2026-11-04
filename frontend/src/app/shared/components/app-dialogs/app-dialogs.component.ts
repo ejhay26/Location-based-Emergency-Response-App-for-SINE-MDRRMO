@@ -82,7 +82,9 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
            (touchmove)="onTouchMove($event)"
            (touchend)="onTouchEnd($event)"
            (wheel)="onWheel($event)"
-           (dblclick)="onDoubleTap($event)">
+           (dblclick)="onDoubleTap($event)"
+           (mousedown)="onMouseDown($event)"
+           [style.cursor]="scale > 1.05 ? (isMouseDragging ? 'grabbing' : 'grab') : 'default'">
 
         <div class="lightbox-media-wrapper"
              [style.transform]="transformStyle"
@@ -182,6 +184,13 @@ export class AppDialogsComponent implements OnInit {
   isPinching = false;
   isSwiping = false;
 
+  // Mouse drag state (desktop pan-when-zoomed)
+  isMouseDragging = false;
+  private mouseStartX = 0;
+  private mouseStartY = 0;
+  private mouseInitialPanX = 0;
+  private mouseInitialPanY = 0;
+
   private startX = 0;
   private startY = 0;
   private initialPanX = 0;
@@ -189,6 +198,9 @@ export class AppDialogsComponent implements OnInit {
   private touchDistance = 0;
   private initialScale = 1;
   private lastTap = 0;
+
+  private boundMouseMove = (e: MouseEvent) => this.onMouseMove(e);
+  private boundMouseUp   = (e: MouseEvent) => this.onMouseUp(e);
 
   constructor(public dialog: DialogService, private el: ElementRef) {
     effect(() => {
@@ -456,8 +468,38 @@ export class AppDialogsComponent implements OnInit {
     this.dialog.setLightboxIndex(index);
   }
 
+  /** Desktop mouse drag — allows panning the zoomed image with left-click hold. */
+  onMouseDown(e: MouseEvent) {
+    if (e.button !== 0) return; // left button only
+    if (this.scale <= 1.05) return; // only drag when zoomed in
+    e.preventDefault();
+    e.stopPropagation();
+    this.isMouseDragging = true;
+    this.mouseStartX = e.clientX;
+    this.mouseStartY = e.clientY;
+    this.mouseInitialPanX = this.panX;
+    this.mouseInitialPanY = this.panY;
+    window.addEventListener('mousemove', this.boundMouseMove);
+    window.addEventListener('mouseup',   this.boundMouseUp);
+  }
+
+  private onMouseMove(e: MouseEvent) {
+    if (!this.isMouseDragging) return;
+    this.panX = this.mouseInitialPanX + (e.clientX - this.mouseStartX);
+    this.panY = this.mouseInitialPanY + (e.clientY - this.mouseStartY);
+  }
+
+  private onMouseUp(e: MouseEvent) {
+    this.isMouseDragging = false;
+    window.removeEventListener('mousemove', this.boundMouseMove);
+    window.removeEventListener('mouseup',   this.boundMouseUp);
+  }
+
   closeLightbox() {
     this.resetZoom();
+    this.isMouseDragging = false;
+    window.removeEventListener('mousemove', this.boundMouseMove);
+    window.removeEventListener('mouseup',   this.boundMouseUp);
     this.dialog.closeLightbox();
   }
 }
