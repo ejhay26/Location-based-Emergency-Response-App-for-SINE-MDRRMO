@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"sine-mdrrmo-backend/internal/config"
 	"sine-mdrrmo-backend/internal/database"
 
 	"github.com/gofiber/fiber/v2"
@@ -54,12 +55,17 @@ func GetAnalytics(c *fiber.Ctx) error {
 		}
 	}
 
-	since := time.Now().AddDate(0, 0, -days)
+	// Calendar-day window in Philippine time: days=1 means "today only" (from 00:00 PH),
+	// days=7 means today plus the previous 6 days. A rolling now-minus-N-days window would
+	// leak part of yesterday into the "Today" view.
+	now := time.Now().In(config.PhilippineTZ)
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, config.PhilippineTZ)
+	since := todayStart.AddDate(0, 0, -(days - 1))
 
 	// 1. Daily Stats
 	var dailyStats []DailyStat
 	database.DB.Table("emergency_requests").
-		Select(`DATE(emergency_requests.request_time) as date,
+		Select(`DATE_FORMAT(emergency_requests.request_time, '%Y-%m-%d') as date,
 			SUM(CASE WHEN incident_types.incident_name = 'Fire'    THEN 1 ELSE 0 END) as fire,
 			SUM(CASE WHEN incident_types.incident_name = 'Flood'   THEN 1 ELSE 0 END) as flood,
 			SUM(CASE WHEN incident_types.incident_name = 'Medical' THEN 1 ELSE 0 END) as medical,
@@ -68,7 +74,7 @@ func GetAnalytics(c *fiber.Ctx) error {
 			COUNT(*) as total`).
 		Joins("JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
 		Where("emergency_requests.request_time >= ?", since).
-		Group("DATE(emergency_requests.request_time)").
+		Group("DATE_FORMAT(emergency_requests.request_time, '%Y-%m-%d')").
 		Order("date ASC").
 		Scan(&dailyStats)
 
@@ -134,7 +140,7 @@ func GetAnalytics(c *fiber.Ctx) error {
 	// 6. Hazard Daily Stats
 	var hazardDailyStats []HazardDailyStat
 	database.DB.Table("hazards").
-		Select(`DATE(created_at) as date,
+		Select(`DATE_FORMAT(created_at, '%Y-%m-%d') as date,
 			SUM(CASE WHEN hazard_type = 'Flooded Street' OR hazard_type LIKE '%Flood%' THEN 1 ELSE 0 END) as flood,
 			SUM(CASE WHEN hazard_type = 'Road Obstruction' OR hazard_type LIKE '%Road%' OR hazard_type LIKE '%Block%' THEN 1 ELSE 0 END) as road,
 			SUM(CASE WHEN hazard_type = 'Fallen Tree' OR hazard_type LIKE '%Tree%' THEN 1 ELSE 0 END) as tree,
@@ -142,7 +148,7 @@ func GetAnalytics(c *fiber.Ctx) error {
 			SUM(CASE WHEN (hazard_type IS NULL OR (hazard_type NOT IN ('Flooded Street', 'Road Obstruction', 'Fallen Tree', 'Downed Wire') AND hazard_type NOT LIKE '%Flood%' AND hazard_type NOT LIKE '%Road%' AND hazard_type NOT LIKE '%Tree%' AND hazard_type NOT LIKE '%Wire%')) THEN 1 ELSE 0 END) as others,
 			COUNT(*) as total`).
 		Where("created_at >= ?", since).
-		Group("DATE(created_at)").
+		Group("DATE_FORMAT(created_at, '%Y-%m-%d')").
 		Order("date ASC").
 		Scan(&hazardDailyStats)
 
