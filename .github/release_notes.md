@@ -24,3 +24,9 @@
 - **Realistic Cartography Previews**: OpenStreetMap and satellite aerial textures in display settings.
 - **Calendar Filter Streamlining**: Clean date selection without preset button clutter.
 - **Log Archive Card Audit Alignment**: Clean typographical status presentation without box borders.
+- **Analytics "Today" View Fix**: Trend charts now follow Philippine calendar days, so "Today" shows only today's records instead of the last 24 hours, and bar dates match the date filter used by the Log Archive.
+- **Analytics Charts & PDF Report Fix**: Barangay and type charts (emergency and hazard) and the exported PDF report now read the correct count field, so values no longer appear empty or undefined.
+- **Lightbox Mouse Drag**: Zoomed images can be panned by dragging with the mouse on desktop.
+- **Tablet Splitter Touch Support**: The Incident Map drag handle now responds to touch on tablets.
+- **Desktop Notification Permission**: Notification permission is requested again on the next user interaction if the first automatic request was blocked.
+- **Help Panel Icon**: The Help panel card icon now displays correctly.
