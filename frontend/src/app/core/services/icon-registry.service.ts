@@ -1128,6 +1128,8 @@ export class IconRegistryService {
       'circle-exclamation': 'circle-alert',
       'circle-info': 'info',
       'info-circle': 'info',
+      'help-circle': 'circle-question',
+      'help': 'circle-question',
       'paperclip': 'paperclip',
       'lock-open': 'lock-open',
       'lock-unlocked': 'lock-open',
