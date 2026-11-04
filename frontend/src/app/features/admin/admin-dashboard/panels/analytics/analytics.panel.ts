@@ -249,7 +249,7 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
 
       const typeStats = this.analyticsData.type_stats || [];
       const types = typeStats.map((t: any) => t.incident_name);
-      const typeTotals = typeStats.map((t: any) => Number(t.total) || 0);
+      const typeTotals = typeStats.map((t: any) => Number(t.total ?? t.count) || 0);
 
       try {
         this.typeChartInstance = new Chart(typeCanvas, {
@@ -282,7 +282,7 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
 
       const bgyStats = this.analyticsData.barangay_stats || [];
       const barangayNames  = bgyStats.map((b: any) => b.barangay_name);
-      const barangayTotals = bgyStats.map((b: any) => Number(b.total) || 0);
+      const barangayTotals = bgyStats.map((b: any) => Number(b.total ?? b.count) || 0);
 
       try {
         this.barangayChartInstance = new Chart(barangayCanvas, {
@@ -363,7 +363,7 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
 
       const hazStats = this.analyticsData.hazard_stats || [];
       const types  = hazStats.map((t: any) => t.hazard_type || 'Others');
-      const counts = hazStats.map((t: any) => Number(t.total) || 0);
+      const counts = hazStats.map((t: any) => Number(t.total ?? t.count) || 0);
 
       try {
         this.hazardTypeChartInstance = new Chart(dc, {
@@ -396,7 +396,7 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
 
       const hazBgyStats = this.analyticsData.hazard_barangay_stats || [];
       const hazBarangayNames  = hazBgyStats.map((b: any) => b.barangay_name);
-      const hazBarangayTotals = hazBgyStats.map((b: any) => Number(b.total) || 0);
+      const hazBarangayTotals = hazBgyStats.map((b: any) => Number(b.total ?? b.count) || 0);
 
       try {
         this.hazardBarangayChartInstance = new Chart(bc, {
@@ -478,14 +478,14 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
     const typeRowsHtml = typeList.map((t: any) => `
       <tr>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb; font-weight: 700;">${t.incident_name || t.hazard_type || 'Unspecified'}</td>
-        <td style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 800; color: #c62828;">${t.count}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 800; color: #c62828;">${t.total ?? t.count ?? 0}</td>
       </tr>
     `).join('');
 
     const brgyRowsHtml = brgyList.map((b: any) => `
       <tr>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${b.barangay_name || 'San Isidro (General Area)'}</td>
-        <td style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 800; color: #111827;">${b.count}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 800; color: #111827;">${b.total ?? b.count ?? 0}</td>
       </tr>
     `).join('');
 

@@ -90,7 +90,7 @@ export class ApiService {
   getActiveHazards(): Observable<any>              { return this.http.get(`${this.url}/active-hazards`, this.opts(true)); }
   getActiveBroadcast(): Observable<any>            { return this.http.get(`${this.url}/active-broadcast`, this.opts(true)); }
   getDispatchAssets(): Observable<any>             { return this.http.get(`${this.url}/dispatch-assets`, this.opts(true)); }
-  getAnalytics(days: number): Observable<any>      { return this.http.get(`${this.url}/analytics?days=${days}`, this.opts(true)); }
+  getAnalytics(days: number): Observable<any>      { const tzOffset = -(new Date().getTimezoneOffset()); return this.http.get(`${this.url}/analytics?days=${days}&tz_offset=${tzOffset}`, this.opts(true)); }
   getArchivedEmergencies(): Observable<any>        { return this.http.get(`${this.url}/archived-emergencies`, this.opts(true)); }
 
   static isLoggingOut = false;
