@@ -64,7 +64,10 @@ export class DesktopNotificationsService {
           const granted = await mod.isPermissionGranted();
           return granted ? 'granted' : 'default';
         }
-      } catch {}
+        return 'granted';
+      } catch {
+        return 'granted';
+      }
     }
 
     if (typeof Notification !== 'undefined') {
@@ -261,7 +264,6 @@ export class DesktopNotificationsService {
           mod.sendNotification({
             title,
             body,
-            icon: 'icons/icon.png',
           });
           return true;
         }

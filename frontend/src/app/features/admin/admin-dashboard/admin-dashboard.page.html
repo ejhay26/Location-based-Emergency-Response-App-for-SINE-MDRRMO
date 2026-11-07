@@ -41,7 +41,7 @@
 
     <div class="admin-desktop-body">
       <!-- ── SIDEBAR ── -->
-      <div class="admin-sidebar" [class.is-mac]="isMac" [class.is-collapsed]="isSidebarCollapsed" [class.mobile-open]="isMobileSidebarOpen" [style.width]="isSidebarCollapsed ? (isMac ? '88px' : '72px') : (sidebarWidth + 'px')">
+      <div class="admin-sidebar" [class.is-mac]="isMac" [class.is-collapsed]="isSidebarCollapsed" [class.resizing]="isResizing" [class.mobile-open]="isMobileSidebarOpen" [style.width]="isSidebarCollapsed ? (isMac ? '88px' : '72px') : (sidebarWidth + 'px')">
         <div style="display: flex; flex-direction: column; height: 100%;">
           
           <!-- Brand Header & Dynamic Toggle -->
@@ -220,12 +220,15 @@
           </div>
         </div>
 
-        <!-- Draggable Resizer Handle on right border -->
-        <div *ngIf="!isSidebarCollapsed"
-             class="sidebar-resize-handle"
+        <!-- Draggable Resizer Handle on right border (Mouse & Touch supported) -->
+        <div class="sidebar-resize-handle"
+             [class.is-collapsed]="isSidebarCollapsed"
+             [class.is-snap-zone]="isSidebarSnapZone"
+             [class.resizing]="isResizing"
              (mousedown)="onMouseDownResize($event)"
-             [appTooltip]="'Resize Sidebar'"
-             [tooltipSub]="'Drag left/right to adjust'"
+             (touchstart)="onTouchStartResize($event)"
+             [appTooltip]="isSidebarCollapsed ? 'Drag right to expand' : 'Resize Sidebar'"
+             [tooltipSub]="isSidebarCollapsed ? 'Drag right or click to expand' : 'Drag far left to collapse'"
              tooltipPlacement="right">
           <div class="resize-line"></div>
         </div>

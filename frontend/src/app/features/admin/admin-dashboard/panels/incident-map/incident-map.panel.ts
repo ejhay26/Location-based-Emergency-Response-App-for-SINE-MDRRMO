@@ -262,8 +262,12 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   queueWidth = 390;
   isResizingQueue = false;
+  isQueueSnapZone = false;
   private startX = 0;
   private startWidth = 0;
+  private lastValidQueueWidth = 390;
+  private queueDragDistance = 0;
+  readonly QUEUE_SNAP_THRESHOLD = 180;
 
   // ── Mobile Responsive State ──
   isMobileFilterOpen = false;
@@ -412,64 +416,95 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       const parsed = parseInt(savedWidth, 10);
       if (!isNaN(parsed) && parsed >= 300 && parsed <= 650) {
         this.queueWidth = parsed;
+        this.lastValidQueueWidth = parsed;
       }
     }
   }
 
   onSplitterMouseDown(event: MouseEvent) {
     event.preventDefault();
-    this.isResizingQueue = true;
-    this.startX = event.clientX;
-    this.startWidth = this.queueWidth;
-    document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'col-resize';
+    this.startQueueResizeDrag(event.clientX);
     window.addEventListener('mousemove', this.onSplitterMouseMove);
     window.addEventListener('mouseup', this.onSplitterMouseUp);
   }
 
   onSplitterTouchStart(event: TouchEvent) {
     if (!event.touches || event.touches.length === 0) return;
-    event.preventDefault();
-    this.isResizingQueue = true;
-    this.startX = event.touches[0].clientX;
-    this.startWidth = this.queueWidth;
-    document.body.style.userSelect = 'none';
+    if (event.cancelable) event.preventDefault();
+    this.startQueueResizeDrag(event.touches[0].clientX);
     window.addEventListener('touchmove', this.onSplitterTouchMove, { passive: false } as any);
     window.addEventListener('touchend', this.onSplitterTouchEnd);
     window.addEventListener('touchcancel', this.onSplitterTouchEnd);
   }
 
+  private startQueueResizeDrag(clientX: number) {
+    this.isResizingQueue = true;
+    this.queueDragDistance = 0;
+    this.startX = clientX;
+    this.isQueueSnapZone = false;
+    if (this.isQueueHidden) {
+      this.startWidth = 0;
+    } else {
+      this.startWidth = this.queueWidth;
+      this.lastValidQueueWidth = this.queueWidth;
+    }
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+  }
+
+  private onSplitterMouseMove = (event: MouseEvent) => {
+    this.handleQueueResizeMove(event.clientX);
+  };
+
   private onSplitterTouchMove = (event: TouchEvent) => {
     if (!this.isResizingQueue || !event.touches || event.touches.length === 0) return;
     if (event.cancelable) event.preventDefault();
-    const delta = this.startX - event.touches[0].clientX;
-    const newWidth = Math.max(300, Math.min(650, this.startWidth + delta));
-    this.queueWidth = newWidth;
-    if (this.map) { this.map.invalidateSize(); }
+    this.handleQueueResizeMove(event.touches[0].clientX);
+  };
+
+  private handleQueueResizeMove(clientX: number) {
+    if (!this.isResizingQueue) return;
+    const delta = this.startX - clientX;
+    this.queueDragDistance = Math.abs(delta);
+
+    if (this.isQueueHidden) {
+      // Hidden queue: dragging from the right edge to the left unhides it
+      if (delta > 25) {
+        this.isQueueHidden = false;
+        const restoredBase = (this.lastValidQueueWidth >= 300) ? this.lastValidQueueWidth : 390;
+        let newWidth = restoredBase + (delta - 25);
+        if (newWidth < 300) newWidth = 300;
+        if (newWidth > 650) newWidth = 650;
+        this.queueWidth = newWidth;
+        if (this.map) { this.map.invalidateSize(); }
+      }
+    } else {
+      // Normal resizing or dragging right toward screen edge to snap-to-hide
+      const rawWidth = this.startWidth + delta;
+      const distFromRightEdge = window.innerWidth - clientX;
+      if (rawWidth < this.QUEUE_SNAP_THRESHOLD || distFromRightEdge < 140) {
+        this.isQueueSnapZone = true;
+      } else {
+        this.isQueueSnapZone = false;
+        let newWidth = rawWidth;
+        if (newWidth < 300) newWidth = 300;
+        if (newWidth > 650) newWidth = 650;
+        this.queueWidth = newWidth;
+        this.lastValidQueueWidth = newWidth;
+        if (this.map) { this.map.invalidateSize(); }
+      }
+    }
+  }
+
+  private onSplitterMouseUp = () => {
+    this.finishQueueResizeDrag();
   };
 
   private onSplitterTouchEnd = () => {
-    if (!this.isResizingQueue) return;
-    this.isResizingQueue = false;
-    document.body.style.userSelect = '';
-    window.removeEventListener('touchmove', this.onSplitterTouchMove);
-    window.removeEventListener('touchend', this.onSplitterTouchEnd);
-    window.removeEventListener('touchcancel', this.onSplitterTouchEnd);
-    localStorage.setItem('admin_map_queue_width', String(this.queueWidth));
-    if (this.map) { this.map.invalidateSize(); }
+    this.finishQueueResizeDrag();
   };
 
-  private onSplitterMouseMove = (event: MouseEvent) => {
-    if (!this.isResizingQueue) return;
-    const delta = this.startX - event.clientX;
-    const newWidth = Math.max(300, Math.min(650, this.startWidth + delta));
-    this.queueWidth = newWidth;
-    if (this.map) {
-      this.map.invalidateSize();
-    }
-  };
-
-  private onSplitterMouseUp = () => {
+  private finishQueueResizeDrag() {
     if (!this.isResizingQueue) return;
     this.isResizingQueue = false;
     document.body.style.userSelect = '';
@@ -479,11 +514,29 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     window.removeEventListener('touchmove', this.onSplitterTouchMove);
     window.removeEventListener('touchend', this.onSplitterTouchEnd);
     window.removeEventListener('touchcancel', this.onSplitterTouchEnd);
-    localStorage.setItem('admin_map_queue_width', String(this.queueWidth));
-    if (this.map) {
-      this.map.invalidateSize();
+
+    if (!this.isQueueHidden && this.isQueueSnapZone) {
+      // Snapped shut!
+      this.isQueueHidden = true;
+      this.isQueueSnapZone = false;
+      this.runMapInvalidationLoop();
+    } else if (!this.isQueueHidden) {
+      localStorage.setItem('admin_map_queue_width', String(this.queueWidth));
+      if (this.map) { this.map.invalidateSize(); }
+    } else if (this.isQueueHidden && this.queueDragDistance < 5) {
+      // Tap/click on collapsed handle toggles open
+      this.toggleQueueHidden();
     }
-  };
+  }
+
+  onFloatingQueueClick(event: MouseEvent) {
+    if (this.queueDragDistance >= 5) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    this.toggleQueueHidden();
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['mode']) {
@@ -626,6 +679,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.finishQueueResizeDrag();
     window.removeEventListener('map-dispatch', this.handleMapDispatch);
     window.removeEventListener('map-resolve', this.handleMapResolve);
     window.removeEventListener('map-resolve-hazard', this.handleMapResolveHazard);

@@ -34,6 +34,10 @@
   overflow: hidden;
   box-sizing: border-box;
 
+  &.resizing {
+    transition: none !important;
+  }
+
   &.is-collapsed {
     padding: max(14px, calc(env(safe-area-inset-top, 0px) + 12px)) 8px max(14px, calc(env(safe-area-inset-bottom, 0px) + 8px)) max(8px, calc(env(safe-area-inset-left, 0px) + 4px));
 
@@ -341,26 +345,46 @@
 .sidebar-resize-handle {
   position: absolute;
   top: 0;
-  right: -3px;
+  right: -4px;
   bottom: 0;
-  width: 8px;
+  width: 10px;
   cursor: col-resize;
   z-index: 30;
   display: flex;
   align-items: center;
   justify-content: center;
   user-select: none;
+  touch-action: none;
 
   .resize-line {
     width: 2px;
     height: 100%;
     background: transparent;
-    transition: background 0.2s ease;
+    transition: background 0.18s ease, width 0.18s ease;
   }
 
   &:hover .resize-line,
-  &:active .resize-line {
+  &:active .resize-line,
+  &.resizing .resize-line {
     background: var(--ion-color-danger, #eb445a);
+  }
+
+  &.is-snap-zone .resize-line {
+    background: var(--ion-color-danger, #eb445a);
+    width: 4px;
+    box-shadow: 0 0 10px rgba(235, 68, 90, 0.65);
+  }
+
+  &.is-collapsed {
+    right: -5px;
+    width: 12px;
+    .resize-line {
+      background: var(--ion-color-step-200, rgba(0, 0, 0, 0.1));
+    }
+    &:hover .resize-line {
+      background: var(--ion-color-danger, #eb445a);
+      width: 3px;
+    }
   }
 }
 

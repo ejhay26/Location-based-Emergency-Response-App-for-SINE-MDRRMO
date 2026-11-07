@@ -68,11 +68,17 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   sidebarWidth = 270;
   readonly MIN_SIDEBAR_WIDTH = 210;
   readonly MAX_SIDEBAR_WIDTH = 440;
+  readonly SIDEBAR_SNAP_THRESHOLD = 140;
   isResizing = false;
+  isSidebarSnapZone = false;
   private startX = 0;
   private startWidth = 270;
+  private lastExpandedWidth = 270;
+  private resizeDragDistance = 0;
   private boundMouseMove = this.onMouseMoveResize.bind(this);
   private boundMouseUp = this.onMouseUpResize.bind(this);
+  private boundTouchMove = this.onTouchMoveResize.bind(this);
+  private boundTouchEnd = this.onTouchEndResize.bind(this);
   private boundWindowResize = this.onWindowResize.bind(this);
 
   // Only present in the DOM while viewMode is 'active'/'hazards'; undefined otherwise.
@@ -297,6 +303,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       const parsed = parseInt(savedWidth, 10);
       if (!isNaN(parsed) && parsed >= this.MIN_SIDEBAR_WIDTH && parsed <= this.MAX_SIDEBAR_WIDTH) {
         this.sidebarWidth = parsed;
+        this.lastExpandedWidth = parsed;
       }
     }
 
@@ -384,41 +391,115 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   onMouseDownResize(event: MouseEvent) {
-    if (this.isSidebarCollapsed) return;
     event.preventDefault();
-    this.isResizing = true;
-    this.startX = event.clientX;
-    this.startWidth = this.sidebarWidth;
+    this.startResizeDrag(event.clientX);
+    window.addEventListener('mousemove', this.boundMouseMove);
+    window.addEventListener('mouseup', this.boundMouseUp);
+  }
 
-    document.addEventListener('mousemove', this.boundMouseMove);
-    document.addEventListener('mouseup', this.boundMouseUp);
+  onTouchStartResize(event: TouchEvent) {
+    if (!event.touches || event.touches.length === 0) return;
+    if (event.cancelable) event.preventDefault();
+    this.startResizeDrag(event.touches[0].clientX);
+    window.addEventListener('touchmove', this.boundTouchMove, { passive: false } as any);
+    window.addEventListener('touchend', this.boundTouchEnd);
+    window.addEventListener('touchcancel', this.boundTouchEnd);
+  }
+
+  private startResizeDrag(clientX: number) {
+    this.isResizing = true;
+    this.resizeDragDistance = 0;
+    this.startX = clientX;
+    this.isSidebarSnapZone = false;
+    if (this.isSidebarCollapsed) {
+      this.startWidth = this.isMac ? 88 : 72;
+    } else {
+      this.startWidth = this.sidebarWidth;
+      this.lastExpandedWidth = this.sidebarWidth;
+    }
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   }
 
   private onMouseMoveResize(event: MouseEvent) {
+    this.handleResizeMove(event.clientX);
+  }
+
+  private onTouchMoveResize(event: TouchEvent) {
+    if (!event.touches || event.touches.length === 0) return;
+    if (event.cancelable) event.preventDefault();
+    this.handleResizeMove(event.touches[0].clientX);
+  }
+
+  private handleResizeMove(clientX: number) {
     if (!this.isResizing) return;
-    const delta = event.clientX - this.startX;
-    let newWidth = this.startWidth + delta;
-    if (newWidth < this.MIN_SIDEBAR_WIDTH) newWidth = this.MIN_SIDEBAR_WIDTH;
-    if (newWidth > this.MAX_SIDEBAR_WIDTH) newWidth = this.MAX_SIDEBAR_WIDTH;
-    this.sidebarWidth = newWidth;
-    this.incidentMapPanel?.invalidateMapSize();
+    const delta = clientX - this.startX;
+    this.resizeDragDistance = Math.abs(delta);
+
+    if (this.isSidebarCollapsed) {
+      // Dragging right from collapsed bar edge unhides the sidebar
+      if (delta > 30) {
+        this.isSidebarCollapsed = false;
+        const restoredBase = (this.lastExpandedWidth >= this.MIN_SIDEBAR_WIDTH) ? this.lastExpandedWidth : 270;
+        let newWidth = restoredBase + (delta - 30);
+        if (newWidth < this.MIN_SIDEBAR_WIDTH) newWidth = this.MIN_SIDEBAR_WIDTH;
+        if (newWidth > this.MAX_SIDEBAR_WIDTH) newWidth = this.MAX_SIDEBAR_WIDTH;
+        this.sidebarWidth = newWidth;
+        this.incidentMapPanel?.invalidateMapSize();
+      }
+    } else {
+      // Dragging left toward edge snaps to hide
+      const rawWidth = this.startWidth + delta;
+      if (rawWidth < this.SIDEBAR_SNAP_THRESHOLD || clientX < 110) {
+        this.isSidebarSnapZone = true;
+      } else {
+        this.isSidebarSnapZone = false;
+        let newWidth = rawWidth;
+        if (newWidth < this.MIN_SIDEBAR_WIDTH) newWidth = this.MIN_SIDEBAR_WIDTH;
+        if (newWidth > this.MAX_SIDEBAR_WIDTH) newWidth = this.MAX_SIDEBAR_WIDTH;
+        this.sidebarWidth = newWidth;
+        this.lastExpandedWidth = newWidth;
+        this.incidentMapPanel?.invalidateMapSize();
+      }
+    }
   }
 
   private onMouseUpResize() {
+    this.finishResizeDrag();
+  }
+
+  private onTouchEndResize() {
+    this.finishResizeDrag();
+  }
+
+  private finishResizeDrag() {
     if (!this.isResizing) return;
     this.isResizing = false;
     this.stopResizeListeners();
-    localStorage.setItem('admin_sidebar_width', String(this.sidebarWidth));
-    setTimeout(() => {
+
+    if (!this.isSidebarCollapsed && this.isSidebarSnapZone) {
+      // Snapped shut!
+      this.isSidebarCollapsed = true;
+      this.isSidebarSnapZone = false;
       this.incidentMapPanel?.invalidateMapSize();
-    }, 50);
+      setTimeout(() => this.incidentMapPanel?.invalidateMapSize(), 180);
+    } else if (!this.isSidebarCollapsed) {
+      localStorage.setItem('admin_sidebar_width', String(this.sidebarWidth));
+      setTimeout(() => {
+        this.incidentMapPanel?.invalidateMapSize();
+      }, 50);
+    } else if (this.isSidebarCollapsed && this.resizeDragDistance < 5) {
+      // Gentle click/tap on the handle without drag expands the sidebar
+      this.toggleSidebar();
+    }
   }
 
   private stopResizeListeners() {
-    document.removeEventListener('mousemove', this.boundMouseMove);
-    document.removeEventListener('mouseup', this.boundMouseUp);
+    window.removeEventListener('mousemove', this.boundMouseMove);
+    window.removeEventListener('mouseup', this.boundMouseUp);
+    window.removeEventListener('touchmove', this.boundTouchMove);
+    window.removeEventListener('touchend', this.boundTouchEnd);
+    window.removeEventListener('touchcancel', this.boundTouchEnd);
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   }

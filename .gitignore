@@ -42,3 +42,5 @@ todo.md
  
 .cargo/
 frontend/src-tauri/.cargo/
+
+scratch/

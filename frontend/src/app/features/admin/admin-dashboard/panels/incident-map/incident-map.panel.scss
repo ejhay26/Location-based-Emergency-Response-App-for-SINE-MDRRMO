@@ -511,7 +511,7 @@
 }
 
 .map-split-resizer {
-  width: 12px;
+  width: 14px;
   cursor: col-resize;
   display: flex;
   align-items: center;
@@ -519,13 +519,36 @@
   flex-shrink: 0;
   user-select: none;
   -webkit-user-select: none;
-  z-index: 10;
+  touch-action: none;
+  z-index: 20;
   transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease, background-color 0.2s;
 
   &.is-collapsed {
-    width: 0 !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 14px;
+    z-index: 25;
+    cursor: col-resize;
+    opacity: 1;
+    pointer-events: auto;
+    touch-action: none;
+    background: transparent;
+
+    .resizer-bar {
+      opacity: 0.55;
+      width: 4px;
+      height: 48px;
+      background-color: var(--ion-color-step-300, #94a3b8);
+    }
+  }
+
+  &.is-snap-zone .resizer-bar {
+    background-color: var(--ion-color-danger, #eb445a) !important;
+    width: 6px !important;
+    height: 52px !important;
+    box-shadow: 0 0 12px rgba(235, 68, 90, 0.75);
   }
 
   &:hover,
@@ -561,6 +584,10 @@
               opacity 0.28s ease,
               padding 0.38s cubic-bezier(0.16, 1, 0.3, 1),
               margin 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.resizing {
+    transition: none !important;
+  }
 
   &.is-queue-collapsed {
     width: 0 !important;

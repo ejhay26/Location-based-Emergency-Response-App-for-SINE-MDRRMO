@@ -377,7 +377,9 @@
         <button *ngIf="isQueueHidden"
                 type="button"
                 class="floating-show-queue-btn"
-                (click)="toggleQueueHidden()"
+                (click)="onFloatingQueueClick($event)"
+                (mousedown)="onSplitterMouseDown($event)"
+                (touchstart)="onSplitterTouchStart($event)"
                 [appTooltip]="'Expand Active Alerts Panel'"
                 tooltipPlacement="left"
                 aria-label="Show Active Alerts Queue">
@@ -391,10 +393,11 @@
   <!-- Middle: Draggable Splitter Divider (Desktop Only) -->
   <div class="map-split-resizer"
        [class.is-collapsed]="isQueueHidden"
+       [class.is-snap-zone]="isQueueSnapZone"
        [class.resizing]="isResizingQueue"
        (mousedown)="onSplitterMouseDown($event)" (touchstart)="onSplitterTouchStart($event)"
-       [appTooltip]="'Resize Queue'"
-       [tooltipSub]="'Drag to adjust width'"
+       [appTooltip]="isQueueHidden ? 'Drag left to reveal alerts' : 'Resize Queue'"
+       [tooltipSub]="isQueueHidden ? 'Drag left or click to expand' : 'Drag far right to hide'"
        tooltipPlacement="left">
     <div class="resizer-bar"></div>
   </div>
@@ -403,6 +406,7 @@
   <div id="admin-queue-container"
        class="map-queue-col"
        [class.is-queue-collapsed]="isQueueHidden"
+       [class.resizing]="isResizingQueue"
        [style.width.px]="isQueueHidden ? 0 : queueWidth">
     
     <div class="queue-header-row" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 28px;">
