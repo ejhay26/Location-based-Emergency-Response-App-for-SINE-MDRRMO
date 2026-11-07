@@ -30,3 +30,4 @@
 - **Tablet Splitter Touch Support**: The Incident Map drag handle now responds to touch on tablets.
 - **Desktop Notification Permission**: Notification permission is requested again on the next user interaction if the first automatic request was blocked.
 - **Help Panel Icon**: The Help panel card icon now displays correctly.
+- **Go Fiber Backend Synchronization**: Live server binary synchronized with Philippine timezone calendar-day analytics aggregations and fallback count metrics.
