@@ -533,7 +533,10 @@ export class SettingsPanel implements OnInit, OnDestroy {
   }
 
   onMapStyleChange(style: 'street' | 'satellite'): void {
-    if (this.mapDefaultStyle === style) return;
+    if (this.mapDefaultStyle === style) {
+      this.ui.showToast(`Already using ${style === 'street' ? 'Street Map' : 'Satellite View'} as default.`, 'medium');
+      return;
+    }
     this.mapDefaultStyle = style;
     this.settings.set('map_default_style', style);
     this.ui.showToast(`Default map layer set to ${style === 'street' ? 'Street Map' : 'Satellite View'}.`, 'medium');
@@ -541,7 +544,6 @@ export class SettingsPanel implements OnInit, OnDestroy {
 
   onMapSelectClick(event: MouseEvent, style: 'street' | 'satellite'): void {
     event.stopPropagation();
-    (event.currentTarget as HTMLElement)?.blur();
     this.onMapStyleChange(style);
   }
 

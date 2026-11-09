@@ -383,7 +383,8 @@
                       class="map-select-btn"
                       [class.is-active]="mapDefaultStyle === 'street'"
                       (click)="onMapSelectClick($event, 'street')">
-                {{ mapDefaultStyle === 'street' ? 'Active Default' : 'Set as Default' }}
+                <app-icon *ngIf="mapDefaultStyle === 'street'" name="check" [size]="13" color="#ffffff"></app-icon>
+                <span>{{ mapDefaultStyle === 'street' ? 'Active Default' : 'Set as Default' }}</span>
               </button>
             </div>
           </div>
@@ -418,7 +419,8 @@
                       class="map-select-btn"
                       [class.is-active]="mapDefaultStyle === 'satellite'"
                       (click)="onMapSelectClick($event, 'satellite')">
-                {{ mapDefaultStyle === 'satellite' ? 'Active Default' : 'Set as Default' }}
+                <app-icon *ngIf="mapDefaultStyle === 'satellite'" name="check" [size]="13" color="#ffffff"></app-icon>
+                <span>{{ mapDefaultStyle === 'satellite' ? 'Active Default' : 'Set as Default' }}</span>
               </button>
             </div>
           </div>

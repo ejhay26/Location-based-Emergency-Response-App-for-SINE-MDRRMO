@@ -576,12 +576,16 @@
   cursor: default;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  isolation: isolate;
+  clip-path: inset(0 round 20px);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  /* Card stays completely still on hover - no movement, jumping or raising up */
+  transform: none !important;
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      transform: translateY(-2px);
+      transform: none !important;
     }
   }
 
@@ -589,20 +593,24 @@
     border-color: var(--ion-color-danger, #eb445a);
   }
 
-  /* Fixed Still Visual Background (Does Not Move or Shift on Expand) */
+  /* Fixed Still Visual Background (confined to upper card to eliminate corner bleed) */
   .map-visual-box {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 155px;
+    border-radius: 18px 18px 0 0;
     overflow: hidden;
     background: #1c2b23;
     z-index: 1;
 
     &.is-street {
-      background: #eef1f4;
+      background: #1c1c1e;
     }
 
     &.is-satellite {
-      background: #1c2b23;
+      background: #112017;
     }
   }
 
@@ -610,15 +618,18 @@
     width: 100%;
     height: 100%;
     position: relative;
+    border-radius: 18px 18px 0 0;
     overflow: hidden;
 
     .map-tile-grid {
       position: absolute;
       inset: 0;
+      border-radius: 18px 18px 0 0;
+      overflow: hidden;
     }
 
     .street-grid {
-      background-color: #f4f1ea;
+      background-color: #1c1c1e;
       background-image: url('/assets/tiles/map-preview-street.png');
       background-size: cover;
       background-position: center;
@@ -721,35 +732,78 @@
   .map-btn-wrapper {
     display: flex;
     width: 100%;
+    margin-top: 2px;
   }
 
   .map-select-btn {
+    position: relative;
+    z-index: 10;
     width: 100%;
-    height: 34px;
+    height: 36px;
     padding: 0 14px;
-    border-radius: 9px;
+    border-radius: 10px;
     border: 1px solid var(--ion-color-step-200, rgba(255, 255, 255, 0.14));
     background: var(--ion-color-step-100, rgba(255, 255, 255, 0.06));
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 700;
     color: var(--ion-text-color, #ffffff);
     cursor: pointer;
     outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+    /* Smooth transitions for hover, active and collapse */
+    transition: background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.12s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.20s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, background-color, border-color;
 
     /* EXIT / COLLAPSED transition */
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(14px);
     pointer-events: none;
-    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-                background-color 0.2s ease,
-                border-color 0.2s ease;
-    will-change: opacity, transform;
 
+    /* Hover effect for unselected button */
+    &:hover {
+      background: rgba(235, 68, 90, 0.18);
+      border-color: var(--ion-color-danger, #eb445a);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* Press / active effect */
+    &:active {
+      transform: scale(0.96) translateY(0) !important;
+      background: var(--ion-color-danger, #eb445a);
+      border-color: var(--ion-color-danger, #eb445a);
+      color: #ffffff;
+      transition: transform 0.08s ease !important;
+    }
+
+    /* Active / Selected state */
     &.is-active {
       background: var(--ion-color-danger, #eb445a);
       color: #ffffff;
       border-color: var(--ion-color-danger, #eb445a);
+      cursor: pointer;
+
+      &:hover {
+        background: #f04155;
+        border-color: #f04155;
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: scale(0.96) translateY(0) !important;
+        background: #dc3545;
+        border-color: #dc3545;
+      }
     }
   }
 
@@ -772,8 +826,8 @@
           pointer-events: auto;
           transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
                       transform 0.32s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
-                      background-color 0.2s ease,
-                      border-color 0.2s ease;
+                      background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                      border-color 0.18s cubic-bezier(0.16, 1, 0.3, 1);
         }
       }
     }
@@ -797,8 +851,8 @@
         pointer-events: auto;
         transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
                     transform 0.32s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
-                    background-color 0.2s ease,
-                    border-color 0.2s ease;
+                    background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                    border-color 0.18s cubic-bezier(0.16, 1, 0.3, 1);
       }
     }
   }
