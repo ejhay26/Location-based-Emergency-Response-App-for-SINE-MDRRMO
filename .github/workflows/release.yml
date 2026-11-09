@@ -194,6 +194,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TARGET_TAG="${{ inputs.tag || github.ref_name }}"
+          VERSION="${TARGET_TAG#v}"
           EXE_SRC=""
           if [ -f "frontend/src-tauri/target/release/mdrrmo-emergency-response-app.exe" ]; then
             EXE_SRC="frontend/src-tauri/target/release/mdrrmo-emergency-response-app.exe"
@@ -202,11 +203,15 @@ jobs:
           elif [ -f "frontend/src-tauri/target/release/sagip.exe" ]; then
             EXE_SRC="frontend/src-tauri/target/release/sagip.exe"
           fi
-          PORTABLE_NAME="SAGIP_${TARGET_TAG}_x64-portable.exe"
+          PORTABLE_NAME="SAGIP_${VERSION}_x64-portable.exe"
           if [ -n "$EXE_SRC" ] && [ -f "$EXE_SRC" ]; then
             cp "$EXE_SRC" "$PORTABLE_NAME"
             echo "Uploading portable executable: $PORTABLE_NAME"
             gh release upload "$TARGET_TAG" "$PORTABLE_NAME" --clobber
+            if [ "$TARGET_TAG" != "$VERSION" ]; then
+              cp "$EXE_SRC" "SAGIP_${TARGET_TAG}_x64-portable.exe"
+              gh release upload "$TARGET_TAG" "SAGIP_${TARGET_TAG}_x64-portable.exe" --clobber
+            fi
           else
             echo "Warning: Release executable not found, skipping portable upload."
           fi
@@ -311,12 +316,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TARGET_TAG="${{ inputs.tag || github.ref_name }}"
+          VERSION="${TARGET_TAG#v}"
           APK_SRC=$(find frontend/android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
           if [ -n "$APK_SRC" ] && [ -f "$APK_SRC" ]; then
-            APK_NAME="SAGIP_${TARGET_TAG}_android.apk"
+            APK_NAME="SAGIP_${VERSION}_android.apk"
             cp "$APK_SRC" "$APK_NAME"
             echo "Uploading signed Android release APK: $APK_NAME"
             gh release upload "$TARGET_TAG" "$APK_NAME" --clobber
+            if [ "$TARGET_TAG" != "$VERSION" ]; then
+              cp "$APK_SRC" "SAGIP_${TARGET_TAG}_android.apk"
+              gh release upload "$TARGET_TAG" "SAGIP_${TARGET_TAG}_android.apk" --clobber
+            fi
           else
             echo "Error: Release APK not found in frontend/android/app/build/outputs/apk/release!"
             exit 1
