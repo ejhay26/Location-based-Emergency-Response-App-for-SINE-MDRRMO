@@ -34,7 +34,7 @@ The production backend runs as a high-performance native Go micro-daemon managed
                   ┌─────────────────────────────┐
                   │ External Cloud Gateways     │
                   │ ├─ PhilSMS (Transactional)  │
-                  │ ├─ Resend (Transactional)   │
+                  │ ├─ Brevo (Transactional)   │
                   │ └─ Firebase (Push FCM v1)   │
                   └─────────────────────────────┘
 ```

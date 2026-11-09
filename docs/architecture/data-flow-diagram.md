@@ -14,7 +14,7 @@ The system facilitates emergency response operations across the Municipality of 
 4. **Inter-Agency Response Teams (BFP, PNP, Rescue, RHU):** Receives incident dispatch authorization, conducts on-scene mitigation, and coordinates incident clearance with dispatchers.
 5. **External Cloud Services:**
    - **PhilSMS API:** Transactional SMS gateway delivering one-time passwords (OTP).
-   - **Resend Mailer:** Transactional email gateway for email OTP and account verification notices.
+   - **Brevo Mailer:** Transactional email gateway for email OTP and account verification notices.
    - **Firebase Cloud Messaging (FCM v1):** Push notifications for backgrounded mobile devices.
    - **Philippine Statistics Authority (PSA) GeoJSON:** Boundary definitions for ray-casting municipal territory validation.
 
@@ -30,7 +30,7 @@ flowchart LR
     Dispatcher["Municipal Dispatcher"]
     Admin["Master Administrator"]
     Responders["Inter-Agency Response Teams<br/>(BFP, PNP, Rescue, RHU)"]
-    CloudServices["External Cloud Gateways<br/>(PhilSMS, Resend, FCM, PSA GeoJSON)"]
+    CloudServices["External Cloud Gateways<br/>(PhilSMS, Brevo, FCM, PSA GeoJSON)"]
 
     System["0.0<br/>SINE MDRRMO Location-Based<br/>Emergency Response System"]
 
@@ -87,7 +87,7 @@ flowchart TD
     E2["Municipal Dispatcher"]
     E3["Master Administrator"]
     E4["Inter-Agency Response Teams<br/>(BFP, PNP, Rescue, RHU)"]
-    E5["Cloud Services<br/>(PhilSMS, Resend, FCM)"]
+    E5["Cloud Services<br/>(PhilSMS, Brevo, FCM)"]
 
     D1[("D1: Users, Profiles & KYC Verifications")]
     D2[("D2: Golden Minute Medical Profiles")]

@@ -14,7 +14,7 @@ The SINE MDRRMO Disaster Recovery Engine is a self-contained, high-performance d
 - **Smart Retention Manager:** Automatically prunes snapshots older than 7 days, maintaining minimal disk footprint.
 - **Pre-Restore Safety Shield:** Automatically creates a safety snapshot of the live database before executing any restore operation.
 - **Delta Gap Salvaging:** Scans storage files (`storage/app/public/`) for uploads and registrations created after the snapshot, preventing unbacked citizen data loss.
-- **Automated Citizen Re-Notification:** Dispatches transactional SMS (PhilSMS) and emails (Resend) to citizens who signed up during the recovery gap.
+- **Automated Citizen Re-Notification:** Dispatches transactional SMS (PhilSMS) and emails (Brevo) to citizens who signed up during the recovery gap.
 
 ---
 

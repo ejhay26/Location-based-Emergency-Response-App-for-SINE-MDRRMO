@@ -40,7 +40,7 @@ The application operates as a decoupled client-server architecture consisting of
 │   MariaDB    │                               │    Cloud Services        │
 │   Database   │                               │ ├─ Dedicated Host Storage│
 │ (emergencydb)│                               │ ├─ PhilSMS (SMS OTP)     │
-└──────────────┘                               │ ├─ Resend (Email OTP)    │
+└──────────────┘                               │ ├─ Brevo (Email OTP)    │
                                                │ └─ Firebase (FCM v1)     │
                                                └──────────────────────────┘
 ```
@@ -73,7 +73,7 @@ To support high-concurrency disaster scenarios across San Isidro's population wi
    - Resolves Bearer tokens and handles requests concurrently with lightweight goroutines and connection pooling, keeping user-facing HTTP request latencies under 15ms.
    - Throttles token timestamp updates, eliminating high-frequency write storms on MariaDB.
 2. **Asynchronous Notification Dispatch:**
-   - Background worker goroutines process email notifications (Resend), SMS OTPs (PhilSMS), and FCM pushes without blocking the main event loop.
+   - Background worker goroutines process email notifications (Brevo), SMS OTPs (PhilSMS), and FCM pushes without blocking the main event loop.
 3. **Dedicated Host Storage & Low Footprint:**
    - Persistent uploads and map tiles are mapped to isolated host storage (`/var/www/sine-storage`) with automated subfolder organization.
    - The compiled Go binary runs with an ultra-low memory footprint (~35–50 MB RAM), leaving the host system stable and responsive even during peak load.

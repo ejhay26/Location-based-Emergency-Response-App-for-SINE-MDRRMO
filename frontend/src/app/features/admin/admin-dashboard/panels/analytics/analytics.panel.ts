@@ -435,7 +435,7 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
   }
 
   showExportModal = false;
-  exportReportTitle = 'MDRRMO San Isidro — Executive Analytics & Operations Intelligence Report';
+  exportReportTitle = 'SAGIP — Executive Analytics & Operations Intelligence Report';
   exportOfficeName = 'Municipal Disaster Risk Reduction and Management Office (SINE - San Isidro, Nueva Ecija)';
   exportPreparedBy = 'MDRRMO Data Officer';
   exportDesignation = 'MDRRMO Operations & Statistics Lead';
@@ -461,6 +461,7 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
     const adminName = this.exportPreparedBy || 'MDRRMO Officer';
     const role = this.exportDesignation || 'MDRRMO Operations Lead';
     const nowStr = new Date().toLocaleString('en-US', {
+      timeZone: 'Asia/Manila',
       year: 'numeric',
       month: 'short',
       day: 'numeric',

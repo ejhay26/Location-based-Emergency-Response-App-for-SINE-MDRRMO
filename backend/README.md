@@ -38,7 +38,7 @@ High-performance, low-latency municipal emergency response backend service built
 6. **Transactional SMS (`internal/services/philsms.go`)**
    - PhilSMS API v3 integration with automated fallback to email.
 7. **Email & Push Notifications (`internal/services/mailer.go`, `internal/services/firebase.go`)**
-   - Resend SDK with HTML email templates (OTP, Welcome, Verification Declined, False Alarm Strike, Bug Report).
+   - Brevo HTTP API with HTML email templates (OTP, Welcome, Verification Declined, False Alarm Strike, Bug Report).
    - Firebase Cloud Messaging (FCM v1) with platform-specific Android/iOS payloads.
 8. **Automated Disaster Recovery & Tile Caching (`internal/cron/cron.go`)**
    - Background cron scheduler for database snapshots and offline map tile cache warming.
@@ -83,7 +83,7 @@ The Go Fiber backend features an advanced, self-contained Disaster Recovery Engi
 | `backup desc [target]` | Describe | Inspects metadata, raw/compressed size, compression ratio, table counts, and latest SOS without restoring |
 | `backup restore [target]` | Restore | Safely restores database with live vs. backup record diff preview, automatic safety snapshot, and confirmation |
 | `backup salvage [target]` | Salvage | Scans storage proof folders (`reports`, `ids`, `profiles`) and logs for gap data created since snapshot |
-| `backup notify [target]` | Notify | Sends polite recovery SMS (PhilSMS) and HTML email (Resend) notices to citizens identified during gap |
+| `backup notify [target]` | Notify | Sends polite recovery SMS (PhilSMS) and HTML email (Brevo) notices to citizens identified during gap |
 | `backup status` | Health | Displays automated schedule status, backup intervals, retention limits, total archives, and latest snapshot |
 | `backup prune` | Clean | Enforces retention limits (12 intraday / 7 daily snapshots) and removes safety snapshots older than 48 hours |
 | `backup watch` | Daemon | Runs automated background schedule worker in the foreground |

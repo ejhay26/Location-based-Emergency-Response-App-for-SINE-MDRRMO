@@ -49,8 +49,11 @@
             <!-- Expanded Mode: Logo + Title + Collapse Toggle Button -->
             <ng-container *ngIf="!isSidebarCollapsed">
               <div class="brand-info">
-                <img src="/assets/icon/logo.jpg" alt="MDRRMO San Isidro logo" class="brand-logo-img" />
-                <h5 class="brand-title-text">MDRRMO SAN ISIDRO</h5>
+                <img src="/assets/icon/logo.jpg" alt="SAGIP logo" class="brand-logo-img" />
+                <div style="display: flex; flex-direction: column;">
+                  <h5 class="brand-title-text" style="margin: 0; line-height: 1.2;">SAGIP</h5>
+                  <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.6px; color: var(--ion-color-medium, #8e8e93); text-transform: uppercase;">MDRRMO San Isidro</span>
+                </div>
               </div>
               <button (click)="toggleSidebar()"
                       class="sidebar-toggle-btn"

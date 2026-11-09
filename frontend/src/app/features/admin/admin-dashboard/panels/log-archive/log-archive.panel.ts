@@ -216,7 +216,7 @@ export class LogArchivePanel implements OnInit {
   }
 
   showExportModal = false;
-  exportReportTitle = 'MDRRMO San Isidro — Emergency Log Archive Report';
+  exportReportTitle = 'SAGIP — Emergency Incident Log Archive Report';
   exportOfficeName = 'Municipal Disaster Risk Reduction and Management Office (SINE - San Isidro, Nueva Ecija)';
   exportPreparedBy = 'MDRRMO Officer';
   exportDesignation = 'MDRRMO Operations Officer';
@@ -246,6 +246,7 @@ export class LogArchivePanel implements OnInit {
     const adminName = this.exportPreparedBy || 'MDRRMO Officer';
     const role = this.exportDesignation || 'MDRRMO Operations';
     const nowStr = new Date().toLocaleString('en-US', {
+      timeZone: 'Asia/Manila',
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -262,7 +263,7 @@ export class LogArchivePanel implements OnInit {
         <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.first_name || ''} ${r.last_name || ''}</td>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.phone || 'N/A'}</td>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.barangay_name || 'Unresolved'}</td>
-        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${new Date(r.request_time).toLocaleString()}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${new Date(r.request_time).toLocaleString('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.agency ? (r.agency + (r.unit_name ? ' (' + r.unit_name + ')' : '')) : '—'}</td>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px;">${r.dispatched_by_name ? 'Disp: ' + r.dispatched_by_name : ''}${r.resolved_by_name ? (r.dispatched_by_name ? '<br>' : '') + 'Res: ' + r.resolved_by_name : ''}</td>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 11px;">

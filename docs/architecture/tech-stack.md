@@ -35,7 +35,7 @@ flowchart TD
 
     subgraph External["External Services & Providers"]
         FCM["Firebase Cloud Messaging<br/>(FCM HTTP v1 Push)"]
-        RESEND["Resend Email API<br/>(Emergency OTP & Verification)"]
+        BREVO["Brevo Email API<br/>(Emergency OTP & Verification)"]
         SMS["PhilSMS Gateway<br/>(Telco Cellular SMS OTP)"]
         OAUTH["Google Identity Services<br/>(OAuth 2.0 Auth)"]
     end
@@ -57,7 +57,7 @@ flowchart TD
     CRON --> DB
 
     API --> FCM
-    API --> RESEND
+    API --> BREVO
     API --> SMS
     API --> OAUTH
 ```
@@ -194,7 +194,7 @@ This table provides a concise, structured overview suitable for slides and prese
 | **Backend Service** | Go, Go Fiber, WebSockets | `v1.23+`, `v2.52` | Sub-millisecond REST API and real-time bidirectional emergency event broadcasting. |
 | **Geospatial & Mapping** | Leaflet, PMTiles, GeoJSON | `v1.9.4`, `v4.5` | Authoritative server point-in-polygon boundary validation and offline map rendering. |
 | **Database** | MariaDB / MySQL, GORM | `v10.6+`, `v1.25` | Normalized relational storage (`emergencydb`) with foreign key constraints and ACID safety. |
-| **Cloud Services** | Firebase (FCM), Resend, PhilSMS | HTTP v1, REST | Multi-channel alert dispatching across push notifications, email, and cellular SMS. |
+| **Cloud Services** | Firebase (FCM), Brevo, PhilSMS | HTTP v1, REST | Multi-channel alert dispatching across push notifications, email, and cellular SMS. |
 | **DevOps & CI/CD** | GitHub Actions, Docker, Cargo | Multi-Arch | Multi-platform build pipeline delivering pre-compiled installers on GitHub Releases. |
 
 ---

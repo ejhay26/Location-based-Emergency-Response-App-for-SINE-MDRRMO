@@ -1,4 +1,9 @@
 {
+  "name": "SAGIP - MDRRMO Emergency Response",
+  "short_name": "SAGIP",
+  "theme_color": "#e53935",
+  "background_color": "#ffffff",
+  "display": "standalone",
   "icons": [
     {
       "src": "assets/icons/icon-48.webp",

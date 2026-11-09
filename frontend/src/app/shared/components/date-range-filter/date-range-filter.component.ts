@@ -232,28 +232,27 @@ export class DateRangeFilterComponent {
   }
 
   applyQuickPreset(preset: 'today' | 'yesterday' | '7days' | '30days' | 'this_month'): void {
-    const today = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    const toYmd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const todayKey = toLocalDateKey(new Date());
+    const [tY, tM, tD] = todayKey.split('-').map(Number);
+    const today = new Date(tY, tM - 1, tD);
 
     if (preset === 'today') {
-      const dStr = toYmd(today);
-      this.valueChange.emit({ mode: 'single', dates: [dStr] });
+      this.valueChange.emit({ mode: 'single', dates: [todayKey] });
     } else if (preset === 'yesterday') {
       const y = new Date(today);
       y.setDate(y.getDate() - 1);
-      this.valueChange.emit({ mode: 'single', dates: [toYmd(y)] });
+      this.valueChange.emit({ mode: 'single', dates: [toLocalDateKey(y)] });
     } else if (preset === '7days') {
       const past = new Date(today);
       past.setDate(past.getDate() - 6);
-      this.valueChange.emit({ mode: 'range', dates: [toYmd(past), toYmd(today)] });
+      this.valueChange.emit({ mode: 'range', dates: [toLocalDateKey(past), todayKey] });
     } else if (preset === '30days') {
       const past = new Date(today);
       past.setDate(past.getDate() - 29);
-      this.valueChange.emit({ mode: 'range', dates: [toYmd(past), toYmd(today)] });
+      this.valueChange.emit({ mode: 'range', dates: [toLocalDateKey(past), todayKey] });
     } else if (preset === 'this_month') {
       const start = new Date(today.getFullYear(), today.getMonth(), 1);
-      this.valueChange.emit({ mode: 'range', dates: [toYmd(start), toYmd(today)] });
+      this.valueChange.emit({ mode: 'range', dates: [toLocalDateKey(start), todayKey] });
     }
     this.isPopoverOpen = false;
     this.popoverRef?.dismiss().catch(() => {});

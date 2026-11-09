@@ -51,4 +51,4 @@ The backend runs as a high-performance native Go micro-daemon on **Go Fiber v2**
 | **Memory (RAM)** | **1 GB RAM** (Go micro-daemon uses ~30–60 MB RAM) | **4 GB – 8 GB ECC RAM** |
 | **Storage (Disk)** | **20 GB SSD** | **80 GB – 150 GB Enterprise SSD** (for media & tile storage) |
 | **Network Uplink** | 50 Mbps bandwidth | **500 Mbps – 1 Gbps unmetered uplink** |
-| **Software Stack** | Go 1.24, MariaDB 10.11+, Systemd | Go 1.24+, MariaDB 11+, Systemd, Resend API, PhilSMS Gateway |
+| **Software Stack** | Go 1.24, MariaDB 10.11+, Systemd | Go 1.24+, MariaDB 11+, Systemd, Brevo API, PhilSMS Gateway |

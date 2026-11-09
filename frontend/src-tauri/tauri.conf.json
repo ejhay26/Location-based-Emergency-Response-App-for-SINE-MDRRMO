@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "MDRRMO EMERGENCY RESPONSE APP",
+  "productName": "SAGIP",
   "version": "0.93.4",
   "identifier": "ph.gov.sine.mdrrmo.emergencyresponse",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "MDRRMO EMERGENCY RESPONSE APP",
+        "title": "SAGIP",
         "width": 1280,
         "height": 800,
         "minWidth": 1024,

@@ -47,12 +47,12 @@ Common issues, error codes, and step-by-step solutions when developing, running,
 </details>
 
 <details>
-<summary><b>1.3 Email OTP Delivery via Resend</b></summary>
+<summary><b>1.3 Email OTP Delivery via Brevo</b></summary>
 
 **Symptoms:** Verification code email does not appear in the user's inbox.
 
 **Solutions:**
-1. **Resend API Key:** Ensure `RESEND_API_KEY` is populated in `backend/.env`.
+1. **Brevo API Key:** Ensure `BREVO_API_KEY` is populated in `backend/.env`.
 2. **Sandbox Recipient Restrictions:** When using Resend's default free test domain (`onboarding@resend.dev`), Resend only permits sending to the account owner's registered email. To send to arbitrary email addresses (e.g. citizens), verify a custom sending domain at [resend.com/domains](https://resend.com/domains) and update `MAIL_FROM_ADDRESS` in `.env`.
 3. **Test CLI:** You can test email delivery directly from the command line:
    ```bash

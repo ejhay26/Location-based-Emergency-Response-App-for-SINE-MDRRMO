@@ -25,15 +25,24 @@ export function isEmptyDateFilter(filter: DateFilterValue | null | undefined): b
 }
 
 /**
- * Converts a Date to a local 'YYYY-MM-DD' key using local calendar fields
- * (not UTC getters), matching how UtcDatePipe renders dates on-screen -
- * so "the record shown as Aug 3" is exactly what a filter of "Aug 3" matches.
+ * Converts a Date to a 'YYYY-MM-DD' key in Philippine Standard Time (PST / UTC+8,
+ * Asia/Manila), ensuring that historical records and date filters align strictly
+ * to the Philippine calendar day (00:00:00 to 23:59:59 PHT).
  */
 export function toLocalDateKey(date: Date): string {
-  const year  = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day   = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Manila',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(date);
+  } catch {
+    const year  = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day   = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 }
 
 /**

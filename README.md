@@ -1,4 +1,4 @@
-# Location-Based Emergency Response App — SINE MDRRMO
+# SAGIP: Location-Based Emergency Response App — SINE MDRRMO
 
 <p>
   <a href="#_"><img src="https://img.shields.io/badge/license-Proprietary-red" alt="License" style="pointer-events: none;" /></a>
@@ -53,7 +53,7 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 - **Admin & Dispatcher Operations Dashboard (Tauri v2 Desktop & Mobile Admin UI)** — 
   - **Desktop:** High-performance native desktop application powered by **Tauri v2 (Rust)** for Windows, macOS, and Linux with lightweight resource usage (~30MB RAM), frameless custom titlebar controls, and native OS audio/push notifications.
   - **Mobile:** Adaptive mobile interface featuring a dedicated bottom navigation bar (`Incident Map`, `Broadcast`, `Menu`), interactive draggable active incidents bottom sheet (peek, half, and full expansion), quick touch-friendly filter sheets, and full access to staff management, ID verifications, and analytics on the go.
-- **Backend API & Real-Time Engine (Go Fiber v2 & Native WebSockets)** — High-performance Go micro-daemon running on Linux VPS, providing REST APIs, SHA-256 hashed bearer token authentication, authoritative geospatial point-in-polygon resolution, transactional SMS via PhilSMS, transactional email via Resend, and sub-second real-time WebSocket broadcasting.
+- **Backend API & Real-Time Engine (Go Fiber v2 & Native WebSockets)** — High-performance Go micro-daemon running on Linux VPS, providing REST APIs, SHA-256 hashed bearer token authentication, authoritative geospatial point-in-polygon resolution, transactional SMS via PhilSMS, transactional email via Brevo, and sub-second real-time WebSocket broadcasting.
 
 ---
 
@@ -72,7 +72,7 @@ The platform operates as a cohesive, multi-platform emergency ecosystem:
 <td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/go/00ADD8" width="40" height="40" alt="Go" style="pointer-events: none;" /></a><br/><sub><b>Go 1.24</b></sub></td>
 <td align="center" width="110"><a href="#_"><picture><source height="30" media="(prefers-color-scheme: dark)" srcset="https://gofiber.io/img/logo-dark.svg"><img src="https://gofiber.io/img/logo.svg" height="30" alt="Fiber" style="pointer-events: none;" /></picture></a><br/><sub><b>Fiber v2</b></sub></td>
 <td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/mariadb/003545" width="40" height="40" alt="MariaDB" style="pointer-events: none;" /></a><br/><sub><b>MariaDB</b></sub></td>
-<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/resend/000000" width="40" height="40" alt="Resend" style="pointer-events: none;" /></a><br/><sub><b>Resend</b></sub></td>
+<td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/brevo/0B996F" width="40" height="40" alt="Brevo" style="pointer-events: none;" /></a><br/><sub><b>Brevo</b></sub></td>
 <td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/gnubash/4EAA25" width="40" height="40" alt="PhilSMS" style="pointer-events: none;" /></a><br/><sub><b>PhilSMS API</b></sub></td>
 <td align="center" width="110"><a href="#_"><img src="https://cdn.simpleicons.org/leaflet/199900" width="40" height="40" alt="Leaflet" style="pointer-events: none;" /></a><br/><sub><b>Leaflet.js</b></sub></td>
 </tr>

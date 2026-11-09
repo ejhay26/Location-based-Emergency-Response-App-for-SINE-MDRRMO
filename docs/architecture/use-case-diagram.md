@@ -27,7 +27,7 @@ flowchart TD
     Dispatcher(["Municipal Dispatcher"])
     Admin(["Master Administrator"])
     Responders(["Inter-Agency Response Teams<br/>(BFP, PNP, Rescue, RHU)"])
-    Cloud(["External Gateways<br/>(PhilSMS, Resend, FCM, PSA)"])
+    Cloud(["External Gateways<br/>(PhilSMS, Brevo, FCM, PSA)"])
 
     subgraph SystemBoundary ["SINE MDRRMO Emergency Response System"]
         %% Subsystem 1: Identity & Authentication
@@ -151,7 +151,7 @@ flowchart TD
 ### Use Case 02: Review and Verify Citizen Identity (KYC Pipeline)
 - **Use Case ID:** `UC-KYC-02`
 - **Primary Actor:** Master Administrator
-- **Secondary Actors:** Citizen, External Gateways (PhilSys eVerify, LTO LTMS, DFA, PRC LERIS, Resend, FCM)
+- **Secondary Actors:** Citizen, External Gateways (PhilSys eVerify, LTO LTMS, DFA, PRC LERIS, Brevo, FCM)
 - **Pre-conditions:**
   1. Citizen has completed the 4-step registration wizard and verified their SMS/Email OTP (`account_status = 'unverified'`).
   2. Administrator is authenticated with `admin` token abilities.
@@ -163,7 +163,7 @@ flowchart TD
   5. Administrator clicks **Approve User**.
   6. The backend updates the citizen's status to `account_status = 'active'`.
   7. A real-time WebSocket event (`users` channel: `UserVerified`) updates the citizen's pending screen immediately.
-  8. The system dispatches an automated Welcome Email (via Resend) and an FCM push notification.
+  8. The system dispatches an automated Welcome Email (via Brevo) and an FCM push notification.
 - **Alternative Flow (Rejection with Permanent PII Purge):**
   - **5a.** Administrator determines that the uploaded ID is fraudulent, blurred, or expired.
   - **5b.** Administrator enters a specific rejection reason and clicks **Reject User**.

@@ -62,7 +62,7 @@ Used for transactional OTP verification during registration, login, and password
 
 ---
 
-## 6. Email Service (Brevo HTTP API / Resend)
+## 6. Email Service (Brevo HTTP API)
 
 | Variable | Default / Example | Purpose |
 |---|---|---|
