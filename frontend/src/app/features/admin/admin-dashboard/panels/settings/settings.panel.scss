@@ -572,25 +572,21 @@
   background: var(--ion-card-background, #1e1e24);
   border-radius: 20px;
   border: 2px solid var(--ion-color-step-150, rgba(255, 255, 255, 0.08));
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  cursor: pointer;
+  cursor: default;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+              border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+      transform: translateY(-2px);
     }
   }
 
   &.is-selected {
     border-color: var(--ion-color-danger, #eb445a);
-    box-shadow: 0 8px 28px rgba(235, 68, 90, 0.25);
   }
 
   /* Fixed Still Visual Background (Does Not Move or Shift on Expand) */
@@ -651,7 +647,6 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    box-shadow: 0 3px 10px rgba(235, 68, 90, 0.45);
     z-index: 2;
   }
 
@@ -666,12 +661,10 @@
     background: var(--ion-card-background, #1e1e24);
     border-top: 1px solid var(--ion-color-step-150, rgba(255, 255, 255, 0.08));
     border-radius: 0 0 18px 18px;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
 
     /* Collapsed default state: translated down so only the ~48px header row is visible */
     transform: translateY(calc(100% - 50px));
-    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 0.28s ease;
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform;
   }
 
@@ -757,7 +750,6 @@
       background: var(--ion-color-danger, #eb445a);
       color: #ffffff;
       border-color: var(--ion-color-danger, #eb445a);
-      box-shadow: 0 3px 10px rgba(235, 68, 90, 0.35);
     }
   }
 
@@ -766,7 +758,6 @@
     &:hover {
       .map-card-body {
         transform: translateY(0);
-        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
 
         .map-card-desc {
           opacity: 1;
@@ -792,7 +783,6 @@
   &.is-selected {
     .map-card-body {
       transform: translateY(0);
-      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
 
       .map-card-desc {
         opacity: 1;
