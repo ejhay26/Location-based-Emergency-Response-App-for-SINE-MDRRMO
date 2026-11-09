@@ -82,7 +82,7 @@
         </div>
         <div class="cat-text-col">
           <h4 class="cat-title">Map Display &amp; Layers</h4>
-          <p class="cat-desc">Dual preview cards for Street and Satellite views of San Isidro</p>
+          <p class="cat-desc">Choose between Street and Satellite map view for the incident map</p>
         </div>
         <div class="cat-arrow">
           <app-icon name="chevron-forward" [size]="16" color="var(--ion-color-medium)"></app-icon>
@@ -361,7 +361,7 @@
            (click)="onMapStyleChange('street')">
         
         <div class="map-visual-box is-street">
-          <!-- Real OSM Street Cartography Preview -->
+          <!-- Real OSM Street Preview -->
           <div class="map-graphic-canvas street-theme">
             <div class="map-tile-grid street-grid"></div>
           </div>
@@ -373,14 +373,21 @@
         </div>
 
         <div class="map-card-body">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-            <h4 class="map-card-title">Street Cartography</h4>
-            <span class="map-layer-tag">Vector Layer</span>
+          <div class="map-card-header-row">
+            <h4 class="map-card-title">Street Map</h4>
+            <span class="map-layer-tag">Roads</span>
           </div>
-          <p class="map-card-desc">Clean road vectors, labeled landmarks, barangay borders, and municipal arterial paths.</p>
-          <button type="button" class="map-select-btn" [class.is-active]="mapDefaultStyle === 'street'">
-            {{ mapDefaultStyle === 'street' ? 'Default Selected' : 'Set as Default' }}
-          </button>
+          <div class="map-card-expandable">
+            <p class="map-card-desc">Clear street names, landmarks, and barangay boundaries for fast navigation.</p>
+            <div class="map-btn-wrapper">
+              <button type="button"
+                      class="map-select-btn"
+                      [class.is-active]="mapDefaultStyle === 'street'"
+                      (click)="onMapSelectClick($event, 'street')">
+                {{ mapDefaultStyle === 'street' ? 'Active Default' : 'Set as Default' }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -402,14 +409,21 @@
         </div>
 
         <div class="map-card-body">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-            <h4 class="map-card-title">Satellite Aerial Imagery</h4>
-            <span class="map-layer-tag" style="background: rgba(45,211,111,0.12); color: #2dd36f;">High-Res Aerial</span>
+          <div class="map-card-header-row">
+            <h4 class="map-card-title">Satellite View</h4>
+            <span class="map-layer-tag is-sat">Aerial</span>
           </div>
-          <p class="map-card-desc">High-resolution photographic aerial imagery for terrain, waterways, and foliage inspection.</p>
-          <button type="button" class="map-select-btn" [class.is-active]="mapDefaultStyle === 'satellite'">
-            {{ mapDefaultStyle === 'satellite' ? 'Default Selected' : 'Set as Default' }}
-          </button>
+          <div class="map-card-expandable">
+            <p class="map-card-desc">Real aerial photos showing actual buildings, terrain, rivers, and trees.</p>
+            <div class="map-btn-wrapper">
+              <button type="button"
+                      class="map-select-btn"
+                      [class.is-active]="mapDefaultStyle === 'satellite'"
+                      (click)="onMapSelectClick($event, 'satellite')">
+                {{ mapDefaultStyle === 'satellite' ? 'Active Default' : 'Set as Default' }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

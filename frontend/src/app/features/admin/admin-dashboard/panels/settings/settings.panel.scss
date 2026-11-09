@@ -559,37 +559,47 @@
   }
 }
 
-/* ── DUAL MAP PREVIEW CARDS ── */
+/* ── DUAL MAP PREVIEW CARDS (DISCORD-INSPIRED EXPANDABLE DRAWER) ── */
 .map-preview-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 .map-preview-card {
-  background: var(--ion-card-background, #ffffff);
+  position: relative;
+  height: 250px;
+  background: var(--ion-card-background, #1e1e24);
   border-radius: 20px;
-  border: 2px solid var(--ion-color-step-150, rgba(0,0,0,0.08));
-  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  border: 2px solid var(--ion-color-step-150, rgba(255, 255, 255, 0.08));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    }
   }
 
   &.is-selected {
     border-color: var(--ion-color-danger, #eb445a);
-    box-shadow: 0 8px 24px rgba(235, 68, 90, 0.18);
+    box-shadow: 0 8px 28px rgba(235, 68, 90, 0.25);
   }
 
+  /* Fixed Still Visual Background (Does Not Move or Shift on Expand) */
   .map-visual-box {
-    height: 140px;
-    position: relative;
+    position: absolute;
+    inset: 0;
     overflow: hidden;
-    background: #e5e5e5;
+    background: #1c2b23;
+    z-index: 1;
 
     &.is-street {
       background: #eef1f4;
@@ -626,106 +636,58 @@
       background-position: center;
       filter: contrast(1.1);
     }
-
-    .map-carto-overlay {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 1;
-
-      .carto-label {
-        position: absolute;
-        font-size: 9.5px;
-        font-weight: 700;
-        color: #374151;
-        background: rgba(255, 255, 255, 0.88);
-        padding: 1px 6px;
-        border-radius: 4px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-        letter-spacing: 0.2px;
-
-        &.poblacion { top: 20%; left: 36%; color: #111827; font-weight: 800; font-size: 10px; }
-        &.malapit { top: 32%; right: 14%; }
-        &.alua { bottom: 25%; left: 14%; }
-        &.river-label { top: 22%; left: 12%; color: #93c5fd; background: rgba(15, 23, 42, 0.75); }
-        &.sat-hub { bottom: 22%; right: 12%; color: #86efac; background: rgba(15, 23, 42, 0.75); }
-      }
-
-      .carto-route-tag {
-        position: absolute;
-        top: 62%;
-        left: 26%;
-        font-size: 8.5px;
-        font-weight: 800;
-        color: #9a3412;
-        background: #fed7aa;
-        border: 1px solid #ea580c;
-        padding: 1px 6px;
-        border-radius: 9999px;
-        transform: rotate(-10deg);
-        box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-      }
-    }
-  }
-
-  .map-poi-pin {
-    position: absolute;
-    top: 48%;
-    left: 50%;
-    transform: translate(-50%, -100%);
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
-    z-index: 2;
-  }
-
-  .map-poi-badge {
-    position: absolute;
-    top: 55%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(0,0,0,0.1);
-    border-radius: 6px;
-    padding: 2px 7px;
-    font-size: 10px;
-    font-weight: 800;
-    color: #1c1c1e;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    z-index: 2;
-
-    &.sat-badge {
-      background: rgba(20,20,20,0.85);
-      color: #ffffff;
-      border-color: rgba(255,255,255,0.15);
-    }
   }
 
   .map-selected-badge {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 12px;
+    right: 12px;
     background: var(--ion-color-danger, #eb445a);
     color: #ffffff;
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 800;
-    padding: 4px 8px;
-    border-radius: 8px;
+    padding: 4px 10px;
+    border-radius: 9999px;
     display: flex;
     align-items: center;
-    gap: 4px;
-    box-shadow: 0 3px 8px rgba(235, 68, 90, 0.4);
-    z-index: 3;
+    gap: 5px;
+    box-shadow: 0 3px 10px rgba(235, 68, 90, 0.45);
+    z-index: 2;
   }
 
+  /* ── BOTTOM TEXT & CONTROLS DRAWER ── */
   .map-card-body {
-    padding: 16px 18px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    padding: 13px 16px 15px 16px;
+    background: var(--ion-card-background, #1e1e24);
+    border-top: 1px solid var(--ion-color-step-150, rgba(255, 255, 255, 0.08));
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+
+    /* Collapsed default state: translated down so only the ~48px header row is visible */
+    transform: translateY(calc(100% - 50px));
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.28s ease;
+    will-change: transform;
+  }
+
+  .map-card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 24px;
+    min-height: 24px;
   }
 
   .map-card-title {
     margin: 0;
     font-size: 14.5px;
     font-weight: 800;
-    color: var(--ion-text-color);
+    color: var(--ion-text-color, #ffffff);
   }
 
   .map-layer-tag {
@@ -733,34 +695,121 @@
     font-weight: 800;
     padding: 2px 7px;
     border-radius: 6px;
-    background: rgba(56, 128, 255, 0.1);
-    color: var(--ion-color-primary);
+    background: rgba(56, 128, 255, 0.12);
+    color: var(--ion-color-primary, #3880ff);
+
+    &.is-sat {
+      background: rgba(45, 211, 111, 0.12);
+      color: #2dd36f;
+    }
+  }
+
+  .map-card-expandable {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .map-card-desc {
-    margin: 6px 0 14px 0;
+    margin: 0;
     font-size: 12px;
-    color: var(--ion-color-medium);
+    color: var(--ion-color-medium, #8e8e93);
     line-height: 1.4;
+
+    /* EXIT / COLLAPSED transition */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.20s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+
+  .map-btn-wrapper {
+    display: flex;
+    width: 100%;
   }
 
   .map-select-btn {
     width: 100%;
-    padding: 8px;
-    border-radius: 10px;
-    background: var(--ion-color-step-100, rgba(0,0,0,0.05));
-    border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.1));
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 9px;
+    border: 1px solid var(--ion-color-step-200, rgba(255, 255, 255, 0.14));
+    background: var(--ion-color-step-100, rgba(255, 255, 255, 0.06));
     font-size: 12px;
     font-weight: 700;
-    color: var(--ion-text-color);
+    color: var(--ion-text-color, #ffffff);
     cursor: pointer;
-    transition: all 0.15s ease;
+    outline: none;
+
+    /* EXIT / COLLAPSED transition */
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.2s ease,
+                border-color 0.2s ease;
+    will-change: opacity, transform;
 
     &.is-active {
       background: var(--ion-color-danger, #eb445a);
       color: #ffffff;
       border-color: var(--ion-color-danger, #eb445a);
-      box-shadow: 0 3px 10px rgba(235, 68, 90, 0.3);
+      box-shadow: 0 3px 10px rgba(235, 68, 90, 0.35);
+    }
+  }
+
+  /* ── EXPANDED ON HOVER (POINTER FINE ONLY) ── */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      .map-card-body {
+        transform: translateY(0);
+        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
+
+        .map-card-desc {
+          opacity: 1;
+          transform: translateY(0);
+          transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.04s,
+                      transform 0.30s cubic-bezier(0.16, 1, 0.3, 1) 0.04s;
+        }
+
+        .map-select-btn {
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events: auto;
+          transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
+                      transform 0.32s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
+                      background-color 0.2s ease,
+                      border-color 0.2s ease;
+        }
+      }
+    }
+  }
+
+  /* ── EXPANDED ON SELECTED / ACTIVE ── */
+  &.is-selected {
+    .map-card-body {
+      transform: translateY(0);
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
+
+      .map-card-desc {
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.04s,
+                    transform 0.30s cubic-bezier(0.16, 1, 0.3, 1) 0.04s;
+      }
+
+      .map-select-btn {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+        transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
+                    transform 0.32s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
+                    background-color 0.2s ease,
+                    border-color 0.2s ease;
+      }
     }
   }
 }
