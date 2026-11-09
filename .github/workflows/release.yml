@@ -29,12 +29,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TARGET_TAG="${{ inputs.tag || github.ref_name }}"
-          RELEASE_TITLE="MDRRMO Emergency Response App $TARGET_TAG"
+          RELEASE_TITLE="SAGIP Emergency Response App $TARGET_TAG"
           echo "Preparing draft release for $TARGET_TAG..."
           EXISTING_ID=$(gh api "repos/${{ github.repository }}/releases" --jq ".[] | select(.tag_name == \"$TARGET_TAG\") | .id" | head -n 1)
           if [ -n "$EXISTING_ID" ]; then
-            echo "Release exists with ID: $EXISTING_ID. Updating body from .github/release_notes.md..."
+            echo "Release exists with ID: $EXISTING_ID. Updating body from .github/release_notes.md and title to $RELEASE_TITLE..."
             gh api -X PATCH "repos/${{ github.repository }}/releases/$EXISTING_ID" \
+              -F name="$RELEASE_TITLE" \
               -F body=@.github/release_notes.md
           else
             echo "Creating new draft release for $TARGET_TAG..."
@@ -45,6 +46,19 @@ jobs:
               -F prerelease:=false \
               -F body=@.github/release_notes.md
           fi
+
+      - name: Clean up obsolete release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TARGET_TAG="${{ inputs.tag || github.ref_name }}"
+          echo "Checking for obsolete assets starting with MDRRMO on $TARGET_TAG..."
+          gh release view "$TARGET_TAG" --json assets --jq '.assets[].name' 2>/dev/null | grep '^MDRRMO' | while read -r asset; do
+            if [ -n "$asset" ]; then
+              echo "Deleting obsolete asset: $asset"
+              gh release delete-asset "$TARGET_TAG" "$asset" -y || true
+            fi
+          done
 
   release-tauri:
     name: ${{ matrix.name }}
@@ -124,14 +138,51 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Pre-fetch AppRun binary (Linux only)
+        if: startsWith(matrix.platform, 'ubuntu')
+        run: |
+          mkdir -p ~/.cache/tauri
+          if [ "${{ matrix.name }}" = "Linux ARM64" ]; then
+            echo "Pre-fetching AppRun-aarch64..."
+            curl -fsSL --retry 5 --retry-delay 3 -o ~/.cache/tauri/AppRun-aarch64 https://github.com/tauri-apps/binary-releases/releases/download/apprun-old/AppRun-aarch64 || true
+            chmod +x ~/.cache/tauri/AppRun-aarch64 2>/dev/null || true
+          else
+            echo "Pre-fetching AppRun-x86_64..."
+            curl -fsSL --retry 5 --retry-delay 3 -o ~/.cache/tauri/AppRun-x86_64 https://github.com/tauri-apps/binary-releases/releases/download/apprun-old/AppRun-x86_64 || true
+            chmod +x ~/.cache/tauri/AppRun-x86_64 2>/dev/null || true
+          fi
+
+      - name: Pre-fetch NSIS utils (Windows only)
+        if: matrix.platform == 'windows-latest'
+        shell: bash
+        run: |
+          echo "Pre-fetching nsis_tauri_utils.dll..."
+          mkdir -p "$LOCALAPPDATA/tauri/NSIS/Plugins/x86-unicode"
+          curl -fsSL --retry 5 --retry-delay 3 -o "$LOCALAPPDATA/tauri/NSIS/Plugins/x86-unicode/nsis_tauri_utils.dll" https://github.com/tauri-apps/nsis-tauri-utils/releases/download/nsis_tauri_utils-v0.5.3/nsis_tauri_utils.dll || true
+
       - name: Build and Package with Tauri
+        id: tauri_build
+        uses: tauri-apps/tauri-action@v0
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: './frontend'
+          tagName: ${{ inputs.tag || github.ref_name }}
+          releaseName: 'SAGIP Emergency Response App ${{ inputs.tag || github.ref_name }}'
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+
+      - name: Retry Build and Package with Tauri on transient failure
+        if: steps.tauri_build.outcome == 'failure'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: './frontend'
           tagName: ${{ inputs.tag || github.ref_name }}
-          releaseName: 'MDRRMO Emergency Response App ${{ inputs.tag || github.ref_name }}'
+          releaseName: 'SAGIP Emergency Response App ${{ inputs.tag || github.ref_name }}'
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
@@ -143,14 +194,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TARGET_TAG="${{ inputs.tag || github.ref_name }}"
-          EXE_SRC="frontend/src-tauri/target/release/mdrrmo-emergency-response-app.exe"
-          PORTABLE_NAME="MDRRMO.EMERGENCY.RESPONSE.APP_${TARGET_TAG}_x64-portable.exe"
-          if [ -f "$EXE_SRC" ]; then
+          EXE_SRC=""
+          if [ -f "frontend/src-tauri/target/release/mdrrmo-emergency-response-app.exe" ]; then
+            EXE_SRC="frontend/src-tauri/target/release/mdrrmo-emergency-response-app.exe"
+          elif [ -f "frontend/src-tauri/target/release/SAGIP.exe" ]; then
+            EXE_SRC="frontend/src-tauri/target/release/SAGIP.exe"
+          elif [ -f "frontend/src-tauri/target/release/sagip.exe" ]; then
+            EXE_SRC="frontend/src-tauri/target/release/sagip.exe"
+          fi
+          PORTABLE_NAME="SAGIP_${TARGET_TAG}_x64-portable.exe"
+          if [ -n "$EXE_SRC" ] && [ -f "$EXE_SRC" ]; then
             cp "$EXE_SRC" "$PORTABLE_NAME"
             echo "Uploading portable executable: $PORTABLE_NAME"
             gh release upload "$TARGET_TAG" "$PORTABLE_NAME" --clobber
           else
-            echo "Warning: $EXE_SRC not found, skipping portable upload."
+            echo "Warning: Release executable not found, skipping portable upload."
           fi
 
   release-android:
@@ -175,6 +233,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
@@ -233,12 +292,17 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          GRADLE_OPTS: "-Dorg.gradle.internal.http.socketTimeout=120000 -Dorg.gradle.internal.http.connectionTimeout=120000"
         run: |
           echo "Android signing configuration diagnostics:"
           echo "KEYSTORE_PATH: $KEYSTORE_PATH (exists: $([ -f "$KEYSTORE_PATH" ] && echo 'yes' || echo 'no'))"
           echo "KEYSTORE_PASSWORD: $([ -n "$KEYSTORE_PASSWORD" ] && echo 'PRESENT' || echo 'MISSING/EMPTY')"
           echo "KEY_ALIAS: $([ -n "$KEY_ALIAS" ] && echo "$KEY_ALIAS" || echo 'EMPTY (will auto-detect from keystore)')"
           chmod +x gradlew
+          for attempt in 1 2 3; do
+            echo "Gradle wrapper check (attempt $attempt)..."
+            ./gradlew --version && break || sleep 5
+          done
           ./gradlew assembleRelease --stacktrace
 
       - name: Upload Android Release APK
@@ -249,7 +313,7 @@ jobs:
           TARGET_TAG="${{ inputs.tag || github.ref_name }}"
           APK_SRC=$(find frontend/android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
           if [ -n "$APK_SRC" ] && [ -f "$APK_SRC" ]; then
-            APK_NAME="MDRRMO.EMERGENCY.RESPONSE.APP_${TARGET_TAG}_android.apk"
+            APK_NAME="SAGIP_${TARGET_TAG}_android.apk"
             cp "$APK_SRC" "$APK_NAME"
             echo "Uploading signed Android release APK: $APK_NAME"
             gh release upload "$TARGET_TAG" "$APK_NAME" --clobber

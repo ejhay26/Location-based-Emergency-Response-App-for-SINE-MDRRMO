@@ -24,7 +24,7 @@ import { UtcDatePipe } from '../../../../../shared/pipes/utc-date.pipe';
 import { BARANGAYS } from '../../../../../shared/constants/barangays';
 import { isTauri } from '../../../../../shared/utils/platform.util';
 import { DateRangeFilterComponent } from '../../../../../shared/components/date-range-filter/date-range-filter.component';
-import { DateFilterValue, matchesDateFilter } from '../../../../../shared/utils/date-filter.util';
+import { DateFilterValue, matchesDateFilter, toLocalDateKey } from '../../../../../shared/utils/date-filter.util';
 import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
 import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 import { TourService } from '../../../../../core/services/tour';
@@ -883,8 +883,9 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       const itemDate = new Date(r.request_time || r.created_at).getTime();
       const now = Date.now();
       if (this.dateFilter === 'today') {
-        const startOfDay = new Date().setHours(0, 0, 0, 0);
-        if (itemDate < startOfDay) return false;
+        const itemKey = toLocalDateKey(new Date(r.request_time || r.created_at));
+        const todayKey = toLocalDateKey(new Date());
+        if (itemKey !== todayKey) return false;
       } else if (this.dateFilter === '7d') {
         if (now - itemDate > 7 * 86400000) return false;
       } else if (this.dateFilter === '30d') {

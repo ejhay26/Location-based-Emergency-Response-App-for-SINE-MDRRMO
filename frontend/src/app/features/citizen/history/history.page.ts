@@ -218,7 +218,7 @@ export class HistoryPage implements OnInit, OnDestroy {
   get filteredEmergencies(): any[] {
     return this.emergencies.filter(req =>
       (this.statusFilter === 'All' || req.status === this.statusFilter) &&
-      matchesDateFilter(req.request_time, this.dateFilter)
+      matchesDateFilter(req.request_time || req.created_at || req.hazard_time, this.dateFilter)
     );
   }
 
@@ -241,7 +241,7 @@ export class HistoryPage implements OnInit, OnDestroy {
     const matchesStatus = this.statusFilter === 'All' ||
       req.status === this.statusFilter ||
       (this.statusFilter === 'Pending' && req.status === 'Active');
-    return matchesStatus && matchesDateFilter(req.request_time, this.dateFilter);
+    return matchesStatus && matchesDateFilter(req.request_time || req.created_at || req.hazard_time, this.dateFilter);
   }
 
   getReportId(req: any): string | number {
