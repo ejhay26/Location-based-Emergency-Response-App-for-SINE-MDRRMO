@@ -1,22 +1,55 @@
-<div style="margin: 14px 0; border: 2px dashed rgba(211,47,47,0.4); border-radius: 18px; background: var(--ion-card-background, white); padding: 16px; box-shadow: var(--card-shadow);">
+<div style="margin: 16px 0; border: 2px dashed rgba(211,47,47,0.35); border-radius: 20px; background: var(--ion-card-background, white); padding: 16px; box-shadow: var(--card-shadow);">
   <div class="ion-text-center">
-    <p style="margin-bottom: 4px; font-weight: 800; font-size: 14px; color: var(--ion-text-color);">{{ config.title }}</p>
-    <p style="font-size: 12px; margin: 0 0 14px 0; color: var(--ion-color-medium); line-height: 1.4;">{{ config.description }}</p>
-    <div *ngIf="!preview" style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;">
-      <ion-button color="danger" fill="solid" (click)="triggerCapture()" style="font-weight: 800; --border-radius: 12px; height: 44px; --box-shadow: 0 4px 12px rgba(211,47,47,0.25);">
-        <app-icon [name]="config.buttonIcon" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> {{ config.buttonLabel }}
-      </ion-button>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px;">
+      <app-icon [name]="config.buttonIcon" [size]="18" color="var(--ion-color-danger)"></app-icon>
+      <h3 style="margin: 0; font-weight: 800; font-size: 14.5px; color: var(--ion-text-color);">{{ config.title }}</h3>
     </div>
-    <div *ngIf="preview" style="margin-top: 10px;">
-      <div style="border-radius: 14px; overflow: hidden; border: 2px solid #2dd36f; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(45,211,111,0.2); position: relative;">
-        <img [src]="preview" style="max-height: 160px; object-fit: contain; width: 100%; background: #000; display: block;" />
-        <div *ngIf="variant !== 'selfie'" style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); color: #2dd36f; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
-          <app-icon name="sparkles" [size]="12" color="#2dd36f"></app-icon> Auto-Enhanced
+    <p style="font-size: 12px; margin: 0 0 12px 0; color: var(--ion-color-medium); line-height: 1.45;">{{ config.description }}</p>
+
+    <!-- Visual Graphical Guide (Illustrated Sample) when no photo is uploaded yet -->
+    <div *ngIf="!preview" style="margin-bottom: 8px;">
+      <div style="position: relative; border-radius: 14px; overflow: hidden; border: 1.5px solid var(--ion-color-step-150, rgba(0,0,0,0.1)); background: var(--ion-color-step-50, rgba(0,0,0,0.03)); box-shadow: inset 0 2px 6px rgba(0,0,0,0.04); max-width: 320px; margin: 0 auto;">
+        <img [src]="sampleImage" [alt]="sampleBadge"
+             [style.aspect-ratio]="isCardVariant ? '1.586' : '1.333'"
+             style="width: 100%; display: block; object-fit: contain; pointer-events: none;" />
+        <!-- Floating Guide Badge -->
+        <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: #ffffff; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+          <app-icon name="sparkles" [size]="11" color="#fcd34d"></app-icon>
+          <span>{{ sampleBadge }}</span>
+        </div>
+      </div>
+
+      <!-- Graphical Tip Pills -->
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px;">
+        <span *ngFor="let pill of samplePills"
+              style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--ion-color-step-700, #374151); background: var(--ion-color-step-100, rgba(0,0,0,0.05)); padding: 4px 9px; border-radius: 12px; border: 1px solid var(--ion-color-step-200, rgba(0,0,0,0.08));">
+          <app-icon name="check" [size]="11" color="#2dd36f"></app-icon>
+          {{ pill }}
+        </span>
+      </div>
+
+      <!-- Trigger Action Button -->
+      <div style="margin-top: 14px;">
+        <ion-button color="danger" fill="solid" (click)="triggerCapture()" style="font-weight: 800; --border-radius: 12px; height: 46px; --box-shadow: 0 4px 14px rgba(211,47,47,0.25);">
+          <app-icon [name]="config.buttonIcon" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> {{ config.buttonLabel }}
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Uploaded Photo Preview -->
+    <div *ngIf="preview" style="margin-top: 6px;">
+      <div style="border-radius: 14px; overflow: hidden; border: 2.5px solid #2dd36f; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(45,211,111,0.25); position: relative; max-width: 340px; margin-left: auto; margin-right: auto;">
+        <img [src]="preview" style="max-height: 180px; object-fit: contain; width: 100%; background: #000; display: block;" />
+        <div *ngIf="isCardVariant" style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.78); backdrop-filter: blur(4px); color: #2dd36f; font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+          <app-icon name="sparkles" [size]="12" color="#2dd36f"></app-icon> Auto-Enhanced Card
+        </div>
+        <div style="position: absolute; top: 8px; left: 8px; background: rgba(45,211,111,0.92); color: #ffffff; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
+          <app-icon name="check" [size]="11" color="#ffffff"></app-icon> Photo Attached
         </div>
       </div>
       <div style="display: flex; gap: 8px; justify-content: center;">
         <ion-button color="medium" fill="outline" size="small" (click)="clearImage()" style="font-weight: 700; --border-radius: 10px;">
-          <app-icon name="rotate-cw" [size]="14" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Retake
+          <app-icon name="rotate-cw" [size]="14" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Retake / Change
         </ion-button>
       </div>
     </div>
@@ -28,30 +61,48 @@
     <ion-header class="ion-no-border">
       <ion-toolbar color="danger">
         <ion-title style="color: white; font-weight: 800; font-size: 16px;">{{ config.modalTitle }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cancelCrop()" style="--color: #ffffff; color: #ffffff;">
+            <app-icon name="close" [size]="20" color="#ffffff"></app-icon>
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding" style="text-align: center;">
-      <p style="font-size: 13px; color: var(--ion-color-medium); margin-bottom: 14px;">Drag to reposition. Pinch or use handles to crop.</p>
+      <!-- Guidance Note for Landscape Card Formatting -->
+      <div *ngIf="isCardVariant" style="background: rgba(235,68,90,0.08); border: 1px solid rgba(235,68,90,0.25); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-align: left;">
+        <app-icon name="id-card" [size]="18" color="var(--ion-color-danger)" style="flex-shrink: 0;"></app-icon>
+        <span style="font-size: 12px; font-weight: 700; color: var(--ion-text-color);">
+          ID must be horizontal (landscape card format). If captured vertically, tap <strong>Rotate 90°</strong> below.
+        </span>
+      </div>
+
       <image-cropper
         [imageFile]="rawFile || undefined"
-        [maintainAspectRatio]="false"
+        [maintainAspectRatio]="true"
+        [aspectRatio]="isCardVariant ? 1.586 : 1"
+        [canvasRotation]="canvasRotation"
+        [containWithinAspectRatio]="true"
         format="jpeg"
         [output]="'base64'"
         [roundCropper]="false"
         (imageCropped)="onCropped($event)"
-        style="max-height: 56vh; border-radius: 12px; overflow: hidden;">
+        style="max-height: 52vh; border-radius: 14px; overflow: hidden; background: #111;">
       </image-cropper>
 
-      <!-- Bottom Action Controls: Cancel, Retake, Use This Crop -->
-      <div style="display: flex; gap: 8px; margin-top: 18px;">
-        <ion-button fill="outline" color="medium" (click)="cancelCrop()" style="flex: 1; font-weight: 700; height: 48px; --border-radius: 12px;">
-          <app-icon name="close" [size]="16" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Cancel
+      <!-- Bottom Action Controls: Cancel, Rotate 90, Retake, Use Crop -->
+      <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+        <ion-button fill="outline" color="medium" (click)="cancelCrop()" style="flex: 1; font-weight: 700; height: 48px; --border-radius: 12px; min-width: 90px;">
+          <app-icon name="close" [size]="15" color="var(--ion-color-medium)" style="margin-right: 6px;"></app-icon> Cancel
         </ion-button>
-        <ion-button fill="outline" color="danger" (click)="retakeCrop()" style="flex: 1.1; font-weight: 700; height: 48px; --border-radius: 12px;">
-          <app-icon name="rotate-cw" [size]="16" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon> Retake
+        <ion-button fill="outline" color="primary" (click)="rotateImage()" style="flex: 1.1; font-weight: 700; height: 48px; --border-radius: 12px; min-width: 110px;">
+          <app-icon name="rotate-cw" [size]="15" color="var(--ion-color-primary)" style="margin-right: 6px;"></app-icon> Rotate 90°
         </ion-button>
-        <ion-button color="success" (click)="confirmCrop()" style="flex: 1.4; font-weight: 800; height: 48px; --border-radius: 12px; --box-shadow: 0 4px 12px rgba(45,211,111,0.3);">
-          <app-icon name="crop" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Use Crop
+        <ion-button fill="outline" color="danger" (click)="retakeCrop()" style="flex: 1; font-weight: 700; height: 48px; --border-radius: 12px; min-width: 90px;">
+          <app-icon name="camera" [size]="15" color="var(--ion-color-danger)" style="margin-right: 6px;"></app-icon> Retake
+        </ion-button>
+        <ion-button color="success" (click)="confirmCrop()" style="flex: 1.4; font-weight: 800; height: 48px; --border-radius: 12px; min-width: 120px; --box-shadow: 0 4px 12px rgba(45,211,111,0.3);">
+          <app-icon name="check" [size]="16" color="#ffffff" style="margin-right: 6px;"></app-icon> Use Crop
         </ion-button>
       </div>
     </ion-content>

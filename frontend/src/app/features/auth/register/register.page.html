@@ -83,6 +83,19 @@
         </ion-item>
       </div>
 
+      <!-- Terms & Privacy Agreement (Philippine Data Privacy Act Compliance) -->
+      <div style="margin: 16px 0 14px 0; padding: 14px 16px; background: var(--ion-card-background, white); border-radius: 16px; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); text-align: left; box-shadow: var(--card-shadow);">
+        <ion-item lines="none" style="--background: transparent; --padding-start: 0;">
+          <ion-checkbox [(ngModel)]="termsAccepted" slot="start" color="danger" style="margin-right: 12px;"></ion-checkbox>
+          <ion-label style="font-size: 12px; color: var(--ion-text-color); white-space: normal; line-height: 1.5;">
+            I agree to the
+            <a href="#" (click)="openTermsModal('terms', $event)" style="color: var(--ion-color-danger); font-weight: 800; text-decoration: underline;">Terms of Service</a>
+            and
+            <a href="#" (click)="openTermsModal('privacy', $event)" style="color: var(--ion-color-danger); font-weight: 800; text-decoration: underline;">Privacy Policy</a>.
+          </ion-label>
+        </ion-item>
+      </div>
+
       <ion-button expand="block" color="danger" class="ion-margin-top" (click)="nextStep()" style="font-weight: 800; height: 50px; --border-radius: 14px; --box-shadow: 0 4px 16px rgba(211,47,47,0.3);">
         Next: Setup Login Credentials <app-icon name="arrow-right" [size]="16" color="#ffffff" style="margin-left: 8px;"></app-icon>
       </ion-button>
@@ -421,23 +434,10 @@
         <app-otp-box-input [disabled]="isVerifyingOtp" [(code)]="otpCode" (completed)="verifyOtp()"></app-otp-box-input>
       </div>
 
-      <!-- Final Terms & Privacy Agreement Checkbox -->
-      <div style="margin: 18px 0 14px 0; padding: 14px 16px; background: var(--ion-card-background, white); border-radius: 16px; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); text-align: left; box-shadow: var(--card-shadow);">
-        <ion-item lines="none" style="--background: transparent; --padding-start: 0;">
-          <ion-checkbox [(ngModel)]="termsAccepted" slot="start" color="danger" style="margin-right: 12px;"></ion-checkbox>
-          <ion-label style="font-size: 12px; color: var(--ion-text-color); white-space: normal; line-height: 1.5;">
-            I agree to the
-            <a href="#" (click)="openTermsModal('terms', $event)" style="color: var(--ion-color-danger); font-weight: 800; text-decoration: underline;">Terms of Service</a>
-            and
-            <a href="#" (click)="openTermsModal('privacy', $event)" style="color: var(--ion-color-danger); font-weight: 800; text-decoration: underline;">Privacy Policy</a>.
-          </ion-label>
-        </ion-item>
-      </div>
-
       <ion-button expand="block" color="danger" (click)="verifyOtp()"
                   [class.btn-loading]="isVerifyingOtp"
-                  [disabled]="otpCode.length < 6 || !termsAccepted"
-                  style="font-weight: 800; height: 50px; --border-radius: 14px; margin-top: 12px; --box-shadow: 0 4px 16px rgba(211,47,47,0.3);">
+                  [disabled]="otpCode.length < 6"
+                  style="font-weight: 800; height: 50px; --border-radius: 14px; margin-top: 18px; --box-shadow: 0 4px 16px rgba(211,47,47,0.3);">
         <ng-container *ngIf="!isVerifyingOtp">Verify &amp; Complete Registration <app-icon name="check" [size]="18" color="#ffffff" style="margin-left: 8px;"></app-icon></ng-container>
         <span *ngIf="isVerifyingOtp" class="dot-loader"><span></span><span></span><span></span></span>
       </ion-button>

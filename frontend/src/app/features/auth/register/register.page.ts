@@ -510,6 +510,11 @@ export class RegisterPage implements OnInit, OnDestroy {
         return;
       }
 
+      if (!this.termsAccepted) {
+        this.showToast('Please read and agree to the Terms of Service and Privacy Policy to proceed.');
+        return;
+      }
+
       this.currentStep = 2;
       setTimeout(() => {
         this.accountDetailsCmp?.onStepActivated();
@@ -742,10 +747,6 @@ export class RegisterPage implements OnInit, OnDestroy {
   verifyOtp(): void {
     if (!this.otpCode?.trim() || this.otpCode.length < 6) {
       this.showToast('Please enter the 6-digit verification code.');
-      return;
-    }
-    if (!this.termsAccepted) {
-      this.showToast('Please accept the Terms of Service and Privacy Policy to complete registration.');
       return;
     }
     if (this.isVerifyingOtp) return;

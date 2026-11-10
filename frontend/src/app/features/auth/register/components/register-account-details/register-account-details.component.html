@@ -83,13 +83,45 @@
     </p>
   </div>
 
+  <!-- Password Requirements Checklist (Smoothly expands upward above the password field when editing) -->
+  <div class="password-checklist-wrapper" [class.is-open]="passwordFocused">
+    <div class="password-checklist-inner">
+      <div class="checklist-card">
+        <div class="checklist-title">
+          <app-icon name="shield-check" [size]="14" color="var(--ion-color-danger)"></app-icon>
+          <span>Password Requirements</span>
+        </div>
+        <p class="rule-item" [style.color]="pwdLength ? '#2dd36f' : 'var(--ion-color-medium)'">
+          <app-icon [name]="pwdLength ? 'check' : 'circle'" [size]="14" [color]="pwdLength ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
+          Minimum 8 characters
+        </p>
+        <p class="rule-item" [style.color]="pwdUpper ? '#2dd36f' : 'var(--ion-color-medium)'">
+          <app-icon [name]="pwdUpper ? 'check' : 'circle'" [size]="14" [color]="pwdUpper ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
+          At least one uppercase letter (A-Z)
+        </p>
+        <p class="rule-item" [style.color]="pwdLower ? '#2dd36f' : 'var(--ion-color-medium)'">
+          <app-icon [name]="pwdLower ? 'check' : 'circle'" [size]="14" [color]="pwdLower ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
+          At least one lowercase letter (a-z)
+        </p>
+        <p class="rule-item" [style.color]="pwdNum ? '#2dd36f' : 'var(--ion-color-medium)'">
+          <app-icon [name]="pwdNum ? 'check' : 'circle'" [size]="14" [color]="pwdNum ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
+          At least one number (0-9)
+        </p>
+        <p class="rule-item" [style.color]="pwdSym ? '#2dd36f' : 'var(--ion-color-medium)'">
+          <app-icon [name]="pwdSym ? 'check' : 'circle'" [size]="14" [color]="pwdSym ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
+          At least one special character (@$!%*#?&)
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- Password Box & Confirm Password Box grouped in Inset Card -->
-  <div class="inset-card" style="margin-top: 12px; margin-bottom: 6px;">
+  <div class="inset-card" style="margin-top: 8px; margin-bottom: 6px;">
     <ion-item lines="full">
       <app-icon name="lock" slot="start" [size]="18" color="var(--ion-color-medium)" style="margin-right: 12px;"></app-icon>
       <ion-input label="Password" labelPlacement="stacked" type="password" placeholder="Create a strong password"
                  [(ngModel)]="userData.password"
-                 (ionFocus)="passwordFocused = true" (ionBlur)="passwordFocused = false" required>
+                 (ionFocus)="onPasswordFocus()" (ionBlur)="onPasswordBlur()" required>
         <ion-input-password-toggle slot="end"></ion-input-password-toggle>
       </ion-input>
     </ion-item>
@@ -114,35 +146,4 @@
       <span>Passwords do not match.</span>
     </p>
   </div>
-
-  <!-- Password Requirements Checklist -->
-  <div *ngIf="passwordFocused || (userData.password ?? '').length > 0"
-       style="background: var(--ion-card-background, white); padding: 14px 16px; border-radius: 16px; margin: 10px 0; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); box-shadow: var(--card-shadow);">
-    <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdLength ? '#2dd36f' : 'var(--ion-color-medium)'">
-      <app-icon [name]="pwdLength ? 'check' : 'circle'" [size]="14" [color]="pwdLength ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
-      Minimum 8 characters
-    </p>
-    <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdUpper ? '#2dd36f' : 'var(--ion-color-medium)'">
-      <app-icon [name]="pwdUpper ? 'check' : 'circle'" [size]="14" [color]="pwdUpper ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
-      At least one uppercase letter (A-Z)
-    </p>
-    <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdLower ? '#2dd36f' : 'var(--ion-color-medium)'">
-      <app-icon [name]="pwdLower ? 'check' : 'circle'" [size]="14" [color]="pwdLower ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
-      At least one lowercase letter (a-z)
-    </p>
-    <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdNum ? '#2dd36f' : 'var(--ion-color-medium)'">
-      <app-icon [name]="pwdNum ? 'check' : 'circle'" [size]="14" [color]="pwdNum ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
-      At least one number (0-9)
-    </p>
-    <p style="margin: 4px 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;" [style.color]="pwdSym ? '#2dd36f' : 'var(--ion-color-medium)'">
-      <app-icon [name]="pwdSym ? 'check' : 'circle'" [size]="14" [color]="pwdSym ? '#2dd36f' : 'var(--ion-color-medium)'"></app-icon>
-      At least one special character (@$!%*#?&)
-    </p>
-  </div>
-
-  <p *ngIf="passwordsMatch === false"
-     style="color: #eb445a; font-size: 12px; margin: 4px 0 8px 8px; display: flex; align-items: center; gap: 6px;">
-    <app-icon name="circle-alert" [size]="14" color="#eb445a"></app-icon>
-    <span>Passwords do not match.</span>
-  </p>
 </div>

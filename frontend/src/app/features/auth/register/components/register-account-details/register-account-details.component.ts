@@ -29,6 +29,22 @@ export class RegisterAccountDetailsComponent implements OnInit, OnChanges, OnDes
   usernameFocused = false;
   emailFocused    = false;
   passwordFocused = false;
+  private passwordBlurTimer: ReturnType<typeof setTimeout> | null = null;
+
+  onPasswordFocus(): void {
+    if (this.passwordBlurTimer) {
+      clearTimeout(this.passwordBlurTimer);
+      this.passwordBlurTimer = null;
+    }
+    this.passwordFocused = true;
+  }
+
+  onPasswordBlur(): void {
+    this.passwordBlurTimer = setTimeout(() => {
+      this.passwordFocused = false;
+      this.passwordBlurTimer = null;
+    }, 150);
+  }
 
   usernameAvailable: boolean | null = null;
   emailAvailable: boolean | null = null;
@@ -74,6 +90,7 @@ export class RegisterAccountDetailsComponent implements OnInit, OnChanges, OnDes
   ngOnDestroy(): void {
     if (this.usernameDebounceTimer) clearTimeout(this.usernameDebounceTimer);
     if (this.emailDebounceTimer) clearTimeout(this.emailDebounceTimer);
+    if (this.passwordBlurTimer) clearTimeout(this.passwordBlurTimer);
   }
 
   // Password rules
