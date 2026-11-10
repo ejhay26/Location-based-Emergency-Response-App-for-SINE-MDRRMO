@@ -247,7 +247,14 @@ export class SettingsPage implements OnInit, OnDestroy {
       this.settings.setBool(setting.key, isChecked);
       if (setting.key === 'reduce_animations') document.documentElement.classList.toggle('reduce-animations', isChecked);
       if (setting.key === 'location_auto_fetch') {
-        if (isChecked) this.locationSvc.restart(); else this.locationSvc.stop();
+        if (isChecked) {
+          this.locationSvc.restart();
+          this.widgetToastMessage = 'Auto-fetch GPS location enabled.';
+        } else {
+          this.locationSvc.stop();
+          this.widgetToastMessage = 'Auto-fetch GPS location disabled.';
+        }
+        this.widgetToastOpen = true;
       }
     }
   }

@@ -15,6 +15,7 @@ import { ImpactFeedbackDirective } from '../../../shared/directives/impact-feedb
 import { ListEnterDirective } from '../../../shared/directives/list-enter.directive';
 import { UtcDatePipe, parseServerDate } from '../../../shared/pipes/utc-date.pipe';
 import { reportModalEnter, reportModalLeave } from '../../../core/animations/report-modal-transition';
+import { LocationService } from '../../../core/services/location';
 import { ReportPage } from '../report/report.page';
 import { ProxyImageDirective } from '../../../shared/directives/proxy-image.directive';
 import { FloatingSosCardComponent, FloatingSosStatus } from '../../../shared/components/floating-sos-card/floating-sos-card.component';
@@ -93,6 +94,7 @@ export class HomePage implements OnInit, OnDestroy {
     private widgetPin: WidgetPinService,
     public offlineQueue: OfflineQueueService,
     private dialog: DialogService,
+    private locationSvc: LocationService,
   ) {}
 
   async showToast(message: string, color: 'success' | 'danger' | 'warning' | 'medium' = 'medium') {
@@ -393,9 +395,15 @@ export class HomePage implements OnInit, OnDestroy {
     await modal.present();
   }
 
-  goToSos() { this.openReport('emergency'); }
+  goToSos() {
+    this.locationSvc.seedPosition();
+    this.openReport('emergency');
+  }
 
-  goToHazard() { this.openReport('hazard'); }
+  goToHazard() {
+    this.locationSvc.seedPosition();
+    this.openReport('hazard');
+  }
 
   async openAllAnnouncements() {
     const modal = await this.modalCtrl.create({

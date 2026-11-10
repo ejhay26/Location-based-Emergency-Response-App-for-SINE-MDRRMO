@@ -613,15 +613,20 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   private bgyLabelsLayer: any;
 
   initMap() {
-    // Passed the actual element (not the 'report-map' id string) so Leaflet's
-    // own internal element lookup can't hit the same duplicate-id collision
-    // this class's other lookups were fixed for — see mapCanvasRef's doc
-    // comment above. tryInit() already guards this truthy before calling here.
+    const isAutoFetch = this.userSettings.getBool('location_auto_fetch');
+    const cached = this.locationSvc.cachedPosition;
+    const isCachedInside = cached ? this.isInsideSanIsidro(cached.lat, cached.lng) : false;
+
+    const initialCenter: [number, number] = (isAutoFetch && cached && isCachedInside)
+      ? [cached.lat, cached.lng]
+      : [15.3014, 120.9274];
+    const initialZoom = (isAutoFetch && cached && isCachedInside) ? 17 : 14;
+
     this.map = L.map(this.mapCanvasRef!.nativeElement, {
       minZoom: this.mapTileService.minZoom,
       maxZoom: this.mapTileService.maxZoom,
       zoomControl: false
-    }).setView([15.3014, 120.9274], 14);
+    }).setView(initialCenter, initialZoom);
     const osmTileUrl = (environment as any).mapTileUrl || 'http://159.223.42.159:3000/tiles/osm/{z}/{x}/{y}.png';
     const satelliteTileUrl = (environment as any).satelliteTileUrl || 'http://159.223.42.159:3000/tiles/satellite/{z}/{y}/{x}.jpg';
 
@@ -637,6 +642,16 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       this.streetLayer.addTo(this.map);
     } else {
       this.satelliteLayer.addTo(this.map);
+    }
+
+    if (isAutoFetch && cached && isCachedInside) {
+      this.lastInsideCenter = { lat: cached.lat, lng: cached.lng };
+      this.resolvedBarangayName = this.resolveBarangayName(cached.lat, cached.lng);
+      this.coordsChanged.emit({
+        latitude: cached.lat.toFixed(6),
+        longitude: cached.lng.toFixed(6),
+        barangayName: this.resolvedBarangayName
+      });
     }
 
     // Local GeoJSON layers loaded directly from project assets
@@ -682,24 +697,32 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
       const hole = this.sanIsidroPolygon.map((c: any[]) => [c[1], c[0]]);
       L.polygon([[[-90, -180], [90, -180], [90, 180], [-90, 180]], hole], { color: 'transparent', fillColor: '#888', fillOpacity: 0.6 }).addTo(this.map);
       const bounds = boundaryLayer.getBounds();
-      this.map.fitBounds(bounds); this.map.setMaxBounds(bounds.pad(0.4)); this.map.options.maxBoundsViscosity = 0.65;
-      this.updateCoords();
+      this.map.setMaxBounds(bounds.pad(0.4)); this.map.options.maxBoundsViscosity = 0.65;
 
-      if (this.userSettings.getBool('location_auto_fetch')) {
-        const cached = this.locationSvc.cachedPosition;
-        if (cached && this.map) {
-          const isInside = this.isInsideSanIsidro(cached.lat, cached.lng);
+      const hasValidCached = cached && this.isInsideSanIsidro(cached.lat, cached.lng);
+      if (!isAutoFetch && !this.hasUserInteracted) {
+        this.map.fitBounds(bounds);
+      } else if (!hasValidCached && !this.hasUserInteracted) {
+        this.map.fitBounds(bounds);
+      }
+      this.updateCoords();
+    });
+
+    // Start auto fetch fast location resolution immediately
+    if (isAutoFetch) {
+      this.locationSvc.getFastPosition({ highAccuracy: true }).then(pos => {
+        if (pos && this.map && !this.hasUserInteracted) {
+          const isInside = this.isInsideSanIsidro(pos.lat, pos.lng);
           this.isActualLocationOutOfBounds = !isInside;
-          if (isInside && !this.hasUserInteracted) {
-            this.map.flyTo([cached.lat, cached.lng], 17);
-          } else if (!isInside) {
+          if (isInside) {
+            this.map.flyTo([pos.lat, pos.lng], 17, { animate: true, duration: 0.35 });
+            this.updateCoords();
+          } else {
             this.snapToTownCenter();
           }
-        } else {
-          this.getCurrentLocation(true);
         }
-      }
-    });
+      });
+    }
 
     this.locationSub?.unsubscribe();
     this.locationSub = this.locationSvc.position$.subscribe(pos => {
@@ -707,13 +730,14 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
         const isInside = this.isInsideSanIsidro(pos.lat, pos.lng);
         this.isActualLocationOutOfBounds = !isInside;
         if (isInside && !this.hasUserInteracted) {
-          this.map.flyTo([pos.lat, pos.lng], 17);
+          this.map.flyTo([pos.lat, pos.lng], 17, { animate: true, duration: 0.35 });
+          this.updateCoords();
         }
       }
     });
 
-    this.map.on('movestart', () => { this.hasUserInteracted = true; });
     this.map.on('dragstart', () => { this.hasUserInteracted = true; });
+    this.map.on('zoomstart', (e: any) => { if (e?.originalEvent) this.hasUserInteracted = true; });
     this.map.on('moveend', () => this.updateCoords());
     this.showMapHint = true;
     this.hintTimer = setTimeout(() => { this.showMapHint = false; }, 3000);
@@ -755,53 +779,36 @@ export class ReportMapComponent implements AfterViewInit, OnDestroy {
   }
 
   async getCurrentLocation(silent = false) {
-    let permDenied = false;
-    try {
-      const perm = await Geolocation.requestPermissions();
-      if (perm.location === 'denied') { permDenied = true; }
-    } catch { /* already granted */ }
-    if (permDenied) {
-      if (!silent) this.showToast('Location permission denied. Enable it in app settings.', 'danger');
+    this.hasUserInteracted = false;
+
+    // Instant recenter on cache if available
+    const cached = this.locationSvc.cachedPosition;
+    if (cached && this.isInsideSanIsidro(cached.lat, cached.lng)) {
+      if (this.map) {
+        this.map.flyTo([cached.lat, cached.lng], 17, { animate: true, duration: 0.3 });
+      }
+      this.updateCoords();
+    }
+
+    const pos = await this.locationSvc.getFastPosition({ highAccuracy: true });
+    if (!pos) {
+      if (!silent) this.showToast('Could not acquire GPS position. Check location settings.', 'warning');
       return;
     }
-    let pos: any = null;
-    try {
-      pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
-    } catch (highErr: any) {
-      const isTimeout = highErr?.message?.toLowerCase().includes('timeout') || highErr?.code === 3;
-      if (isTimeout) {
-        try {
-          pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 8000 });
-        } catch {
-          if (!silent) this.showToast('Could not get location. Check that GPS is enabled.', 'warning');
-          return;
-        }
-      } else {
-        if (!silent) this.showToast('Could not get location. Check that GPS is enabled.', 'warning');
-        return;
-      }
-    }
-    if (pos?.coords) {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      const isInside = this.isInsideSanIsidro(lat, lng);
-      this.isActualLocationOutOfBounds = !isInside;
-      this.locationSvc.cachedPosition = { lat, lng, accuracy: pos.coords.accuracy, timestamp: pos.timestamp };
 
-      if (!isInside) {
-        if (!silent) {
-          this.showToast('Your GPS location is outside San Isidro. Please position the pin manually within town limits.', 'warning');
-        }
-        this.snapToTownCenter();
-        return;
-      }
-
+    const isInside = this.isInsideSanIsidro(pos.lat, pos.lng);
+    this.isActualLocationOutOfBounds = !isInside;
+    if (isInside) {
       if (this.map) {
-        this.map.flyTo([lat, lng], 17);
+        this.map.flyTo([pos.lat, pos.lng], 17, { animate: true, duration: 0.35 });
       }
-    }
-    if (pos?.coords) {
-      this.locationSvc.cachedPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, timestamp: pos.timestamp };
+      this.updateCoords();
+      if (!silent) this.showToast('Centered on your GPS location.', 'success');
+    } else {
+      if (!silent) {
+        this.showToast('Your GPS location is outside San Isidro. Please position the pin manually within town limits.', 'warning');
+      }
+      this.snapToTownCenter();
     }
   }
 

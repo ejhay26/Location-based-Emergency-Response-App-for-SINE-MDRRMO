@@ -143,7 +143,7 @@ export class AuthSessionService {
         // Unregister push error ignored
       }
 
-      this.locationSvc.stop();
+      this.locationSvc.clearCache();
       this.settings.clear();
       this.imageCache.clear();
       this.echo.disconnect();

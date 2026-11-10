@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, ViewChild, inject } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, AfterViewInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -33,7 +33,7 @@ import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.c
     ReportTypeSelectorComponent, ReportMapComponent, ReportMediaComponent, AppIconComponent
   ]
 })
-export class ReportPage implements OnDestroy, CanComponentDeactivate {
+export class ReportPage implements OnInit, AfterViewInit, OnDestroy, CanComponentDeactivate {
   private fb          = inject(FormBuilder);
   private router      = inject(Router);
   private route       = inject(ActivatedRoute);
@@ -75,7 +75,17 @@ export class ReportPage implements OnDestroy, CanComponentDeactivate {
       const type = this.route.snapshot.queryParamMap.get('type');
       this.reportType = type === 'hazard' ? 'hazard' : 'emergency';
     }
+    this.locationSvc.start();
     this.restoreDraftIfPresent();
+  }
+
+  ngAfterViewInit() {
+    this.locationSvc.start();
+    requestAnimationFrame(() => {
+      this.reportMapCmp?.tryInit();
+      setTimeout(() => this.reportMapCmp?.tryInit(), 150);
+      setTimeout(() => this.reportMapCmp?.tryInit(), 400);
+    });
   }
 
   mediaFiles: MediaFile[] = [];
