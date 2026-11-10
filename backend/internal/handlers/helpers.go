@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 )
 
 func parseFlexibleFloat64(val any) float64 {
@@ -35,7 +36,7 @@ func parseFlexibleInt(val any) int {
 	case int64:
 		return int(v)
 	case string:
-		i, _ := strconv.Atoi(v)
+		i, _ := strconv.Atoi(strings.TrimSpace(v))
 		return i
 	case json.Number:
 		i, _ := v.Int64()

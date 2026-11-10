@@ -750,7 +750,12 @@ export class RegisterPage implements OnInit, OnDestroy {
     }
     if (this.isVerifyingOtp) return;
     this.isVerifyingOtp = true;
-    this.api.verifyOtp({ email: this.userData.email, otp: this.otpCode }).subscribe({
+    const rawOtp = (this.otpCode || '').trim();
+    const cleanEmail = (this.userData.email || '').trim().toLowerCase();
+    const numericOtp = parseInt(rawOtp, 10);
+    const otpPayload = isNaN(numericOtp) ? rawOtp : numericOtp;
+
+    this.api.verifyOtp({ email: cleanEmail, otp: otpPayload }).subscribe({
       next: () => {
         this.isVerifyingOtp = false;
         localStorage.removeItem('sine_pending_registration');

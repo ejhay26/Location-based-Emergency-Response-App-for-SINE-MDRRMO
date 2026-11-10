@@ -34,12 +34,6 @@
       style="position:absolute;top:10px;right:10px;z-index:1002;width:44px;height:44px;border-radius:14px;border:none;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,0.3);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto !important;transition:transform 0.15s ease;">
       <app-icon name="expand" [size]="18" color="#ffffff"></app-icon>
     </button>
-    <!-- Use My Location button on small map -->
-    <button type="button" (click)="getCurrentLocation()" (pointerdown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()"
-      title="Center on my location"
-      style="position:absolute;top:60px;right:10px;z-index:1002;width:44px;height:44px;border-radius:14px;border:none;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,0.3);touch-action:manipulation;-webkit-tap-highlight-color:transparent;pointer-events:auto !important;transition:transform 0.15s ease;">
-      <app-icon name="map-pin" [size]="18" color="var(--ion-color-danger, #eb445a)"></app-icon>
-    </button>
   </div>
 </div>
 
