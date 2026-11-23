@@ -74,6 +74,12 @@ export class EchoService implements OnDestroy {
    * Resolves the WebSocket URL using environment configuration.
    */
   private getWebSocketUrl(): string {
+    const customWs = localStorage.getItem('custom_ws_url');
+    if (customWs) return customWs;
+    const customApi = localStorage.getItem('custom_api_url');
+    if (customApi) {
+      return customApi.replace(/^http/i, 'ws').replace(/\/api\/?$/, '') + '/ws';
+    }
     if ((environment as any).wsUrl) {
       return (environment as any).wsUrl;
     }

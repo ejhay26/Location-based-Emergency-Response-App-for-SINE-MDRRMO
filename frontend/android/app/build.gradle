@@ -13,8 +13,8 @@ android {
         applicationId "ph.gov.sine.mdrrmo.emergencyresponse"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 24
-        versionName "0.93.4"
+        versionCode 994
+        versionName "0.99.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

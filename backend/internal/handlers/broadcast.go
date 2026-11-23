@@ -219,10 +219,10 @@ func GetActiveBroadcast(c *fiber.Ctx) error {
 	}
 
 	// For admin/dispatcher: grouped into drafts, active, scheduled, archived
-	var drafts []FormattedBroadcast
-	var active []FormattedBroadcast
-	var scheduled []FormattedBroadcast
-	var archived []FormattedBroadcast
+	drafts := make([]FormattedBroadcast, 0)
+	active := make([]FormattedBroadcast, 0)
+	scheduled := make([]FormattedBroadcast, 0)
+	archived := make([]FormattedBroadcast, 0)
 
 	now := time.Now()
 	for _, b := range all {

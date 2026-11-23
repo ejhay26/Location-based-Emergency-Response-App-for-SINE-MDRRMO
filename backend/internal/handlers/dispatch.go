@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"sine-mdrrmo-backend/internal/database"
@@ -28,17 +29,41 @@ func GetDispatchAssets(c *fiber.Ctx) error {
 }
 
 type DispatchEmergencyRequest struct {
-	RequestID int    `json:"request_id"`
-	Agency    string `json:"agency"`
-	UnitName  string `json:"unit_name"`
-	Notes     string `json:"notes"`
+	RequestID int      `json:"request_id"`
+	Agency    string   `json:"agency"`
+	Agencies  []string `json:"agencies"`
+	UnitName  string   `json:"unit_name"`
+	Notes     string   `json:"notes"`
 }
 
 func DispatchEmergency(c *fiber.Ctx) error {
 	caller := middleware.GetUser(c)
 	var req DispatchEmergencyRequest
-	if err := c.BodyParser(&req); err != nil || req.RequestID <= 0 || req.Agency == "" {
-		return c.Status(422).JSON(fiber.Map{"message": "request_id and agency are required."})
+	if err := c.BodyParser(&req); err != nil || req.RequestID <= 0 {
+		return c.Status(422).JSON(fiber.Map{"message": "request_id and at least one agency are required."})
+	}
+
+	// Normalize selected agencies list (supports both multi-agency array and comma-separated fallback)
+	selectedAgencies := make([]string, 0)
+	seen := make(map[string]bool)
+	for _, a := range req.Agencies {
+		clean := strings.TrimSpace(a)
+		if clean != "" && !seen[clean] {
+			seen[clean] = true
+			selectedAgencies = append(selectedAgencies, clean)
+		}
+	}
+	if len(selectedAgencies) == 0 && strings.TrimSpace(req.Agency) != "" {
+		for _, part := range strings.Split(req.Agency, ",") {
+			clean := strings.TrimSpace(part)
+			if clean != "" && !seen[clean] {
+				seen[clean] = true
+				selectedAgencies = append(selectedAgencies, clean)
+			}
+		}
+	}
+	if len(selectedAgencies) == 0 {
+		return c.Status(422).JSON(fiber.Map{"message": "request_id and at least one agency are required."})
 	}
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
@@ -56,29 +81,34 @@ func DispatchEmergency(c *fiber.Ctx) error {
 
 		now := time.Now()
 		var notesPtr *string
-		if req.Notes != "" {
-			notesPtr = &req.Notes
+		if strings.TrimSpace(req.Notes) != "" {
+			n := strings.TrimSpace(req.Notes)
+			notesPtr = &n
 		}
 		var unitPtr *string
-		if req.UnitName != "" {
-			unitPtr = &req.UnitName
+		if strings.TrimSpace(req.UnitName) != "" {
+			u := strings.TrimSpace(req.UnitName)
+			unitPtr = &u
 		}
 		var callerIDPtr *int
 		if caller != nil && caller.UserID != 0 {
 			callerIDPtr = &caller.UserID
 		}
 
-		dispatch := models.Dispatch{
-			RequestID:    &req.RequestID,
-			DispatchedBy: callerIDPtr,
-			Agency:       &req.Agency,
-			UnitName:     unitPtr,
-			Notes:        notesPtr,
-			DispatchTime: &now,
-			Status:       strPtr("Dispatched"),
-		}
-		if err := tx.Create(&dispatch).Error; err != nil {
-			return err
+		for _, agencyName := range selectedAgencies {
+			agCopy := agencyName
+			dispatch := models.Dispatch{
+				RequestID:    &req.RequestID,
+				DispatchedBy: callerIDPtr,
+				Agency:       &agCopy,
+				UnitName:     unitPtr,
+				Notes:        notesPtr,
+				DispatchTime: &now,
+				Status:       strPtr("Dispatched"),
+			}
+			if err := tx.Create(&dispatch).Error; err != nil {
+				return err
+			}
 		}
 
 		if err := tx.Model(&models.EmergencyRequest{}).Where("request_id = ? AND deleted_at IS NULL", req.RequestID).Update("status", "Dispatched").Error; err != nil {
@@ -95,12 +125,13 @@ func DispatchEmergency(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"message": "Failed to dispatch agency."})
 	}
 
+	joinedAgencies := strings.Join(selectedAgencies, ", ")
 	var er models.EmergencyRequest
 	if err := database.DB.Where("request_id = ? AND deleted_at IS NULL", req.RequestID).First(&er).Error; err == nil && er.UserID != nil {
 		services.SafeGo(func() {
-			notifMsg := fmt.Sprintf("Help from %s is on the way to your location.", req.Agency)
-			if req.UnitName != "" {
-				notifMsg = fmt.Sprintf("Help from %s (%s) is on the way to your location.", req.Agency, req.UnitName)
+			notifMsg := fmt.Sprintf("Help from %s is on the way to your location.", joinedAgencies)
+			if strings.TrimSpace(req.UnitName) != "" {
+				notifMsg = fmt.Sprintf("Help from %s (%s) is on the way to your location.", joinedAgencies, strings.TrimSpace(req.UnitName))
 			}
 			_ = services.NotifyUser(*er.UserID, "Responders Dispatched", notifMsg, map[string]string{
 				"type": "dispatched",
@@ -110,7 +141,10 @@ func DispatchEmergency(c *fiber.Ctx) error {
 
 	websocket.BroadcastEmergency("dispatched", req.RequestID)
 
-	return c.JSON(fiber.Map{"message": "Agency dispatched successfully!"})
+	return c.JSON(fiber.Map{
+		"message":  "Agency dispatched successfully!",
+		"agencies": selectedAgencies,
+	})
 }
 
 func ResolveEmergency(c *fiber.Ctx) error {

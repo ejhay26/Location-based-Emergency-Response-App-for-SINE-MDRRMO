@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -62,38 +61,40 @@ func GetAnalytics(c *fiber.Ctx) error {
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, config.PhilippineTZ)
 	since := todayStart.AddDate(0, 0, -(days - 1))
 
+	dateExpr := DateYMDExpr("emergency_requests.request_time")
+
 	// 1. Daily Stats
-	var dailyStats []DailyStat
+	dailyStats := make([]DailyStat, 0)
 	database.DB.Table("emergency_requests").
-		Select(`DATE_FORMAT(emergency_requests.request_time, '%Y-%m-%d') as date,
+		Select(dateExpr+` as date,
 			SUM(CASE WHEN incident_types.incident_name = 'Fire'    THEN 1 ELSE 0 END) as fire,
 			SUM(CASE WHEN incident_types.incident_name = 'Flood'   THEN 1 ELSE 0 END) as flood,
 			SUM(CASE WHEN incident_types.incident_name = 'Medical' THEN 1 ELSE 0 END) as medical,
 			SUM(CASE WHEN incident_types.incident_name = 'Crime'   THEN 1 ELSE 0 END) as crime,
 			SUM(CASE WHEN incident_types.incident_name = 'Others'  THEN 1 ELSE 0 END) as others,
 			COUNT(*) as total`).
-		Joins("JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
+		Joins("LEFT JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
 		Where("emergency_requests.request_time >= ?", since).
-		Group("DATE_FORMAT(emergency_requests.request_time, '%Y-%m-%d')").
+		Group(dateExpr).
 		Order("date ASC").
 		Scan(&dailyStats)
 
 	// 2. Type Stats
-	var typeStats []TypeStat
+	typeStats := make([]TypeStat, 0)
 	database.DB.Table("emergency_requests").
-		Select("incident_types.incident_name, COUNT(*) as total").
-		Joins("JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
+		Select("COALESCE(incident_types.incident_name, 'Others') as incident_name, COUNT(*) as total").
+		Joins("LEFT JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
 		Where("emergency_requests.request_time >= ?", since).
 		Group("incident_types.incident_name").
 		Scan(&typeStats)
 
 	// 3. Recent Records
-	var recentRecords []EmergencyDetailRow
+	recentRecords := make([]EmergencyDetailRow, 0)
 	database.DB.Table("emergency_requests").
 		Select("emergency_requests.*, user_profiles.first_name, user_profiles.last_name, user_medical_profiles.blood_type, user_medical_profiles.allergies, user_medical_profiles.medical_conditions, user_medical_profiles.pwd_status, incident_types.incident_name, barangays.barangay_name").
-		Joins("JOIN users ON emergency_requests.user_id = users.user_id").
+		Joins("LEFT JOIN users ON emergency_requests.user_id = users.user_id").
 		Joins("LEFT JOIN user_profiles ON users.user_id = user_profiles.user_id").
-		Joins("JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
+		Joins("LEFT JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
 		Joins("LEFT JOIN barangays ON emergency_requests.barangay_id = barangays.barangay_id").
 		Joins("LEFT JOIN user_medical_profiles ON users.user_id = user_medical_profiles.user_id").
 		Where("emergency_requests.request_time >= ?", since).
@@ -103,15 +104,15 @@ func GetAnalytics(c *fiber.Ctx) error {
 
 	for i := range recentRecords {
 		if len(recentRecords[i].ProofFiles) == 0 || string(recentRecords[i].ProofFiles) == "null" {
-			recentRecords[i].ProofFiles = json.RawMessage("[]")
+			recentRecords[i].ProofFiles = FlexJSON("[]")
 		}
 	}
 
 	// 4. Barangay Stats
-	var barangayStats []BarangayStat
+	barangayStats := make([]BarangayStat, 0)
 	database.DB.Table("emergency_requests").
-		Select("barangays.barangay_name, COUNT(*) as total").
-		Joins("JOIN barangays ON emergency_requests.barangay_id = barangays.barangay_id").
+		Select("COALESCE(barangays.barangay_name, 'Unknown') as barangay_name, COUNT(*) as total").
+		Joins("LEFT JOIN barangays ON emergency_requests.barangay_id = barangays.barangay_id").
 		Where("emergency_requests.request_time >= ?", since).
 		Group("barangays.barangay_name").
 		Order("total DESC").
@@ -128,7 +129,7 @@ func GetAnalytics(c *fiber.Ctx) error {
 		Group("hazard_type").
 		Scan(&rawHazardStats)
 
-	var hazardStats []HazardTypeStat
+	hazardStats := make([]HazardTypeStat, 0)
 	for _, r := range rawHazardStats {
 		ht := "Others"
 		if r.HazardType != nil && strings.TrimSpace(*r.HazardType) != "" {
@@ -138,9 +139,10 @@ func GetAnalytics(c *fiber.Ctx) error {
 	}
 
 	// 6. Hazard Daily Stats
-	var hazardDailyStats []HazardDailyStat
+	hazardDateExpr := DateYMDExpr("created_at")
+	hazardDailyStats := make([]HazardDailyStat, 0)
 	database.DB.Table("hazards").
-		Select(`DATE_FORMAT(created_at, '%Y-%m-%d') as date,
+		Select(hazardDateExpr+` as date,
 			SUM(CASE WHEN hazard_type = 'Flooded Street' OR hazard_type LIKE '%Flood%' THEN 1 ELSE 0 END) as flood,
 			SUM(CASE WHEN hazard_type = 'Road Obstruction' OR hazard_type LIKE '%Road%' OR hazard_type LIKE '%Block%' THEN 1 ELSE 0 END) as road,
 			SUM(CASE WHEN hazard_type = 'Fallen Tree' OR hazard_type LIKE '%Tree%' THEN 1 ELSE 0 END) as tree,
@@ -148,15 +150,15 @@ func GetAnalytics(c *fiber.Ctx) error {
 			SUM(CASE WHEN (hazard_type IS NULL OR (hazard_type NOT IN ('Flooded Street', 'Road Obstruction', 'Fallen Tree', 'Downed Wire') AND hazard_type NOT LIKE '%Flood%' AND hazard_type NOT LIKE '%Road%' AND hazard_type NOT LIKE '%Tree%' AND hazard_type NOT LIKE '%Wire%')) THEN 1 ELSE 0 END) as others,
 			COUNT(*) as total`).
 		Where("created_at >= ?", since).
-		Group("DATE_FORMAT(created_at, '%Y-%m-%d')").
+		Group(hazardDateExpr).
 		Order("date ASC").
 		Scan(&hazardDailyStats)
 
 	// 7. Hazard Barangay Stats
-	var hazardBarangayStats []BarangayStat
+	hazardBarangayStats := make([]BarangayStat, 0)
 	database.DB.Table("hazards").
-		Select("barangays.barangay_name, COUNT(*) as total").
-		Joins("JOIN barangays ON hazards.barangay_id = barangays.barangay_id").
+		Select("COALESCE(barangays.barangay_name, 'Unknown') as barangay_name, COUNT(*) as total").
+		Joins("LEFT JOIN barangays ON hazards.barangay_id = barangays.barangay_id").
 		Where("hazards.created_at >= ?", since).
 		Group("barangays.barangay_name").
 		Order("total DESC").

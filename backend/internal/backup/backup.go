@@ -134,7 +134,7 @@ func FormatAge(t time.Time) string {
 	return fmt.Sprintf("%d days ago", int(diff.Hours()/24))
 }
 
-// CreateSnapshot creates a gzip-compressed mysqldump snapshot and auto-prunes
+// CreateSnapshot creates a gzip-compressed snapshot (SQLite file copy or mysqldump) and auto-prunes
 func CreateSnapshot(prefix string) (*BackupInfo, error) {
 	if prefix == "" {
 		prefix = "emergencydb"
@@ -142,13 +142,80 @@ func CreateSnapshot(prefix string) (*BackupInfo, error) {
 
 	backupDir := GetBackupDir()
 	timestamp := time.Now().Format("2006-01-02_150405")
-	filename := fmt.Sprintf("%s_%s.sql.gz", prefix, timestamp)
-	targetPath := filepath.Join(backupDir, filename)
-
 	cfg := config.AppConfig
 	if cfg == nil {
 		return nil, fmt.Errorf("app config not initialized")
 	}
+
+	if cfg.DBDriver == "sqlite" {
+		dbName := cfg.DBDatabase
+		if dbName == "" || dbName == "emergencydb" {
+			dbName = "emergency.db"
+		}
+		if !strings.HasSuffix(dbName, ".db") {
+			dbName += ".db"
+		}
+		exeDir := "."
+		if exePath, err := os.Executable(); err == nil {
+			if realPath, err := filepath.EvalSymlinks(exePath); err == nil {
+				exeDir = filepath.Dir(realPath)
+			} else {
+				exeDir = filepath.Dir(exePath)
+			}
+		}
+		srcPath := filepath.Join(exeDir, dbName)
+		if _, err := os.Stat(srcPath); err != nil {
+			if _, err2 := os.Stat(filepath.Join(exeDir, "backend", dbName)); err2 == nil {
+				srcPath = filepath.Join(exeDir, "backend", dbName)
+			}
+		}
+		filename := fmt.Sprintf("%s_%s.db.gz", prefix, timestamp)
+		targetPath := filepath.Join(backupDir, filename)
+
+		srcFile, err := os.Open(srcPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open sqlite db for backup: %w", err)
+		}
+		defer srcFile.Close()
+
+		outFile, err := os.Create(targetPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create backup file: %w", err)
+		}
+		defer outFile.Close()
+
+		gzWriter := gzip.NewWriter(outFile)
+		if _, err := io.Copy(gzWriter, srcFile); err != nil {
+			_ = gzWriter.Close()
+			_ = os.Remove(targetPath)
+			return nil, fmt.Errorf("failed to compress sqlite backup: %w", err)
+		}
+		if err := gzWriter.Close(); err != nil {
+			_ = os.Remove(targetPath)
+			return nil, fmt.Errorf("failed to finalize gzip stream: %w", err)
+		}
+
+		info, err := os.Stat(targetPath)
+		if err != nil || info.Size() == 0 {
+			_ = os.Remove(targetPath)
+			return nil, fmt.Errorf("backup file is empty or corrupted")
+		}
+		PruneOldBackups()
+		return &BackupInfo{
+			Filename:      filename,
+			Path:          targetPath,
+			SizeBytes:     info.Size(),
+			SizeMB:        float64(info.Size()) / (1024 * 1024),
+			SizeHuman:     FormatBytes(info.Size()),
+			CreatedAt:     info.ModTime(),
+			DateFormatted: info.ModTime().Format("Jan 02, 2006 03:04 PM"),
+			AgeHuman:      FormatAge(info.ModTime()),
+			Type:          "Intraday Snapshot (SQLite)",
+		}, nil
+	}
+
+	filename := fmt.Sprintf("%s_%s.sql.gz", prefix, timestamp)
+	targetPath := filepath.Join(backupDir, filename)
 
 	dumpBin := "mysqldump"
 	if _, err := exec.LookPath("mariadb-dump"); err == nil {

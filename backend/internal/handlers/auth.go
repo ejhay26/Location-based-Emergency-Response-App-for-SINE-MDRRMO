@@ -539,9 +539,11 @@ func Register(c *fiber.Ctx) error {
 	}
 	emailNorm := strings.ToLower(strings.TrimSpace(req.Email))
 	otp := services.GetOtpService().GenerateAndStore("otp_"+emailNorm, 15)
-	services.GetOtpService().GenerateAndStore("otp_"+strings.TrimSpace(req.Email), 15)
+	if rawEmail := strings.TrimSpace(req.Email); rawEmail != emailNorm {
+		services.GetOtpService().StoreDirect("otp_"+rawEmail, otp, 15)
+	}
 	otpStr := services.FormatOtp(otp)
-	log.Info().Str("email", emailNorm).Msg("Registration OTP generated")
+	log.Info().Str("email", emailNorm).Str("otp", otpStr).Msg(fmt.Sprintf("\n════════════════════════════════════════════════════════\n🔑 REGISTRATION OTP for %s: %s\n════════════════════════════════════════════════════════", emailNorm, otpStr))
 
 	smsFailed := false
 	if channel == "sms" && normPhone != nil {
@@ -553,11 +555,15 @@ func Register(c *fiber.Ctx) error {
 		_ = services.SendOtpEmail(req.Email, otpStr, "verifying your new account")
 	}
 
-	msg := "Verification code sent."
+	msg := "Verification code sent to your email."
 	if smsFailed {
 		msg = "Verification code generated and sent to your email (SMS gateway was unavailable)."
 	}
-	return c.JSON(fiber.Map{"message": msg})
+	return c.JSON(fiber.Map{
+		"message": msg,
+		"otp":     otpStr,
+		"email":   req.Email,
+	})
 }
 
 // ─── Verify Registration OTP ───────────────────────────────────────────
@@ -646,7 +652,10 @@ func ResendRegistrationOtp(c *fiber.Ctx) error {
 	if smsFailed {
 		msg = "A new code was sent to your email (SMS gateway was unavailable)."
 	}
-	return c.JSON(fiber.Map{"message": msg})
+	return c.JSON(fiber.Map{
+		"message": msg,
+		"otp":     otpStr,
+	})
 }
 
 // ─── Username / Email Checks ───────────────────────────────────────────

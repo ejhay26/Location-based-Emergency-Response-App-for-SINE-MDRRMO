@@ -2,7 +2,7 @@
 
 <p>
   <a href="#_"><img src="https://img.shields.io/badge/license-Proprietary-red" alt="License" style="pointer-events: none;" /></a>
-  <a href="#_"><img src="https://img.shields.io/badge/version-v0.93.4-blue" alt="Version" style="pointer-events: none;" /></a>
+  <a href="#_"><img src="https://img.shields.io/badge/version-v0.99.4-blue" alt="Version" style="pointer-events: none;" /></a>
   <a href="#_"><img src="https://img.shields.io/badge/backend-Go%20Fiber%20v2-00ADD8?logo=go&logoColor=white" alt="Backend" style="pointer-events: none;" /></a>
   <a href="#_"><img src="https://img.shields.io/badge/go-1.24-00ADD8?logo=go&logoColor=white" alt="Language" style="pointer-events: none;" /></a>
   <a href="#_"><img src="https://img.shields.io/badge/frontend-Angular%2020%20%2F%20Ionic%208-DD0031?logo=angular&logoColor=white" alt="Angular" style="pointer-events: none;" /></a>

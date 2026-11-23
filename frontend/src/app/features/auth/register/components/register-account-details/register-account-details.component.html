@@ -39,7 +39,7 @@
   <!-- Smart Suggested Usernames Strip -->
   <div *ngIf="usernameSuggestions.length > 0" class="suggestions-container" style="background: var(--ion-card-background, white); border-radius: 16px; padding: 12px 14px; margin-bottom: 12px; border: var(--card-border, 1px solid rgba(0,0,0,0.08)); box-shadow: var(--card-shadow);">
     <div class="suggestions-header" [class.taken]="usernameAvailable === false" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--ion-color-medium); margin-bottom: 8px;">
-      <app-icon [name]="usernameAvailable === false ? 'circle-alert' : 'sparkles'" [size]="14" [color]="usernameAvailable === false ? '#eb445a' : 'var(--ion-color-danger)'"></app-icon>
+      <app-icon *ngIf="usernameAvailable === false" name="circle-alert" [size]="14" color="#eb445a"></app-icon>
       <span>{{ usernameAvailable === false ? 'Username is taken. Tap an available handle below:' : 'Suggested handles for you (Tap to fill):' }}</span>
     </div>
     <div class="chips-row" style="display: flex; gap: 8px; flex-wrap: wrap;">

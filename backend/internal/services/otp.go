@@ -50,18 +50,22 @@ func GetOtpService() *OtpService {
 	return otpSvc
 }
 
-// GenerateAndStore creates a new 6-digit OTP and caches it for the given duration.
-func (s *OtpService) GenerateAndStore(key string, minutes int) int {
-	n, _ := rand.Int(rand.Reader, big.NewInt(900000))
-	otp := int(n.Int64()) + 100000
-
+// StoreDirect stores a specific OTP code for the given key and expiration.
+func (s *OtpService) StoreDirect(key string, otp int, minutes int) {
 	s.mu.Lock()
 	s.store[key] = &otpEntry{
 		Code:      otp,
 		ExpiresAt: time.Now().Add(time.Duration(minutes) * time.Minute),
 	}
 	s.mu.Unlock()
+}
 
+// GenerateAndStore creates a new 6-digit OTP and caches it for the given duration.
+func (s *OtpService) GenerateAndStore(key string, minutes int) int {
+	n, _ := rand.Int(rand.Reader, big.NewInt(900000))
+	otp := int(n.Int64()) + 100000
+
+	s.StoreDirect(key, otp, minutes)
 	return otp
 }
 

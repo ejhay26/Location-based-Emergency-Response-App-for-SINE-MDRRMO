@@ -119,11 +119,11 @@ func ResolveHazard(c *fiber.Ctx) error {
 }
 
 type HazardDetailRow struct {
-	HazardID       int             `json:"hazard_id"`
-	UserID         *int            `json:"user_id"`
-	Description    *string         `json:"description"`
-	HazardType     *string         `json:"hazard_type"`
-	ProofFiles     json.RawMessage `json:"proof_files"`
+	HazardID       int        `json:"hazard_id"`
+	UserID         *int       `json:"user_id"`
+	Description    *string    `json:"description"`
+	HazardType     *string    `json:"hazard_type"`
+	ProofFiles     FlexJSON   `json:"proof_files"`
 	Latitude       *float64        `json:"latitude"`
 	Longitude      *float64        `json:"longitude"`
 	BarangayID     *int            `json:"barangay_id"`
@@ -140,7 +140,7 @@ func GetActiveHazards(c *fiber.Ctx) error {
 	rows := make([]HazardDetailRow, 0)
 	err := database.DB.Table("hazards").
 		Select("hazards.*, user_profiles.first_name, user_profiles.last_name, user_profiles.profile_picture, barangays.barangay_name").
-		Joins("JOIN users ON hazards.user_id = users.user_id").
+		Joins("LEFT JOIN users ON hazards.user_id = users.user_id").
 		Joins("LEFT JOIN user_profiles ON users.user_id = user_profiles.user_id").
 		Joins("LEFT JOIN barangays ON hazards.barangay_id = barangays.barangay_id").
 		Where("hazards.status = 'Active'").
@@ -153,7 +153,7 @@ func GetActiveHazards(c *fiber.Ctx) error {
 
 	for i := range rows {
 		if len(rows[i].ProofFiles) == 0 || string(rows[i].ProofFiles) == "null" {
-			rows[i].ProofFiles = json.RawMessage("[]")
+			rows[i].ProofFiles = FlexJSON("[]")
 		}
 	}
 
@@ -161,11 +161,11 @@ func GetActiveHazards(c *fiber.Ctx) error {
 }
 
 type MyHazardRow struct {
-	HazardID     int             `json:"hazard_id"`
-	UserID       *int            `json:"user_id"`
-	Description  *string         `json:"description"`
-	HazardType   *string         `json:"hazard_type"`
-	ProofFiles   json.RawMessage `json:"proof_files"`
+	HazardID     int        `json:"hazard_id"`
+	UserID       *int       `json:"user_id"`
+	Description  *string    `json:"description"`
+	HazardType   *string    `json:"hazard_type"`
+	ProofFiles   FlexJSON   `json:"proof_files"`
 	Latitude     *float64        `json:"latitude"`
 	Longitude    *float64        `json:"longitude"`
 	BarangayID   *int            `json:"barangay_id"`
@@ -206,7 +206,7 @@ func GetMyHazards(c *fiber.Ctx) error {
 
 	for i := range rows {
 		if len(rows[i].ProofFiles) == 0 || string(rows[i].ProofFiles) == "null" {
-			rows[i].ProofFiles = json.RawMessage("[]")
+			rows[i].ProofFiles = FlexJSON("[]")
 		}
 	}
 

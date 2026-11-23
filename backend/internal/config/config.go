@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -31,6 +32,7 @@ type Config struct {
 	AppPort  string
 
 	// Database
+	DBDriver   string
 	DBHost     string
 	DBPort     string
 	DBDatabase string
@@ -86,7 +88,20 @@ var AppConfig *Config
 
 // Load reads .env and populates the global AppConfig
 func Load() {
-	_ = godotenv.Load() // .env is optional in production
+	exeDir := "."
+	if exePath, err := os.Executable(); err == nil {
+		if realPath, err := filepath.EvalSymlinks(exePath); err == nil {
+			exeDir = filepath.Dir(realPath)
+		} else {
+			exeDir = filepath.Dir(exePath)
+		}
+	}
+	_ = godotenv.Load(
+		filepath.Join(exeDir, ".env"),
+		filepath.Join(exeDir, "backend", ".env"),
+		".env",
+		"backend/.env",
+	) // .env is optional in production
 
 	AppConfig = &Config{
 		AppName:  getEnv("APP_NAME", "SINE-MDRRMO"),
@@ -95,6 +110,7 @@ func Load() {
 		AppURL:   getEnv("APP_URL", "http://localhost:3000"),
 		AppPort:  getEnv("APP_PORT", "3000"),
 
+		DBDriver:   getEnv("DB_DRIVER", "sqlite"),
 		DBHost:     getEnv("DB_HOST", "127.0.0.1"),
 		DBPort:     getEnv("DB_PORT", "3306"),
 		DBDatabase: getEnv("DB_DATABASE", "emergencydb"),
@@ -108,7 +124,7 @@ func Load() {
 		ResendAPIKey:    getEnv("RESEND_API_KEY", ""),
 		BrevoAPIKey:     getEnv("BREVO_API_KEY", ""),
 		MailFromAddress: getEnv("MAIL_FROM_ADDRESS", "ejperez623@gmail.com"),
-		MailFromName:    getEnv("MAIL_FROM_NAME", "MDRRMO SAN ISIDRO"),
+		MailFromName:    getEnv("MAIL_FROM_NAME", "SAGIP - MDRRMO San Isidro"),
 
 		PhilSMSToken:  getEnv("PHILSMS_API_TOKEN", ""),
 		PhilSMSSender: getEnv("PHILSMS_SENDER_NAME", "PhilSMS"),

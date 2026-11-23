@@ -81,8 +81,8 @@ type FeedbackRow struct {
 	Rating      int             `json:"rating"`
 	Status      string          `json:"status"`
 	IsForwarded bool            `json:"is_forwarded"`
-	ForwardedAt *time.Time      `json:"forwarded_at"`
-	DeviceInfo  json.RawMessage `json:"device_info"`
+	ForwardedAt *time.Time `json:"forwarded_at"`
+	DeviceInfo  FlexJSON   `json:"device_info"`
 	CreatedAt   *time.Time      `json:"created_at"`
 	DeletedAt   *time.Time      `json:"deleted_at"`
 	FullName    string          `json:"full_name"`
@@ -92,8 +92,9 @@ type FeedbackRow struct {
 
 func IndexFeedback(c *fiber.Ctx) error {
 	rows := make([]FeedbackRow, 0)
+	fullNameCol := ConcatName("user_profiles.first_name", "user_profiles.last_name") + " as full_name"
 	err := database.DB.Table("feedback").
-		Select("feedback.*, CONCAT(COALESCE(user_profiles.first_name, ''), ' ', COALESCE(user_profiles.last_name, '')) as full_name, user_profiles.username, users.email").
+		Select("feedback.*, " + fullNameCol + ", user_profiles.username, users.email").
 		Joins("JOIN users ON feedback.user_id = users.user_id").
 		Joins("LEFT JOIN user_profiles ON users.user_id = user_profiles.user_id").
 		Order("feedback.created_at DESC").
@@ -105,7 +106,7 @@ func IndexFeedback(c *fiber.Ctx) error {
 
 	for i := range rows {
 		if len(rows[i].DeviceInfo) == 0 || string(rows[i].DeviceInfo) == "null" {
-			rows[i].DeviceInfo = json.RawMessage("{}")
+			rows[i].DeviceInfo = FlexJSON("{}")
 		}
 	}
 
@@ -125,8 +126,9 @@ func ForwardBug(c *fiber.Ctx) error {
 	_ = c.BodyParser(&req)
 
 	var row FeedbackRow
+	fullNameCol := ConcatName("user_profiles.first_name", "user_profiles.last_name") + " as full_name"
 	err = database.DB.Table("feedback").
-		Select("feedback.*, CONCAT(COALESCE(user_profiles.first_name, ''), ' ', COALESCE(user_profiles.last_name, '')) as full_name, user_profiles.username, users.email").
+		Select("feedback.*, " + fullNameCol + ", user_profiles.username, users.email").
 		Joins("JOIN users ON feedback.user_id = users.user_id").
 		Joins("LEFT JOIN user_profiles ON users.user_id = user_profiles.user_id").
 		Where("feedback.id = ?", id).
@@ -231,8 +233,9 @@ func PurgeFeedbackTrash(c *fiber.Ctx) error {
 
 func ExportFeedback(c *fiber.Ctx) error {
 	var rows []FeedbackRow
+	fullNameCol := ConcatName("user_profiles.first_name", "user_profiles.last_name") + " as full_name"
 	database.DB.Table("feedback").
-		Select("feedback.*, CONCAT(COALESCE(user_profiles.first_name, ''), ' ', COALESCE(user_profiles.last_name, '')) as full_name, user_profiles.username, users.email").
+		Select("feedback.*, " + fullNameCol + ", user_profiles.username, users.email").
 		Joins("JOIN users ON feedback.user_id = users.user_id").
 		Joins("LEFT JOIN user_profiles ON users.user_id = user_profiles.user_id").
 		Order("feedback.created_at DESC").

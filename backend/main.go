@@ -1,9 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -119,6 +123,12 @@ func main() {
 		if allowedOrigins[origin] {
 			return true
 		}
+		if strings.Contains(origin, "ngrok") || strings.Contains(origin, "ngrok-free") {
+			return true
+		}
+		if strings.HasPrefix(origin, "http://10.") || strings.HasPrefix(origin, "http://192.168.") || strings.HasPrefix(origin, "http://172.") {
+			return true
+		}
 		if strings.HasPrefix(origin, "http://159.223.42.159") || strings.HasPrefix(origin, "https://159.223.42.159") {
 			return true
 		}
@@ -164,17 +174,19 @@ func main() {
 		return c.Next()
 	})
 
+	// Base execution directory
+	baseDir := "."
+	if execPath, err := os.Executable(); err == nil {
+		if realPath, err := filepath.EvalSymlinks(execPath); err == nil {
+			baseDir = filepath.Dir(realPath)
+		} else {
+			baseDir = filepath.Dir(execPath)
+		}
+	}
+
 	// Static Storage Directory (equivalent to php artisan storage:link)
 	storageDir := os.Getenv("STORAGE_PATH")
 	if storageDir == "" {
-		baseDir := "."
-		if execPath, err := os.Executable(); err == nil {
-			if realPath, err := filepath.EvalSymlinks(execPath); err == nil {
-				baseDir = filepath.Dir(realPath)
-			} else {
-				baseDir = filepath.Dir(execPath)
-			}
-		}
 		storageDir = filepath.Join(baseDir, "storage", "app", "public")
 	}
 	_ = os.MkdirAll(storageDir, 0755)
@@ -200,17 +212,109 @@ func main() {
 	// ensuring compatibility with both frontend configurations.
 	registerRoutes(app)
 
+	// Static Frontend Serving (PWA & Web Client) with SPA Fallback
+	frontendDir := filepath.Join(baseDir, "..", "frontend", "www")
+	for _, candidate := range []string{
+		filepath.Join(baseDir, "..", "frontend", "www"),
+		filepath.Join(baseDir, "frontend", "www"),
+		filepath.Join(baseDir, "www"),
+	} {
+		if _, err := os.Stat(filepath.Join(candidate, "index.html")); err == nil {
+			frontendDir = candidate
+			break
+		}
+	}
+	if info, err := os.Stat(frontendDir); err == nil && info.IsDir() {
+		app.Static("/", frontendDir, fiber.Static{
+			Index: "index.html",
+		})
+		app.Use(func(c *fiber.Ctx) error {
+			path := c.Path()
+			if strings.HasPrefix(path, "/api") || strings.HasPrefix(path, "/ws") ||
+				strings.HasPrefix(path, "/storage") || strings.HasPrefix(path, "/tiles") ||
+				strings.HasPrefix(path, "/app") {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Not Found"})
+			}
+			return c.SendFile(filepath.Join(frontendDir, "index.html"))
+		})
+	}
+
 	// Start server
 	port := cfg.AppPort
 	if port == "" {
 		port = "3000"
 	}
+	portNum := strings.TrimPrefix(port, ":")
 	if !strings.HasPrefix(port, ":") {
 		port = ":" + port
 	}
 
-	fmt.Printf("\n🚀 %s running high-performance Go Fiber server on %s\n", cfg.AppName, port)
+	// Ensure Ngrok tunnel is active automatically so single-click startup serves both local & public URLs
+	go ensureNgrokTunnel(portNum)
+
+	fmt.Printf("\n🚀 %s running all-in-one Go Fiber + SQLite + Frontend server on http://localhost:%s\n", cfg.AppName, portNum)
 	log.Fatal(app.Listen(port))
+}
+
+func queryNgrokPublicURL() string {
+	client := &http.Client{Timeout: 800 * time.Millisecond}
+	resp, err := client.Get("http://127.0.0.1:4040/api/tunnels")
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ""
+	}
+	var parsed struct {
+		Tunnels []struct {
+			PublicURL string `json:"public_url"`
+		} `json:"tunnels"`
+	}
+	if err := json.Unmarshal(body, &parsed); err != nil || len(parsed.Tunnels) == 0 {
+		return ""
+	}
+	for _, t := range parsed.Tunnels {
+		if strings.HasPrefix(t.PublicURL, "https://") {
+			return t.PublicURL
+		}
+	}
+	return parsed.Tunnels[0].PublicURL
+}
+
+func ensureNgrokTunnel(portNum string) {
+	if existing := queryNgrokPublicURL(); existing != "" {
+		fmt.Printf("🌐 Ngrok tunnel already active: %s\n", existing)
+		return
+	}
+
+	ngrokBin, err := exec.LookPath("ngrok")
+	if err != nil {
+		winAppsCandidate := filepath.Join(os.Getenv("LOCALAPPDATA"), "Microsoft", "WindowsApps", "ngrok.exe")
+		if _, statErr := os.Stat(winAppsCandidate); statErr == nil {
+			ngrokBin = winAppsCandidate
+		}
+	}
+	if ngrokBin == "" {
+		fmt.Println("⚠️  ngrok executable not found in PATH; serving local/LAN only.")
+		return
+	}
+
+	cmd := exec.Command(ngrokBin, "http", portNum)
+	if err := cmd.Start(); err != nil {
+		fmt.Printf("⚠️  Could not auto-start ngrok: %v\n", err)
+		return
+	}
+
+	for i := 0; i < 12; i++ {
+		time.Sleep(350 * time.Millisecond)
+		if url := queryNgrokPublicURL(); url != "" {
+			fmt.Printf("🌐 Ngrok Public HTTPS URL ready: %s\n", url)
+			return
+		}
+	}
+	fmt.Println("⚠️  Ngrok started; tunnel URL still initializing.")
 }
 
 func registerRoutes(app *fiber.App) {

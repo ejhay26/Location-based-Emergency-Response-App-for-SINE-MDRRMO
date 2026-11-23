@@ -189,7 +189,7 @@ type EmergencyDetailRow struct {
 	RequestID         int             `json:"request_id"`
 	UserID            *int            `json:"user_id"`
 	IncidentTypeID    *int            `json:"incident_type_id"`
-	ProofFiles        json.RawMessage `json:"proof_files"`
+	ProofFiles        FlexJSON        `json:"proof_files"`
 	Description       *string         `json:"description"`
 	Latitude          *float64        `json:"latitude"`
 	Longitude         *float64        `json:"longitude"`
@@ -215,26 +215,19 @@ type EmergencyDetailRow struct {
 	Agency            *string         `json:"agency"`
 	UnitName          *string         `json:"unit_name"`
 	DispatchedByName  *string         `json:"dispatched_by_name"`
-	DispatchTime      *time.Time      `json:"dispatch_time"`
+	DispatchTime      FlexTime        `json:"dispatch_time"`
 	ResolvedByName    *string         `json:"resolved_by_name"`
 }
 
 func GetActiveEmergencies(c *fiber.Ctx) error {
 	rows := make([]EmergencyDetailRow, 0)
-	dispatchSub := "(SELECT d1.request_id, " +
-		"GROUP_CONCAT(DISTINCT d1.agency ORDER BY d1.dispatch_id SEPARATOR ', ') AS agency, " +
-		"GROUP_CONCAT(DISTINCT NULLIF(d1.unit_name, '') ORDER BY d1.dispatch_id SEPARATOR ', ') AS unit_name, " +
-		"MAX(d1.dispatch_time) AS dispatch_time, " +
-		"GROUP_CONCAT(DISTINCT NULLIF(TRIM(CONCAT(COALESCE(dp.first_name, ''), ' ', COALESCE(dp.last_name, ''))), '') SEPARATOR ', ') AS dispatched_by_name " +
-		"FROM dispatch d1 " +
-		"LEFT JOIN user_profiles dp ON d1.dispatched_by = dp.user_id " +
-		"GROUP BY d1.request_id) ld"
+	dispatchSub := GetDispatchSub()
 
 	err := database.DB.Table("emergency_requests").
 		Select("emergency_requests.*, user_profiles.first_name, user_profiles.last_name, user_profiles.phone, user_profiles.profile_picture, user_medical_profiles.blood_type, user_medical_profiles.allergies, user_medical_profiles.medical_conditions, user_medical_profiles.pwd_status, users.false_alarm_strikes, incident_types.incident_name, barangays.barangay_name, ld.agency, ld.unit_name, ld.dispatch_time, ld.dispatched_by_name").
-		Joins("JOIN users ON emergency_requests.user_id = users.user_id").
+		Joins("LEFT JOIN users ON emergency_requests.user_id = users.user_id").
 		Joins("LEFT JOIN user_profiles ON users.user_id = user_profiles.user_id").
-		Joins("JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
+		Joins("LEFT JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
 		Joins("LEFT JOIN barangays ON emergency_requests.barangay_id = barangays.barangay_id").
 		Joins("LEFT JOIN user_medical_profiles ON users.user_id = user_medical_profiles.user_id").
 		Joins("LEFT JOIN " + dispatchSub + " ON emergency_requests.request_id = ld.request_id").
@@ -252,20 +245,14 @@ func GetActiveEmergencies(c *fiber.Ctx) error {
 
 func GetArchivedEmergencies(c *fiber.Ctx) error {
 	rows := make([]EmergencyDetailRow, 0)
-	dispatchSub := "(SELECT d1.request_id, " +
-		"GROUP_CONCAT(DISTINCT d1.agency ORDER BY d1.dispatch_id SEPARATOR ', ') AS agency, " +
-		"GROUP_CONCAT(DISTINCT NULLIF(d1.unit_name, '') ORDER BY d1.dispatch_id SEPARATOR ', ') AS unit_name, " +
-		"MAX(d1.dispatch_time) AS dispatch_time, " +
-		"GROUP_CONCAT(DISTINCT NULLIF(TRIM(CONCAT(COALESCE(dp.first_name, ''), ' ', COALESCE(dp.last_name, ''))), '') SEPARATOR ', ') AS dispatched_by_name " +
-		"FROM dispatch d1 " +
-		"LEFT JOIN user_profiles dp ON d1.dispatched_by = dp.user_id " +
-		"GROUP BY d1.request_id) ld"
+	dispatchSub := GetDispatchSub()
+	resolvedByNameCol := ConcatName("rp.first_name", "rp.last_name") + " AS resolved_by_name"
 
 	err := database.DB.Table("emergency_requests").
-		Select("emergency_requests.*, user_profiles.first_name, user_profiles.last_name, user_profiles.phone, user_profiles.profile_picture, user_medical_profiles.blood_type, user_medical_profiles.allergies, user_medical_profiles.medical_conditions, user_medical_profiles.pwd_status, users.false_alarm_strikes, incident_types.incident_name, barangays.barangay_name, ld.agency, ld.unit_name, ld.dispatch_time, ld.dispatched_by_name, TRIM(CONCAT(COALESCE(rp.first_name, ''), ' ', COALESCE(rp.last_name, ''))) AS resolved_by_name").
-		Joins("JOIN users ON emergency_requests.user_id = users.user_id").
+		Select("emergency_requests.*, user_profiles.first_name, user_profiles.last_name, user_profiles.phone, user_profiles.profile_picture, user_medical_profiles.blood_type, user_medical_profiles.allergies, user_medical_profiles.medical_conditions, user_medical_profiles.pwd_status, users.false_alarm_strikes, incident_types.incident_name, barangays.barangay_name, ld.agency, ld.unit_name, ld.dispatch_time, ld.dispatched_by_name, " + resolvedByNameCol).
+		Joins("LEFT JOIN users ON emergency_requests.user_id = users.user_id").
 		Joins("LEFT JOIN user_profiles ON users.user_id = user_profiles.user_id").
-		Joins("JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
+		Joins("LEFT JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
 		Joins("LEFT JOIN barangays ON emergency_requests.barangay_id = barangays.barangay_id").
 		Joins("LEFT JOIN user_medical_profiles ON users.user_id = user_medical_profiles.user_id").
 		Joins("LEFT JOIN " + dispatchSub + " ON emergency_requests.request_id = ld.request_id").
@@ -299,16 +286,11 @@ func GetMyEmergencies(c *fiber.Ctx) error {
 	}
 
 	rows := make([]EmergencyDetailRow, 0)
-	dispatchSub := "(SELECT d1.request_id, " +
-		"GROUP_CONCAT(DISTINCT d1.agency ORDER BY d1.dispatch_id SEPARATOR ', ') AS agency, " +
-		"GROUP_CONCAT(DISTINCT NULLIF(d1.unit_name, '') ORDER BY d1.dispatch_id SEPARATOR ', ') AS unit_name, " +
-		"MAX(d1.dispatch_time) AS dispatch_time " +
-		"FROM dispatch d1 " +
-		"GROUP BY d1.request_id) ld"
+	dispatchSub := GetDispatchSub()
 
 	err := database.DB.Table("emergency_requests").
 		Select("emergency_requests.*, incident_types.incident_name, ld.agency, ld.unit_name, ld.dispatch_time").
-		Joins("JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
+		Joins("LEFT JOIN incident_types ON emergency_requests.incident_type_id = incident_types.incident_type_id").
 		Joins("LEFT JOIN " + dispatchSub + " ON emergency_requests.request_id = ld.request_id").
 		Where("emergency_requests.user_id = ? AND emergency_requests.deleted_at IS NULL", targetID).
 		Order("emergency_requests.request_time DESC").
@@ -325,7 +307,7 @@ func GetMyEmergencies(c *fiber.Ctx) error {
 func normalizeProofFiles(rows []EmergencyDetailRow) {
 	for i := range rows {
 		if len(rows[i].ProofFiles) == 0 || string(rows[i].ProofFiles) == "null" {
-			rows[i].ProofFiles = json.RawMessage("[]")
+			rows[i].ProofFiles = FlexJSON("[]")
 		}
 	}
 }

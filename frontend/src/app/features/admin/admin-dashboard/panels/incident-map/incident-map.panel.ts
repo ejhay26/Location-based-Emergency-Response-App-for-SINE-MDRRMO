@@ -10,8 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subscription, interval, firstValueFrom } from 'rxjs';
 import {
-  IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, IonSkeletonText
+  IonCard, IonCardContent, IonButton, IonSkeletonText
 } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
 import { environment } from '../../../../../../environments/environment';
@@ -47,8 +46,7 @@ const FALLBACK_POLL_MS = 30_000;
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    IonCard, IonCardContent, IonButton, IonRadioGroup, IonRadio, IonModal,
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, IonSkeletonText,
+    IonCard, IonCardContent, IonButton, IonSkeletonText,
     ProxyImageDirective, VideoThumbnailDirective,
     UtcDatePipe, DateRangeFilterComponent, AppIconComponent,
     CustomTooltipDirective
@@ -104,6 +102,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   isDispatchModalOpen = false;
   isDispatching = false;
+  selectedAgencies: string[] = [];
   dispatchForm = { request_id: null as number | null, agency: '', unit_name: '', notes: '' };
   readonly defaultUnits: ResponderUnitTag[] = [
     { key: 'AMB-01', value: 'Ambulance Alpha', agency: 'MDRRMO Rescue' },
@@ -1695,12 +1694,99 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.isReplottingMarkers = false;
   }
 
+  isAgencySelected(agency: string): boolean {
+    return this.selectedAgencies.includes(agency);
+  }
+
+  private getUnitLabel(tag: ResponderUnitTag): string {
+    return tag.key ? `${tag.key} - ${tag.value}` : tag.value;
+  }
+
+  private parseSelectedUnits(): string[] {
+    return (this.dispatchForm.unit_name || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  private setSelectedUnits(units: string[]): void {
+    const deduped: string[] = [];
+    for (const u of units) {
+      if (u && !deduped.some(x => x.toLowerCase() === u.toLowerCase())) {
+        deduped.push(u);
+      }
+    }
+    this.dispatchForm.unit_name = deduped.join(', ');
+  }
+
+  private findMatchingUnitForAgency(agency: string): ResponderUnitTag | undefined {
+    const ag = agency.toLowerCase();
+    return this.availableUnits.find(u => {
+      const a = (u.agency || '').toLowerCase();
+      return (ag.includes('bfp') && (a.includes('bfp') || a.includes('fire'))) ||
+             (ag.includes('pnp') && (a.includes('pnp') || a.includes('police'))) ||
+             (ag.includes('rhu') && (a.includes('rhu') || a.includes('health') || a.includes('nurse'))) ||
+             (ag.includes('mdrrmo') && (a.includes('mdrrmo') || a.includes('rescue') || a.includes('amb')));
+    });
+  }
+
+  toggleAgency(agency: string) {
+    const idx = this.selectedAgencies.indexOf(agency);
+    const matchingUnit = this.findMatchingUnitForAgency(agency);
+
+    if (idx !== -1) {
+      // Allow deselecting only if at least one department remains, or let user clear explicitly
+      this.selectedAgencies.splice(idx, 1);
+      if (matchingUnit) {
+        const label = this.getUnitLabel(matchingUnit).toLowerCase();
+        const valLower = matchingUnit.value.trim().toLowerCase();
+        const filtered = this.parseSelectedUnits().filter(u => {
+          const low = u.toLowerCase();
+          return low !== label && low !== valLower;
+        });
+        this.setSelectedUnits(filtered);
+      }
+    } else {
+      this.selectedAgencies.push(agency);
+      if (matchingUnit) {
+        const current = this.parseSelectedUnits();
+        current.push(this.getUnitLabel(matchingUnit));
+        this.setSelectedUnits(current);
+      }
+    }
+    this.dispatchForm.agency = this.selectedAgencies.join(', ');
+  }
+
+  selectAgency(agency: string) {
+    this.toggleAgency(agency);
+  }
+
   openDispatchModal(requestId: number) {
     this.dispatchForm.request_id = requestId;
+    this.selectedAgencies = [];
     this.dispatchForm.agency = '';
     this.dispatchForm.unit_name = '';
     this.dispatchForm.notes = '';
     this.isDispatchModalOpen = true;
+
+    // Smart Agency & Unit Auto-Selection based on Incident Type
+    const req = this.activeRequests.find(r => r.request_id === requestId);
+    const incName = ((req?.incident_name || req?.type || req?.title || '') as string).toLowerCase();
+
+    if (incName.includes('fire') || incName.includes('sunog')) {
+      this.toggleAgency('San Isidro BFP (Firefighters)');
+      if (!this.dispatchForm.unit_name) this.dispatchForm.unit_name = 'ENG-02 - Fire Engine 2';
+    } else if (incName.includes('crime') || incName.includes('police') || incName.includes('pnp') || incName.includes('robbery') || incName.includes('theft') || incName.includes('assault')) {
+      this.toggleAgency('San Isidro PNP (Police)');
+      if (!this.dispatchForm.unit_name) this.dispatchForm.unit_name = 'PAT-01 - Police Patrol 1';
+    } else if (incName.includes('medic') || incName.includes('health') || incName.includes('injury') || incName.includes('hospital') || incName.includes('heart')) {
+      this.toggleAgency('Rural Health Unit (RHU / Medical)');
+      if (!this.dispatchForm.unit_name) this.dispatchForm.unit_name = 'RHU-01 - RHU Mobile Nurse';
+    } else {
+      this.toggleAgency('MDRRMO Rescue Team');
+      if (!this.dispatchForm.unit_name) this.dispatchForm.unit_name = 'AMB-01 - Ambulance Alpha';
+    }
+
     if (this.availableAgencies.length === 0) {
       this.api.getDispatchAssets().subscribe((res: any) => {
         if (res && res.agencies && res.agencies.length > 0) {
@@ -1778,20 +1864,29 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
   isUnitSelected(tag: ResponderUnitTag): boolean {
     if (!this.dispatchForm.unit_name || !tag) return false;
-    const cur = this.dispatchForm.unit_name.trim().toLowerCase();
     const val = tag.value.trim().toLowerCase();
     const full = (tag.key + ' - ' + tag.value).trim().toLowerCase();
-    return cur === val || cur === full || cur === tag.key.trim().toLowerCase();
+    const keyLower = tag.key.trim().toLowerCase();
+    return this.parseSelectedUnits().some(cur => {
+      const low = cur.toLowerCase();
+      return low === val || low === full || low === keyLower;
+    });
   }
 
   toggleSelectUnit(tag: ResponderUnitTag): void {
+    const label = this.getUnitLabel(tag);
+    const current = this.parseSelectedUnits();
     if (this.isUnitSelected(tag)) {
-      this.dispatchForm.unit_name = '';
+      const val = tag.value.trim().toLowerCase();
+      const full = label.trim().toLowerCase();
+      const keyLower = tag.key.trim().toLowerCase();
+      this.setSelectedUnits(current.filter(c => {
+        const low = c.toLowerCase();
+        return low !== val && low !== full && low !== keyLower;
+      }));
     } else {
-      this.dispatchForm.unit_name = tag.key ? `${tag.key} - ${tag.value}` : tag.value;
-      if (tag.agency && !this.dispatchForm.agency) {
-        this.dispatchForm.agency = tag.agency;
-      }
+      current.push(label);
+      this.setSelectedUnits(current);
     }
   }
 
@@ -1896,17 +1991,21 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   submitDispatch() {
-    if (!this.dispatchForm.agency || !this.dispatchForm.request_id || this.isDispatching) return;
+    if (this.selectedAgencies.length === 0 || !this.dispatchForm.request_id || this.isDispatching) return;
     this.isDispatching = true;
     const trimmedUnit = this.dispatchForm.unit_name ? this.dispatchForm.unit_name.trim() : '';
     const finalPayload = {
-      ...this.dispatchForm,
-      unit_name: trimmedUnit || 'None Specified'
+      request_id: this.dispatchForm.request_id,
+      agencies: this.selectedAgencies,
+      agency: this.selectedAgencies.join(', '),
+      unit_name: trimmedUnit || 'None Specified',
+      notes: this.dispatchForm.notes || '',
     };
     this.api.dispatchEmergency(finalPayload).subscribe({
       next: () => {
         this.isDispatching = false;
-        this.ui.showToast('Unit dispatched successfully!', 'success');
+        const count = this.selectedAgencies.length;
+        this.ui.showToast(count > 1 ? `${count} agencies dispatched successfully!` : 'Unit dispatched successfully!', 'success');
         this.isDispatchModalOpen = false;
         this.loadData();
       },

@@ -6,7 +6,9 @@ import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class ApiService {
 
-  private url = environment.apiUrl;
+  get url(): string {
+    return localStorage.getItem('custom_api_url') || environment.apiUrl;
+  }
 
   get apiOrigin(): string {
     return this.url.replace(/\/api\/?$/, '');

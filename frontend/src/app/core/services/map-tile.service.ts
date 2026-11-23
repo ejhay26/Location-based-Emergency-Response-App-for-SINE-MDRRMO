@@ -72,6 +72,11 @@ export class MapTileService {
     attribution: string,
     defaultMime: string
   ): L.Layer {
+    // If no PMTiles archive configured, immediately return standard tile layer
+    if (!pmtilesUrl || pmtilesUrl.trim() === '') {
+      return L.tileLayer(backendUrl, { minZoom, maxZoom, attribution });
+    }
+
     let pmtilesSource: PMTiles | null = null;
     let pmtilesReady = false;
     let pmtilesFailed = false;

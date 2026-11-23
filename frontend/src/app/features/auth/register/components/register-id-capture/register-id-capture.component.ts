@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonButton, IonButtons, IonModal, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/standalone';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
@@ -12,8 +12,8 @@ import { enhanceIdCardImage } from '../../../../../core/utils/image-enhancer';
  * "Valid ID" (front & back) photos and the "Selfie with ID" photo during registration.
  *
  * Enforces standard landscape card aspect ratio (ISO/IEC 7810 ID-1 standard ~1.58:1)
- * for government IDs to prevent invalid portrait captures, with 90° rotation and
- * rich graphical preview guides.
+ * directly in the live camera canvas viewfinder, capturing directly to card dimensions
+ * with rich graphical preview guides and automatic enhancement.
  */
 @Component({
   selector: 'app-register-id-capture',
@@ -21,18 +21,29 @@ import { enhanceIdCardImage } from '../../../../../core/utils/image-enhancer';
   imports: [CommonModule, IonButton, IonButtons, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, ImageCropperComponent, AppIconComponent],
   templateUrl: './register-id-capture.component.html',
 })
-export class RegisterIdCaptureComponent {
+export class RegisterIdCaptureComponent implements OnDestroy {
   @Input() variant: 'id' | 'id-back' | 'selfie' = 'id';
   @Input() fieldName: 'valid_id_image' | 'valid_id_image_back' | 'selfie_with_id_image' = 'valid_id_image';
   @Input() userData: any;
 
   @Output() toast = new EventEmitter<string>();
 
+  @ViewChild('videoEl') videoEl?: ElementRef<HTMLVideoElement>;
+  @ViewChild('cardGuideEl') cardGuideEl?: ElementRef<HTMLDivElement>;
+  @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
+
   rawFile: File | null = null;
   showCropper = false;
+  isLiveCameraOpen = false;
+  mediaStream: MediaStream | null = null;
+  cameraFacing: 'environment' | 'user' = 'environment';
   croppedBase64 = '';
   isEnhancing = false;
   canvasRotation = 0;
+
+  ngOnDestroy(): void {
+    this.closeLiveCamera();
+  }
 
   get isCardVariant(): boolean {
     return this.variant === 'id' || this.variant === 'id-back';
@@ -95,7 +106,143 @@ export class RegisterIdCaptureComponent {
 
   get preview(): string { return this.userData?.[this.fieldName] || ''; }
 
+  /**
+   * Main capture entry: Launches the live in-app camera canvas with an ID-card cutout frame.
+   * If on insecure origin (HTTP), or if user/browser blocks live camera, seamlessly falls back
+   * to system camera via HTML5 capture.
+   */
   async triggerCapture(): Promise<void> {
+    if (typeof window !== 'undefined' && window.isSecureContext && navigator?.mediaDevices?.getUserMedia) {
+      this.cameraFacing = this.variant === 'selfie' ? 'user' : 'environment';
+      try {
+        this.mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: this.cameraFacing,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+          audio: false,
+        });
+        this.isLiveCameraOpen = true;
+        setTimeout(() => this.attachVideoStream(), 60);
+        return;
+      } catch (err) {
+        console.warn('Live in-app camera stream failed, falling back to system camera input:', err);
+      }
+    }
+
+    // Direct system camera fallback for Chrome Android, HTTP origins, or restricted permissions
+    this.triggerSystemCamera();
+  }
+
+  triggerSystemCamera(): void {
+    if (this.fileInput?.nativeElement) {
+      this.fileInput.nativeElement.click();
+    }
+  }
+
+  private attachVideoStream(): void {
+    requestAnimationFrame(() => {
+      const video = this.videoEl?.nativeElement;
+      if (video && this.mediaStream) {
+        video.srcObject = this.mediaStream;
+        video.play().catch((err) => console.warn('Video play error:', err));
+      }
+    });
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    this.rawFile = file;
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.croppedBase64 = reader.result as string;
+      this.canvasRotation = 0;
+      this.showCropper = true;
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  closeLiveCamera(): void {
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach((t) => t.stop());
+      this.mediaStream = null;
+    }
+    this.isLiveCameraOpen = false;
+  }
+
+  async switchCamera(): Promise<void> {
+    this.cameraFacing = this.cameraFacing === 'environment' ? 'user' : 'environment';
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach((t) => t.stop());
+      this.mediaStream = null;
+    }
+    try {
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: this.cameraFacing,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        audio: false,
+      });
+      if (this.videoEl?.nativeElement && this.mediaStream) {
+        this.videoEl.nativeElement.srcObject = this.mediaStream;
+        this.videoEl.nativeElement.play().catch(() => {});
+      }
+    } catch {
+      // Revert if failed
+    }
+  }
+
+  captureFromLiveCamera(): void {
+    const video = this.videoEl?.nativeElement;
+    const guide = this.cardGuideEl?.nativeElement;
+    if (!video || !guide || !video.videoWidth || !video.videoHeight) return;
+
+    const videoRect = video.getBoundingClientRect();
+    const guideRect = guide.getBoundingClientRect();
+
+    const scaleX = video.videoWidth / videoRect.width;
+    const scaleY = video.videoHeight / videoRect.height;
+    const scale = Math.max(scaleX, scaleY);
+
+    const displayedWidth = video.videoWidth / scale;
+    const displayedHeight = video.videoHeight / scale;
+    const offsetX = (videoRect.width - displayedWidth) / 2;
+    const offsetY = (videoRect.height - displayedHeight) / 2;
+
+    const cropX = Math.max(0, (guideRect.left - videoRect.left - offsetX) * scale);
+    const cropY = Math.max(0, (guideRect.top - videoRect.top - offsetY) * scale);
+    const cropWidth = Math.min(video.videoWidth - cropX, guideRect.width * scale);
+    const cropHeight = Math.min(video.videoHeight - cropY, guideRect.height * scale);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(cropWidth);
+    canvas.height = Math.round(cropHeight);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+
+    const base64 = canvas.toDataURL('image/jpeg', 0.92);
+    this.closeLiveCamera();
+
+    fetch(base64)
+      .then((res) => res.blob())
+      .then((blob) => {
+        this.rawFile = new File([blob], this.config.fileName, { type: 'image/jpeg' });
+        this.croppedBase64 = base64;
+        this.canvasRotation = 0;
+        this.showCropper = true;
+      });
+  }
+
+  /** Capacitor Camera fallback for native environments where getUserMedia is unavailable */
+  async fallbackCapacitorCapture(): Promise<void> {
     try {
       await Camera.requestPermissions({ permissions: ['camera'] });
       const opts: any = { quality: 80, allowEditing: false, resultType: CameraResultType.DataUrl, source: CameraSource.Camera };
@@ -117,6 +264,7 @@ export class RegisterIdCaptureComponent {
   async retakeCrop(): Promise<void> {
     this.croppedBase64 = '';
     this.canvasRotation = 0;
+    this.showCropper = false;
     await this.triggerCapture();
   }
 

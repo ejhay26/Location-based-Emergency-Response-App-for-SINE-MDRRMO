@@ -14,7 +14,7 @@
              style="width: 100%; display: block; object-fit: contain; pointer-events: none;" />
         <!-- Floating Guide Badge -->
         <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: #ffffff; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
-          <app-icon name="sparkles" [size]="11" color="#fcd34d"></app-icon>
+          <app-icon name="id-card" [size]="11" color="#fcd34d"></app-icon>
           <span>{{ sampleBadge }}</span>
         </div>
       </div>
@@ -28,11 +28,23 @@
         </span>
       </div>
 
-      <!-- Trigger Action Button -->
-      <div style="margin-top: 14px;">
-        <ion-button color="danger" fill="solid" (click)="triggerCapture()" style="font-weight: 800; --border-radius: 12px; height: 46px; --box-shadow: 0 4px 14px rgba(211,47,47,0.25);">
+      <!-- Hidden File Input for Direct Native/System Camera Capture -->
+      <input #fileInput
+             type="file"
+             accept="image/*"
+             [attr.capture]="variant === 'selfie' ? 'user' : 'environment'"
+             style="display: none;"
+             (change)="onFileSelected($event)">
+
+      <!-- Trigger Action Buttons -->
+      <div style="margin-top: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <ion-button color="danger" fill="solid" (click)="triggerCapture()" style="width: 100%; max-width: 280px; font-weight: 800; --border-radius: 12px; height: 46px; --box-shadow: 0 4px 14px rgba(211,47,47,0.25);">
           <app-icon [name]="config.buttonIcon" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> {{ config.buttonLabel }}
         </ion-button>
+        <button type="button" (click)="triggerSystemCamera()" style="background: none; border: none; padding: 6px 12px; color: var(--ion-color-medium, #6b7280); font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+          <app-icon name="image" [size]="13" color="var(--ion-color-medium)"></app-icon>
+          Take with System Camera or Choose File
+        </button>
       </div>
     </div>
 
@@ -41,7 +53,7 @@
       <div style="border-radius: 14px; overflow: hidden; border: 2.5px solid #2dd36f; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(45,211,111,0.25); position: relative; max-width: 340px; margin-left: auto; margin-right: auto;">
         <img [src]="preview" style="max-height: 180px; object-fit: contain; width: 100%; background: #000; display: block;" />
         <div *ngIf="isCardVariant" style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.78); backdrop-filter: blur(4px); color: #2dd36f; font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
-          <app-icon name="sparkles" [size]="12" color="#2dd36f"></app-icon> Auto-Enhanced Card
+          <app-icon name="check" [size]="12" color="#2dd36f"></app-icon> Landscape Card Ready
         </div>
         <div style="position: absolute; top: 8px; left: 8px; background: rgba(45,211,111,0.92); color: #ffffff; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
           <app-icon name="check" [size]="11" color="#ffffff"></app-icon> Photo Attached
@@ -54,6 +66,57 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Live Camera Viewfinder Overlay with ID-Card Cutout -->
+<div *ngIf="isLiveCameraOpen"
+     style="position: fixed; inset: 0; z-index: 99999; background: #000000; overflow: hidden; display: flex; flex-direction: column;">
+
+  <!-- Top Floating Controls -->
+  <div style="position: absolute; top: 0; left: 0; right: 0; z-index: 30; padding: env(safe-area-inset-top, 16px) 16px 12px 16px; background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%); display: flex; align-items: center; justify-content: space-between;">
+    <button type="button" (click)="closeLiveCamera()" style="background: rgba(255,255,255,0.22); border: none; border-radius: 50%; width: 42px; height: 42px; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+      <app-icon name="close" [size]="20" color="#ffffff"></app-icon>
+    </button>
+    <span style="color: #ffffff; font-weight: 800; font-size: 15px; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
+      {{ isCardVariant ? 'Scan ID Card (Landscape)' : 'Capture Selfie' }}
+    </span>
+    <button type="button" (click)="switchCamera()" style="background: rgba(255,255,255,0.22); border: none; border-radius: 50%; width: 42px; height: 42px; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+      <app-icon name="rotate-cw" [size]="18" color="#ffffff"></app-icon>
+    </button>
+  </div>
+
+  <!-- Live Video Element -->
+  <div style="position: relative; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+    <video #videoEl autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+
+    <!-- Viewfinder Card Overlay with Dark Mask Outside Cutout -->
+    <div style="position: absolute; inset: 0; pointer-events: none; display: flex; align-items: center; justify-content: center;">
+      <!-- Card Cutout Box (locked strictly to 1.586 card aspect ratio or 1:1 selfie) -->
+      <div #cardGuideEl
+           [style.aspect-ratio]="isCardVariant ? '1.586' : '1'"
+           style="position: relative; width: 88%; max-width: 360px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.68); border-radius: 16px; border: 2px dashed rgba(255, 255, 255, 0.75);">
+
+        <!-- 4 High-Contrast Neon Corner Brackets -->
+        <div style="position: absolute; top: -3px; left: -3px; width: 26px; height: 26px; border-top: 4.5px solid #2dd36f; border-left: 4.5px solid #2dd36f; border-top-left-radius: 16px;"></div>
+        <div style="position: absolute; top: -3px; right: -3px; width: 26px; height: 26px; border-top: 4.5px solid #2dd36f; border-right: 4.5px solid #2dd36f; border-top-right-radius: 16px;"></div>
+        <div style="position: absolute; bottom: -3px; left: -3px; width: 26px; height: 26px; border-bottom: 4.5px solid #2dd36f; border-left: 4.5px solid #2dd36f; border-bottom-left-radius: 16px;"></div>
+        <div style="position: absolute; bottom: -3px; right: -3px; width: 26px; height: 26px; border-bottom: 4.5px solid #2dd36f; border-right: 4.5px solid #2dd36f; border-bottom-right-radius: 16px;"></div>
+
+        <!-- Frame Label / Guide -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ffffff; font-size: 12px; font-weight: 800; text-align: center; background: rgba(0,0,0,0.65); padding: 6px 14px; border-radius: 20px; backdrop-filter: blur(4px); white-space: nowrap; border: 1px solid rgba(255,255,255,0.2);">
+          {{ isCardVariant ? 'Align ID Card Within Frame' : 'Align Face Within Frame' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Shutter Bar -->
+  <div style="padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%); display: flex; align-items: center; justify-content: center; gap: 24px;">
+    <button type="button" (click)="captureFromLiveCamera()" style="width: 74px; height: 74px; border-radius: 50%; background: #ffffff; border: 4px solid var(--ion-color-danger, #d32f2f); box-shadow: 0 0 24px rgba(211,47,47,0.55); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--ion-color-danger, #d32f2f);"></div>
+    </button>
+  </div>
+
 </div>
 
 <ion-modal [isOpen]="showCropper" [backdropDismiss]="false">

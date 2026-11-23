@@ -33,14 +33,22 @@ old-backend/.env
 *.env
 !.env.example
 
+# Local Temporary SQLite / Runtime Storage
+backend/emergency.db
+emergency.db
+backend/storage/app/public/verification_ids/
+backend/storage/app/tiles/
+backend/storage/app/backups/
+
 # Experimental Native Ports
 frontend2/
 frontend3/
 replica/
 TODO.md
 todo.md
- 
+
 .cargo/
 frontend/src-tauri/.cargo/
 
+SAGIP-Server.bat
 scratch/

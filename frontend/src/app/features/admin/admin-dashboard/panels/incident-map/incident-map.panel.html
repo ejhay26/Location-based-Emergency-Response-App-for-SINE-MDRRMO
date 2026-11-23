@@ -811,130 +811,152 @@
 
 </div>
 
-<!-- Dispatch modal -->
-<ion-modal [isOpen]="isDispatchModalOpen" (didDismiss)="isDispatchModalOpen = false" initialBreakpoint="0.75" [breakpoints]="[0, 0.75, 1]">
-  <ng-template>
-    <ion-header class="ion-no-border">
-      <ion-toolbar color="warning">
-        <ion-title style="color: white; font-weight: 800; font-size: 16px;">Dispatch Response Team</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="isDispatchModalOpen = false" style="color: white; font-weight: 700;">Close</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding">
-      <p style="font-weight: 800; font-size: 15px; margin: 0 0 10px 0; color: var(--ion-text-color);">1. Select Responding Agency</p>
-      <ion-radio-group [(ngModel)]="dispatchForm.agency">
-        <div *ngFor="let agency of availableAgencies" style="display: flex; align-items: center; background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; gap: 14px; transition: all 0.15s;" [style.border-color]="dispatchForm.agency === agency ? '#ffc409' : 'var(--ion-color-step-150, #ddd)'" [style.background]="dispatchForm.agency === agency ? 'rgba(255,196,9,0.1)' : 'var(--ion-card-background, #fff)'">
-          <ion-radio [value]="agency" style="--color-checked: #ffc409;"></ion-radio>
-          <div><p style="margin: 0; font-weight: 800; font-size: 15.5px; color: var(--ion-text-color);">{{ agency }}</p></div>
-        </div>
-      </ion-radio-group>
-      <div style="display: flex; align-items: center; justify-content: space-between; margin: 16px 0 8px 0;">
-        <p style="font-weight: 800; font-size: 15px; margin: 0; color: var(--ion-text-color);">2. Assign Unit / Callsign (Optional)</p>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <button type="button" *ngIf="!isAddingUnit" (click)="startAddUnit()"
-                  style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 700; background: rgba(56,128,255,0.12); color: var(--ion-color-primary); border: none; cursor: pointer;">
-            <app-icon name="plus" [size]="13" color="var(--ion-color-primary)"></app-icon>
-            <span>Add Unit</span>
-          </button>
-          <button type="button" (click)="resetUnitsToDefault()" title="Reset default units"
-                  style="padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; background: var(--ion-color-step-100, #eee); color: var(--ion-color-medium); border: none; cursor: pointer;">
-            Reset
-          </button>
+<!-- Dispatch Dialog Box (Centered Modal, No Scrolling Needed) -->
+<div *ngIf="isDispatchModalOpen"
+     (click)="isDispatchModalOpen = false"
+     style="position: fixed; inset: 0; z-index: 99999; background: rgba(0, 0, 0, 0.58); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 14px;">
+  <div (click)="$event.stopPropagation()"
+       style="width: 100%; max-width: 540px; max-height: 92vh; background: var(--ion-card-background, #ffffff); border-radius: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.35); border: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.1)); display: flex; flex-direction: column; overflow: hidden;">
+
+    <!-- Dialog Header -->
+    <div style="background: #ffc409; color: #1c1c1e; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <app-icon name="truck-medical" [size]="20" color="#1c1c1e"></app-icon>
+        <div>
+          <h3 style="margin: 0; font-size: 16px; font-weight: 800; line-height: 1.2;">Dispatch Response Teams</h3>
+          <p style="margin: 2px 0 0 0; font-size: 11.5px; font-weight: 700; opacity: 0.85;">Select one or multiple responding departments</p>
         </div>
       </div>
+      <button type="button" (click)="isDispatchModalOpen = false" aria-label="Close dispatch dialog"
+              style="width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(0,0,0,0.12); color: #1c1c1e; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <app-icon name="close" [size]="16" color="#1c1c1e"></app-icon>
+      </button>
+    </div>
 
-      <!-- Add Unit Input Bar (Key-Value) -->
-      <div *ngIf="isAddingUnit" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(56,128,255,0.06); border: 1.5px dashed var(--ion-color-primary);">
-        <input type="text" [(ngModel)]="newUnitKey" placeholder="Code (e.g. AMB-03)"
-               style="width: 100px; border: 1px solid var(--ion-color-step-200, #ccc); border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; background: var(--ion-card-background, #fff); color: var(--ion-text-color); outline: none;" />
-        <input type="text" [(ngModel)]="newUnitValue" (keydown.enter)="confirmAddUnit()" placeholder="Callsign Name (e.g. Ambulance Charlie)"
-               style="flex: 1; min-width: 140px; border: 1px solid var(--ion-color-step-200, #ccc); border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 600; background: var(--ion-card-background, #fff); color: var(--ion-text-color); outline: none;" autofocus />
-        <div style="display: flex; align-items: center; gap: 4px;">
-          <button type="button" (click)="confirmAddUnit()" [disabled]="!newUnitValue.trim()"
-                  style="padding: 4px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 700; background: var(--ion-color-primary); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-            <app-icon name="check" [size]="12" color="#fff"></app-icon> Add
-          </button>
-          <button type="button" (click)="cancelAddUnit()"
-                  style="padding: 4px 8px; border-radius: 8px; font-size: 11.5px; font-weight: 700; background: var(--ion-color-step-200, #ccc); color: var(--ion-text-color); border: none; cursor: pointer;">
-            <app-icon name="close" [size]="12"></app-icon>
-          </button>
+    <!-- Dialog Body -->
+    <div style="padding: 14px 18px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px;">
+
+      <!-- 1. Multi-Department Grid -->
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <p style="font-weight: 800; font-size: 13px; margin: 0; color: var(--ion-text-color);">1. Select Responding Departments ({{ selectedAgencies.length }} selected)</p>
         </div>
-      </div>
-
-      <!-- Key-Value Unit Chips (Editable & Deleteable) -->
-      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">
-        <div *ngFor="let u of availableUnits; let i = index" style="display: inline-flex; align-items: center; border-radius: 12px; overflow: hidden; transition: all 0.15s;"
-             [style.background]="isUnitSelected(u) ? 'var(--ion-color-warning)' : 'var(--ion-card-background, #fff)'"
-             [style.border]="isUnitSelected(u) ? '1px solid var(--ion-color-warning)' : '1px solid var(--ion-color-step-150, #ddd)'">
-
-          <!-- Edit Mode (Inline Key-Value Editor) -->
-          <ng-container *ngIf="editingUnitIndex === i; else chipView">
-            <div style="display: flex; align-items: center; gap: 4px; padding: 3px 6px; background: var(--ion-card-background, #fff);">
-              <input type="text" [(ngModel)]="editingUnitKey" placeholder="Code"
-                     style="width: 60px; border: 1px solid var(--ion-color-primary); border-radius: 6px; padding: 2px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ion-text-color); outline: none;" />
-              <input type="text" [(ngModel)]="editingUnitValue" (keydown.enter)="confirmEditUnit(i, $event)" placeholder="Name"
-                     style="width: 110px; border: 1px solid var(--ion-color-primary); border-radius: 6px; padding: 2px 6px; font-size: 11.5px; font-weight: 600; color: var(--ion-text-color); outline: none;" autofocus />
-              <button type="button" (click)="confirmEditUnit(i, $event)" title="Save"
-                      style="padding: 3px 6px; border-radius: 6px; background: var(--ion-color-primary); color: #fff; border: none; cursor: pointer; display: flex; align-items: center;">
-                <app-icon name="check" [size]="11" color="#fff"></app-icon>
-              </button>
-              <button type="button" (click)="cancelEditUnit($event)" title="Cancel"
-                      style="padding: 3px 6px; border-radius: 6px; background: var(--ion-color-step-200, #ccc); color: var(--ion-text-color); border: none; cursor: pointer; display: flex; align-items: center;">
-                <app-icon name="close" [size]="11"></app-icon>
-              </button>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+          <button type="button"
+                  *ngFor="let agency of availableAgencies"
+                  (click)="toggleAgency(agency)"
+                  style="display: flex; align-items: center; text-align: left; background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 12px; padding: 10px 12px; cursor: pointer; gap: 10px; transition: all 0.12s; user-select: none;"
+                  [style.border-color]="isAgencySelected(agency) ? '#ffc409' : 'var(--ion-color-step-150, #ddd)'"
+                  [style.background]="isAgencySelected(agency) ? 'rgba(255,196,9,0.14)' : 'var(--ion-card-background, #fff)'">
+            <div style="width: 18px; height: 18px; border-radius: 5px; border: 2px solid; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"
+                 [style.border-color]="isAgencySelected(agency) ? '#ffc409' : 'var(--ion-color-step-300, #aaa)'"
+                 [style.background]="isAgencySelected(agency) ? '#ffc409' : 'transparent'">
+              <app-icon *ngIf="isAgencySelected(agency)" name="check" [size]="12" color="#1c1c1e"></app-icon>
             </div>
-          </ng-container>
-
-          <!-- Standard Chip View (Shows Key badge + Value) -->
-          <ng-template #chipView>
-            <button type="button" (click)="toggleSelectUnit(u)"
-                    [style.color]="isUnitSelected(u) ? '#fff' : 'var(--ion-text-color)'"
-                    style="padding: 6px 8px 6px 10px; background: transparent; border: none; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-              <span *ngIf="u.key" style="font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px;"
-                    [style.background]="isUnitSelected(u) ? 'rgba(0,0,0,0.2)' : 'var(--ion-color-step-100, #eee)'"
-                    [style.color]="isUnitSelected(u) ? '#fff' : 'var(--ion-color-medium)'">
-                {{ u.key }}
-              </span>
-              <span>{{ u.value }}</span>
-            </button>
-            <!-- Edit Icon (Pencil) -->
-            <button type="button" (click)="startEditUnit(i, $event)" title="Edit unit"
-                    [style.color]="isUnitSelected(u) ? 'rgba(255,255,255,0.85)' : 'var(--ion-color-medium)'"
-                    style="padding: 6px 4px; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center;">
-              <app-icon name="pen" [size]="11" [color]="isUnitSelected(u) ? '#fff' : 'var(--ion-color-medium)'"></app-icon>
-            </button>
-            <!-- Delete Icon (X) -->
-            <button type="button" (click)="deleteUnit(i, $event)" title="Delete unit"
-                    [style.color]="isUnitSelected(u) ? 'rgba(255,255,255,0.85)' : 'var(--ion-color-danger, #eb445a)'"
-                    style="padding: 6px 8px 6px 2px; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center;">
-              <app-icon name="close" [size]="11" [color]="isUnitSelected(u) ? '#fff' : 'var(--ion-color-danger, #eb445a)'"></app-icon>
-            </button>
-          </ng-template>
+            <span style="font-weight: 800; font-size: 12.5px; line-height: 1.25; color: var(--ion-text-color);">{{ agency }}</span>
+          </button>
         </div>
       </div>
-      <ion-input
-        [(ngModel)]="dispatchForm.unit_name"
-        placeholder="Or type custom unit callsign (e.g. Ambulance Alpha-1)"
-        style="background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 14px; padding: 6px 12px; font-size: 14px; width: 100%; color: var(--ion-text-color);"
-      ></ion-input>
-      <p style="font-weight: 800; font-size: 15px; margin: 16px 0 10px 0; color: var(--ion-text-color);">3. Dispatch Notes (Optional)</p>
-      <ion-textarea
-        [(ngModel)]="dispatchForm.notes"
-        rows="3"
-        placeholder="e.g. Dispatched via VHF Radio Base. Crew deployed to location."
-        style="background: var(--ion-card-background, #fff); border: 2px solid var(--ion-color-step-150, #ddd); border-radius: 14px; padding: 8px 12px; font-size: 14px; width: 100%; color: var(--ion-text-color);"
-      ></ion-textarea>
-      <ion-button expand="block" color="warning" class="ion-margin-top" (click)="submitDispatch()"
-          [class.btn-muted]="!dispatchForm.agency && !isDispatching"
-          [class.btn-loading]="isDispatching"
-          style="font-weight: 800; height: 50px; --border-radius: 14px; font-size: 16px; margin-top: 20px;">
-          <ng-container *ngIf="!isDispatching">
-            <app-icon name="truck-medical" [size]="18" color="#ffffff" style="margin-right: 8px;"></app-icon> Confirm Dispatch
-          </ng-container>
-          <span *ngIf="isDispatching" class="dot-loader"><span></span><span></span><span></span></span>
-        </ion-button>
-    </ion-content>
-  </ng-template>
-</ion-modal>
+
+      <!-- 2. Units / Callsigns -->
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <p style="font-weight: 800; font-size: 13px; margin: 0; color: var(--ion-text-color);">2. Assign Units / Callsigns</p>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <button type="button" *ngIf="!isAddingUnit" (click)="startAddUnit()"
+                    style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 7px; font-size: 11px; font-weight: 700; background: rgba(56,128,255,0.12); color: var(--ion-color-primary); border: none; cursor: pointer;">
+              <app-icon name="plus" [size]="12" color="var(--ion-color-primary)"></app-icon>
+              <span>Add</span>
+            </button>
+            <button type="button" (click)="resetUnitsToDefault()" title="Reset default units"
+                    style="padding: 3px 8px; border-radius: 7px; font-size: 11px; font-weight: 600; background: var(--ion-color-step-100, #eee); color: var(--ion-color-medium); border: none; cursor: pointer;">
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Unit Bar -->
+        <div *ngIf="isAddingUnit" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; padding: 6px 8px; border-radius: 10px; background: rgba(56,128,255,0.06); border: 1.5px dashed var(--ion-color-primary);">
+          <input type="text" [(ngModel)]="newUnitKey" placeholder="Code (AMB-03)"
+                 style="width: 88px; border: 1px solid var(--ion-color-step-200, #ccc); border-radius: 6px; padding: 4px 6px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; background: var(--ion-card-background, #fff); color: var(--ion-text-color); outline: none;" />
+          <input type="text" [(ngModel)]="newUnitValue" (keydown.enter)="confirmAddUnit()" placeholder="Callsign Name"
+                 style="flex: 1; min-width: 120px; border: 1px solid var(--ion-color-step-200, #ccc); border-radius: 6px; padding: 4px 6px; font-size: 11.5px; font-weight: 600; background: var(--ion-card-background, #fff); color: var(--ion-text-color); outline: none;" autofocus />
+          <button type="button" (click)="confirmAddUnit()" [disabled]="!newUnitValue.trim()"
+                  style="padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: var(--ion-color-primary); color: #fff; border: none; cursor: pointer;">Add</button>
+          <button type="button" (click)="cancelAddUnit()"
+                  style="padding: 4px 7px; border-radius: 6px; font-size: 11px; font-weight: 700; background: var(--ion-color-step-200, #ccc); color: var(--ion-text-color); border: none; cursor: pointer;">✕</button>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+          <div *ngFor="let u of availableUnits; let i = index" style="display: inline-flex; align-items: center; border-radius: 10px; overflow: hidden; transition: all 0.12s;"
+               [style.background]="isUnitSelected(u) ? '#ffc409' : 'var(--ion-card-background, #fff)'"
+               [style.border]="isUnitSelected(u) ? '1px solid #ffc409' : '1px solid var(--ion-color-step-150, #ddd)'">
+            <ng-container *ngIf="editingUnitIndex === i; else chipView">
+              <div style="display: flex; align-items: center; gap: 4px; padding: 2px 5px; background: var(--ion-card-background, #fff);">
+                <input type="text" [(ngModel)]="editingUnitKey" placeholder="Code"
+                       style="width: 52px; border: 1px solid var(--ion-color-primary); border-radius: 5px; padding: 2px 4px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--ion-text-color); outline: none;" />
+                <input type="text" [(ngModel)]="editingUnitValue" (keydown.enter)="confirmEditUnit(i, $event)" placeholder="Name"
+                       style="width: 96px; border: 1px solid var(--ion-color-primary); border-radius: 5px; padding: 2px 5px; font-size: 11px; font-weight: 600; color: var(--ion-text-color); outline: none;" autofocus />
+                <button type="button" (click)="confirmEditUnit(i, $event)" style="padding: 2px 5px; border-radius: 5px; background: var(--ion-color-primary); color: #fff; border: none; cursor: pointer;">✓</button>
+                <button type="button" (click)="cancelEditUnit($event)" style="padding: 2px 5px; border-radius: 5px; background: var(--ion-color-step-200, #ccc); color: var(--ion-text-color); border: none; cursor: pointer;">✕</button>
+              </div>
+            </ng-container>
+            <ng-template #chipView>
+              <button type="button" (click)="toggleSelectUnit(u)"
+                      [style.color]="isUnitSelected(u) ? '#1c1c1e' : 'var(--ion-text-color)'"
+                      style="padding: 4px 6px 4px 8px; background: transparent; border: none; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                <span *ngIf="u.key" style="font-size: 9.5px; font-weight: 800; padding: 1px 4px; border-radius: 4px;"
+                      [style.background]="isUnitSelected(u) ? 'rgba(0,0,0,0.16)' : 'var(--ion-color-step-100, #eee)'"
+                      [style.color]="isUnitSelected(u) ? '#1c1c1e' : 'var(--ion-color-medium)'">
+                  {{ u.key }}
+                </span>
+                <span>{{ u.value }}</span>
+              </button>
+              <button type="button" (click)="startEditUnit(i, $event)" title="Edit unit"
+                      style="padding: 4px 3px; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center;">
+                <app-icon name="pen" [size]="10" [color]="isUnitSelected(u) ? '#1c1c1e' : 'var(--ion-color-medium)'"></app-icon>
+              </button>
+              <button type="button" (click)="deleteUnit(i, $event)" title="Delete unit"
+                      style="padding: 4px 6px 4px 2px; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center;">
+                <app-icon name="close" [size]="10" [color]="isUnitSelected(u) ? '#1c1c1e' : 'var(--ion-color-danger, #eb445a)'"></app-icon>
+              </button>
+            </ng-template>
+          </div>
+        </div>
+
+        <input type="text"
+               [(ngModel)]="dispatchForm.unit_name"
+               placeholder="Selected or custom units (e.g. ENG-02 - Fire Engine 2, AMB-01 - Ambulance Alpha)"
+               style="width: 100%; box-sizing: border-box; background: var(--ion-card-background, #fff); border: 1.5px solid var(--ion-color-step-150, #ddd); border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600; color: var(--ion-text-color); outline: none;" />
+      </div>
+
+      <!-- 3. Notes -->
+      <div>
+        <p style="font-weight: 800; font-size: 13px; margin: 0 0 6px 0; color: var(--ion-text-color);">3. Dispatch Notes (Optional)</p>
+        <textarea [(ngModel)]="dispatchForm.notes"
+                  rows="2"
+                  placeholder="e.g. Joint fire & medical response deployed via VHF channel 2."
+                  style="width: 100%; box-sizing: border-box; background: var(--ion-card-background, #fff); border: 1.5px solid var(--ion-color-step-150, #ddd); border-radius: 10px; padding: 8px 12px; font-size: 13px; font-family: inherit; font-weight: 500; color: var(--ion-text-color); outline: none; resize: none;"></textarea>
+      </div>
+    </div>
+
+    <!-- Pinned Dialog Footer (Always Visible Without Scrolling) -->
+    <div style="padding: 12px 18px; border-top: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); background: var(--ion-card-background, #fff); display: flex; gap: 10px; flex-shrink: 0;">
+      <button type="button" (click)="isDispatchModalOpen = false"
+              style="flex: 0.9; height: 44px; border-radius: 12px; border: 1.5px solid var(--ion-color-step-200, #ccc); background: transparent; color: var(--ion-text-color); font-weight: 700; font-size: 14px; cursor: pointer;">
+        Cancel
+      </button>
+      <button type="button" (click)="submitDispatch()"
+              [disabled]="selectedAgencies.length === 0 || isDispatching"
+              [style.opacity]="selectedAgencies.length === 0 ? '0.5' : '1'"
+              style="flex: 1.8; height: 44px; border-radius: 12px; border: none; background: #ffc409; color: #1c1c1e; font-weight: 800; font-size: 14.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255,196,9,0.35);">
+        <ng-container *ngIf="!isDispatching">
+          <app-icon name="truck-medical" [size]="17" color="#1c1c1e"></app-icon>
+          <span>Confirm Dispatch ({{ selectedAgencies.length }})</span>
+        </ng-container>
+        <span *ngIf="isDispatching" class="dot-loader"><span></span><span></span><span></span></span>
+      </button>
+    </div>
+
+  </div>
+</div>

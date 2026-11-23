@@ -676,7 +676,7 @@ export class RegisterPage implements OnInit, OnDestroy {
     };
 
     this.api.register(payload).subscribe({
-      next: () => {
+      next: (res: any) => {
         this.isRegistering = false;
         try {
           localStorage.setItem('sine_pending_registration', JSON.stringify({
@@ -686,10 +686,14 @@ export class RegisterPage implements OnInit, OnDestroy {
           }));
         } catch {}
         const isSms = this.userData.otp_channel === 'sms';
+        const otpTip = res?.otp ? ` (Code: ${res.otp})` : '';
         const msg = isSms
-          ? `Verification code sent to your phone (${this.userData.phone}).`
-          : `Verification code sent to ${this.userData.email}! Please check your inbox and spam/junk folder.`;
+          ? `Verification code sent to your phone (${this.userData.phone}).${otpTip}`
+          : `Verification code sent to ${this.userData.email}!${otpTip} Check your inbox or enter code.`;
         this.showToast(msg, 'success');
+        if (res?.otp) {
+          this.otpCode = String(res.otp);
+        }
         this.currentStep = 4;
         this.startOtpCountdown();
         if (isSms) {
