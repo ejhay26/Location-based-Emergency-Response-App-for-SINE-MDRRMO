@@ -80,6 +80,7 @@ func main() {
 	// 3. Automigrate Schema & Seed Initial Data
 	database.AutoMigrate()
 	database.Seed()
+	fmt.Println("[1/3] Database: SQLite (emergency.db) connected, migrated, and seeded.")
 
 	// 4. Initialize WebSocket Broadcast Hub
 	websocket.InitHub()
@@ -249,10 +250,11 @@ func main() {
 		port = ":" + port
 	}
 
-	// Ensure Ngrok tunnel is active automatically so single-click startup serves both local & public URLs
+	fmt.Printf("\n[2/3] Server: %s Go Fiber API + Angular Frontend listening on http://localhost:%s\n", cfg.AppName, portNum)
+
+	// Start Ngrok tunnel after backend server is prepared so all 3 stages run sequentially from one launcher
 	go ensureNgrokTunnel(portNum)
 
-	fmt.Printf("\n🚀 %s running all-in-one Go Fiber + SQLite + Frontend server on http://localhost:%s\n", cfg.AppName, portNum)
 	log.Fatal(app.Listen(port))
 }
 
@@ -285,7 +287,7 @@ func queryNgrokPublicURL() string {
 
 func ensureNgrokTunnel(portNum string) {
 	if existing := queryNgrokPublicURL(); existing != "" {
-		fmt.Printf("🌐 Ngrok tunnel already active: %s\n", existing)
+		fmt.Printf("[3/3] Ngrok: HTTPS Tunnel active at %s\n", existing)
 		return
 	}
 
@@ -297,24 +299,24 @@ func ensureNgrokTunnel(portNum string) {
 		}
 	}
 	if ngrokBin == "" {
-		fmt.Println("⚠️  ngrok executable not found in PATH; serving local/LAN only.")
+		fmt.Println("[3/3] Ngrok: executable not found in PATH; serving local/LAN only.")
 		return
 	}
 
 	cmd := exec.Command(ngrokBin, "http", portNum)
 	if err := cmd.Start(); err != nil {
-		fmt.Printf("⚠️  Could not auto-start ngrok: %v\n", err)
+		fmt.Printf("[3/3] Ngrok: could not auto-start ngrok: %v\n", err)
 		return
 	}
 
 	for i := 0; i < 12; i++ {
 		time.Sleep(350 * time.Millisecond)
 		if url := queryNgrokPublicURL(); url != "" {
-			fmt.Printf("🌐 Ngrok Public HTTPS URL ready: %s\n", url)
+			fmt.Printf("[3/3] Ngrok: HTTPS Tunnel active at %s\n", url)
 			return
 		}
 	}
-	fmt.Println("⚠️  Ngrok started; tunnel URL still initializing.")
+	fmt.Println("[3/3] Ngrok: started; tunnel URL still initializing.")
 }
 
 func registerRoutes(app *fiber.App) {

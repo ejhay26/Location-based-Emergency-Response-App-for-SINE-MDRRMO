@@ -230,7 +230,7 @@
 </div>
 
 <!-- Add/Edit Dispatcher modal (Centered Popup Dialog) -->
-<ion-modal [isOpen]="isDispatcherModalOpen" (didDismiss)="closeDispatcherModal()" class="dispatcher-form-modal">
+<ion-modal [isOpen]="isDispatcherModalOpen" [enterAnimation]="dialogModalEnter" [leaveAnimation]="dialogModalLeave" (didDismiss)="closeDispatcherModal()" class="dispatcher-form-modal">
   <ng-template>
     <!-- Sleek Dialog Header (Consistent with Strike Modal) -->
     <div style="padding: 16px 20px 14px 20px; background: var(--ion-card-background, #ffffff); border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); display: flex; align-items: center; justify-content: space-between;">

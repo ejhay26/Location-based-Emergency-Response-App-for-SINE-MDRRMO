@@ -22,6 +22,7 @@ import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../sh
 import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
 
 import { TourService } from '../../../../../core/services/tour';
+import { dialogModalEnter, dialogModalLeave } from '../../../../../core/animations/dialog-modal-transition';
 
 @Component({
   selector: 'app-citizens-panel',
@@ -75,6 +76,9 @@ export class CitizensPanel implements OnInit, OnDestroy {
   selectedStrikeReason = 'Prank / False Alarm (No actual emergency found on site)';
   customStrikeReason = '';
   isSubmittingStrike = false;
+
+  readonly dialogModalEnter = dialogModalEnter;
+  readonly dialogModalLeave = dialogModalLeave;
 
   readonly STRIKE_PRESET_REASONS: string[] = [
     'Prank / False Alarm (No actual emergency found on site)',
@@ -186,6 +190,9 @@ export class CitizensPanel implements OnInit, OnDestroy {
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
     this.openMenuUserId = null;
+    if (this.isStrikeModalOpen) {
+      this.closeStrikeModal();
+    }
   }
 
   @HostListener('window:scroll')

@@ -170,16 +170,16 @@ func Seed() {
 		}
 		adminID := adminUser.UserID
 
-		// 6. Active Emergencies (4 Active: 3 Pending, 1 Multi-Agency Dispatched)
-		seedEmergency(elenaUser.UserID, 1, 5, 15.3092, 120.9025,
+		// 6. Active Emergencies (4 Active: 3 Pending, 1 Multi-Agency Dispatched — all inside San Isidro GeoJSON bounds)
+		seedEmergency(elenaUser.UserID, 1, 5, 15.3032, 120.9060,
 			"Visible residential fire and heavy dark smoke near San Isidro Public Market block.",
 			"Pending", 0, nil, now.Add(-12*time.Minute), nil, nil)
 
-		seedEmergency(rafaelUser.UserID, 3, 1, 15.3015, 120.9110,
+		seedEmergency(rafaelUser.UserID, 3, 1, 15.3026, 120.8947,
 			"Elderly resident experiencing sudden chest pain and shortness of breath at Purok 3.",
 			"Pending", 0, nil, now.Add(-25*time.Minute), nil, nil)
 
-		calabaFlood := seedEmergency(maritesUser.UserID, 2, 2, 15.3180, 120.8895,
+		calabaFlood := seedEmergency(maritesUser.UserID, 2, 2, 15.2892, 120.8732,
 			"Rapidly rising waist-deep floodwater trapping 4 family members inside residence.",
 			"Dispatched", 0, nil, now.Add(-40*time.Minute), nil, nil)
 		if calabaFlood != nil {
@@ -196,7 +196,7 @@ func Seed() {
 			})
 		}
 
-		seedEmergency(lizaUser.UserID, 4, 3, 15.2945, 120.9060,
+		seedEmergency(lizaUser.UserID, 4, 3, 15.3028, 120.9167,
 			"Traffic collision and heated altercation blocking northbound lane along Gapan-Olongapo Rd.",
 			"Pending", 0, nil, now.Add(-55*time.Minute), nil, nil)
 
@@ -209,14 +209,14 @@ func Seed() {
 			ago                 time.Duration
 			ag1, u1, ag2, u2    string
 		}{
-			{juanUser.UserID, 1, 5, 15.3088, 120.9012, "Electrical short circuit grass fire behind San Isidro High School.", "Resolved", 0, 2 * time.Hour, "San Isidro BFP (Firefighters)", "ENG-02 - Fire Engine 2", "", ""},
-			{elenaUser.UserID, 3, 7, 15.3050, 120.9175, "Motorcycle slip injury along San Roque feeder road; lacerations treated.", "Resolved", 0, 4 * time.Hour, "Rural Health Unit (RHU / Medical)", "RHU-01 - RHU Mobile Nurse", "MDRRMO Rescue Team", "AMB-01 - Ambulance Alpha"},
-			{kevinUser.UserID, 4, 6, 15.2880, 120.8970, "Unverified anonymous disturbance call; patrol found area completely calm.", "Resolved", 1, 26 * time.Hour, "San Isidro PNP (Police)", "PAT-01 - Police Patrol 1", "", ""},
-			{noelUser.UserID, 2, 4, 15.2985, 120.9150, "Creek overflow near Mangga footbridge; sandbagging completed with brgy tanods.", "Resolved", 0, 50 * time.Hour, "MDRRMO Rescue Team", "RES-01 - Rescue Team 1", "", ""},
-			{lizaUser.UserID, 5, 8, 15.3125, 120.9080, "citizen pressed SOS accidentally while securing phone holster.", "Cancelled", 0, 74 * time.Hour, "", "", "", ""},
-			{rafaelUser.UserID, 1, 2, 15.3170, 120.8935, "Dry rice husk pile smoldering near bodega perimeter wall.", "Resolved", 0, 98 * time.Hour, "San Isidro BFP (Firefighters)", "ENG-02 - Fire Engine 2", "MDRRMO Rescue Team", "AMB-02 - Ambulance Bravo"},
-			{maritesUser.UserID, 3, 9, 15.3210, 120.9055, "Heat exhaustion case during barangay assembly; stabilized on scene.", "Resolved", 0, 122 * time.Hour, "Rural Health Unit (RHU / Medical)", "RHU-01 - RHU Mobile Nurse", "", ""},
-			{kevinUser.UserID, 5, 6, 15.2895, 120.8985, "Repeated prank SOS call near vacant lot — Strike 3 issued.", "Resolved", 1, 146 * time.Hour, "San Isidro PNP (Police)", "PAT-01 - Police Patrol 1", "", ""},
+			{juanUser.UserID, 1, 5, 15.3032, 120.9077, "Electrical short circuit grass fire behind San Isidro High School.", "Resolved", 0, 2 * time.Hour, "San Isidro BFP (Firefighters)", "ENG-02 - Fire Engine 2", "", ""},
+			{elenaUser.UserID, 3, 7, 15.2836, 120.8805, "Motorcycle slip injury along San Roque feeder road; lacerations treated.", "Resolved", 0, 4 * time.Hour, "Rural Health Unit (RHU / Medical)", "RHU-01 - RHU Mobile Nurse", "MDRRMO Rescue Team", "AMB-01 - Ambulance Alpha"},
+			{kevinUser.UserID, 4, 6, 15.2353, 120.9236, "Unverified anonymous disturbance call; patrol found area completely calm.", "Resolved", 1, 26 * time.Hour, "San Isidro PNP (Police)", "PAT-01 - Police Patrol 1", "", ""},
+			{noelUser.UserID, 2, 4, 15.2289, 120.9047, "Creek overflow near Mangga footbridge; sandbagging completed with brgy tanods.", "Resolved", 0, 50 * time.Hour, "MDRRMO Rescue Team", "RES-01 - Rescue Team 1", "", ""},
+			{lizaUser.UserID, 5, 8, 15.2911, 120.8906, "citizen pressed SOS accidentally while securing phone holster.", "Cancelled", 0, 74 * time.Hour, "", "", "", ""},
+			{rafaelUser.UserID, 1, 2, 15.2913, 120.8711, "Dry rice husk pile smoldering near bodega perimeter wall.", "Resolved", 0, 98 * time.Hour, "San Isidro BFP (Firefighters)", "ENG-02 - Fire Engine 2", "MDRRMO Rescue Team", "AMB-02 - Ambulance Bravo"},
+			{maritesUser.UserID, 3, 9, 15.2682, 120.9102, "Heat exhaustion case during barangay assembly; stabilized on scene.", "Resolved", 0, 122 * time.Hour, "Rural Health Unit (RHU / Medical)", "RHU-01 - RHU Mobile Nurse", "", ""},
+			{kevinUser.UserID, 5, 6, 15.2353, 120.9264, "Repeated prank SOS call near vacant lot — Strike 3 issued.", "Resolved", 1, 146 * time.Hour, "San Isidro PNP (Police)", "PAT-01 - Police Patrol 1", "", ""},
 		}
 
 		for _, s := range archivedSpecs {
@@ -254,11 +254,11 @@ func Seed() {
 	if hazardCount == 0 {
 		now := time.Now().In(config.PhilippineTZ)
 		hazards := []models.Hazard{
-			{UserID: &rafaelUser.UserID, BarangayID: intPtr(2), HazardType: strPtr("Flooded Street"), Description: strPtr("Knee-deep floodwater across Calaba provincial road; avoid with low-clearance vehicles."), Latitude: floatPtr(15.3165), Longitude: floatPtr(120.8920), Status: strPtr("Active"), CreatedAt: timePtr(now.Add(-30 * time.Minute)), UpdatedAt: timePtr(now.Add(-30 * time.Minute))},
-			{UserID: &lizaUser.UserID, BarangayID: intPtr(7), HazardType: strPtr("Fallen Tree"), Description: strPtr("Uprooted acacia tree blocking one lane near San Roque chapel."), Latitude: floatPtr(15.3040), Longitude: floatPtr(120.9195), Status: strPtr("Active"), CreatedAt: timePtr(now.Add(-75 * time.Minute)), UpdatedAt: timePtr(now.Add(-75 * time.Minute))},
-			{UserID: &elenaUser.UserID, BarangayID: intPtr(3), HazardType: strPtr("Downed Wire"), Description: strPtr("Low-hanging utility line sparking near Malapit elementary crossing."), Latitude: floatPtr(15.2970), Longitude: floatPtr(120.9040), Status: strPtr("Active"), CreatedAt: timePtr(now.Add(-2 * time.Hour)), UpdatedAt: timePtr(now.Add(-2 * time.Hour))},
-			{UserID: &maritesUser.UserID, BarangayID: intPtr(9), HazardType: strPtr("Road Obstruction"), Description: strPtr("Spilled gravel cleared by municipal engineering crew."), Latitude: floatPtr(15.3205), Longitude: floatPtr(120.9042), Status: strPtr("Resolved"), CreatedAt: timePtr(now.Add(-28 * time.Hour)), UpdatedAt: timePtr(now.Add(-24 * time.Hour))},
-			{UserID: &juanUser.UserID, BarangayID: intPtr(1), HazardType: strPtr("Flooded Street"), Description: strPtr("Temporary drainage clog near Alua market subsided."), Latitude: floatPtr(15.3022), Longitude: floatPtr(120.9098), Status: strPtr("Resolved"), CreatedAt: timePtr(now.Add(-54 * time.Hour)), UpdatedAt: timePtr(now.Add(-50 * time.Hour))},
+			{UserID: &rafaelUser.UserID, BarangayID: intPtr(2), HazardType: strPtr("Flooded Street"), Description: strPtr("Knee-deep floodwater across Calaba provincial road; avoid with low-clearance vehicles."), Latitude: floatPtr(15.2892), Longitude: floatPtr(120.8753), Status: strPtr("Active"), CreatedAt: timePtr(now.Add(-30 * time.Minute)), UpdatedAt: timePtr(now.Add(-30 * time.Minute))},
+			{UserID: &lizaUser.UserID, BarangayID: intPtr(7), HazardType: strPtr("Fallen Tree"), Description: strPtr("Uprooted acacia tree blocking one lane near San Roque chapel."), Latitude: floatPtr(15.2836), Longitude: floatPtr(120.8826), Status: strPtr("Active"), CreatedAt: timePtr(now.Add(-75 * time.Minute)), UpdatedAt: timePtr(now.Add(-75 * time.Minute))},
+			{UserID: &elenaUser.UserID, BarangayID: intPtr(3), HazardType: strPtr("Downed Wire"), Description: strPtr("Low-hanging utility line sparking near Malapit elementary crossing."), Latitude: floatPtr(15.3028), Longitude: floatPtr(120.9184), Status: strPtr("Active"), CreatedAt: timePtr(now.Add(-2 * time.Hour)), UpdatedAt: timePtr(now.Add(-2 * time.Hour))},
+			{UserID: &maritesUser.UserID, BarangayID: intPtr(9), HazardType: strPtr("Road Obstruction"), Description: strPtr("Spilled gravel cleared by municipal engineering crew."), Latitude: floatPtr(15.2682), Longitude: floatPtr(120.9138), Status: strPtr("Resolved"), CreatedAt: timePtr(now.Add(-28 * time.Hour)), UpdatedAt: timePtr(now.Add(-24 * time.Hour))},
+			{UserID: &juanUser.UserID, BarangayID: intPtr(1), HazardType: strPtr("Flooded Street"), Description: strPtr("Temporary drainage clog near Alua market subsided."), Latitude: floatPtr(15.3026), Longitude: floatPtr(120.8963), Status: strPtr("Resolved"), CreatedAt: timePtr(now.Add(-54 * time.Hour)), UpdatedAt: timePtr(now.Add(-50 * time.Hour))},
 		}
 		for i := range hazards {
 			h := hazards[i]

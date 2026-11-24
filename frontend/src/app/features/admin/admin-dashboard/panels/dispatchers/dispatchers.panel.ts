@@ -22,6 +22,7 @@ import { AppIconComponent } from '../../../../../shared/components/app-icon/app-
 import { FilterDropdownComponent, FilterDropdownOption } from '../../../../../shared/components/filter-dropdown/filter-dropdown.component';
 
 import { CustomTooltipDirective } from '../../../../../shared/directives/custom-tooltip.directive';
+import { dialogModalEnter, dialogModalLeave } from '../../../../../core/animations/dialog-modal-transition';
 
 interface DispatcherForm {
   first_name: string; last_name: string; phone: string;
@@ -67,6 +68,9 @@ export class DispatchersPanel implements OnInit, OnDestroy {
     { value: 'all', label: 'All Barangays (Reset)' },
     ...BARANGAYS.map(b => ({ value: b.id, label: b.name }))
   ];
+
+  readonly dialogModalEnter = dialogModalEnter;
+  readonly dialogModalLeave = dialogModalLeave;
 
   isDispatcherModalOpen = false;
   isSavingDispatcher = false;
@@ -156,6 +160,9 @@ export class DispatchersPanel implements OnInit, OnDestroy {
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
     this.openMenuUserId = null;
+    if (this.isDispatcherModalOpen) {
+      this.closeDispatcherModal();
+    }
   }
 
   @HostListener('window:scroll')

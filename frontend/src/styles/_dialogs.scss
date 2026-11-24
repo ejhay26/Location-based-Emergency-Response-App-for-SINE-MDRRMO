@@ -108,12 +108,18 @@ ion-modal.strike-manager-modal {
   --max-height: 85vh;
   --border-radius: 20px;
   --box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --backdrop-opacity: 1;
+
+  &::part(backdrop) {
+    background: rgba(0, 0, 0, 0.58) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
 
   &::part(content) {
     border-radius: 20px;
     overflow: hidden;
     background: var(--ion-card-background, #ffffff);
-    animation: heavyMetalDropIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
     will-change: transform, opacity;
   }
 
@@ -133,12 +139,18 @@ ion-modal.dispatcher-form-modal {
   --max-height: 90vh;
   --border-radius: 20px;
   --box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --backdrop-opacity: 1;
+
+  &::part(backdrop) {
+    background: rgba(0, 0, 0, 0.58) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
 
   &::part(content) {
     border-radius: 20px;
     overflow: hidden;
     background: var(--ion-card-background, #ffffff);
-    animation: heavyMetalDropIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
     will-change: transform, opacity;
   }
 

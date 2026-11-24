@@ -365,9 +365,9 @@
   </div>
 
     <!-- EXPORT PDF MODAL -->
-  <div *ngIf="showExportModal" class="c-overlay" (click)="closeExportModal()">
+  <div *ngIf="showExportModal" class="c-overlay" [class.c-overlay-closing]="isClosingExportModal" (click)="closeExportModal()">
     <div class="c-overlay-bg"></div>
-    <div class="c-panel" (click)="$event.stopPropagation()" style="max-width: 640px; width: 92%; border-radius: 20px; overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;">
+    <div class="c-panel" [class.c-panel-closing]="isClosingExportModal" (click)="$event.stopPropagation()" style="max-width: 640px; width: 92%; border-radius: 20px; overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;">
       
       <!-- Modal Header -->
       <div style="padding: 18px 24px; border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">

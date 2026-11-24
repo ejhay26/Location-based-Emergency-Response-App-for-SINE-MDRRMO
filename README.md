@@ -2,7 +2,7 @@
 
 <p>
   <a href="#_"><img src="https://img.shields.io/badge/license-Proprietary-red" alt="License" style="pointer-events: none;" /></a>
-  <a href="#_"><img src="https://img.shields.io/badge/version-v0.99.4-blue" alt="Version" style="pointer-events: none;" /></a>
+  <a href="#_"><img src="https://img.shields.io/badge/version-v0.99.5-blue" alt="Version" style="pointer-events: none;" /></a>
   <a href="#_"><img src="https://img.shields.io/badge/backend-Go%20Fiber%20v2-00ADD8?logo=go&logoColor=white" alt="Backend" style="pointer-events: none;" /></a>
   <a href="#_"><img src="https://img.shields.io/badge/go-1.24-00ADD8?logo=go&logoColor=white" alt="Language" style="pointer-events: none;" /></a>
   <a href="#_"><img src="https://img.shields.io/badge/frontend-Angular%2020%20%2F%20Ionic%208-DD0031?logo=angular&logoColor=white" alt="Angular" style="pointer-events: none;" /></a>
@@ -22,7 +22,7 @@ Bachelor of Science in Information Technology Capstone Project — Nueva Ecija U
 
 Official pre-compiled application packages and installers for all supported operating systems are published under [**GitHub Releases**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases).
 
-[**Download Latest Release (v0.93.4)**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/latest) &bull; [**Browse All Releases and Past Versions**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases)
+[**Download Latest Release (v0.99.5)**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases/latest) &bull; [**Browse All Releases and Past Versions**](https://github.com/ejhay26/Location-based-Emergency-Response-App-for-SINE-MDRRMO/releases)
 
 > [!IMPORTANT]
 > **Compatibility Notice for Older Releases:**

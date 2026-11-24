@@ -398,8 +398,8 @@ html.ion-palette-dark .custom-overhead-popup {
   }
 
   .pin-dispatched-box {
-    background: rgba(56, 128, 255, 0.1);
-    border: 1px solid rgba(56, 128, 255, 0.25);
+    background: rgba(0, 0, 0, 0.035);
+    border: 1px solid rgba(0, 0, 0, 0.09);
     border-radius: 9px;
     padding: 7px 10px;
     margin-bottom: 8px;
@@ -407,13 +407,13 @@ html.ion-palette-dark .custom-overhead-popup {
     .pin-unit-name {
       font-size: 12px;
       font-weight: 800;
-      color: #3880ff;
+      color: #1c1c1e;
     }
 
     .pin-copy-brief-btn {
-      background: rgba(56, 128, 255, 0.14);
-      border: 1px solid rgba(56, 128, 255, 0.28);
-      color: #3880ff;
+      background: rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      color: #1c1c1e;
       padding: 2px 7px;
       border-radius: 5px;
       font-size: 10.5px;
@@ -422,7 +422,7 @@ html.ion-palette-dark .custom-overhead-popup {
       transition: background 0.12s ease;
 
       &:hover {
-        background: rgba(56, 128, 255, 0.24);
+        background: rgba(0, 0, 0, 0.11);
       }
     }
 
@@ -503,22 +503,33 @@ html.ion-palette-dark .custom-overhead-popup {
     }
 
     .btn-pin-dispatch {
-      background: #ffc409 !important;
-      color: #1c1c1e !important;
-      box-shadow: 0 3px 10px rgba(255, 196, 9, 0.35);
+      background: var(--ion-color-danger, #d32f2f) !important;
+      color: #ffffff !important;
+      box-shadow: 0 3px 10px rgba(211, 47, 47, 0.28);
 
       svg {
-        stroke: #1c1c1e !important;
+        stroke: #ffffff !important;
       }
     }
 
     .btn-pin-resolve {
-      background: #2dd36f !important;
+      background: #10b981 !important;
       color: #ffffff !important;
-      box-shadow: 0 3px 10px rgba(45, 211, 111, 0.35);
+      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.28);
 
       svg {
         stroke: #ffffff !important;
+      }
+
+      &.btn-pin-resolve--secondary {
+        background: rgba(16, 185, 129, 0.12) !important;
+        color: #059669 !important;
+        border: 1px solid rgba(16, 185, 129, 0.28) !important;
+        box-shadow: none !important;
+
+        svg {
+          stroke: #059669 !important;
+        }
       }
     }
   }
@@ -527,6 +538,21 @@ html.ion-palette-dark .custom-overhead-popup {
 /* ── DARK PALETTE OVERRIDES FOR OVERHEAD PIN CARD ── */
 html.ion-palette-dark .dispatch-pin-card {
   color: #f2f2f7;
+
+  .pin-dispatched-box {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+
+    .pin-unit-name {
+      color: #f2f2f7;
+    }
+
+    .pin-copy-brief-btn {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.14);
+      color: #f2f2f7;
+    }
+  }
 
   .pin-timestamp {
     color: rgba(255, 255, 255, 0.6);

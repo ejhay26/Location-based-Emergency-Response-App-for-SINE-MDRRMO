@@ -301,7 +301,7 @@
 </div>
 
 <!-- ── STRIKE MANAGEMENT MODAL (ION-MODAL DIMS ENTIRE VIEWPORT INCLUDING SIDEBAR) ── -->
-<ion-modal [isOpen]="isStrikeModalOpen" (didDismiss)="closeStrikeModal()" class="strike-manager-modal">
+<ion-modal [isOpen]="isStrikeModalOpen" [enterAnimation]="dialogModalEnter" [leaveAnimation]="dialogModalLeave" (didDismiss)="closeStrikeModal()" class="strike-manager-modal">
   <ng-template>
     <!-- Sleek Card Header (No bulky colored banner) -->
     <div style="padding: 16px 20px 14px 20px; background: var(--ion-card-background, #ffffff); border-bottom: 1px solid var(--ion-color-step-150, rgba(0,0,0,0.08)); display: flex; align-items: center; justify-content: space-between;">

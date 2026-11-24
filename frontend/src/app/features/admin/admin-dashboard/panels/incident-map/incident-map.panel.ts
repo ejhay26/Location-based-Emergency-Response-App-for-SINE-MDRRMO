@@ -101,6 +101,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   private echoHazardSub?: Subscription;
 
   isDispatchModalOpen = false;
+  isDispatchModalClosing = false;
   isDispatching = false;
   selectedAgencies: string[] = [];
   dispatchForm = { request_id: null as number | null, agency: '', unit_name: '', notes: '' };
@@ -148,6 +149,20 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       if (isInsideProtectedOverlay) {
         return;
       }
+    }
+    this.closeAllMenus();
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscapeKey(event?: KeyboardEvent) {
+    if (this.isDispatchModalOpen) {
+      event?.stopPropagation();
+      this.closeDispatchModal();
+      return;
+    }
+    if (this.isMobileFilterOpen) {
+      this.closeMobileFilter();
+      return;
     }
     this.closeAllMenus();
   }
@@ -1228,8 +1243,15 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.map = L.map('dispatch-map', {
       minZoom: this.mapTileService.minZoom,
       maxZoom: this.mapTileService.maxZoom,
-      zoomControl: false
-    }).setView([15.3014, 120.9274], 13);
+      zoomControl: false,
+      scrollWheelZoom: true,
+      wheelDebounceTime: 40,
+      wheelPxPerZoomLevel: 60,
+      zoomSnap: 0.5,
+      zoomDelta: 1,
+      bounceAtZoomLimits: false,
+      maxBoundsViscosity: 0.75
+    }).setView([15.2850, 120.9020], 13);
 
     const osmTileUrl = (environment as any).mapTileUrl || 'http://159.223.42.159:3000/tiles/osm/{z}/{x}/{y}.png';
     const satelliteTileUrl = (environment as any).satelliteTileUrl || 'http://159.223.42.159:3000/tiles/satellite/{z}/{y}/{x}.jpg';
@@ -1329,7 +1351,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     this.http.get('assets/data/san-isidro.geojson').subscribe((json: any) => {
       const boundaryLayer = L.geoJSON(json, { filter: (f) => f.geometry.type !== 'Point', style: { color: '#eb445a', weight: 3, fillOpacity: 0 } }).addTo(this.map);
       this.townBounds = boundaryLayer.getBounds();
-      this.map.setMaxBounds(this.townBounds.pad(0.2));
+      this.map.setMaxBounds(this.townBounds.pad(0.75));
       const hole = json.features[0].geometry.coordinates[0].map((c: any[]) => [c[1], c[0]]);
       L.polygon([[[-90,-180],[90,-180],[90,180],[-90,180]], hole], { color: 'transparent', fillColor: '#888888', fillOpacity: 0.6 }).addTo(this.map);
 
@@ -1401,9 +1423,9 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       const unit = req.unit_name ? ` (${req.unit_name})` : '';
       const dispBy = req.dispatched_by_name ? `<p class="pin-dispatcher-info" style="margin: 3px 0 0; font-size: 11px; color: var(--ion-color-medium);">Dispatched by: <strong>${req.dispatched_by_name}</strong></p>` : '';
       dispatchedHtml = `
-        <div class="pin-dispatched-box" style="margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(56,128,255,0.08); border: 1px solid rgba(56,128,255,0.2);">
+        <div class="pin-dispatched-box" style="margin-top: 8px; padding: 8px 10px; border-radius: 10px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
-            <span class="pin-unit-name" style="font-weight:700; color:var(--ion-color-primary, #3880ff); font-size:12px;">${req.agency}${unit}</span>
+            <span class="pin-unit-name" style="font-weight:700; font-size:12px;">${req.agency}${unit}</span>
             <button type="button" onclick="window.__copyDispatchBrief(${req.request_id})" class="pin-copy-brief-btn">Brief</button>
           </div>
           ${dispBy}
@@ -1424,12 +1446,15 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       mediaHtml = `<div class="pin-proof-strip" style="margin-top:8px;">${thumbs}</div>`;
     }
 
-    const dispatchBtn = req.status === 'Pending'
+    const isPending = req.status === 'Pending';
+    const dispatchBtn = isPending
       ? `<button type="button" class="btn-pin-dispatch" onclick="window.dispatchEvent(new CustomEvent('map-dispatch',{detail:${req.request_id}}))">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1c1c1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/><path d="M8 8v4"/><path d="M6 10h4"/></svg>
-          <span style="color:#1c1c1e;font-weight:800;">Dispatch</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/><path d="M8 8v4"/><path d="M6 10h4"/></svg>
+          <span style="color:#ffffff;font-weight:800;">Dispatch</span>
         </button>`
       : '';
+    const resolveClass = isPending ? 'btn-pin-resolve btn-pin-resolve--secondary' : 'btn-pin-resolve';
+    const resolveStroke = isPending ? '#059669' : '#ffffff';
 
     return `
       <div class="accessible-popup-box dispatch-pin-card unified-match-card">
@@ -1471,8 +1496,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
 
         <div class="pin-action-row" style="display:flex;gap:8px;margin-top:14px;">
           ${dispatchBtn}
-          <button type="button" class="btn-pin-resolve" onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${req.request_id}}))">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ffffff" stroke-width="2.5" style="margin-right: 6px;"><polyline points="20 6 9 17 4 12"/></svg>
+          <button type="button" class="${resolveClass}" onclick="window.dispatchEvent(new CustomEvent('map-resolve',{detail:${req.request_id}}))">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="${resolveStroke}" stroke-width="2.5" style="margin-right: 6px;"><polyline points="20 6 9 17 4 12"/></svg>
             <span>Resolve</span>
           </button>
         </div>
@@ -1584,6 +1609,16 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
       color: '#eb445a'
     };
 
+    const popupOpts: L.PopupOptions = {
+      maxWidth: 340,
+      minWidth: 280,
+      className: 'custom-overhead-popup',
+      autoPan: true,
+      keepInView: true,
+      autoPanPaddingTopLeft: L.point(24, 76),
+      autoPanPaddingBottomRight: L.point(24, 28)
+    };
+
     this.filteredActiveRequests.forEach(req => {
       const cfg = iconConfig[req.incident_name] || defaultIcon;
       const isRecent = req.created_at
@@ -1603,15 +1638,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         className: 'leaflet-blank-div-icon', iconSize: [45,60], iconAnchor: [22.5,60], popupAnchor: [0,-52]
       });
       const popup = this.createEmergencyPopupContent(req);
-      const marker = L.marker([req.latitude, req.longitude], { icon }).bindPopup(popup, {
-        maxWidth: 340,
-        minWidth: 280,
-        className: 'custom-overhead-popup'
-      }).addTo(this.map);
+      const marker = L.marker([req.latitude, req.longitude], { icon }).bindPopup(popup, popupOpts).addTo(this.map);
       (marker as any)._incidentData = req;
       (marker as any)._incidentType = 'emergency';
       marker.on('click', () => {
-        this.selectIncidentCard(req, 'emergency');
+        this.selectIncidentCard(req, 'emergency', true);
       });
       this.mapMarkers.push(marker);
     });
@@ -1632,15 +1663,11 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         className: 'leaflet-blank-div-icon', iconSize: [45,60], iconAnchor: [22.5,60], popupAnchor: [0,-52]
       });
       const popup = this.createHazardPopupContent(haz);
-      const marker = L.marker([haz.latitude, haz.longitude], { icon }).bindPopup(popup, {
-        maxWidth: 340,
-        minWidth: 280,
-        className: 'custom-overhead-popup'
-      }).addTo(this.map);
+      const marker = L.marker([haz.latitude, haz.longitude], { icon }).bindPopup(popup, popupOpts).addTo(this.map);
       (marker as any)._incidentData = haz;
       (marker as any)._incidentType = 'hazard';
       marker.on('click', () => {
-        this.selectIncidentCard(haz, 'hazard');
+        this.selectIncidentCard(haz, 'hazard', true);
       });
       this.mapMarkers.push(marker);
     });
@@ -1663,13 +1690,9 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         className: 'leaflet-blank-div-icon', iconSize: [45, 60], iconAnchor: [22.5, 60], popupAnchor: [0, -52]
       });
       const popup = this.createEmergencyPopupContent(demoReq);
-      const marker = L.marker([demoReq.latitude, demoReq.longitude], { icon }).bindPopup(popup, {
-        maxWidth: 340,
-        minWidth: 280,
-        className: 'custom-overhead-popup'
-      }).addTo(this.map);
+      const marker = L.marker([demoReq.latitude, demoReq.longitude], { icon }).bindPopup(popup, popupOpts).addTo(this.map);
       marker.on('click', () => {
-        this.selectIncidentCard(demoReq, 'emergency');
+        this.selectIncidentCard(demoReq, 'emergency', true);
       });
       this.mapMarkers.push(marker);
     }
@@ -1762,6 +1785,8 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   openDispatchModal(requestId: number) {
+    (document.activeElement as HTMLElement)?.blur();
+    this.isDispatchModalClosing = false;
     this.dispatchForm.request_id = requestId;
     this.selectedAgencies = [];
     this.dispatchForm.agency = '';
@@ -1990,6 +2015,21 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     });
   }
 
+  closeDispatchModal() {
+    if (!this.isDispatchModalOpen || this.isDispatchModalClosing) return;
+    (document.activeElement as HTMLElement)?.blur();
+    if (this.userSettings.getBool('reduce_animations')) {
+      this.isDispatchModalOpen = false;
+      this.isDispatchModalClosing = false;
+      return;
+    }
+    this.isDispatchModalClosing = true;
+    setTimeout(() => {
+      this.isDispatchModalOpen = false;
+      this.isDispatchModalClosing = false;
+    }, 160);
+  }
+
   submitDispatch() {
     if (this.selectedAgencies.length === 0 || !this.dispatchForm.request_id || this.isDispatching) return;
     this.isDispatching = true;
@@ -2006,7 +2046,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
         this.isDispatching = false;
         const count = this.selectedAgencies.length;
         this.ui.showToast(count > 1 ? `${count} agencies dispatched successfully!` : 'Unit dispatched successfully!', 'success');
-        this.isDispatchModalOpen = false;
+        this.closeDispatchModal();
         this.loadData();
       },
       error: (err: any) => {
@@ -2017,7 +2057,7 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     });
   }
 
-  selectIncidentCard(item: any, type: 'emergency' | 'hazard') {
+  selectIncidentCard(item: any, type: 'emergency' | 'hazard', fromMarkerClick = false) {
     if (!item) return;
     const id = type === 'emergency' ? item.request_id : item.hazard_id;
     this.selectedRequestId = id;
@@ -2029,44 +2069,35 @@ export class IncidentMapPanel implements OnChanges, AfterViewInit, OnDestroy {
     const isReduced = this.userSettings.getBool('reduce_animations');
 
     if (!isNaN(lat) && !isNaN(lng) && this.map) {
+      let targetMarker = this.mapMarkers.find(m => {
+        const mData = (m as any)._incidentData;
+        const mType = (m as any)._incidentType;
+        if (mData && mType) {
+          const mId = mType === 'emergency' ? mData.request_id : mData.hazard_id;
+          return mId === id && mType === type;
+        }
+        const latLng = m.getLatLng();
+        return Math.abs(latLng.lat - lat) < 0.001 && Math.abs(latLng.lng - lng) < 0.001;
+      });
+      if (!targetMarker && this.mapMarkers.length > 0) {
+        targetMarker = this.mapMarkers[0];
+      }
+
+      const targetZoom = fromMarkerClick ? Math.max(this.map.getZoom(), 14) : 16;
+      const pinPt = this.map.project([lat, lng], targetZoom);
+      const offsetCenter = this.map.unproject(pinPt.subtract([0, 170]), targetZoom);
+
       if (isReduced) {
-        this.map.setView([lat, lng], 16, { animate: false });
-        let targetMarker = this.mapMarkers.find(m => {
-          const mData = (m as any)._incidentData;
-          const mType = (m as any)._incidentType;
-          if (mData && mType) {
-            const mId = mType === 'emergency' ? mData.request_id : mData.hazard_id;
-            return mId === id && mType === type;
-          }
-          const latLng = m.getLatLng();
-          return Math.abs(latLng.lat - lat) < 0.001 && Math.abs(latLng.lng - lng) < 0.001;
-        });
-        if (!targetMarker && this.mapMarkers.length > 0) {
-          targetMarker = this.mapMarkers[0];
-        }
-        if (targetMarker) {
-          targetMarker.openPopup();
-        }
+        this.map.setView(offsetCenter, targetZoom, { animate: false });
+        targetMarker?.openPopup();
+      } else if (fromMarkerClick) {
+        targetMarker?.openPopup();
+        this.map.panTo(offsetCenter, { animate: true, duration: 0.28 });
       } else {
-        this.map.flyTo([lat, lng], 16, { animate: true, duration: 0.5 });
+        this.map.flyTo(offsetCenter, targetZoom, { animate: true, duration: 0.35 });
         setTimeout(() => {
-          let targetMarker = this.mapMarkers.find(m => {
-            const mData = (m as any)._incidentData;
-            const mType = (m as any)._incidentType;
-            if (mData && mType) {
-              const mId = mType === 'emergency' ? mData.request_id : mData.hazard_id;
-              return mId === id && mType === type;
-            }
-            const latLng = m.getLatLng();
-            return Math.abs(latLng.lat - lat) < 0.001 && Math.abs(latLng.lng - lng) < 0.001;
-          });
-          if (!targetMarker && this.mapMarkers.length > 0) {
-            targetMarker = this.mapMarkers[0];
-          }
-          if (targetMarker) {
-            targetMarker.openPopup();
-          }
-        }, 250);
+          targetMarker?.openPopup();
+        }, 360);
       }
     }
 

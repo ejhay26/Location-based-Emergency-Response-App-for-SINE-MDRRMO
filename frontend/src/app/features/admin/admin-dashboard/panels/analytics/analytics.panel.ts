@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -435,11 +435,19 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
   }
 
   showExportModal = false;
+  isClosingExportModal = false;
   exportReportTitle = 'SAGIP — Executive Analytics & Operations Intelligence Report';
   exportOfficeName = 'Municipal Disaster Risk Reduction and Management Office (SINE - San Isidro, Nueva Ecija)';
   exportPreparedBy = 'MDRRMO Data Officer';
   exportDesignation = 'MDRRMO Operations & Statistics Lead';
   exportRemarks = 'Certified executive operations and incident statistics summary for municipal emergency preparedness and resource allocation.';
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.showExportModal) {
+      this.closeExportModal();
+    }
+  }
 
   openExportModal(): void {
     const userStr = localStorage.getItem('user');
@@ -450,11 +458,26 @@ export class AnalyticsPanel implements OnInit, OnDestroy {
     }
     const role = localStorage.getItem('role') || 'Admin';
     this.exportDesignation = (role.toLowerCase() === 'admin') ? 'MDRRMO Administrator' : 'Lead Operations Dispatcher';
+    this.isClosingExportModal = false;
     this.showExportModal = true;
   }
 
   closeExportModal(): void {
-    this.showExportModal = false;
+    if (!this.showExportModal || this.isClosingExportModal) return;
+    const reduced = typeof document !== 'undefined' && (
+      document.documentElement.classList.contains('reduce-animations') ||
+      document.body?.classList.contains('reduce-animations')
+    );
+    if (reduced) {
+      this.showExportModal = false;
+      this.isClosingExportModal = false;
+      return;
+    }
+    this.isClosingExportModal = true;
+    setTimeout(() => {
+      this.showExportModal = false;
+      this.isClosingExportModal = false;
+    }, 160);
   }
 
   printPdfReport(): void {

@@ -38,11 +38,11 @@ jobs:
               -F name="$RELEASE_TITLE" \
               -F body=@.github/release_notes.md
           else
-            echo "Creating new draft release for $TARGET_TAG..."
+            echo "Creating new release for $TARGET_TAG..."
             gh api -X POST "repos/${{ github.repository }}/releases" \
               -F tag_name="$TARGET_TAG" \
               -F name="$RELEASE_TITLE" \
-              -F draft:=true \
+              -F draft:=false \
               -F prerelease:=false \
               -F body=@.github/release_notes.md
           fi
@@ -170,7 +170,7 @@ jobs:
           projectPath: './frontend'
           tagName: ${{ inputs.tag || github.ref_name }}
           releaseName: 'SAGIP Emergency Response App ${{ inputs.tag || github.ref_name }}'
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
 
@@ -183,7 +183,7 @@ jobs:
           projectPath: './frontend'
           tagName: ${{ inputs.tag || github.ref_name }}
           releaseName: 'SAGIP Emergency Response App ${{ inputs.tag || github.ref_name }}'
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
 

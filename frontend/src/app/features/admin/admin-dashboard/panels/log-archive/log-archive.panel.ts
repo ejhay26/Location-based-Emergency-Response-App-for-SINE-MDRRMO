@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -216,11 +216,19 @@ export class LogArchivePanel implements OnInit {
   }
 
   showExportModal = false;
+  isClosingExportModal = false;
   exportReportTitle = 'SAGIP — Emergency Incident Log Archive Report';
   exportOfficeName = 'Municipal Disaster Risk Reduction and Management Office (SINE - San Isidro, Nueva Ecija)';
   exportPreparedBy = 'MDRRMO Officer';
   exportDesignation = 'MDRRMO Operations Officer';
   exportRemarks = 'Certified official dispatch and incident log records of the Municipal Disaster Risk Reduction and Management Office.';
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.showExportModal) {
+      this.closeExportModal();
+    }
+  }
 
   openExportModal(): void {
     if (this.filteredArchivedRequests.length === 0) {
@@ -235,11 +243,26 @@ export class LogArchivePanel implements OnInit {
     }
     const role = localStorage.getItem('role') || 'Admin';
     this.exportDesignation = (role.toLowerCase() === 'admin') ? 'MDRRMO Administrator' : 'Lead Operations Dispatcher';
+    this.isClosingExportModal = false;
     this.showExportModal = true;
   }
 
   closeExportModal(): void {
-    this.showExportModal = false;
+    if (!this.showExportModal || this.isClosingExportModal) return;
+    const reduced = typeof document !== 'undefined' && (
+      document.documentElement.classList.contains('reduce-animations') ||
+      document.body?.classList.contains('reduce-animations')
+    );
+    if (reduced) {
+      this.showExportModal = false;
+      this.isClosingExportModal = false;
+      return;
+    }
+    this.isClosingExportModal = true;
+    setTimeout(() => {
+      this.showExportModal = false;
+      this.isClosingExportModal = false;
+    }, 160);
   }
 
   printPdfReport(): void {
